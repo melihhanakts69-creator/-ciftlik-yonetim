@@ -40,7 +40,7 @@ const [yeniBuzagiIsim, setYeniBuzagiIsim] = useState('');
         });
 
         const yeniBuzagi = { ...response.data, id: response.data._id };
-        setBuzagilar([...buzagilar, yeniBuzagi]);
+        setBuzagilar(prevBuzagilar => [...prevBuzagilar, yeniBuzagi]);
         
       // Formu temizle
         setYeniBuzagiIsim('');
