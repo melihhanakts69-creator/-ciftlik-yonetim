@@ -133,20 +133,27 @@ function App() {
 
   // Bugünün kayıtları
   const bugunKayitlari = sutKayitlari.filter(k => k.tarih === bugunTarih());
-// Buzağıları yükle
+// Buzağıları API'den yükle
   useEffect(() => {
-    const kayitliBuzagilar = localStorage.getItem('buzagilar');
-    if (kayitliBuzagilar) {
-      setBuzagilar(JSON.parse(kayitliBuzagilar));
+    if (girisYapildi) {
+      buzagilariYukle();
     }
-  }, []);
+  }, [girisYapildi]);
 
-  // Buzağılar değiştiğinde kaydet
-  useEffect(() => {
-    if (buzagilar.length > 0) {
-      localStorage.setItem('buzagilar', JSON.stringify(buzagilar));
+  const buzagilariYukle = async () => {
+    try {
+      const response = await api.getBuzagilar();
+      const buzagilarData = response.data.map(buzagi => ({
+        ...buzagi,
+        id: buzagi._id
+      }));
+      setBuzagilar(buzagilarData);
+    } catch (error) {
+      console.error('Buzağılar yüklenemedi:', error);
     }
-  }, [buzagilar]);
+  };
+
+ 
 
   // Düveleri yükle
   useEffect(() => {
