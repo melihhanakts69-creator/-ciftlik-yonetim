@@ -23,6 +23,7 @@ app.use('/api/inekler', require('./routes/inekler'));
 app.use('/api/buzagilar', require('./routes/buzagilar'));
 app.use('/api/duveler', require('./routes/duveler'));
 app.use('/api/sut-kayitlari', require('./routes/sutKayitlari'));
+app.use('/api/yemler', require('./routes/yemler'));
 
 const PORT = process.env.PORT || 5000;
 

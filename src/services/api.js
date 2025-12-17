@@ -45,4 +45,10 @@ export const getSutKayitlari = () => api.get('/sut-kayitlari');
 export const createSutKaydi = (data) => api.post('/sut-kayitlari', data);
 export const deleteSutKaydi = (id) => api.delete(`/sut-kayitlari/${id}`);
 
+// YEM DEPOSU
+export const getYemStok = () => api.get('/yemler/stok');
+export const createYemStok = (data) => api.post('/yemler/stok', data);
+export const getYemHareketler = () => api.get('/yemler/hareketler');
+export const createYemHareket = (data) => api.post('/yemler/hareket', data);
+
 export default api;

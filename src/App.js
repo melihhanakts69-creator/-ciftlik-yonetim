@@ -2,6 +2,7 @@ import Login from './components/Auth/Login';
 import * as api from './services/api';
 import Buzagilar from './components/Buzagilar';
 import Duveler from './components/Duveler';
+import YemDeposu from './components/YemDeposu';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 
@@ -479,6 +480,22 @@ function App() {
         >
           🐄 Düveler
         </button>
+        <button 
+              onClick={() => setAktifSayfa('yem-deposu')}
+              style={{ 
+                padding: '10px 20px', 
+                fontSize: '16px',
+                backgroundColor: aktifSayfa === 'yem-deposu' ? '#4CAF50' : '#ddd',
+                color: aktifSayfa === 'yem-deposu' ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginBottom: '5px',
+                marginRight: '10px'
+              }}
+            >
+              🌾 Yem Deposu
+            </button>
       </div>
 
       {/* Ana Sayfa */}
@@ -1762,6 +1779,10 @@ function App() {
         />
       )}
         </>
+      )}
+      {/* Yem Deposu Sayfası */}
+      {aktifSayfa === 'yem-deposu' && (
+        <YemDeposu />
       )}  
     </div>
   );
