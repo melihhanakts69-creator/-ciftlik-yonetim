@@ -45,7 +45,7 @@ function YemDeposu() {
     }
   };
 
-  const hareketEkle = async () => {
+ const hareketEkle = async () => {
     if (!miktar || miktar <= 0) {
       alert('Geçerli bir miktar girin!');
       return;
@@ -61,19 +61,63 @@ function YemDeposu() {
         aciklama
       });
 
-      // Formu temizle
       setMiktar('');
       setBirimFiyat('');
       setAciklama('');
       setHareketEkrani(false);
 
-      // Verileri yenile
       await stoklariYukle();
       await hareketleriYukle();
 
       alert(`✅ ${hareketTipi} kaydedildi!`);
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Hareket eklenemedi!'));
+    }
+  };
+
+  const ayarlariYukle = async () => {
+    try {
+      const response = await api.getAyarlar();
+      setAyarlar(response.data);
+    } catch (error) {
+      console.error('Ayarlar yüklenemedi:', error);
+    }
+  };
+
+  const otomatikToggle = async () => {
+    if (!ayarlar) return;
+
+    try {
+      const response = await api.updateAyarlar({
+        otomatikYemTuketim: !ayarlar.otomatikYemTuketim
+      });
+      setAyarlar(response.data);
+      alert(`Otomatik tüketim ${response.data.otomatikYemTuketim ? 'açıldı' : 'kapatıldı'}!`);
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Ayar güncellenemedi!'));
+    }
+  };
+
+  const otomatikTuketimCalistir = async () => {
+    if (!ayarlar || !ayarlar.otomatikYemTuketim) {
+      alert('❌ Otomatik tüketim kapalı!');
+      return;
+    }
+
+    if (window.confirm('Bugün için otomatik yem tüketimi yapılsın mı?')) {
+      setOtomatikCalisiyor(true);
+      try {
+        const response = await api.otomatikTuketimCalistir();
+        alert(`✅ ${response.data.message}\n\n${response.data.tuketimler.map(t => `${t.yemTipi}: ${t.miktar} kg`).join('\n')}`);
+        
+        await stoklariYukle();
+        await hareketleriYukle();
+        await ayarlariYukle();
+      } catch (error) {
+        alert('❌ Hata: ' + (error.response?.data?.message || 'Otomatik tüketim yapılamadı!'));
+      } finally {
+        setOtomatikCalisiyor(false);
+      }
     }
   };
 
