@@ -3,6 +3,8 @@ import * as api from '../services/api';
 
 function YemDeposu() {
   const [stoklar, setStoklar] = useState([]);
+  const [ayarlar, setAyarlar] = useState(null);
+  const [otomatikCalisiyor, setOtomatikCalisiyor] = useState(false);
   const [hareketler, setHareketler] = useState([]);
   const [aktifSekme, setAktifSekme] = useState('stok');
   const [hareketEkrani, setHareketEkrani] = useState(false);
@@ -21,6 +23,8 @@ function YemDeposu() {
   useEffect(() => {
     stoklariYukle();
     hareketleriYukle();
+    
+    ayarlariYukle();
   }, []);
 
   const stoklariYukle = async () => {
@@ -94,23 +98,89 @@ function YemDeposu() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>🌾 Yem Deposu</h2>
-        <button
-          onClick={() => setHareketEkrani(true)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}
-        >
-          + Yem Hareketi Ekle
-        </button>
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h2 style={{ margin: 0 }}>🌾 Yem Deposu</h2>
+          <button
+            onClick={() => setHareketEkrani(true)}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
+            + Yem Hareketi Ekle
+          </button>
+        </div>
+
+        {/* OTOMATİK TÜKETİM KONTROL PANELİ */}
+        {ayarlar && (
+          <div style={{
+            backgroundColor: ayarlar.otomatikYemTuketim ? '#e8f5e9' : '#fff3e0',
+            padding: '15px 20px',
+            borderRadius: '12px',
+            border: `2px solid ${ayarlar.otomatikYemTuketim ? '#4CAF50' : '#FF9800'}`,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+                  🤖 Otomatik Tüketim:
+                </span>
+                <button
+                  onClick={otomatikToggle}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: ayarlar.otomatikYemTuketim ? '#4CAF50' : '#9e9e9e',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  {ayarlar.otomatikYemTuketim ? '● AÇIK' : '○ KAPALI'}
+                </button>
+              </div>
+
+              {ayarlar.sonTuketimTarihi && (
+                <div style={{ fontSize: '13px', color: '#666' }}>
+                  Son tüketim: {new Date(ayarlar.sonTuketimTarihi).toLocaleDateString('tr-TR')}
+                </div>
+              )}
+            </div>
+
+            {ayarlar.otomatikYemTuketim && (
+              <button
+                onClick={otomatikTuketimCalistir}
+                disabled={otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0]}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? '#ccc' : '#2196F3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {otomatikCalisiyor ? '⏳ İşleniyor...' : ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? '✅ Bugün Yapıldı' : '▶️ Bugün İçin Çalıştır'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Sekmeler */}

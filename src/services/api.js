@@ -51,4 +51,9 @@ export const createYemStok = (data) => api.post('/yemler/stok', data);
 export const getYemHareketler = () => api.get('/yemler/hareketler');
 export const createYemHareket = (data) => api.post('/yemler/hareket', data);
 
+// AYARLAR
+export const getAyarlar = () => api.get('/ayarlar');
+export const updateAyarlar = (data) => api.put('/ayarlar', data);
+export const otomatikTuketimCalistir = () => api.post('/ayarlar/otomatik-tuketim');
+
 export default api;
