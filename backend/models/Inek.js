@@ -34,6 +34,32 @@ const inekSchema = new mongoose.Schema({
   notlar: {
     type: String,
     trim: true
+  },
+  durum: {
+    type: String,
+    default: 'Aktif',
+    enum: ['Aktif', 'Satıldı', 'Öldü', 'Kuru Dönemde']
+  },
+  tohumlamaTarihi: {
+    type: String,
+    default: null
+  },
+  sonBuzagilamaTarihi: {
+    type: String,
+    default: null
+  },
+  laktasyonDonemi: {
+    type: Number,
+    default: 1
+  },
+  kuruDonemiBaslangic: {
+    type: String,
+    default: null
+  },
+  gebelikDurumu: {
+    type: String,
+    default: 'Belirsiz',
+    enum: ['Gebe', 'Gebe Değil', 'Belirsiz']
   }
 }, {
   timestamps: true

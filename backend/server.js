@@ -25,6 +25,7 @@ app.use('/api/duveler', require('./routes/duveler'));
 app.use('/api/sut-kayitlari', require('./routes/sutKayitlari'));
 app.use('/api/yemler', require('./routes/yemler'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
+app.use('/api/timeline', require('./routes/timeline'));
 
 const PORT = process.env.PORT || 5000;
 
