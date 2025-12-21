@@ -1793,11 +1793,8 @@ function App() {
       {/* Yem Deposu Sayfası */}
       {aktifSayfa === 'yem-deposu' && (
         <YemDeposu />
-      )}  
-    </div>
-  );
-}
-{/* İnek Detay Sayfası */}
+      )}
+      {/* İnek Detay Sayfası */}
       {secilenInek && (
         <InekDetay 
           inek={secilenInek}
@@ -1809,7 +1806,11 @@ function App() {
             setInekler(yeniInekler);
           }}
         />
-      )}
+      )}  
+    </div>
+  );
+}
+
 
 export default App;
                   
