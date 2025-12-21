@@ -58,7 +58,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
       if (inek.tohumlamaTarihi) {
         const tohumlama = new Date(inek.tohumlamaTarihi);
         const tahminiDoğum = new Date(tohumlama);
-        tahminiDoğum.setDate(tahminiDoğum.getDate() + 283); // Gebelik süresi
+        tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
 
         const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
 
@@ -72,7 +72,6 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
       }
     });
 
-    // Kalan güne göre sırala (en yakın en üstte)
     yaklaşanlar.sort((a, b) => a.kalanGun - b.kalanGun);
 
     res.json(yaklaşanlar);
