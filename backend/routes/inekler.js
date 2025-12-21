@@ -54,6 +54,33 @@ router.put('/:id', auth, async (req, res) => {
   kuruDonemiBaslangic,
   laktasyonDonemi
 } = req.body;
+router.get('/yaklasan-dogumlar', auth, async (req, res) => {
+  try {
+    const today = new Date();
+    const limit = new Date();
+    limit.setDate(today.getDate() + 30);
+
+    const inekler = await Inek.find({
+      userId: req.userId,
+      gebelikDurumu: 'Gebe',
+      tohumlamaTarihi: { $ne: null }
+    });
+
+    const sonuc = inekler.filter(inek => {
+      const tohumlama = new Date(inek.tohumlamaTarihi);
+      if (isNaN(tohumlama)) return false;
+
+      const dogum = new Date(tohumlama);
+      dogum.setDate(dogum.getDate() + 280);
+
+      return dogum >= today && dogum <= limit;
+    });
+
+    res.json(sonuc);
+  } catch (err) {
+    res.status(500).json({ message: 'Yaklaşan doğumlar alınamadı' });
+  }
+});
 
 const inek = await Inek.findOneAndUpdate(
   { _id: req.params.id, userId: req.userId },
@@ -103,5 +130,6 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
+
 
 module.exports = router;
