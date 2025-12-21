@@ -39,13 +39,42 @@ router.post('/', auth, async (req, res) => {
 // İNEK GÜNCELLE
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { isim, yas, kilo, kupeNo, dogumTarihi, buzagiSayisi, notlar } = req.body;
+   const {
+  isim,
+  yas,
+  kilo,
+  kupeNo,
+  dogumTarihi,
+  buzagiSayisi,
+  notlar,
 
-    const inek = await Inek.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
-      { isim, yas, kilo, kupeNo, dogumTarihi, buzagiSayisi, notlar },
-      { new: true }
-    );
+  gebelikDurumu,
+  tohumlamaTarihi,
+  sonBuzagilamaTarihi,
+  kuruDonemiBaslangic,
+  laktasyonDonemi
+} = req.body;
+
+const inek = await Inek.findOneAndUpdate(
+  { _id: req.params.id, userId: req.userId },
+  {
+    isim,
+    yas,
+    kilo,
+    kupeNo,
+    dogumTarihi,
+    buzagiSayisi,
+    notlar,
+
+    gebelikDurumu,
+    tohumlamaTarihi,
+    sonBuzagilamaTarihi,
+    kuruDonemiBaslangic,
+    laktasyonDonemi
+  },
+  { new: true }
+);
+
 
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
