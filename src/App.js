@@ -4,6 +4,7 @@ import Buzagilar from './components/Buzagilar';
 import Duveler from './components/Duveler';
 import YemDeposu from './components/YemDeposu';
 import InekDetay from './components/InekDetay';
+import YaklasanDogumlar from './components/YaklasanDogumlar';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 
@@ -582,6 +583,10 @@ function App() {
           ) : (
             <p>Henüz inek eklenmemiş.</p>
           )}
+          {/* YAKLASAN DOĞUMLAR */}
+          <div style={{ marginTop: '30px' }}>
+            <YaklasanDogumlar onInekSec={setSecilenInek} />
+          </div>
         </div>
       )}
 
