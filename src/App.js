@@ -156,20 +156,27 @@ function App() {
 
  
 
-  // Düveleri yükle
+ // Düveleri API'den yükle
   useEffect(() => {
-    const kayitliDuveler = localStorage.getItem('duveler');
-    if (kayitliDuveler) {
-      setDuveler(JSON.parse(kayitliDuveler));
+    if (girisYapildi) {
+      duveleriYukle();
     }
-  }, []);
+  }, [girisYapildi]);
 
-  // Düveler değiştiğinde kaydet
-  useEffect(() => {
-    if (duveler.length > 0) {
-      localStorage.setItem('duveler', JSON.stringify(duveler));
+  const duveleriYukle = async () => {
+    try {
+      const response = await api.getDuveler();
+      const duvelerData = response.data.map(duve => ({
+        ...duve,
+        id: duve._id
+      }));
+      setDuveler(duvelerData);
+    } catch (error) {
+      console.error('Düveler yüklenemedi:', error);
     }
-  }, [duveler]);
+  };
+
+
  // Login yapıldığında inekleri yükle
   useEffect(() => {
     if (girisYapildi) {
