@@ -69,6 +69,12 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
       };
 
       await api.updateInek(inek._id, guncelData);
+
+      // Local state'leri güncelle
+      setTohumlamaTarihi(tohumlamaTarihi);
+      setSonBuzagilamaTarihi(sonBuzagilamaTarihi);
+      setGebelikDurumu(gebelikDurumu);
+      setLaktasyonDonemi(laktasyonDonemi);
       
       onInekGuncelle(guncelData);
       setDuzenleEkrani(false);
