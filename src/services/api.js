@@ -56,4 +56,11 @@ export const getAyarlar = () => api.get('/ayarlar');
 export const updateAyarlar = (data) => api.put('/ayarlar', data);
 export const otomatikTuketimCalistir = () => api.post('/ayarlar/otomatik-tuketim');
 
+
+// TIMELINE
+export const getTimeline = (hayvanId) => api.get(`/timeline/${hayvanId}`);
+export const createTimeline = (data) => api.post('/timeline', data);
+export const deleteTimeline = (id) => api.delete(`/timeline/${id}`);
+export const getYaklasanDogumlar = () => api.get('/timeline/yaklasan/dogumlar');
+
 export default api;

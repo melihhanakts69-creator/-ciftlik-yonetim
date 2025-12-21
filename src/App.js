@@ -3,6 +3,7 @@ import * as api from './services/api';
 import Buzagilar from './components/Buzagilar';
 import Duveler from './components/Duveler';
 import YemDeposu from './components/YemDeposu';
+import InekDetay from './components/InekDetay';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 
@@ -62,6 +63,7 @@ function App() {
   // Login kontrolü
   const [girisYapildi, setGirisYapildi] = useState(false);
   const [kullanici, setKullanici] = useState(null);
+  const [secilenInek, setSecilenInek] = useState(null);
 
   // Sayfa yüklendiğinde token kontrol et
   useEffect(() => {
@@ -302,6 +304,7 @@ function App() {
       console.error('İnekler yüklenemedi:', error);
     }
   };
+  
   // Filtrelenmiş kayıtları getir
   const filtrelenmisKayitlar = () => {
     if (raporTipi === 'gunluk') {
@@ -616,7 +619,7 @@ function App() {
                       </div>
                       <div>
                         <button
-                          onClick={() => setDetayInek(inek)}
+                          onClick={() => setSecilenInek(inek)}
                           style={{
                             padding: '8px 15px',
                             backgroundColor: '#2196F3',
@@ -1794,6 +1797,19 @@ function App() {
     </div>
   );
 }
+{/* İnek Detay Sayfası */}
+      {secilenInek && (
+        <InekDetay 
+          inek={secilenInek}
+          onGeri={() => setSecilenInek(null)}
+          onInekGuncelle={(guncelInek) => {
+            const yeniInekler = inekler.map(inek => 
+              inek._id === guncelInek._id ? { ...inek, ...guncelInek } : inek
+            );
+            setInekler(yeniInekler);
+          }}
+        />
+      )}
 
 export default App;
                   
