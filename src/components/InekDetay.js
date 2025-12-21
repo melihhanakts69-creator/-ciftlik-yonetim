@@ -51,13 +51,20 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
     }
   };
 
-  const inekGuncelle = async () => {
+ const inekGuncelle = async () => {
     try {
       const guncelData = {
-        ...inek,
-        tohumlamaTarihi,
-        sonBuzagilamaTarihi,
-        gebelikDurumu,
+        isim: inek.isim,
+        yas: inek.yas,
+        kilo: inek.kilo,
+        kupeNo: inek.kupeNo,
+        dogumTarihi: inek.dogumTarihi,
+        buzagiSayisi: inek.buzagiSayisi,
+        notlar: inek.notlar,
+        durum: inek.durum || 'Aktif',
+        tohumlamaTarihi: tohumlamaTarihi || null,
+        sonBuzagilamaTarihi: sonBuzagilamaTarihi || null,
+        gebelikDurumu: gebelikDurumu,
         laktasyonDonemi: parseInt(laktasyonDonemi)
       };
 
