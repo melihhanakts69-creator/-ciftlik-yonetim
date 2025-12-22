@@ -55,32 +55,33 @@ router.put('/:id', auth, async (req, res) => {
   laktasyonDonemi
 } = req.body;
 router.get('/yaklasan-dogumlar', auth, async (req, res) => {
-  try {
-    const today = new Date();
-    const limit = new Date();
-    limit.setDate(today.getDate() + 30);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const inekler = await Inek.find({
-      userId: req.userId,
-      gebelikDurumu: 'Gebe',
-      tohumlamaTarihi: { $ne: null }
-    });
+  const limit = new Date(today);
+  limit.setDate(limit.getDate() + 30);
 
-    const sonuc = inekler.filter(inek => {
-      const tohumlama = new Date(inek.tohumlamaTarihi);
-      if (isNaN(tohumlama)) return false;
+  const inekler = await Inek.find({
+    userId: req.userId,
+    gebelikDurumu: 'Gebe',
+    tohumlamaTarihi: { $exists: true, $ne: '' }
+  });
 
-      const dogum = new Date(tohumlama);
-      dogum.setDate(dogum.getDate() + 280);
+  const sonuc = inekler.map(inek => {
+    const parts = inek.tohumlamaTarihi.split('-'); // YYYY-MM-DD
+    const tohumlama = new Date(parts[0], parts[1] - 1, parts[2]);
 
-      return dogum >= today && dogum <= limit;
-    });
+    const dogum = new Date(tohumlama);
+    dogum.setDate(dogum.getDate() + 280);
 
-    res.json(sonuc);
-  } catch (err) {
-    res.status(500).json({ message: 'Yaklaşan doğumlar alınamadı' });
-  }
+    return { ...inek.toObject(), dogumTarihi: dogum };
+  }).filter(inek =>
+    inek.dogumTarihi >= today && inek.dogumTarihi <= limit
+  );
+
+  res.json(sonuc);
 });
+
 
 const inek = await Inek.findOneAndUpdate(
   { _id: req.params.id, userId: req.userId },
