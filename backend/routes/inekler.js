@@ -54,7 +54,7 @@ router.put('/:id', auth, async (req, res) => {
   kuruDonemiBaslangic,
   laktasyonDonemi
 } = req.body;
-router.get('/yaklasan-dogumlar', auth, async (req, res) => {
+router.get('/dashboard/yaklasan-dogumlar', auth, async (req, res) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -67,20 +67,29 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
     tohumlamaTarihi: { $exists: true, $ne: '' }
   });
 
-  const sonuc = inekler.map(inek => {
-    const parts = inek.tohumlamaTarihi.split('-'); // YYYY-MM-DD
-    const tohumlama = new Date(parts[0], parts[1] - 1, parts[2]);
+  const sonuc = [];
 
+  for (const inek of inekler) {
+    const parts = inek.tohumlamaTarihi.split('-'); // YYYY-MM-DD
+    if (parts.length !== 3) continue;
+
+    const tohumlama = new Date(parts[0], parts[1] - 1, parts[2]);
     const dogum = new Date(tohumlama);
     dogum.setDate(dogum.getDate() + 280);
 
-    return { ...inek.toObject(), dogumTarihi: dogum };
-  }).filter(inek =>
-    inek.dogumTarihi >= today && inek.dogumTarihi <= limit
-  );
+    if (dogum >= today && dogum <= limit) {
+      sonuc.push({
+        _id: inek._id,
+        isim: inek.isim,
+        kupeNo: inek.kupeNo,
+        dogumTarihi: dogum
+      });
+    }
+  }
 
   res.json(sonuc);
 });
+
 
 
 const inek = await Inek.findOneAndUpdate(
