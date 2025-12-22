@@ -6,13 +6,24 @@ const Inek = require('../models/Inek');
 // YAKLASAN DOĞUMLARI GETİR
 router.get('/yaklasan/dogumlar', auth, async (req, res) => {
   try {
-    const inekler = await Inek.find({ 
-      userId: req.userId, 
-      durum: 'Aktif',
-      gebelikDurumu: 'Gebe',
-      tohumlamaTarihi: { $ne: null, $exists: true }
-    });
-
+     console.log('🚨 YAKLASAN DOĞUMLAR İSTEĞİ GELDİ!');
+   const inekler = await Inek.find({ 
+  userId: req.userId, 
+  $or: [
+    { durum: 'Aktif' },
+    { durum: { $exists: false } },
+    { durum: null }
+  ],
+  gebelikDurumu: 'Gebe',
+  tohumlamaTarihi: { $ne: null, $exists: true }
+});
+     console.log('📊 TOPLAM İNEK BULUNDU:', inekler.length);
+    console.log('🐄 İNEKLER:', JSON.stringify(inekler.map(i => ({
+      isim: i.isim,
+      durum: i.durum,
+      gebe: i.gebelikDurumu,
+      tohum: i.tohumlamaTarihi
+    })), null, 2));
     const bugun = new Date();
     bugun.setHours(0, 0, 0, 0);
     const yaklaşanlar = [];
