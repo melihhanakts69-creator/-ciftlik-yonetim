@@ -10,20 +10,23 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
       userId: req.userId, 
       durum: 'Aktif',
       gebelikDurumu: 'Gebe',
-      tohumlamaTarihi: { $ne: null }
+      tohumlamaTarihi: { $ne: null, $exists: true }
     });
 
     const bugun = new Date();
-    console.log('Bugün:', bugun.toISOString().split('T')[0]);
+    bugun.setHours(0, 0, 0, 0);
     const yaklaşanlar = [];
 
     inekler.forEach(inek => {
       if (inek.tohumlamaTarihi) {
-        const tohumlama = new Date(inek.tohumlamaTarihi);
+        // Tarihi düzgün parse et
+        const tohumlama = new Date(inek.tohumlamaTarihi.includes('T') ? inek.tohumlamaTarihi : inek.tohumlamaTarihi + 'T12:00:00Z');
         const tahminiDoğum = new Date(tohumlama);
         tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
+        tahminiDoğum.setHours(0, 0, 0, 0);
 
         const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
+
         console.log(`İnek: ${inek.isim}, Tohum: ${inek.tohumlamaTarihi}, Doğum: ${tahminiDoğum.toISOString().split('T')[0]}, Kalan: ${kalanGun}`);
 
         if (kalanGun >= 0 && kalanGun <= 30) {
@@ -40,6 +43,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
 
     res.json(yaklaşanlar);
   } catch (error) {
+    console.error('❌ Yaklaşan doğumlar hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
