@@ -3,7 +3,46 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Timeline = require('../models/Timeline');
 const Inek = require('../models/Inek');
+// YAKLASAN DOĞUMLARI GETİR
+router.get('/yaklasan/dogumlar', auth, async (req, res) => {
+  try {
+    const inekler = await Inek.find({ 
+      userId: req.userId, 
+      durum: 'Aktif',
+      gebelikDurumu: 'Gebe',
+      tohumlamaTarihi: { $ne: null }
+    });
 
+    const bugun = new Date();
+    console.log('Bugün:', bugun.toISOString().split('T')[0]);
+    const yaklaşanlar = [];
+
+    inekler.forEach(inek => {
+      if (inek.tohumlamaTarihi) {
+        const tohumlama = new Date(inek.tohumlamaTarihi);
+        const tahminiDoğum = new Date(tohumlama);
+        tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
+
+        const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
+        console.log(`İnek: ${inek.isim}, Tohum: ${inek.tohumlamaTarihi}, Doğum: ${tahminiDoğum.toISOString().split('T')[0]}, Kalan: ${kalanGun}`);
+
+        if (kalanGun >= 0 && kalanGun <= 30) {
+          yaklaşanlar.push({
+            inek: inek,
+            kalanGun: kalanGun,
+            tahminiDoğum: tahminiDoğum.toISOString().split('T')[0]
+          });
+        }
+      }
+    });
+
+    yaklaşanlar.sort((a, b) => a.kalanGun - b.kalanGun);
+
+    res.json(yaklaşanlar);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
 // HAYVAN TIMELINE'INI GETİR
 router.get('/:hayvanId', auth, async (req, res) => {
   try {
@@ -41,44 +80,7 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// YAKLASAN DOĞUMLARI GETİR
-router.get('/yaklasan/dogumlar', auth, async (req, res) => {
-  try {
-    const inekler = await Inek.find({ 
-      userId: req.userId, 
-      durum: 'Aktif',
-      gebelikDurumu: 'Gebe',
-      tohumlamaTarihi: { $ne: null }
-    });
 
-    const bugun = new Date();
-    const yaklaşanlar = [];
-
-    inekler.forEach(inek => {
-      if (inek.tohumlamaTarihi) {
-        const tohumlama = new Date(inek.tohumlamaTarihi);
-        const tahminiDoğum = new Date(tohumlama);
-        tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
-
-        const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
-
-        if (kalanGun >= 0 && kalanGun <= 30) {
-          yaklaşanlar.push({
-            inek: inek,
-            kalanGun: kalanGun,
-            tahminiDoğum: tahminiDoğum.toISOString().split('T')[0]
-          });
-        }
-      }
-    });
-
-    yaklaşanlar.sort((a, b) => a.kalanGun - b.kalanGun);
-
-    res.json(yaklaşanlar);
-  } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
-  }
-});
 
 // TIMELINE KAYDI SİL
 router.delete('/:id', auth, async (req, res) => {
