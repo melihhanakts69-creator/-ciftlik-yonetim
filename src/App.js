@@ -614,7 +614,7 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <h3 style={{ margin: '0 0 5px 0' }}>
-                          {inek.isim} <span style={{ color: '#666', fontSize: '14px' }}>#{inek.id} | Küpe: {inek.kupeNo}</span>
+                          {inek.isim} <span style={{ color: '#666', fontSize: '14px' }}>(Küpe: {inek.kupeNo})| Küpe: {inek.kupeNo}</span>
                         </h3>
                         <p style={{ margin: '5px 0', color: '#666' }}>
                           {inek.yas} yaşında | {inek.kilo} kg | {inek.buzagiSayisi} buzağı
@@ -1166,7 +1166,7 @@ function App() {
                     }}
                   >
                     <h3 style={{ margin: '0 0 10px 0' }}>
-                      {inek.isim} (#{inek.id} | Küpe: {inek.kupeNo})
+                      {inek.isim} ((Küpe: {inek.kupeNo}) | Küpe: {inek.kupeNo})
                     </h3>
                     
                     {bugunKayit ? (
@@ -1296,7 +1296,7 @@ function App() {
                           }}
                         >
                           <h3 style={{ margin: '0 0 10px 0' }}>
-                            {inek.isim} (#{inek.id})
+                            {inek.isim} ((Küpe: {inek.kupeNo}))
                           </h3>
                           <p style={{ color: '#856404' }}>
                             ⚠️ Bugün süt kaydı yapılmamış. Önce süt kaydı yapmalısın!
@@ -1319,7 +1319,7 @@ function App() {
                         }}
                       >
                         <h3 style={{ margin: '0 0 10px 0' }}>
-                          {inek.isim} (#{inek.id})
+                          {inek.isim} ((Küpe: {inek.kupeNo}))
                         </h3>
                         
                         <div style={{ marginBottom: '15px' }}>
