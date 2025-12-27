@@ -132,7 +132,9 @@ router.post('/onizleme', auth, async (req, res) => {
 // TOPLU SÜT KAYDET
 router.post('/', auth, async (req, res) => {
   try {
+    
     const { tarih, sagim, toplamSut, dagilimTipi, detaylar, notlar } = req.body;
+    
 
     // Toplu kayıt oluştur
     const topluKayit = new TopluSutGirisi({
@@ -144,6 +146,14 @@ router.post('/', auth, async (req, res) => {
       detaylar,
       notlar
     });
+    if (mevcutKayit) {
+      return res.status(409).json({
+        message: 'Bu tarih ve sağım için zaten kayıt mevcut!',
+        mevcutKayit: mevcutKayit,
+        conflict: true
+      });
+    }
+    
 
     await topluKayit.save();
 

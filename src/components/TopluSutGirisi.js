@@ -60,10 +60,10 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
     });
   };
 
-  const kaydet = async () => {
+  const kaydet = async (ustundenKaydet = false) => {
     // Toplam kontrol
     const fark = Math.abs(onizleme.toplamSut - onizleme.hesaplananToplam);
-    if (fark > 0.5) {
+    if (fark > 0.5 && !ustundenKaydet) {
       const onay = window.confirm(
         `⚠️ Toplam fark: ${fark.toFixed(2)} lt\n\nGirilen: ${onizleme.toplamSut} lt\nHesaplanan: ${onizleme.hesaplananToplam} lt\n\nYine de kaydetmek istiyor musunuz?`
       );
@@ -78,14 +78,38 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
         toplamSut: onizleme.toplamSut,
         dagilimTipi,
         detaylar: onizleme.detaylar,
-        notlar
+        notlar,
+        ustundenKaydet: ustundenKaydet
       });
 
       alert('✅ Toplu süt girişi kaydedildi!');
       onKaydet && onKaydet();
       onKapat();
     } catch (error) {
-      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt yapılamadı!'));
+      // CONFLICT (409) - Mevcut kayıt var
+      if (error.response?.status === 409) {
+        const mevcutKayit = error.response.data.mevcutKayit;
+        const onay = window.confirm(
+          `⚠️ ${new Date(tarih).toLocaleDateString('tr-TR')} ${sagim === 'sabah' ? 'Sabah' : 'Akşam'} sağımı için zaten kayıt mevcut!\n\n` +
+          `Mevcut Kayıt:\n` +
+          `Toplam: ${mevcutKayit.toplamSut} lt\n` +
+          `İnek Sayısı: ${mevcutKayit.detaylar.length}\n` +
+          `Kayıt Zamanı: ${new Date(mevcutKayit.createdAt).toLocaleString('tr-TR')}\n\n` +
+          `Yeni veriyle değiştirmek ister misiniz?`
+        );
+        
+        if (onay) {
+          // Önce eski kaydı sil, sonra yeni kaydet
+          try {
+            await api.topluSutSil(mevcutKayit._id);
+            await kaydet(true); // Üstünden kaydet
+          } catch (silmeHatasi) {
+            alert('❌ Eski kayıt silinirken hata oluştu: ' + silmeHatasi.message);
+          }
+        }
+      } else {
+        alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt yapılamadı!'));
+      }
     } finally {
       setYukleniyor(false);
     }
