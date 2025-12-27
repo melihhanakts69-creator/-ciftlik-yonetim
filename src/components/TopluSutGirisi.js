@@ -84,10 +84,11 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
     }
   };
   const kaydet = async (ustundenKaydet = false) => {
-      console.log('🔵 KAYDET FONKSİYONU ÇALIŞTI!');
+    console.log('🔵 KAYDET FONKSİYONU ÇALIŞTI!');
     console.log('Tarih:', tarih);
     console.log('Sağım:', sagim);
     console.log('Toplam:', onizleme.toplamSut);
+    
     // Toplam kontrol
     const fark = Math.abs(onizleme.toplamSut - onizleme.hesaplananToplam);
     if (fark > 0.5 && !ustundenKaydet) {
