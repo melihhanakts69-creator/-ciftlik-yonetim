@@ -585,38 +585,7 @@ function App() {
           ) : (
             <p>Henüz inek eklenmemiş.</p>
           )}
-          {/* TOPLU SÜT GİRİŞİ BUTONU */}
-          <div style={{
-            backgroundColor: '#4CAF50',
-            padding: '20px',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            marginBottom: '20px',
-            cursor: 'pointer',
-            transition: 'transform 0.2s'
-          }}
-          onClick={() => setTopluSutEkrani(true)}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ margin: 0, color: 'white', fontSize: '24px' }}>
-                  🥛 Toplu Süt Girişi
-                </h2>
-                <p style={{ margin: '5px 0 0 0', color: 'white', opacity: 0.9 }}>
-                  Sabah/Akşam sağım için hızlı giriş
-                </p>
-              </div>
-              <div style={{
-                fontSize: '48px',
-                color: 'white',
-                opacity: 0.8
-              }}>
-                ➕
-              </div>
-            </div>
-          </div>
+        
           {/* YAKLASAN DOĞUMLAR */}
           <div style={{ marginTop: '30px' }}>
             <YaklasanDogumlar onInekSec={setSecilenInek} />
@@ -1143,6 +1112,39 @@ function App() {
       {aktifSayfa === 'sut' && (
         <div>
           <h2>🥛 Günlük Süt Kaydı</h2>
+          {/* TOPLU GİRİŞ BUTONU */}
+          <div style={{
+            backgroundColor: '#4CAF50',
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '20px',
+            cursor: 'pointer',
+            transition: 'transform 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+          onClick={() => setTopluSutEkrani(true)}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '20px' }}>
+                ⚡ Toplu Süt Girişi
+              </h3>
+              <p style={{ margin: '5px 0 0 0', color: 'white', opacity: 0.9, fontSize: '14px' }}>
+                Sabah/Akşam sağımı tüm inekler için bir kerede girin
+              </p>
+            </div>
+            <div style={{
+              fontSize: '40px',
+              color: 'white',
+              opacity: 0.8
+            }}>
+              ➕
+            </div>
+          </div>
           <p style={{ color: '#666', marginBottom: '20px' }}>
             Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
           </p>
