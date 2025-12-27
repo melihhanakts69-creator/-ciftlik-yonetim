@@ -147,12 +147,13 @@ router.post('/', auth, async (req, res) => {
 
     await topluKayit.save();
 
-    // Her inek için süt kaydı oluştur
+   // Her inek için süt kaydı oluştur
     const sutKayitlari = detaylar.map(detay => ({
       userId: req.userId,
       inekId: detay.inekId,
+      inekIsim: detay.inekIsim,
       tarih: tarih,
-      miktar: detay.miktar,
+      litre: detay.miktar,  // ← miktar yerine litre
       sagim: sagim,
       topluGiristen: true,
       topluGirisId: topluKayit._id
