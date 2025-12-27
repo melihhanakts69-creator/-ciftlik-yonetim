@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const sutKaydiSchema = new mongoose.Schema({
   userId: {
@@ -21,9 +21,24 @@ const sutKaydiSchema = new mongoose.Schema({
   litre: {
     type: Number,
     required: true
+  },  sagim: {
+    type: String,
+    enum: ['sabah', 'aksam'],
+    default: 'sabah'
+  },
+  topluGiristen: {
+    type: Boolean,
+    default: false
+  },
+  topluGirisId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TopluSutGirisi',
+    default: null
   }
 }, {
   timestamps: true
+  
 });
 
 module.exports = mongoose.model('SutKaydi', sutKaydiSchema);
+
