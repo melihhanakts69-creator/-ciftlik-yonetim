@@ -12,7 +12,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
   
   const [onizleme, setOnizleme] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
-  const [adim, setAdim] = useState(1); // 1: Form, 2: Önizleme
+  const [adim, setAdim] = useState(1);
 
   const onizlemeAl = async () => {
     if (!toplamSut || toplamSut <= 0) {
@@ -83,15 +83,10 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
       setYukleniyor(false);
     }
   };
-  const kaydet = async (ustundenKaydet = false) => {
-    console.log('🔵 KAYDET FONKSİYONU ÇALIŞTI!');
-    console.log('Tarih:', tarih);
-    console.log('Sağım:', sagim);
-    console.log('Toplam:', onizleme.toplamSut);
-    
-    // Toplam kontrol
+
+  const kaydet = async () => {
     const fark = Math.abs(onizleme.toplamSut - onizleme.hesaplananToplam);
-    if (fark > 0.5 && !ustundenKaydet) {
+    if (fark > 0.5) {
       const onay = window.confirm(
         `⚠️ Toplam fark: ${fark.toFixed(2)} lt\n\nGirilen: ${onizleme.toplamSut} lt\nHesaplanan: ${onizleme.hesaplananToplam} lt\n\nYine de kaydetmek istiyor musunuz?`
       );
@@ -106,35 +101,33 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
         toplamSut: onizleme.toplamSut,
         dagilimTipi,
         detaylar: onizleme.detaylar,
-        notlar,
-        ustundenKaydet: ustundenKaydet
+        notlar
       });
 
       alert('✅ Toplu süt girişi kaydedildi!');
       onKaydet && onKaydet();
       onKapat();
-   } catch (error) {
-      // CONFLICT (409) - Mevcut süt kayıtları var
+    } catch (error) {
       if (error.response?.status === 409) {
         const data = error.response.data;
         const onay = window.confirm(
           `⚠️ ${new Date(tarih).toLocaleDateString('tr-TR')} ${sagim === 'sabah' ? 'Sabah' : 'Akşam'} sağımı için zaten süt kayıtları mevcut!\n\n` +
           `Kayıtlı Süt: ${data.toplamSut} lt (${data.kayitSayisi} inek)\n\n` +
-          `Yeni veriyle değiştirmek ister misiniz?\n` +
-          `(Eski kayıtlar silinip, yenileri eklenecek)`
+          `Yeni veriyle değiştirmek ister misiniz?`
         );
         
-       if (onay) {
+        if (onay) {
           silVeKaydet();
         }
       } else {
+        console.error('Kayıt hatası:', error);
         alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt yapılamadı!'));
       }
     } finally {
       setYukleniyor(false);
     }
+    
   };
-
   return (
     <div style={{
       position: 'fixed',
@@ -158,7 +151,6 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
         overflow: 'auto',
         boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
       }}>
-        {/* BAŞLIK */}
         <div style={{
           padding: '20px',
           borderBottom: '2px solid #e0e0e0',
@@ -190,13 +182,10 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
         </div>
 
         <div style={{ padding: '20px' }}>
-          {/* ADIM 1: FORM */}
           {adim === 1 && (
             <>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                  Tarih:
-                </label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Tarih:</label>
                 <input
                   type="date"
                   value={tarih}
@@ -212,9 +201,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                  Sağım Zamanı:
-                </label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Sağım Zamanı:</label>
                 <div style={{ display: 'flex', gap: '15px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                     <input
@@ -242,9 +229,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                  Toplam Süt (Litre):
-                </label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Toplam Süt (Litre):</label>
                 <input
                   type="number"
                   value={toplamSut}
@@ -264,9 +249,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                  Dağılım Yöntemi:
-                </label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Dağılım Yöntemi:</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <label style={{
                     padding: '12px',
@@ -313,9 +296,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                  Notlar (Opsiyonel):
-                </label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Notlar (Opsiyonel):</label>
                 <textarea
                   value={notlar}
                   onChange={(e) => setNotlar(e.target.value)}
@@ -368,10 +349,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
                 </button>
               </div>
             </>
-          )}
-
-          {/* ADIM 2: ÖNİZLEME */}
-          {adim === 2 && onizleme && (
+          )}{adim === 2 && onizleme && (
             <>
               <div style={{
                 backgroundColor: '#f5f5f5',
@@ -419,15 +397,9 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f5f5' }}>
                     <tr>
-                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>
-                        İnek
-                      </th>
-                      <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>
-                        Miktar (lt)
-                      </th>
-                      <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd', width: '60px' }}>
-                        
-                      </th>
+                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>İnek</th>
+                      <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Miktar (lt)</th>
+                      <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd', width: '60px' }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -442,9 +414,7 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
                   </tbody>
                   <tfoot>
                     <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold' }}>
-                      <td style={{ padding: '12px', borderTop: '2px solid #ddd' }}>
-                        TOPLAM
-                      </td>
+                      <td style={{ padding: '12px', borderTop: '2px solid #ddd' }}>TOPLAM</td>
                       <td style={{
                         padding: '12px',
                         textAlign: 'right',
@@ -515,12 +485,16 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
   );
 }
 
-// İNEK SATIRI COMPONENT (Düzenleme özelliği ile)
 function InekSatiri({ detay, index, onDuzenle }) {
   const [duzenle, setDuzenle] = useState(false);
   const [yeniMiktar, setYeniMiktar] = useState(detay.miktar);
 
-
+  const kaydet = () => {
+    if (yeniMiktar !== detay.miktar) {
+      onDuzenle(yeniMiktar);
+    }
+    setDuzenle(false);
+  };
 
   return (
     <tr style={{
