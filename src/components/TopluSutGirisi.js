@@ -60,7 +60,30 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
     });
   };
 
-  const kaydet = async (ustundenKaydet = false) => 
+  const silVeKaydet = async () => {
+    setYukleniyor(true);
+    try {
+      await api.topluSutSilByTarihSagim(tarih, sagim);
+      await api.topluSutKaydet({
+        tarih,
+        sagim,
+        toplamSut: onizleme.toplamSut,
+        dagilimTipi,
+        detaylar: onizleme.detaylar,
+        notlar,
+        ustundenKaydet: true
+      });
+      alert('✅ Toplu süt girişi kaydedildi!');
+      onKaydet && onKaydet();
+      onKapat();
+    } catch (silmeHatasi) {
+      console.error('Silme hatası:', silmeHatasi);
+      alert('❌ Eski kayıtlar silinirken hata oluştu!');
+    } finally {
+      setYukleniyor(false);
+    }
+  };
+  const kaydet = async (ustundenKaydet = false) => {
       console.log('🔵 KAYDET FONKSİYONU ÇALIŞTI!');
     console.log('Tarih:', tarih);
     console.log('Sağım:', sagim);
@@ -100,14 +123,8 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
           `(Eski kayıtlar silinip, yenileri eklenecek)`
         );
         
-        if (onay) {
-          // Önce eski kayıtları sil
-          try {
-            await api.topluSutSilByTarihSagim(tarih, sagim);
-            await kaydet(true); // Üstünden kaydet
-          } catch (silmeHatasi) {
-            alert('❌ Eski kayıtlar silinirken hata oluştu!');
-          }
+       if (onay) {
+          silVeKaydet();
         }
       } else {
         alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt yapılamadı!'));
