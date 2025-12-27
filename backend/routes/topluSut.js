@@ -132,9 +132,7 @@ router.post('/onizleme', auth, async (req, res) => {
 // TOPLU SÜT KAYDET
 router.post('/', auth, async (req, res) => {
   try {
-    
     const { tarih, sagim, toplamSut, dagilimTipi, detaylar, notlar } = req.body;
-    
 
     // MEVCUT SÜT KAYITLARINI KONTROL ET
     const mevcutSutKayitlari = await SutKaydi.find({
@@ -151,17 +149,27 @@ router.post('/', auth, async (req, res) => {
         conflict: true
       });
     }
-    
-    
+
+    // TOPLU KAYIT OLUŞTUR
+    const topluKayit = new TopluSutGirisi({
+      userId: req.userId,
+      tarih,
+      sagim,
+      toplamSut,
+      dagilimTipi,
+      detaylar,
+      notlar
+    });
+
     await topluKayit.save();
 
-   // Her inek için süt kaydı oluştur
+    // HER İNEK İÇİN SÜT KAYDI OLUŞTUR
     const sutKayitlari = detaylar.map(detay => ({
       userId: req.userId,
       inekId: detay.inekId,
       inekIsim: detay.inekIsim,
       tarih: tarih,
-      litre: detay.miktar,  // ← miktar yerine litre
+      litre: detay.miktar,
       sagim: sagim,
       topluGiristen: true,
       topluGirisId: topluKayit._id
