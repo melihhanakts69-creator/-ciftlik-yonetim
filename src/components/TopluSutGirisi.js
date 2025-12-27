@@ -85,26 +85,24 @@ function TopluSutGirisi({ onKapat, onKaydet }) {
       alert('✅ Toplu süt girişi kaydedildi!');
       onKaydet && onKaydet();
       onKapat();
-    } catch (error) {
-      // CONFLICT (409) - Mevcut kayıt var
+   } catch (error) {
+      // CONFLICT (409) - Mevcut süt kayıtları var
       if (error.response?.status === 409) {
-        const mevcutKayit = error.response.data.mevcutKayit;
+        const data = error.response.data;
         const onay = window.confirm(
-          `⚠️ ${new Date(tarih).toLocaleDateString('tr-TR')} ${sagim === 'sabah' ? 'Sabah' : 'Akşam'} sağımı için zaten kayıt mevcut!\n\n` +
-          `Mevcut Kayıt:\n` +
-          `Toplam: ${mevcutKayit.toplamSut} lt\n` +
-          `İnek Sayısı: ${mevcutKayit.detaylar.length}\n` +
-          `Kayıt Zamanı: ${new Date(mevcutKayit.createdAt).toLocaleString('tr-TR')}\n\n` +
-          `Yeni veriyle değiştirmek ister misiniz?`
+          `⚠️ ${new Date(tarih).toLocaleDateString('tr-TR')} ${sagim === 'sabah' ? 'Sabah' : 'Akşam'} sağımı için zaten süt kayıtları mevcut!\n\n` +
+          `Kayıtlı Süt: ${data.toplamSut} lt (${data.kayitSayisi} inek)\n\n` +
+          `Yeni veriyle değiştirmek ister misiniz?\n` +
+          `(Eski kayıtlar silinip, yenileri eklenecek)`
         );
         
         if (onay) {
-          // Önce eski kaydı sil, sonra yeni kaydet
+          // Önce eski kayıtları sil
           try {
-            await api.topluSutSil(mevcutKayit._id);
+            await api.topluSutSilByTarihSagim(tarih, sagim);
             await kaydet(true); // Üstünden kaydet
           } catch (silmeHatasi) {
-            alert('❌ Eski kayıt silinirken hata oluştu: ' + silmeHatasi.message);
+            alert('❌ Eski kayıtlar silinirken hata oluştu!');
           }
         }
       } else {

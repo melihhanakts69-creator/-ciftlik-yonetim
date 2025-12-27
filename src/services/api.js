@@ -69,5 +69,6 @@ export const topluSutKaydet = (data) => api.post('/toplu-sut', data);
 export const topluSutGecmis = (limit) => api.get(`/toplu-sut/gecmis?limit=${limit || 30}`);
 export const topluSutDetay = (id) => api.get(`/toplu-sut/${id}`);
 export const topluSutSil = (id) => api.delete(`/toplu-sut/${id}`);
+export const topluSutSilByTarihSagim = (tarih, sagim) => api.delete(`/toplu-sut/tarih/${tarih}/${sagim}`);
 
 export default api;

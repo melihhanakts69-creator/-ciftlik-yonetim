@@ -136,25 +136,23 @@ router.post('/', auth, async (req, res) => {
     const { tarih, sagim, toplamSut, dagilimTipi, detaylar, notlar } = req.body;
     
 
-    // Toplu kayıt oluştur
-    const topluKayit = new TopluSutGirisi({
+    // MEVCUT SÜT KAYITLARINI KONTROL ET
+    const mevcutSutKayitlari = await SutKaydi.find({
       userId: req.userId,
-      tarih,
-      sagim,
-      toplamSut,
-      dagilimTipi,
-      detaylar,
-      notlar
+      tarih: tarih,
+      sagim: sagim
     });
-    if (mevcutKayit) {
+
+    if (mevcutSutKayitlari.length > 0) {
       return res.status(409).json({
-        message: 'Bu tarih ve sağım için zaten kayıt mevcut!',
-        mevcutKayit: mevcutKayit,
+        message: 'Bu tarih ve sağım için zaten süt kayıtları mevcut!',
+        kayitSayisi: mevcutSutKayitlari.length,
+        toplamSut: mevcutSutKayitlari.reduce((sum, k) => sum + k.litre, 0),
         conflict: true
       });
     }
     
-
+    
     await topluKayit.save();
 
    // Her inek için süt kaydı oluştur
@@ -217,26 +215,31 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// TOPLU GİRİŞİ SİL
-router.delete('/:id', auth, async (req, res) => {
+// TARİH VE SAĞIMA GÖRE TÜM KAYITLARI SİL
+router.delete('/tarih/:tarih/:sagim', auth, async (req, res) => {
   try {
-    const kayit = await TopluSutGirisi.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.userId
-    });
+    const { tarih, sagim } = req.params;
 
-    if (!kayit) {
-      return res.status(404).json({ message: 'Kayıt bulunamadı!' });
-    }
-
-    // İlgili süt kayıtlarını da sil
-    await SutKaydi.deleteMany({
+    // Süt kayıtlarını sil
+    const silinen = await SutKaydi.deleteMany({
       userId: req.userId,
-      topluGirisId: kayit._id
+      tarih: tarih,
+      sagim: sagim
     });
 
-    res.json({ message: 'Toplu giriş silindi!', kayit });
+    // Toplu giriş kaydını da sil (varsa)
+    await TopluSutGirisi.deleteMany({
+      userId: req.userId,
+      tarih: tarih,
+      sagim: sagim
+    });
+
+    res.json({
+      message: 'Kayıtlar silindi!',
+      silinenSayisi: silinen.deletedCount
+    });
   } catch (error) {
+    console.error('Silme hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
