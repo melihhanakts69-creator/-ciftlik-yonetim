@@ -53,6 +53,58 @@ router.delete('/:id', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
+
+  // TARİH VE SAĞIMA GÖRE TOPLU SİL
+router.delete('/toplu-sil/tarih', auth, async (req, res) => {
+  try {
+    const { tarih, sagim } = req.body;
+
+    let query = {
+      userId: req.userId,
+      tarih: tarih
+    };
+
+    if (sagim && sagim !== 'ikisi') {
+      query.sagim = sagim;
+    }
+
+    const silinen = await SutKaydi.deleteMany(query);
+
+    res.json({
+      message: 'Kayıtlar silindi!',
+      silinenSayisi: silinen.deletedCount
+    });
+  } catch (error) {
+    console.error('Toplu silme hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// SEÇİLİ KAYITLARI SİL
+router.delete('/toplu-sil/secili', auth, async (req, res) => {
+  try {
+    const { kayitIdler } = req.body;
+
+    if (!kayitIdler || kayitIdler.length === 0) {
+      return res.status(400).json({ message: 'Silinecek kayıt seçilmedi!' });
+    }
+
+    const silinen = await SutKaydi.deleteMany({
+      _id: { $in: kayitIdler },
+      userId: req.userId
+    });
+
+    res.json({
+      message: 'Seçili kayıtlar silindi!',
+      silinenSayisi: silinen.deletedCount
+    });
+  } catch (error) {
+    console.error('Seçili silme hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+module.exports = router;
 });
 
 module.exports = router;

@@ -42,6 +42,9 @@ export const getSutKayitlari = () => api.get('/sut-kayitlari');
 export const createSutKaydi = (data) => api.post('/sut-kayitlari', data);
 export const deleteSutKaydi = (id) => api.delete(`/sut-kayitlari/${id}`);
 
+export const topluSilTarihSagim = (data) => api.delete('/sut-kayitlari/toplu-sil/tarih', { data });
+export const topluSilSecili = (kayitIdler) => api.delete('/sut-kayitlari/toplu-sil/secili', { data: { kayitIdler } });
+
 // YEM DEPOSU
 export const getYemStok = () => api.get('/yemler/stok');
 export const createYemStok = (data) => api.post('/yemler/stok', data);

@@ -106,6 +106,12 @@ function App() {
 
   // Günlük süt kayıtları
   const [sutKayitlari, setSutKayitlari] = useState([]);
+
+    // TOPLU SİLME İÇİN YENİ STATE'LER:
+  const [topluSilEkrani, setTopluSilEkrani] = useState(false);
+  const [seciliKayitlar, setSeciliKayitlar] = useState([]);
+  const [topluSilTarihi, setTopluSilTarihi] = useState(new Date().toISOString().split('T')[0]);
+  const [topluSilSagim, setTopluSilSagim] = useState('sabah');
   
   // Düzenleme modu
   const [duzenlenecekInek, setDuzenlenecekInek] = useState(null);
@@ -132,6 +138,70 @@ function App() {
       setSutKayitlari(kayitlarData);
     } catch (error) {
       console.error('Süt kayıtları yüklenemedi:', error);
+    }
+  };
+  // TARİH/SAĞIM BAZLI TOPLU SİL
+  const topluSilTarih = async () => {
+    const onay = window.confirm(
+      `⚠️ ${new Date(topluSilTarihi).toLocaleDateString('tr-TR')} tarihli ` +
+      `${topluSilSagim === 'ikisi' ? 'TÜM' : (topluSilSagim === 'sabah' ? 'SABAH' : 'AKŞAM')} ` +
+      `sağım kayıtları silinecek!\n\nEmin misiniz?`
+    );
+
+    if (!onay) return;
+
+    try {
+      const response = await api.topluSilTarihSagim({
+        tarih: topluSilTarihi,
+        sagim: topluSilSagim
+      });
+
+      alert(`✅ ${response.data.silinenSayisi} kayıt silindi!`);
+      setTopluSilEkrani(false);
+      sutKayitlariYukle();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıtlar silinemedi!'));
+    }
+  };
+
+  // SEÇİLİ KAYITLARI SİL
+  const topluSilSecili = async () => {
+    if (seciliKayitlar.length === 0) {
+      alert('⚠️ Lütfen silinecek kayıtları seçin!');
+      return;
+    }
+
+    const onay = window.confirm(
+      `⚠️ ${seciliKayitlar.length} kayıt silinecek!\n\nEmin misiniz?`
+    );
+
+    if (!onay) return;
+
+    try {
+      const response = await api.topluSilSecili(seciliKayitlar);
+      alert(`✅ ${response.data.silinenSayisi} kayıt silindi!`);
+      setSeciliKayitlar([]);
+      sutKayitlariYukle();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıtlar silinemedi!'));
+    }
+  };
+
+  // CHECKBOX DEĞİŞİMİ
+  const checkboxDegistir = (kayitId) => {
+    if (seciliKayitlar.includes(kayitId)) {
+      setSeciliKayitlar(seciliKayitlar.filter(id => id !== kayitId));
+    } else {
+      setSeciliKayitlar([...seciliKayitlar, kayitId]);
+    }
+  };
+
+  // TÜMÜNÜ SEÇ/BIRAK
+  const tumunuSec = () => {
+    if (seciliKayitlar.length === sutKayitlari.length) {
+      setSeciliKayitlar([]);
+    } else {
+      setSeciliKayitlar(sutKayitlari.map(k => k._id));
     }
   };
 
@@ -1112,6 +1182,66 @@ function App() {
       {aktifSayfa === 'sut' && (
         <div>
           <h2>🥛 Günlük Süt Kaydı</h2>
+          <h2>🥛 Süt Kayıtları</h2>
+
+          {/* TOPLU İŞLEM BUTONLARI */}
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            marginBottom: '20px',
+            flexWrap: 'wrap'
+          }}>
+            <button
+              onClick={() => setTopluSilEkrani(true)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              🗑️ Tarih/Sağım Bazlı Sil
+            </button>
+
+            {seciliKayitlar.length > 0 && (
+              <button
+                onClick={topluSilSecili}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#FF5722',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗑️ Seçilenleri Sil ({seciliKayitlar.length})
+              </button>
+            )}
+
+            {sutKayitlari.length > 0 && (
+              <button
+                onClick={tumunuSec}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#9E9E9E',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                {seciliKayitlar.length === sutKayitlari.length ? '☐ Tümünü Bırak' : '☑️ Tümünü Seç'}
+              </button>
+            )}
+          </div>
           {/* TOPLU GİRİŞ BUTONU */}
           <div style={{
             backgroundColor: '#4CAF50',
@@ -1149,8 +1279,95 @@ function App() {
             Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
           </p>
 
-          {inekler.length > 0 ? (
-            <div>
+          {/* SÜT KAYITLARI LİSTESİ */}
+          {sutKayitlari.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {sutKayitlari.map((kayit) => (
+                <div
+                  key={kayit._id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '15px',
+                    padding: '15px',
+                    backgroundColor: seciliKayitlar.includes(kayit._id) ? '#e3f2fd' : '#f5f5f5',
+                    borderRadius: '8px',
+                    border: seciliKayitlar.includes(kayit._id) ? '2px solid #2196F3' : '1px solid #ddd'
+                  }}
+                >
+                  {/* CHECKBOX */}
+                  <input
+                    type="checkbox"
+                    checked={seciliKayitlar.includes(kayit._id)}
+                    onChange={() => checkboxDegistir(kayit._id)}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer'
+                    }}
+                  />
+
+                  {/* KAYIT BİLGİLERİ */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      {kayit.inekIsim}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#666' }}>
+                      {new Date(kayit.tarih).toLocaleDateString('tr-TR')} - 
+                      {kayit.sagim === 'sabah' ? ' 🌅 Sabah' : ' 🌙 Akşam'}
+                    </div>
+                  </div>
+
+                  {/* SÜT MİKTARI */}
+                  <div style={{
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: '#4CAF50',
+                    minWidth: '80px',
+                    textAlign: 'right'
+                  }}>
+                    {kayit.litre} lt
+                  </div>
+
+                  {/* TEK SİL BUTONU */}
+                  <button
+                    onClick={async () => {
+                      if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+                        try {
+                          await api.deleteSutKaydi(kayit._id);
+                          setSutKayitlari(sutKayitlari.filter(k => k._id !== kayit._id));
+                          alert('✅ Kayıt silindi!');
+                        } catch (error) {
+                          alert('❌ Hata: Kayıt silinemedi!');
+                        }
+                      }
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>Henüz süt kaydı eklenmemiş.</p>
+          )}
+
+          {/* BUGÜNÜN İNEKLERİ - SÜT GİRİŞİ */}
+          {inekler.length > 0 && (
+            <div style={{ marginTop: '30px' }}>
+              <h3>📝 Bugün İçin Süt Girişi</h3>
+              <p style={{ color: '#666', marginBottom: '20px' }}>
+                Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
+              </p>
+
               {inekler.map((inek) => {
                 const bugunKayit = bugunKayitlari.find(k => k.inekId === inek.id);
                 
@@ -1166,31 +1383,12 @@ function App() {
                     }}
                   >
                     <h3 style={{ margin: '0 0 10px 0' }}>
-                      {inek.isim} ((Küpe: {inek.kupeNo}) | Küpe: {inek.kupeNo})
+                      {inek.isim} (Küpe: {inek.kupeNo})
                     </h3>
                     
                     {bugunKayit ? (
                       <div style={{ color: '#4CAF50' }}>
                         ✅ Kayıt yapıldı: <strong>{bugunKayit.litre} litre</strong>
-                        <button
-                          onClick={() => {
-                            setSutKayitlari(sutKayitlari.filter(k => 
-                              !(k.tarih === bugunTarih() && k.inekId === inek.id)
-                            ));
-                          }}
-                          style={{
-                            marginLeft: '10px',
-                            padding: '5px 10px',
-                            backgroundColor: '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
-                        >
-                          Sil
-                        </button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1207,7 +1405,7 @@ function App() {
                             width: '150px'
                           }}
                         />
-                       <button
+                        <button
                           onClick={async () => {
                             const input = document.getElementById(`sut-${inek.id}`);
                             const litre = parseFloat(input.value);
@@ -1262,9 +1460,8 @@ function App() {
                 </div>
               )}
             </div>
-          ) : (
-            <p>Önce inek eklemelisin!</p>
           )}
+          
         </div>
       )}
 
@@ -1858,6 +2055,138 @@ function App() {
             window.location.reload();
           }}
         />
+      )}
+      {/* TARİH/SAĞIM BAZLI SİLME MODAL */}
+      {topluSilEkrani && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '500px',
+            width: '100%',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <h2 style={{ marginTop: 0, color: '#f44336' }}>🗑️ Tarih/Sağım Bazlı Toplu Silme</h2>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Tarih:
+              </label>
+              <input
+                type="date"
+                value={topluSilTarihi}
+                onChange={(e) => setTopluSilTarihi(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Sağım:
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="topluSilSagim"
+                    value="sabah"
+                    checked={topluSilSagim === 'sabah'}
+                    onChange={(e) => setTopluSilSagim(e.target.value)}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                  />
+                  🌅 Sadece Sabah
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="topluSilSagim"
+                    value="aksam"
+                    checked={topluSilSagim === 'aksam'}
+                    onChange={(e) => setTopluSilSagim(e.target.value)}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                  />
+                  🌙 Sadece Akşam
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="topluSilSagim"
+                    value="ikisi"
+                    checked={topluSilSagim === 'ikisi'}
+                    onChange={(e) => setTopluSilSagim(e.target.value)}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
+                  />
+                  ⚠️ Her İkisi de
+                </label>
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#fff3e0',
+              border: '2px solid #FF9800',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              fontSize: '14px'
+            }}>
+              ⚠️ <strong>Dikkat:</strong> Bu işlem geri alınamaz! Seçtiğiniz tarih ve sağım için tüm kayıtlar kalıcı olarak silinecektir.
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setTopluSilEkrani(false)}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={topluSilTarih}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗑️ Sil
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
