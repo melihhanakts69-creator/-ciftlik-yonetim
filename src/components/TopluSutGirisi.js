@@ -520,12 +520,7 @@ function InekSatiri({ detay, index, onDuzenle }) {
   const [duzenle, setDuzenle] = useState(false);
   const [yeniMiktar, setYeniMiktar] = useState(detay.miktar);
 
-  const kaydet = () => {
-    if (yeniMiktar !== detay.miktar) {
-      onDuzenle(yeniMiktar);
-    }
-    setDuzenle(false);
-  };
+
 
   return (
     <tr style={{
