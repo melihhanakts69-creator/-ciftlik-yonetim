@@ -119,7 +119,49 @@ router.delete('/:id', auth, async (req, res) => {
 });
 // TOHUMLAMA KONTROLÜ BEKLEYENLERİ GETİR
 router.get('/kontrol-bekleyenler', auth, async (req, res) => {
+  const bekleyenler = [];
+    const bugun = new Date();
+    
+    console.log('🔍 KONTROL BEKLEYENLER DEBUG:');
+    console.log('Toplam tohumlama:', tohumlamalar.length);
+
+    for (const tohumlama of tohumlamalar) {
+      const inek = await Inek.findOne({ _id: tohumlama.hayvanId, userId: req.userId });
+      
+      if (!inek) {
+        console.log('❌ İnek bulunamadı:', tohumlama.hayvanId);
+        continue;
+      }
+
+      const tohumlamaTarihi = new Date(tohumlama.tarih);
+      const gecenGun = Math.floor((bugun - tohumlamaTarihi) / (1000 * 60 * 60 * 24));
+
+      console.log(`📊 ${inek.isim}:`, {
+        tohumlamaTarihi: tohumlama.tarih,
+        gecenGun,
+        gebelikDurumu: inek.gebelikDurumu
+      });
+
+      if (gecenGun >= 21 && gecenGun <= 28) {
+        console.log('✅ 21-28 gün arası!');
+        
+        if (inek.gebelikDurumu === 'Gebe' || inek.gebelikDurumu === 'Gebe Değil') {
+          console.log('⏭️ Zaten kontrol edilmiş, atlanıyor');
+          continue;
+        }
+
+        console.log('➕ Listeye ekleniyor!');
+        bekleyenler.push({
+          inek: inek,
+          tohumlama: tohumlama,
+          gecenGun: gecenGun
+        });
+      }
+    }
+
+    console.log('📋 Toplam bekleyen:', bekleyenler.length);
   try {
+    
     // Son 30 gün içindeki tohumlama kayıtlarını bul
     const otuzGunOnce = new Date();
     otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
