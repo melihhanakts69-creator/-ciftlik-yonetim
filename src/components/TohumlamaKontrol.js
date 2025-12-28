@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
+import { getKontrolBekleyenler } from '../services/api';
 import * as api from '../services/api';
-
 function TohumlamaKontrol() {
   const [bekleyenler, setBekleyenler] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -12,7 +12,7 @@ function TohumlamaKontrol() {
   const kontrolleriYukle = async () => {
     setYukleniyor(true);
     try {
-      const response = await api.getKontrolBekleyenler();
+      const response = await getKontrolBekleyenler();
       setBekleyenler(response.data);
     } catch (error) {
       console.error('Kontroller yüklenemedi:', error);
