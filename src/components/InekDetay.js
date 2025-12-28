@@ -300,23 +300,43 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
             borderRadius: '12px',
             border: '2px solid #e0e0e0'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-              <h3 style={{ margin: 0 }}>📜 Geçmiş</h3>
-              <button
-                onClick={() => setTimelineEkrani(true)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                + Kayıt Ekle
-              </button>
-            </div>
+           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0 }}>📜 Geçmiş</h3>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => {
+                      setTimelineTip('tohumlama');
+                      setTimelineEkrani(true);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#FF9800',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🐄 Tohumlama
+                  </button>
+                  <button
+                    onClick={() => setTimelineEkrani(true)}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    + Kayıt Ekle
+                  </button>
+                </div>
+              </div>
 
             {timeline.length > 0 ? (
               <div style={{ position: 'relative', paddingLeft: '30px' }}>

@@ -5,6 +5,7 @@ import Duveler from './components/Duveler';
 import YemDeposu from './components/YemDeposu';
 import InekDetay from './components/InekDetay';
 import YaklasanDogumlar from './components/YaklasanDogumlar';
+import TohumlamaKontrol from './components/TohumlamaKontrol';
 import TopluSutGirisi from './components/TopluSutGirisi';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
@@ -682,6 +683,10 @@ function App() {
           {/* YAKLASAN DOĞUMLAR */}
           <div style={{ marginTop: '30px' }}>
             <YaklasanDogumlar onInekSec={setSecilenInek} />
+          </div>
+             {/* TOHUMLAMA KONTROLLERİ */}
+          <div style={{ marginTop: '30px' }}>
+            <TohumlamaKontrol />
           </div>
         </div>
       )}

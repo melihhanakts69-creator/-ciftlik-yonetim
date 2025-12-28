@@ -113,6 +113,64 @@ router.delete('/:id', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
-});
 
+
+  
+});
+// TOHUMLAMA KONTROLÜ BEKLEYENLERİ GETİR
+router.get('/kontrol-bekleyenler', auth, async (req, res) => {
+  try {
+    // Son 30 gün içindeki tohumlama kayıtlarını bul
+    const otuzGunOnce = new Date();
+    otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+
+    const tohumlamalar = await Timeline.find({
+      userId: req.userId,
+      tip: 'tohumlama',
+      tarih: { $gte: otuzGunOnce.toISOString().split('T')[0] }
+    }).sort({ tarih: 1 });
+
+    const bekleyenler = [];
+    const bugun = new Date();
+
+    for (const tohumlama of tohumlamalar) {
+      // İneği bul
+      const inek = await Inek.findOne({ _id: tohumlama.hayvanId, userId: req.userId });
+      
+      if (!inek) continue;
+
+      // Tohumlama tarihinden kaç gün geçti
+      const tohumlamaTarihi = new Date(tohumlama.tarih);
+      const gecenGun = Math.floor((bugun - tohumlamaTarihi) / (1000 * 60 * 60 * 24));
+
+      // 21-28 gün arası kontrol edilmeli
+      if (gecenGun >= 21 && gecenGun <= 28) {
+        // Bu tohumlama için zaten kontrol yapılmış mı?
+        if (inek.gebelikDurumu === 'Gebe' || inek.gebelikDurumu === 'Gebe Değil') {
+          // Son tohumlama bu mu kontrol et
+          const enSonTohumlama = await Timeline.findOne({
+            userId: req.userId,
+            hayvanId: inek._id,
+            tip: 'tohumlama'
+          }).sort({ tarih: -1 });
+
+          if (enSonTohumlama && enSonTohumlama._id.toString() === tohumlama._id.toString()) {
+            continue; // Bu zaten kontrol edilmiş
+          }
+        }
+
+        bekleyenler.push({
+          inek: inek,
+          tohumlama: tohumlama,
+          gecenGun: gecenGun
+        });
+      }
+    }
+
+    res.json(bekleyenler);
+  } catch (error) {
+    console.error('Kontrol bekleyenler hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
 module.exports = router;
