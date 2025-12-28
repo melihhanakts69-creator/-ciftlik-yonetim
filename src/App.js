@@ -1322,7 +1322,234 @@ function App() {
           </p>
 
         
+          {/* SÜT KAYITLARI - TAKVİM GÖRÜNÜMÜ */}
+          {!seciliTarih ? (
+            // TARİH SEÇİCİ
+            <div>
+              <div style={{
+                backgroundColor: '#f5f5f5',
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{ marginTop: 0 }}>📅 Tarih Seçerek Kayıtları Görüntüle</h3>
+                
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input
+                    type="date"
+                    value={aramaTarihi}
+                    onChange={(e) => setAramaTarihi(e.target.value)}
+                    style={{
+                      padding: '12px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #ddd',
+                      flex: 1,
+                      minWidth: '200px'
+                    }}
+                  />
+                  
+                  <button
+                    onClick={() => {
+                      if (!aramaTarihi) {
+                        alert('Lütfen bir tarih seçin!');
+                        return;
+                      }
+                      
+                      const kayitlar = sutKayitlari.filter(k => k.tarih === aramaTarihi);
+                      
+                      if (kayitlar.length === 0) {
+                        alert('⚠️ Bu tarihte kayıt bulunamadı!');
+                        return;
+                      }
+                      
+                      setSeciliTarih(aramaTarihi);
+                    }}
+                    disabled={!aramaTarihi}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: aramaTarihi ? '#4CAF50' : '#ccc',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: aramaTarihi ? 'pointer' : 'not-allowed',
+                      fontSize: '16px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    📊 Detayları Göster
+                  </button>
+                </div>
+              </div>
 
+              {/* SON KAYITLAR ÖZETİ */}
+              {sutKayitlari.length > 0 && (
+                <div style={{
+                  backgroundColor: '#e3f2fd',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  marginBottom: '20px'
+                }}>
+                  <h3 style={{ marginTop: 0 }}>📈 Son Kayıtlar</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>
+                    Toplam <strong>{sutKayitlari.length}</strong> kayıt var
+                  </p>
+                  
+                  <div style={{ fontSize: '14px', color: '#666' }}>
+                    <strong>Kayıt olan tarihler:</strong>
+                    <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {[...new Set(sutKayitlari.map(k => k.tarih))]
+                        .sort((a, b) => new Date(b) - new Date(a))
+                        .map(tarih => (
+                          <button
+                            key={tarih}
+                            onClick={() => {
+                              setAramaTarihi(tarih);
+                              setSeciliTarih(tarih);
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'white',
+                              border: '1px solid #2196F3',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              color: '#2196F3',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {new Date(tarih).toLocaleDateString('tr-TR')}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // SEÇİLİ TARİHİN DETAYI
+            <div>
+              <button
+                onClick={() => setSeciliTarih(null)}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  marginBottom: '20px'
+                }}
+              >
+                ← Geri
+              </button>
+
+              <h3 style={{ marginBottom: '20px' }}>
+                📅 {new Date(seciliTarih).toLocaleDateString('tr-TR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </h3>
+
+              {['sabah', 'aksam'].map(sagim => {
+                const kayitlar = sutKayitlari.filter(k => k.tarih === seciliTarih && k.sagim === sagim);
+                
+                if (kayitlar.length === 0) return null;
+
+                const toplamSut = kayitlar.reduce((sum, k) => sum + k.litre, 0);
+
+                return (
+                  <div key={sagim} style={{ marginBottom: '30px' }}>
+                    <div style={{
+                      backgroundColor: sagim === 'sabah' ? '#fff3e0' : '#e3f2fd',
+                      padding: '15px',
+                      borderRadius: '8px',
+                      marginBottom: '15px'
+                    }}>
+                      <h4 style={{ margin: 0, fontSize: '18px' }}>
+                        {sagim === 'sabah' ? '🌅 SABAH' : '🌙 AKŞAM'} 
+                        <span style={{ marginLeft: '10px', color: '#666', fontSize: '14px' }}>
+                          ({kayitlar.length} kayıt - {toplamSut.toFixed(1)} lt)
+                        </span>
+                      </h4>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {kayitlar.map((kayit) => (
+                        <div
+                          key={kayit._id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '15px',
+                            padding: '15px',
+                            backgroundColor: seciliKayitlar.includes(kayit._id) ? '#e3f2fd' : '#f5f5f5',
+                            borderRadius: '8px',
+                            border: seciliKayitlar.includes(kayit._id) ? '2px solid #2196F3' : '1px solid #ddd'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={seciliKayitlar.includes(kayit._id)}
+                            onChange={() => checkboxDegistir(kayit._id)}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              cursor: 'pointer'
+                            }}
+                          />
+
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                              {kayit.inekIsim}
+                            </div>
+                          </div>
+
+                          <div style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            color: '#4CAF50',
+                            minWidth: '80px',
+                            textAlign: 'right'
+                          }}>
+                            {kayit.litre} lt
+                          </div>
+
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+                                try {
+                                  await api.deleteSutKaydi(kayit._id);
+                                  setSutKayitlari(sutKayitlari.filter(k => k._id !== kayit._id));
+                                  alert('✅ Kayıt silindi!');
+                                } catch (error) {
+                                  alert('❌ Hata: Kayıt silinemedi!');
+                                }
+                              }
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
          {/* BUGÜNÜN ÖZETİ */}
           {bugunKayitlari.length > 0 && (
             <div style={{ marginTop: '30px' }}>
