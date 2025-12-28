@@ -112,6 +112,7 @@ function App() {
   const [seciliKayitlar, setSeciliKayitlar] = useState([]);
   const [topluSilTarihi, setTopluSilTarihi] = useState(new Date().toISOString().split('T')[0]);
   const [topluSilSagim, setTopluSilSagim] = useState('sabah');
+  const [aramaTarihi, setAramaTarihi] = useState('');
   const [seciliTarih, setSeciliTarih] = useState(null);
   const [manuelGirisEkrani, setManuelGirisEkrani] = useState(false);
   
@@ -1322,59 +1323,109 @@ function App() {
 
         {/* SÜT KAYITLARI - TAKVİM GÖRÜNÜMÜ */}
           {!seciliTarih ? (
-            // TARİH LİSTESİ
-            sutKayitlari.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {tarihleregoreGrupla().map((grup) => (
-                  <div
-                    key={grup.tarih}
-                    onClick={() => setSeciliTarih(grup.tarih)}
+            // TARİH SEÇİCİ
+            <div>
+              <div style={{
+                backgroundColor: '#f5f5f5',
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '20px'
+              }}>
+                <h3 style={{ marginTop: 0 }}>📅 Tarih Seçerek Kayıtları Görüntüle</h3>
+                
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input
+                    type="date"
+                    value={aramaTarihi}
+                    onChange={(e) => setAramaTarihi(e.target.value)}
                     style={{
-                      padding: '20px',
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: '12px',
-                      border: '2px solid #ddd',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      padding: '12px',
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #ddd',
+                      flex: 1,
+                      minWidth: '200px'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                      e.currentTarget.style.borderColor = '#4CAF50';
+                  />
+                  
+                  <button
+                    onClick={() => {
+                      if (!aramaTarihi) {
+                        alert('Lütfen bir tarih seçin!');
+                        return;
+                      }
+                      
+                      const kayitlar = sutKayitlari.filter(k => k.tarih === aramaTarihi);
+                      
+                      if (kayitlar.length === 0) {
+                        alert('⚠️ Bu tarihte kayıt bulunamadı!');
+                        return;
+                      }
+                      
+                      setSeciliTarih(aramaTarihi);
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.borderColor = '#ddd';
+                    disabled={!aramaTarihi}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: aramaTarihi ? '#4CAF50' : '#ccc',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: aramaTarihi ? 'pointer' : 'not-allowed',
+                      fontSize: '16px',
+                      fontWeight: 'bold'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
-                          📅 {new Date(grup.tarih).toLocaleDateString('tr-TR', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#666' }}>
-                          {grup.adet} kayıt
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4CAF50' }}>
-                          {grup.toplam.toFixed(1)} lt
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#2196F3', fontWeight: 'bold' }}>
-                          Detay Gör →
-                        </div>
-                      </div>
+                    📊 Detayları Göster
+                  </button>
+                </div>
+              </div>
+
+              {/* SON KAYITLAR ÖZETİ */}
+              {sutKayitlari.length > 0 && (
+                <div style={{
+                  backgroundColor: '#e3f2fd',
+                  padding: '20px',
+                  borderRadius: '12px'
+                }}>
+                  <h3 style={{ marginTop: 0 }}>📈 Son Kayıtlar</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>
+                    Toplam <strong>{sutKayitlari.length}</strong> kayıt var
+                  </p>
+                  
+                  {/* Son tarihleri göster */}
+                  <div style={{ fontSize: '14px', color: '#666' }}>
+                    <strong>Kayıt olan tarihler:</strong>
+                    <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {[...new Set(sutKayitlari.map(k => k.tarih))]
+                        .sort((a, b) => new Date(b) - new Date(a))
+                        .slice(0, 10)
+                        .map(tarih => (
+                          <button
+                            key={tarih}
+                            onClick={() => {
+                              setAramaTarihi(tarih);
+                              setSeciliTarih(tarih);
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'white',
+                              border: '1px solid #2196F3',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              color: '#2196F3',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {new Date(tarih).toLocaleDateString('tr-TR')}
+                          </button>
+                        ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p>Henüz süt kaydı eklenmemiş.</p>
-            )
+                </div>
+              )}
+            </div>
           ) : (
             // SEÇİLİ TARİHİN DETAYI
             <div>
