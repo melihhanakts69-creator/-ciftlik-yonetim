@@ -112,6 +112,8 @@ function App() {
   const [seciliKayitlar, setSeciliKayitlar] = useState([]);
   const [topluSilTarihi, setTopluSilTarihi] = useState(new Date().toISOString().split('T')[0]);
   const [topluSilSagim, setTopluSilSagim] = useState('sabah');
+  const [seciliTarih, setSeciliTarih] = useState(null);
+  const [manuelGirisEkrani, setManuelGirisEkrani] = useState(false);
   
   // Düzenleme modu
   const [duzenlenecekInek, setDuzenlenecekInek] = useState(null);
@@ -203,6 +205,26 @@ function App() {
     } else {
       setSeciliKayitlar(sutKayitlari.map(k => k._id));
     }
+  };
+  // TARİHLERE GÖRE GRUPLA
+  const tarihleregoreGrupla = () => {
+    const gruplar = {};
+    
+    sutKayitlari.forEach(kayit => {
+      if (!gruplar[kayit.tarih]) {
+        gruplar[kayit.tarih] = [];
+      }
+      gruplar[kayit.tarih].push(kayit);
+    });
+    
+    return Object.keys(gruplar)
+      .sort((a, b) => new Date(b) - new Date(a))
+      .map(tarih => ({
+        tarih,
+        kayitlar: gruplar[tarih],
+        toplam: gruplar[tarih].reduce((sum, k) => sum + k.litre, 0),
+        adet: gruplar[tarih].length
+      }));
   };
 
 
@@ -1191,6 +1213,22 @@ function App() {
             marginBottom: '20px',
             flexWrap: 'wrap'
           }}>
+                        <button                                    
+              onClick={() => setManuelGirisEkrani(true)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#2196F3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              ➕ Manuel Süt Girişi
+            </button> 
+
             <button
               onClick={() => setTopluSilEkrani(true)}
               style={{
@@ -1202,9 +1240,12 @@ function App() {
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: 'bold'
+                
               }}
+              
             >
               🗑️ Tarih/Sağım Bazlı Sil
+              
             </button>
 
             {seciliKayitlar.length > 0 && (
@@ -1279,85 +1320,185 @@ function App() {
             Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
           </p>
 
-          {/* SÜT KAYITLARI LİSTESİ */}
-          {sutKayitlari.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {sutKayitlari.map((kayit) => (
-                <div
-                  key={kayit._id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    padding: '15px',
-                    backgroundColor: seciliKayitlar.includes(kayit._id) ? '#e3f2fd' : '#f5f5f5',
-                    borderRadius: '8px',
-                    border: seciliKayitlar.includes(kayit._id) ? '2px solid #2196F3' : '1px solid #ddd'
-                  }}
-                >
-                  {/* CHECKBOX */}
-                  <input
-                    type="checkbox"
-                    checked={seciliKayitlar.includes(kayit._id)}
-                    onChange={() => checkboxDegistir(kayit._id)}
+        {/* SÜT KAYITLARI - TAKVİM GÖRÜNÜMÜ */}
+          {!seciliTarih ? (
+            // TARİH LİSTESİ
+            sutKayitlari.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {tarihleregoreGrupla().map((grup) => (
+                  <div
+                    key={grup.tarih}
+                    onClick={() => setSeciliTarih(grup.tarih)}
                     style={{
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer'
+                      padding: '20px',
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '12px',
+                      border: '2px solid #ddd',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
                     }}
-                  />
-
-                  {/* KAYIT BİLGİLERİ */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                      {kayit.inekIsim}
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#666' }}>
-                      {new Date(kayit.tarih).toLocaleDateString('tr-TR')} - 
-                      {kayit.sagim === 'sabah' ? ' 🌅 Sabah' : ' 🌙 Akşam'}
-                    </div>
-                  </div>
-
-                  {/* SÜT MİKTARI */}
-                  <div style={{
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    color: '#4CAF50',
-                    minWidth: '80px',
-                    textAlign: 'right'
-                  }}>
-                    {kayit.litre} lt
-                  </div>
-
-                  {/* TEK SİL BUTONU */}
-                  <button
-                    onClick={async () => {
-                      if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
-                        try {
-                          await api.deleteSutKaydi(kayit._id);
-                          setSutKayitlari(sutKayitlari.filter(k => k._id !== kayit._id));
-                          alert('✅ Kayıt silindi!');
-                        } catch (error) {
-                          alert('❌ Hata: Kayıt silinemedi!');
-                        }
-                      }
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                      e.currentTarget.style.borderColor = '#4CAF50';
                     }}
-                    style={{
-                      padding: '8px 12px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.borderColor = '#ddd';
                     }}
                   >
-                    🗑️
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
+                          📅 {new Date(grup.tarih).toLocaleDateString('tr-TR', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#666' }}>
+                          {grup.adet} kayıt
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4CAF50' }}>
+                          {grup.toplam.toFixed(1)} lt
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#2196F3', fontWeight: 'bold' }}>
+                          Detay Gör →
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Henüz süt kaydı eklenmemiş.</p>
+            )
           ) : (
-            <p>Henüz süt kaydı eklenmemiş.</p>
+            // SEÇİLİ TARİHİN DETAYI
+            <div>
+              <button
+                onClick={() => setSeciliTarih(null)}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  marginBottom: '20px'
+                }}
+              >
+                ← Geri
+              </button>
+
+              <h3 style={{ marginBottom: '20px' }}>
+                📅 {new Date(seciliTarih).toLocaleDateString('tr-TR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </h3>
+
+              {/* SABAH VE AKŞAM GRUPLARI */}
+              {['sabah', 'aksam'].map(sagim => {
+                const kayitlar = sutKayitlari.filter(k => k.tarih === seciliTarih && k.sagim === sagim);
+                
+                if (kayitlar.length === 0) return null;
+
+                const toplamSut = kayitlar.reduce((sum, k) => sum + k.litre, 0);
+
+                return (
+                  <div key={sagim} style={{ marginBottom: '30px' }}>
+                    <div style={{
+                      backgroundColor: sagim === 'sabah' ? '#fff3e0' : '#e3f2fd',
+                      padding: '15px',
+                      borderRadius: '8px',
+                      marginBottom: '15px'
+                    }}>
+                      <h4 style={{ margin: 0, fontSize: '18px' }}>
+                        {sagim === 'sabah' ? '🌅 SABAH' : '🌙 AKŞAM'} 
+                        <span style={{ marginLeft: '10px', color: '#666', fontSize: '14px' }}>
+                          ({kayitlar.length} kayıt - {toplamSut.toFixed(1)} lt)
+                        </span>
+                      </h4>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {kayitlar.map((kayit) => (
+                        <div
+                          key={kayit._id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '15px',
+                            padding: '15px',
+                            backgroundColor: seciliKayitlar.includes(kayit._id) ? '#e3f2fd' : '#f5f5f5',
+                            borderRadius: '8px',
+                            border: seciliKayitlar.includes(kayit._id) ? '2px solid #2196F3' : '1px solid #ddd'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={seciliKayitlar.includes(kayit._id)}
+                            onChange={() => checkboxDegistir(kayit._id)}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              cursor: 'pointer'
+                            }}
+                          />
+
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                              {kayit.inekIsim}
+                            </div>
+                          </div>
+
+                          <div style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            color: '#4CAF50',
+                            minWidth: '80px',
+                            textAlign: 'right'
+                          }}>
+                            {kayit.litre} lt
+                          </div>
+
+                          <button
+                            onClick={async () => {
+                              if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+                                try {
+                                  await api.deleteSutKaydi(kayit._id);
+                                  setSutKayitlari(sutKayitlari.filter(k => k._id !== kayit._id));
+                                  alert('✅ Kayıt silindi!');
+                                } catch (error) {
+                                  alert('❌ Hata: Kayıt silinemedi!');
+                                }
+                              }
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: '#f44336',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
 
           {/* BUGÜNÜN İNEKLERİ - SÜT GİRİŞİ */}
@@ -2055,6 +2196,155 @@ function App() {
             window.location.reload();
           }}
         />
+      )}
+      {/* MANUEL SÜT GİRİŞİ MODAL */}
+      {manuelGirisEkrani && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>➕ Manuel Süt Girişi</h2>
+              <button
+                onClick={() => setManuelGirisEkrani(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                ✕ Kapat
+              </button>
+            </div>
+
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
+            </p>
+
+            {inekler.length > 0 ? (
+              <div>
+                {inekler.map((inek) => {
+                  const bugunKayit = bugunKayitlari.find(k => k.inekId === inek.id);
+                  
+                  return (
+                    <div 
+                      key={inek.id} 
+                      style={{ 
+                        backgroundColor: '#f0f0f0', 
+                        padding: '15px', 
+                        borderRadius: '8px',
+                        marginBottom: '15px',
+                        border: bugunKayit ? '2px solid #4CAF50' : '1px solid #ddd'
+                      }}
+                    >
+                      <h3 style={{ margin: '0 0 10px 0' }}>
+                        {inek.isim} (Küpe: {inek.kupeNo})
+                      </h3>
+                      
+                      {bugunKayit ? (
+                        <div style={{ color: '#4CAF50' }}>
+                          ✅ Kayıt yapıldı: <strong>{bugunKayit.litre} litre</strong>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <input
+                            type="number"
+                            placeholder="Süt miktarı (litre)"
+                            id={`manuel-sut-${inek.id}`}
+                            step="0.1"
+                            style={{
+                              padding: '8px',
+                              fontSize: '14px',
+                              borderRadius: '4px',
+                              border: '1px solid #ccc',
+                              width: '150px'
+                            }}
+                          />
+                          <button
+                            onClick={async () => {
+                              const input = document.getElementById(`manuel-sut-${inek.id}`);
+                              const litre = parseFloat(input.value);
+                              
+                              if (litre && litre > 0) {
+                                try {
+                                  const response = await api.createSutKaydi({
+                                    inekId: inek.id,
+                                    inekIsim: inek.isim,
+                                    tarih: bugunTarih(),
+                                    litre: litre,
+                                    sagim: 'sabah'
+                                  });
+                                  
+                                  const yeniKayit = { ...response.data, id: response.data._id };
+                                  setSutKayitlari([...sutKayitlari, yeniKayit]);
+                                  input.value = '';
+                                  alert('✅ Kayıt eklendi!');
+                                } catch (error) {
+                                  alert('❌ Hata: ' + (error.response?.data?.message || 'Süt kaydı eklenemedi!'));
+                                }
+                              } else {
+                                alert('Geçerli bir süt miktarı girin!');
+                              }
+                            }}
+                            style={{
+                              padding: '8px 15px',
+                              backgroundColor: '#4CAF50',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Kaydet
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {bugunKayitlari.length > 0 && (
+                  <div style={{ 
+                    backgroundColor: '#e8f5e9', 
+                    padding: '15px', 
+                    borderRadius: '8px',
+                    marginTop: '20px'
+                  }}>
+                    <h3>📊 Bugünün Özeti</h3>
+                    <p><strong>Kayıt Yapılan İnek:</strong> {bugunKayitlari.length} / {inekler.length}</p>
+                    <p><strong>Toplam Süt:</strong> {bugunKayitlari.reduce((sum, k) => sum + k.litre, 0).toFixed(1)} litre</p>
+                    <p><strong>Ortalama:</strong> {(bugunKayitlari.reduce((sum, k) => sum + k.litre, 0) / bugunKayitlari.length).toFixed(1)} litre/inek</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p>Önce inek eklemelisin!</p>
+            )}
+          </div>
+        </div>
       )}
       {/* TARİH/SAĞIM BAZLI SİLME MODAL */}
       {topluSilEkrani && (
