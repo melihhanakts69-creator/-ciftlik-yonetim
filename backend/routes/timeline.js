@@ -156,18 +156,10 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
       if (gecenGun >= 21 && gecenGun <= 28) {
         console.log('✅ 21-28 gün arası!');
         
+        // Belirsiz olanları göster, Gebe veya Gebe Değil olanları atla
         if (inek.gebelikDurumu === 'Gebe' || inek.gebelikDurumu === 'Gebe Değil') {
           console.log('⏭️ Zaten kontrol edilmiş, atlanıyor');
-          
-          const enSonTohumlama = await Timeline.findOne({
-            userId: req.userId,
-            hayvanId: inek._id,
-            tip: 'tohumlama'
-          }).sort({ tarih: -1 });
-
-          if (enSonTohumlama && enSonTohumlama._id.toString() === tohumlama._id.toString()) {
-            continue;
-          }
+          continue;
         }
 
         console.log('➕ Listeye ekleniyor!');
