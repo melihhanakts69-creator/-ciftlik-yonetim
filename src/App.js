@@ -1321,336 +1321,52 @@ function App() {
             Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
           </p>
 
-        {/* SÜT KAYITLARI - TAKVİM GÖRÜNÜMÜ */}
-          {!seciliTarih ? (
-            // TARİH SEÇİCİ
-            <div>
-              <div style={{
-                backgroundColor: '#f5f5f5',
-                padding: '20px',
-                borderRadius: '12px',
-                marginBottom: '20px'
-              }}>
-                <h3 style={{ marginTop: 0 }}>📅 Tarih Seçerek Kayıtları Görüntüle</h3>
-                
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input
-                    type="date"
-                    value={aramaTarihi}
-                    onChange={(e) => setAramaTarihi(e.target.value)}
-                    style={{
-                      padding: '12px',
-                      fontSize: '16px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      flex: 1,
-                      minWidth: '200px'
-                    }}
-                  />
-                  
-                  <button
-                    onClick={() => {
-                      if (!aramaTarihi) {
-                        alert('Lütfen bir tarih seçin!');
-                        return;
-                      }
-                      
-                      const kayitlar = sutKayitlari.filter(k => k.tarih === aramaTarihi);
-                      
-                      if (kayitlar.length === 0) {
-                        alert('⚠️ Bu tarihte kayıt bulunamadı!');
-                        return;
-                      }
-                      
-                      setSeciliTarih(aramaTarihi);
-                    }}
-                    disabled={!aramaTarihi}
-                    style={{
-                      padding: '12px 24px',
-                      backgroundColor: aramaTarihi ? '#4CAF50' : '#ccc',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: aramaTarihi ? 'pointer' : 'not-allowed',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    📊 Detayları Göster
-                  </button>
-                </div>
-              </div>
+        
 
-              {/* SON KAYITLAR ÖZETİ */}
-              {sutKayitlari.length > 0 && (
-                <div style={{
-                  backgroundColor: '#e3f2fd',
-                  padding: '20px',
-                  borderRadius: '12px'
-                }}>
-                  <h3 style={{ marginTop: 0 }}>📈 Son Kayıtlar</h3>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>
-                    Toplam <strong>{sutKayitlari.length}</strong> kayıt var
-                  </p>
-                  
-                  {/* Son tarihleri göster */}
-                  <div style={{ fontSize: '14px', color: '#666' }}>
-                    <strong>Kayıt olan tarihler:</strong>
-                    <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {[...new Set(sutKayitlari.map(k => k.tarih))]
-                        .sort((a, b) => new Date(b) - new Date(a))
-                        .slice(0, 10)
-                        .map(tarih => (
-                          <button
-                            key={tarih}
-                            onClick={() => {
-                              setAramaTarihi(tarih);
-                              setSeciliTarih(tarih);
-                            }}
-                            style={{
-                              padding: '8px 12px',
-                              backgroundColor: 'white',
-                              border: '1px solid #2196F3',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              color: '#2196F3',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            {new Date(tarih).toLocaleDateString('tr-TR')}
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // SEÇİLİ TARİHİN DETAYI
-            <div>
-              <button
-                onClick={() => setSeciliTarih(null)}
+         {/* BUGÜNÜN ÖZETİ */}
+          {bugunKayitlari.length > 0 && (
+            <div style={{ marginTop: '30px' }}>
+              <div 
+                onClick={() => {
+                  setAramaTarihi(bugunTarih());
+                  setSeciliTarih(bugunTarih());
+                }}
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#666',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
+                  padding: '20px',
+                  backgroundColor: '#e8f5e9',
+                  borderRadius: '12px',
+                  border: '2px solid #4CAF50',
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  marginBottom: '20px'
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.borderColor = '#2E7D32';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.borderColor = '#4CAF50';
                 }}
               >
-                ← Geri
-              </button>
-
-              <h3 style={{ marginBottom: '20px' }}>
-                📅 {new Date(seciliTarih).toLocaleDateString('tr-TR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </h3>
-
-              {/* SABAH VE AKŞAM GRUPLARI */}
-              {['sabah', 'aksam'].map(sagim => {
-                const kayitlar = sutKayitlari.filter(k => k.tarih === seciliTarih && k.sagim === sagim);
-                
-                if (kayitlar.length === 0) return null;
-
-                const toplamSut = kayitlar.reduce((sum, k) => sum + k.litre, 0);
-
-                return (
-                  <div key={sagim} style={{ marginBottom: '30px' }}>
-                    <div style={{
-                      backgroundColor: sagim === 'sabah' ? '#fff3e0' : '#e3f2fd',
-                      padding: '15px',
-                      borderRadius: '8px',
-                      marginBottom: '15px'
-                    }}>
-                      <h4 style={{ margin: 0, fontSize: '18px' }}>
-                        {sagim === 'sabah' ? '🌅 SABAH' : '🌙 AKŞAM'} 
-                        <span style={{ marginLeft: '10px', color: '#666', fontSize: '14px' }}>
-                          ({kayitlar.length} kayıt - {toplamSut.toFixed(1)} lt)
-                        </span>
-                      </h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px', color: '#2E7D32' }}>
+                      📅 Bugün - {new Date().toLocaleDateString('tr-TR')}
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {kayitlar.map((kayit) => (
-                        <div
-                          key={kayit._id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '15px',
-                            padding: '15px',
-                            backgroundColor: seciliKayitlar.includes(kayit._id) ? '#e3f2fd' : '#f5f5f5',
-                            borderRadius: '8px',
-                            border: seciliKayitlar.includes(kayit._id) ? '2px solid #2196F3' : '1px solid #ddd'
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={seciliKayitlar.includes(kayit._id)}
-                            onChange={() => checkboxDegistir(kayit._id)}
-                            style={{
-                              width: '20px',
-                              height: '20px',
-                              cursor: 'pointer'
-                            }}
-                          />
-
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                              {kayit.inekIsim}
-                            </div>
-                          </div>
-
-                          <div style={{
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            color: '#4CAF50',
-                            minWidth: '80px',
-                            textAlign: 'right'
-                          }}>
-                            {kayit.litre} lt
-                          </div>
-
-                          <button
-                            onClick={async () => {
-                              if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
-                                try {
-                                  await api.deleteSutKaydi(kayit._id);
-                                  setSutKayitlari(sutKayitlari.filter(k => k._id !== kayit._id));
-                                  alert('✅ Kayıt silindi!');
-                                } catch (error) {
-                                  alert('❌ Hata: Kayıt silinemedi!');
-                                }
-                              }
-                            }}
-                            style={{
-                              padding: '8px 12px',
-                              backgroundColor: '#f44336',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      ))}
+                    <div style={{ fontSize: '14px', color: '#666' }}>
+                      {bugunKayitlari.length} / {inekler.length} inek kayıt yapıldı
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* BUGÜNÜN İNEKLERİ - SÜT GİRİŞİ */}
-          {inekler.length > 0 && (
-            <div style={{ marginTop: '30px' }}>
-              <h3>📝 Bugün İçin Süt Girişi</h3>
-              <p style={{ color: '#666', marginBottom: '20px' }}>
-                Tarih: <strong>{new Date().toLocaleDateString('tr-TR')}</strong>
-              </p>
-
-              {inekler.map((inek) => {
-                const bugunKayit = bugunKayitlari.find(k => k.inekId === inek.id);
-                
-                return (
-                  <div 
-                    key={inek.id} 
-                    style={{ 
-                      backgroundColor: '#f0f0f0', 
-                      padding: '15px', 
-                      borderRadius: '8px',
-                      marginBottom: '15px',
-                      border: bugunKayit ? '2px solid #4CAF50' : '1px solid #ddd'
-                    }}
-                  >
-                    <h3 style={{ margin: '0 0 10px 0' }}>
-                      {inek.isim} (Küpe: {inek.kupeNo})
-                    </h3>
-                    
-                    {bugunKayit ? (
-                      <div style={{ color: '#4CAF50' }}>
-                        ✅ Kayıt yapıldı: <strong>{bugunKayit.litre} litre</strong>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <input
-                          type="number"
-                          placeholder="Süt miktarı (litre)"
-                          id={`sut-${inek.id}`}
-                          step="0.1"
-                          style={{
-                            padding: '8px',
-                            fontSize: '14px',
-                            borderRadius: '4px',
-                            border: '1px solid #ccc',
-                            width: '150px'
-                          }}
-                        />
-                        <button
-                          onClick={async () => {
-                            const input = document.getElementById(`sut-${inek.id}`);
-                            const litre = parseFloat(input.value);
-                            
-                            if (litre && litre > 0) {
-                              try {
-                                const response = await api.createSutKaydi({
-                                  inekId: inek.id,
-                                  inekIsim: inek.isim,
-                                  tarih: bugunTarih(),
-                                  litre: litre
-                                });
-                                
-                                const yeniKayit = { ...response.data, id: response.data._id };
-                                setSutKayitlari([...sutKayitlari, yeniKayit]);
-                                input.value = '';
-                              } catch (error) {
-                                alert('❌ Hata: ' + (error.response?.data?.message || 'Süt kaydı eklenemedi!'));
-                              }
-                            } else {
-                              alert('Geçerli bir süt miktarı girin!');
-                            }
-                          }}
-                          style={{
-                            padding: '8px 15px',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Kaydet
-                        </button>
-                      </div>
-                    )}
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4CAF50' }}>
+                      {bugunKayitlari.reduce((sum, k) => sum + k.litre, 0).toFixed(1)} lt
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#2E7D32', fontWeight: 'bold' }}>
+                      Detayları Gör →
+                    </div>
                   </div>
-                );
-              })}
-
-              {bugunKayitlari.length > 0 && (
-                <div style={{ 
-                  backgroundColor: '#e8f5e9', 
-                  padding: '15px', 
-                  borderRadius: '8px',
-                  marginTop: '20px'
-                }}>
-                  <h3>📊 Bugünün Özeti</h3>
-                  <p><strong>Kayıt Yapılan İnek:</strong> {bugunKayitlari.length} / {inekler.length}</p>
-                  <p><strong>Toplam Süt:</strong> {bugunKayitlari.reduce((sum, k) => sum + k.litre, 0).toFixed(1)} litre</p>
-                  <p><strong>Ortalama:</strong> {(bugunKayitlari.reduce((sum, k) => sum + k.litre, 0) / bugunKayitlari.length).toFixed(1)} litre/inek</p>
                 </div>
-              )}
+              </div>
             </div>
           )}
           
