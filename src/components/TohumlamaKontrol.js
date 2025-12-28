@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getKontrolBekleyenler } from '../services/api';
+import axios from 'axios';
 import * as api from '../services/api';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 function TohumlamaKontrol() {
   const [bekleyenler, setBekleyenler] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -9,10 +11,13 @@ function TohumlamaKontrol() {
     kontrolleriYukle();
   }, []);
 
-  const kontrolleriYukle = async () => {
+ const kontrolleriYukle = async () => {
     setYukleniyor(true);
     try {
-      const response = await getKontrolBekleyenler();
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/timeline/kontrol-bekleyenler`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setBekleyenler(response.data);
     } catch (error) {
       console.error('Kontroller yüklenemedi:', error);
@@ -24,10 +29,17 @@ function TohumlamaKontrol() {
   const durumGuncelle = async (inek, tohumlama, gebelikDurumu) => {
     try {
       // İnek durumunu güncelle
-      await api.updateInek(inek._id, {
+      const token = localStorage.getItem('token');
+      
+      await axios.put(`${API_URL}/inekler/${inek._id}`, {
         ...inek,
         gebelikDurumu: gebelikDurumu,
         tohumlamaTarihi: gebelikDurumu === 'Gebe' ? tohumlama.tarih : null
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      await axios.post(`${API_URL}/timeline`, {
       });
 
       // Timeline kaydı ekle
