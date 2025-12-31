@@ -58,65 +58,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
-// HAYVAN TIMELINE'INI GETİR
-router.get('/:hayvanId', auth, async (req, res) => {
-  try {
-    const timeline = await Timeline.find({ 
-      userId: req.userId, 
-      hayvanId: req.params.hayvanId 
-    }).sort({ tarih: -1 });
-    
-    res.json(timeline);
-  } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
-  }
-});
 
-// TIMELINE KAYDI EKLE
-router.post('/', auth, async (req, res) => {
-  try {
-    const { hayvanId, hayvanTipi, tip, tarih, aciklama, iliskiliHayvanId } = req.body;
-
-    const timelineKaydi = new Timeline({
-      userId: req.userId,
-      hayvanId,
-      hayvanTipi,
-      tip,
-      tarih,
-      aciklama,
-      iliskiliHayvanId
-    });
-
-    await timelineKaydi.save();
-
-    res.status(201).json(timelineKaydi);
-  } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
-  }
-});
-
-
-
-// TIMELINE KAYDI SİL
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const timeline = await Timeline.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.userId
-    });
-
-    if (!timeline) {
-      return res.status(404).json({ message: 'Kayıt bulunamadı!' });
-    }
-
-    res.json({ message: 'Kayıt silindi!' });
-  } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
-  }
-
-
-  
-});
 // TOHUMLAMA KONTROLÜ BEKLEYENLERİ GETİR
 router.get('/kontrol-bekleyenler', auth, async (req, res) => {
   try {
@@ -177,6 +119,65 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
     console.error('Kontrol bekleyenler hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
+});
+// HAYVAN TIMELINE'INI GETİR
+router.get('/:hayvanId', auth, async (req, res) => {
+  try {
+    const timeline = await Timeline.find({ 
+      userId: req.userId, 
+      hayvanId: req.params.hayvanId 
+    }).sort({ tarih: -1 });
+    
+    res.json(timeline);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TIMELINE KAYDI EKLE
+router.post('/', auth, async (req, res) => {
+  try {
+    const { hayvanId, hayvanTipi, tip, tarih, aciklama, iliskiliHayvanId } = req.body;
+
+    const timelineKaydi = new Timeline({
+      userId: req.userId,
+      hayvanId,
+      hayvanTipi,
+      tip,
+      tarih,
+      aciklama,
+      iliskiliHayvanId
+    });
+
+    await timelineKaydi.save();
+
+    res.status(201).json(timelineKaydi);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+
+
+// TIMELINE KAYDI SİL
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const timeline = await Timeline.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.userId
+    });
+
+    if (!timeline) {
+      return res.status(404).json({ message: 'Kayıt bulunamadı!' });
+    }
+
+    res.json({ message: 'Kayıt silindi!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+
+
+  
 });
 
 module.exports = router;
