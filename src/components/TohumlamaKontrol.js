@@ -26,9 +26,8 @@ function TohumlamaKontrol() {
     }
   };
 
-  const durumGuncelle = async (inek, tohumlama, gebelikDurumu) => {
+ const durumGuncelle = async (inek, tohumlama, gebelikDurumu) => {
     try {
-      // İnek durumunu güncelle
       const token = localStorage.getItem('token');
       
       await axios.put(`${API_URL}/inekler/${inek._id}`, {
@@ -40,8 +39,27 @@ function TohumlamaKontrol() {
       });
 
       await axios.post(`${API_URL}/timeline`, {
+        hayvanId: inek._id,
+        hayvanTipi: 'inek',
+        tip: gebelikDurumu === 'Gebe' ? 'dogum' : 'tohumlama',
+        tarih: new Date().toISOString().split('T')[0],
+        aciklama: gebelikDurumu === 'Gebe' 
+          ? `Gebelik kontrolü pozitif (${tohumlama.tarih} tohumlama)`
+          : `Gebelik kontrolü negatif, yeni tohumlama gerekli`
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      const tohumlamaSil = async (tohumlama) => {
+
+      alert(`✅ ${inek.isim} - ${gebelikDurumu === 'Gebe' ? 'Gebe olarak' : 'Gebe değil olarak'} kaydedildi!`);
+      
+      kontrolleriYukle();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Güncelleme yapılamadı!'));
+    }
+  };  // ← BURASI KAPANIŞI
+
+  // YENİ FONKSİYON BURADAN BAŞLAMALI
+  const tohumlamaSil = async (tohumlama) => {
     if (!window.confirm('Bu tohumlama kaydını silmek istediğinize emin misiniz?')) {
       return;
     }
@@ -56,26 +74,6 @@ function TohumlamaKontrol() {
       kontrolleriYukle();
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt silinemedi!'));
-    }
-  };
-
-      // Timeline kaydı ekle
-      await api.createTimeline({
-        hayvanId: inek._id,
-        hayvanTipi: 'inek',
-        tip: gebelikDurumu === 'Gebe' ? 'dogum' : 'tohumlama',
-        tarih: new Date().toISOString().split('T')[0],
-        aciklama: gebelikDurumu === 'Gebe' 
-          ? `Gebelik kontrolü pozitif (${tohumlama.tarih} tohumlama)`
-          : `Gebelik kontrolü negatif, yeni tohumlama gerekli`
-      });
-
-      alert(`✅ ${inek.isim} - ${gebelikDurumu === 'Gebe' ? 'Gebe olarak' : 'Gebe değil olarak'} kaydedildi!`);
-      
-      // Listeyi yenile
-      kontrolleriYukle();
-    } catch (error) {
-      alert('❌ Hata: ' + (error.response?.data?.message || 'Güncelleme yapılamadı!'));
     }
   };
 
