@@ -41,6 +41,23 @@ function TohumlamaKontrol() {
 
       await axios.post(`${API_URL}/timeline`, {
       });
+      const tohumlamaSil = async (tohumlama) => {
+    if (!window.confirm('Bu tohumlama kaydını silmek istediğinize emin misiniz?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/timeline/${tohumlama._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert('✅ Tohumlama kaydı silindi!');
+      kontrolleriYukle();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt silinemedi!'));
+    }
+  };
 
       // Timeline kaydı ekle
       await api.createTimeline({
@@ -168,6 +185,24 @@ function TohumlamaKontrol() {
                   </button>
                 </div>
               </div>
+               {/* SİL BUTONU EKLE */}
+              <button
+                onClick={() => tohumlamaSil(item.tohumlama)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  marginTop: '10px'
+                }}
+              >
+                🗑️ Tohumlama Kaydını Sil
+              </button>
+              
 
               {item.tohumlama.aciklama && (
                 <div style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
@@ -189,6 +224,7 @@ function TohumlamaKontrol() {
           </p>
         </div>
       )}
+      
     </div>
   );
 }
