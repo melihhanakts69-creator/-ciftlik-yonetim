@@ -1093,167 +1093,7 @@ function App() {
         </div>
       )}
 
-      {/* Yeni İnek Ekle Formu */}
-      {aktifSayfa === 'ekle' && (
-        <div>
-          <h2>➕ Yeni İnek Ekle</h2>
-          <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '8px' }}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                İnek İsmi: *
-              </label>
-              <input 
-                type="text"
-                value={yeniInekIsim}
-                onChange={(e) => setYeniInekIsim(e.target.value)}
-                placeholder="Örn: Pamuk"
-                style={{ 
-                  width: '100%', 
-                  padding: '8px', 
-                  fontSize: '16px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc'
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Yaş (yıl): *
-                </label>
-                <input 
-                  type="number"
-                  value={yeniInekYas}
-                  onChange={(e) => setYeniInekYas(e.target.value)}
-                  placeholder="Örn: 4"
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    fontSize: '16px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Kilo (kg): *
-                </label>
-                <input 
-                  type="number"
-                  value={yeniInekKilo}
-                  onChange={(e) => setYeniInekKilo(e.target.value)}
-                  placeholder="Örn: 550"
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    fontSize: '16px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Küpe Numarası: *
-                </label>
-                <input 
-                  type="text"
-                  value={yeniInekKupeNo}
-                  onChange={(e) => setYeniInekKupeNo(e.target.value)}
-                  placeholder="Örn: 007"
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    fontSize: '16px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Doğum Tarihi:
-                </label>
-                <input 
-                  type="date"
-                  value={yeniInekDogumTarihi}
-                  onChange={(e) => setYeniInekDogumTarihi(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    fontSize: '16px',
-                    borderRadius: '4px',
-                    border: '1px solid #ccc'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                Buzağı Sayısı:
-              </label>
-              <input 
-                type="number"
-                value={yeniInekBuzagiSayisi}
-                onChange={(e) => setYeniInekBuzagiSayisi(e.target.value)}
-                placeholder="0"
-                style={{ 
-                  width: '100%', 
-                  padding: '8px', 
-                  fontSize: '16px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc'
-                }}
-              />
-            </div>
-
-            <div style={{ marginTop: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                Notlar:
-              </label>
-              <textarea 
-                value={yeniInekNotlar}
-                onChange={(e) => setYeniInekNotlar(e.target.value)}
-                rows="4"
-                placeholder="Sağlık durumu, özel notlar..."
-                style={{ 
-                  width: '100%', 
-                  padding: '8px', 
-                  fontSize: '16px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  fontFamily: 'Arial'
-                }}
-              />
-            </div>
-
-            <button 
-              onClick={inekEkle}
-              style={{ 
-                padding: '12px 30px', 
-                fontSize: '16px',
-                backgroundColor: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                marginTop: '20px'
-              }}
-            >
-              İnek Ekle
-            </button>
-          </div>
-        </div>
-      )}
+      
 
       {/* Süt Kayıt Sayfası */}
       {aktifSayfa === 'sut' && (
@@ -2525,6 +2365,227 @@ function App() {
                 }}
               >
                 🗑️ Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* İNEK EKLEME MODAL */}
+      {inekEkrani && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>🐮 Yeni İnek Ekle</h2>
+              <button
+                onClick={() => setInekEkrani(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                ✕ Kapat
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                İnek İsmi: *
+              </label>
+              <input 
+                type="text"
+                value={yeniInekIsim}
+                onChange={(e) => setYeniInekIsim(e.target.value)}
+                placeholder="Örn: Pamuk"
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Yaş (yıl): *
+                </label>
+                <input 
+                  type="number"
+                  value={yeniInekYas}
+                  onChange={(e) => setYeniInekYas(e.target.value)}
+                  placeholder="Örn: 4"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Kilo (kg): *
+                </label>
+                <input 
+                  type="number"
+                  value={yeniInekKilo}
+                  onChange={(e) => setYeniInekKilo(e.target.value)}
+                  placeholder="Örn: 550"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Küpe Numarası: *
+                </label>
+                <input 
+                  type="text"
+                  value={yeniInekKupeNo}
+                  onChange={(e) => setYeniInekKupeNo(e.target.value)}
+                  placeholder="Örn: 007"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Doğum Tarihi:
+                </label>
+                <input 
+                  type="date"
+                  value={yeniInekDogumTarihi}
+                  onChange={(e) => setYeniInekDogumTarihi(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Buzağı Sayısı:
+              </label>
+              <input 
+                type="number"
+                value={yeniInekBuzagiSayisi}
+                onChange={(e) => setYeniInekBuzagiSayisi(e.target.value)}
+                placeholder="0"
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Notlar:
+              </label>
+              <textarea 
+                value={yeniInekNotlar}
+                onChange={(e) => setYeniInekNotlar(e.target.value)}
+                rows="4"
+                placeholder="Sağlık durumu, özel notlar..."
+                style={{ 
+                  width: '100%', 
+                  padding: '10px', 
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  fontFamily: 'Arial',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={() => setInekEkrani(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                İptal
+              </button>
+              <button 
+                onClick={() => {
+                  inekEkle();
+                  setInekEkrani(false);
+                }}
+                style={{ 
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '16px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Kaydet
               </button>
             </div>
           </div>
