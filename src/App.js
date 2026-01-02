@@ -512,22 +512,7 @@ function App() {
           İnekler ({inekler.length})
         </button>
         
-        <button 
-          onClick={() => setAktifSayfa('ekle')}
-          style={{ 
-            padding: '10px 20px', 
-            fontSize: '16px',
-            backgroundColor: aktifSayfa === 'ekle' ? '#4CAF50' : '#ddd',
-            color: aktifSayfa === 'ekle' ? 'white' : 'black',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginRight: '10px',
-            marginBottom: '5px'
-          }}
-        >
-          + Yeni İnek
-        </button>
+        
 
         <button 
           onClick={() => setAktifSayfa('sut')}
@@ -740,7 +725,24 @@ function App() {
       {/* İnek Listesi */}
       {aktifSayfa === 'inekler' && !detayInek && !duzenlenecekInek && (
         <div>
-          <h2>🐮 İnek Listesi</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ margin: 0 }}>🐮 İnekler ({inekler.length})</h2>
+            <button
+              onClick={() => setInekEkrani(true)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}
+            >
+              + İnek Ekle
+            </button>
+          </div>
           {inekler.length > 0 ? (
             <div style={{ display: 'grid', gap: '15px' }}>
               {inekler.map((inek) => {
