@@ -106,7 +106,24 @@ const [yeniBuzagiIsim, setYeniBuzagiIsim] = useState('');
 
   return (
     <div>
-      <h2>🍼 Buzağı Yönetimi</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>🍼 Buzağılar ({buzagilar.length})</h2>
+        <button
+          onClick={() => setBuzagiEkrani(true)}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#FF9800',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+        >
+          + Buzağı Ekle
+        </button>
+      </div>
       
       {/* Özet */}
       <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>

@@ -93,7 +93,24 @@ const [yeniDuveIsim, setYeniDuveIsim] = useState('');
 
   return (
     <div>
-      <h2>🐄 Düve Yönetimi</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+  <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
+  <button
+    onClick={() => setDuveEkrani(true)}
+    style={{
+      padding: '10px 20px',
+      backgroundColor: '#4CAF50',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontSize: '16px',
+      fontWeight: 'bold'
+    }}
+  >
+    + Düve Ekle
+  </button>
+</div>
       
       {/* Özet */}
       <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
