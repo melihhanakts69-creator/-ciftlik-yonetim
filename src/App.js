@@ -1,6 +1,7 @@
 import Login from './components/Auth/Login';
 import * as api from './services/api';
 import Buzagilar from './components/Buzagilar';
+import Tosunlar from './components/Tosunlar';
 import Duveler from './components/Duveler';
 import YemDeposu from './components/YemDeposu';
 import InekDetay from './components/InekDetay';
@@ -104,6 +105,8 @@ function App() {
   
   // Düve listesi
   const [duveler, setDuveler] = useState([]);
+  // Tosunlar
+  const [tosunlar, setTosunlar] = useState([]);
 
   // Günlük süt kayıtları
   const [sutKayitlari, setSutKayitlari] = useState([]);
@@ -272,6 +275,26 @@ function App() {
       setDuveler(duvelerData);
     } catch (error) {
       console.error('Düveler yüklenemedi:', error);
+    }
+  };
+
+   // Tosunları API'den yükle
+  useEffect(() => {
+    if (girisYapildi) {
+      tosunlariYukle();
+    }
+  }, [girisYapildi]);
+
+  const tosunlariYukle = async () => {
+    try {
+      const response = await api.getTosunlar();
+      const tosunlarData = response.data.map(tosun => ({
+        ...tosun,
+        id: tosun._id
+      }));
+      setTosunlar(tosunlarData);
+    } catch (error) {
+      console.error('Tosunlar yüklenemedi:', error);
     }
   };
 
@@ -587,6 +610,22 @@ function App() {
         >
           🐄 Düveler
         </button>
+        <button
+              onClick={() => setAktifSayfa('tosunlar')}
+              style={{
+                padding: '12px 20px',
+                backgroundColor: aktifSayfa === 'tosunlar' ? '#FF9800' : '#f5f5f5',
+                color: aktifSayfa === 'tosunlar' ? 'white' : '#333',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: aktifSayfa === 'tosunlar' ? 'bold' : 'normal',
+                transition: 'all 0.2s'
+              }}
+            >
+              🐂 Tosunlar
+            </button>
         <button 
               onClick={() => setAktifSayfa('yem-deposu')}
               style={{ 
@@ -665,7 +704,7 @@ function App() {
 
               <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
                 <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#2e7d32' }}>
-                  🐮 TOPLAM HAYVAN: {inekler.length + buzagilar.length + duveler.length}
+                 🐮 TOPLAM HAYVAN: {inekler.length + buzagilar.length + duveler.length + tosunlar.length}
                 </p>
               </div>
               {bugunKayitlari.length > 0 && (
@@ -684,6 +723,12 @@ function App() {
           <div style={{ marginTop: '30px' }}>
             <YaklasanDogumlar onInekSec={setSecilenInek} />
           </div>
+           <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
+                <p><strong>🐂 Tosunlar:</strong></p>
+                <p style={{ marginLeft: '20px' }}>
+                  Toplam: {tosunlar.length}
+                </p>
+              </div>
              {/* TOHUMLAMA KONTROLLERİ */}
           <div style={{ marginTop: '30px' }}>
             <TohumlamaKontrol />
@@ -2165,6 +2210,10 @@ function App() {
           duveler={duveler} 
           setDuveler={setDuveler}
         />
+      )}
+       {/* Tosunlar Sayfası */}
+      {aktifSayfa === 'tosunlar' && (
+        <Tosunlar />
       )}
         </>
       )}

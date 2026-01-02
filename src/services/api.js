@@ -37,6 +37,16 @@ export const getDuveler = () => api.get('/duveler');
 export const createDuve = (data) => api.post('/duveler', data);
 export const deleteDuve = (id) => api.delete(`/duveler/${id}`);
 
+//Tosunlar
+export const getTosunlar = () => api.get('/tosunlar');
+export const createTosun = (data) => api.post('/tosunlar', data);
+export const updateTosun = (id, data) => api.put(`/tosunlar/${id}`, data);
+export const deleteTosun = (id) => api.delete(`/tosunlar/${id}`);
+
+// BUZAĞI GEÇİŞ
+export const getGecisKontrol = () => api.get('/buzagilar/kontrol-gecis');
+export const buzagiGecisYap = (id) => api.post(`/buzagilar/gecis-yap/${id}`);
+
 // SÜT KAYITLARI
 export const getSutKayitlari = () => api.get('/sut-kayitlari');
 export const createSutKaydi = (data) => api.post('/sut-kayitlari', data);
@@ -62,6 +72,7 @@ export const getTimeline = (hayvanId) => api.get(`/timeline/${hayvanId}`);
 export const createTimeline = (data) => api.post('/timeline', data);
 export const deleteTimeline = (id) => api.delete(`/timeline/${id}`);
 export const getYaklasanDogumlar = () => api.get('/timeline/yaklasan/dogumlar');
+export const getKontrolBekleyenler = () => api.get('/timeline/kontrol-bekleyenler');
 
 // TOPLU SÜT
 export const topluSutOnizleme = (data) => api.post('/toplu-sut/onizleme', data);
@@ -70,5 +81,6 @@ export const topluSutGecmis = (limit) => api.get(`/toplu-sut/gecmis?limit=${limi
 export const topluSutDetay = (id) => api.get(`/toplu-sut/${id}`);
 export const topluSutSil = (id) => api.delete(`/toplu-sut/${id}`);
 export const topluSutSilByTarihSagim = (tarih, sagim) => api.delete(`/toplu-sut/tarih/${tarih}/${sagim}`);
+
 
 export default api;
