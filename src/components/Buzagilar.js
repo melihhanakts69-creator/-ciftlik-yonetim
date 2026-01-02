@@ -3,6 +3,7 @@ import * as api from '../services/api';
 
 
 function Buzagilar({ buzagilar, setBuzagilar, inekler }) {
+  const [buzagiEkrani, setBuzagiEkrani] = useState(false);
 const [yeniBuzagiIsim, setYeniBuzagiIsim] = useState('');
   const [yeniBuzagiAnne, setYeniBuzagiAnne] = useState('');
   const [yeniBuzagiDogumTarihi, setYeniBuzagiDogumTarihi] = useState('');

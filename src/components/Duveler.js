@@ -3,6 +3,7 @@ import * as api from '../services/api';
 
 
 function Duveler({ duveler, setDuveler }) {
+  const [duveEkrani, setDuveEkrani] = useState(false);
 const [yeniDuveIsim, setYeniDuveIsim] = useState('');
   const [yeniDuveYas, setYeniDuveYas] = useState('');
   const [yeniDuveKilo, setYeniDuveKilo] = useState('');
