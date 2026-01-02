@@ -701,6 +701,12 @@ function App() {
                   </p>
                 )}
               </div>
+               <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
+                <p><strong>🐂 Tosunlar:</strong></p>
+                <p style={{ marginLeft: '20px' }}>
+                  Toplam: {tosunlar.length}
+                </p>
+              </div>
 
               <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
                 <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#2e7d32' }}>
@@ -723,12 +729,7 @@ function App() {
           <div style={{ marginTop: '30px' }}>
             <YaklasanDogumlar onInekSec={setSecilenInek} />
           </div>
-           <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                <p><strong>🐂 Tosunlar:</strong></p>
-                <p style={{ marginLeft: '20px' }}>
-                  Toplam: {tosunlar.length}
-                </p>
-              </div>
+          
              {/* TOHUMLAMA KONTROLLERİ */}
           <div style={{ marginTop: '30px' }}>
             <TohumlamaKontrol />
