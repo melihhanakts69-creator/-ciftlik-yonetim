@@ -100,6 +100,7 @@ function App() {
   
   // İnek listesi - başlangıçta boş
   const [inekler, setInekler] = useState([]);
+  const [inekEkrani, setInekEkrani] = useState(false);
   // Buzağı listesi
   const [buzagilar, setBuzagilar] = useState([]);
   
