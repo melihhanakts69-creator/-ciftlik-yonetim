@@ -36,6 +36,10 @@ export const deleteBuzagi = (id) => api.delete(`/buzagilar/${id}`);
 export const getDuveler = () => api.get('/duveler');
 export const createDuve = (data) => api.post('/duveler', data);
 export const deleteDuve = (id) => api.delete(`/duveler/${id}`);
+export const updateDuve = (id, data) => {
+  return api.put(`/duveler/${id}`, data);
+};
+
 
 //Tosunlar
 export const getTosunlar = () => api.get('/tosunlar');
@@ -81,6 +85,9 @@ export const topluSutGecmis = (limit) => api.get(`/toplu-sut/gecmis?limit=${limi
 export const topluSutDetay = (id) => api.get(`/toplu-sut/${id}`);
 export const topluSutSil = (id) => api.delete(`/toplu-sut/${id}`);
 export const topluSutSilByTarihSagim = (tarih, sagim) => api.delete(`/toplu-sut/tarih/${tarih}/${sagim}`);
+
+
+
 
 
 export default api;
