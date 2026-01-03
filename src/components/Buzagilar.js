@@ -1,107 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as api from '../services/api';
 
-
-function Buzagilar({ buzagilar, setBuzagilar, inekler }) {
+function Buzagilar({ buzagilar, setBuzagilar }) {
   const [buzagiEkrani, setBuzagiEkrani] = useState(false);
-const [yeniBuzagiIsim, setYeniBuzagiIsim] = useState('');
-  const [yeniBuzagiAnne, setYeniBuzagiAnne] = useState('');
-  const [yeniBuzagiDogumTarihi, setYeniBuzagiDogumTarihi] = useState('');
-  const [yeniBuzagiCinsiyet, setYeniBuzagiCinsiyet] = useState('disi');
-  const [yeniBuzagiKilo, setYeniBuzagiKilo] = useState('');
-  const [yeniBuzagiNotlar, setYeniBuzagiNotlar] = useState('');
+  const [yeniBuzagi, setYeniBuzagi] = useState({
+    isim: '',
+    kupeNo: '',
+    cinsiyet: 'disi',
+    dogumTarihi: '',
+    anneKupeNo: '',
+    babaKupeNo: '',
+    kilo: ''
+  });
 
- const buzagiEkle = async () => {
-    console.log('1️⃣ Buzağı ekleme başladı!', {
-      yeniBuzagiIsim,
-      yeniBuzagiAnne,
-      yeniBuzagiDogumTarihi,
-      yeniBuzagiCinsiyet,
-      yeniBuzagiKilo
-    });
-    
-    if (yeniBuzagiIsim && yeniBuzagiAnne && yeniBuzagiDogumTarihi && yeniBuzagiCinsiyet && yeniBuzagiKilo) {
-      console.log('2️⃣ Validasyon geçti!');
-      try {
-        console.log('3️⃣ İnek bulunuyor...');
-        const anneInek = inekler.find(i => i.id === yeniBuzagiAnne);
-        console.log('4️⃣ Anne inek:', anneInek);
-        
-        console.log('5️⃣ API çağrısı yapılıyor...');
-        
-        const response = await api.createBuzagi({
-          isim: yeniBuzagiIsim,
-          anneId: anneInek.id,
-          anneIsim: anneInek.isim,
-          dogumTarihi: yeniBuzagiDogumTarihi,
-          cinsiyet: yeniBuzagiCinsiyet,
-          kilo: parseFloat(yeniBuzagiKilo),
-          notlar: yeniBuzagiNotlar,
-          eklemeTarihi: new Date().toISOString().split('T')[0]
-        });
+  const buzagiEkle = async () => {
+    if (!yeniBuzagi.isim || !yeniBuzagi.kupeNo || !yeniBuzagi.dogumTarihi) {
+      alert('Lütfen zorunlu alanları doldurun!');
+      return;
+    }
 
-        const yeniBuzagi = { ...response.data, id: response.data._id };
-        setBuzagilar(prevBuzagilar => [...prevBuzagilar, yeniBuzagi]);
-        
-      // Formu temizle
-        setYeniBuzagiIsim('');
-        setYeniBuzagiAnne('');
-        setYeniBuzagiDogumTarihi('');
-        setYeniBuzagiCinsiyet('disi');
-        setYeniBuzagiKilo('');
-        setYeniBuzagiNotlar('');
-        
-        alert('Buzağı başarıyla eklendi! 🍼');
-      } catch (error) {
-        alert('❌ Hata: ' + (error.response?.data?.message || 'Buzağı eklenemedi!'));
-      }
-    } else {
-      alert('Lütfen tüm zorunlu alanları doldurun!');
+    try {
+      const response = await api.createBuzagi(yeniBuzagi);
+      const yeniData = { ...response.data, id: response.data._id };
+      setBuzagilar([...buzagilar, yeniData]);
+      
+      setYeniBuzagi({
+        isim: '',
+        kupeNo: '',
+        cinsiyet: 'disi',
+        dogumTarihi: '',
+        anneKupeNo: '',
+        babaKupeNo: '',
+        kilo: ''
+      });
+      
+      setBuzagiEkrani(false);
+      alert('✅ Buzağı eklendi!');
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Buzağı eklenemedi!'));
     }
   };
 
   const buzagiSil = async (id) => {
-    if (window.confirm('Bu buzağıyı silmek istediğinden emin misin?')) {
-      try {
-        await api.deleteBuzagi(id);
-        setBuzagilar(buzagilar.filter(b => b.id !== id));
-        alert('Buzağı silindi! 🗑️');
-      } catch (error) {
-        alert('❌ Hata: ' + (error.response?.data?.message || 'Buzağı silinemedi!'));
-      }
-    }
-  };
+    if (!window.confirm('Bu buzağıyı silmek istediğinize emin misiniz?')) return;
 
-  const yasHesapla = (dogumTarihi) => {
-    const dogum = new Date(dogumTarihi);
-    const bugun = new Date();
-    const farkMs = bugun - dogum;
-    const farkGun = Math.floor(farkMs / (1000 * 60 * 60 * 24));
-    const farkAy = Math.floor(farkGun / 30);
-    
-    if (farkAy < 1) {
-      return `${farkGun} günlük`;
-    } else if (farkAy < 12) {
-      return `${farkAy} aylık`;
-    } else {
-      const yil = Math.floor(farkAy / 12);
-      const kalanAy = farkAy % 12;
-      return `${yil} yıl ${kalanAy} ay`;
-    }
-  };
-
-  const durmBelirle = (dogumTarihi) => {
-    const dogum = new Date(dogumTarihi);
-    const bugun = new Date();
-    const farkGun = Math.floor((bugun - dogum) / (1000 * 60 * 60 * 24));
-    const farkAy = Math.floor(farkGun / 30);
-    
-    if (farkAy < 2) {
-      return { durum: 'Süt İçme Dönemi', renk: '#fff3cd', border: '#ffc107' };
-    } else if (farkAy < 6) {
-      return { durum: 'Büyüme Dönemi', renk: '#e3f2fd', border: '#2196F3' };
-    } else {
-      return { durum: 'Düveye Geçiş Hazır', renk: '#e8f5e9', border: '#4CAF50' };
+    try {
+      await api.deleteBuzagi(id);
+      setBuzagilar(buzagilar.filter(b => b.id !== id));
+      alert('✅ Buzağı silindi!');
+    } catch (error) {
+      alert('❌ Hata: Buzağı silinemedi!');
     }
   };
 
@@ -127,224 +75,296 @@ const [yeniBuzagiIsim, setYeniBuzagiIsim] = useState('');
       </div>
       
       {/* Özet */}
-      <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+      <div style={{ 
+        backgroundColor: '#fff3e0', 
+        padding: '15px', 
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ marginTop: 0 }}>📊 Özet</h3>
         <p><strong>Toplam Buzağı:</strong> {buzagilar.length}</p>
         <p><strong>Dişi:</strong> {buzagilar.filter(b => b.cinsiyet === 'disi').length}</p>
         <p><strong>Erkek:</strong> {buzagilar.filter(b => b.cinsiyet === 'erkek').length}</p>
-        <p><strong>Düveye Geçmeye Hazır:</strong> {buzagilar.filter(b => {
+        {buzagilar.filter(b => {
           const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
           return farkAy >= 6;
-        }).length}</p>
-      </div>
-
-      {/* Buzağı Listesi */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Buzağı Listesi</h3>
-        {buzagilar.length > 0 ? (
-          <div style={{ display: 'grid', gap: '15px' }}>
-            {buzagilar.map((buzagi) => {
-              const durum = durmBelirle(buzagi.dogumTarihi);
-              return (
-                <div 
-                  key={buzagi.id}
-                  style={{
-                    backgroundColor: durum.renk,
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: `2px solid ${durum.border}`
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h3 style={{ margin: '0 0 5px 0' }}>
-                        {buzagi.isim} {buzagi.cinsiyet === 'disi' ? '♀' : '♂'}
-                        <span style={{ color: '#666', fontSize: '14px' }}> #{buzagi.id}</span>
-                      </h3>
-                      <p style={{ margin: '5px 0', color: '#666' }}>
-                        <strong>Anne:</strong> {buzagi.anneIsim} | 
-                        <strong> Yaş:</strong> {yasHesapla(buzagi.dogumTarihi)} | 
-                        <strong> Kilo:</strong> {buzagi.kilo} kg
-                      </p>
-                      <p style={{ margin: '5px 0', fontWeight: 'bold', color: durum.border }}>
-                        📊 {durum.durum}
-                      </p>
-                      {buzagi.notlar && (
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
-                          📝 {buzagi.notlar}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => buzagiSil(buzagi.id)}
-                        style={{
-                          padding: '8px 15px',
-                          backgroundColor: '#f44336',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        🗑️ Sil
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p>Henüz buzağı eklenmemiş.</p>
+        }).length > 0 && (
+          <p style={{ color: '#4CAF50', fontWeight: 'bold' }}>
+            ✅ Düveye geçmeye hazır: {buzagilar.filter(b => {
+              const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+              return farkAy >= 6;
+            }).length}
+          </p>
         )}
       </div>
 
-      {/* Yeni Buzağı Ekle */}
-      <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '8px' }}>
-        <h3>➕ Yeni Buzağı Ekle</h3>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Buzağı İsmi: *
-          </label>
-          <input 
-            type="text"
-            value={yeniBuzagiIsim}
-            onChange={(e) => setYeniBuzagiIsim(e.target.value)}
-            placeholder="Örn: Minnoş"
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc'
-            }}
-          />
+      {/* Buzağı Listesi */}
+      <h3>📋 Buzağı Listesi</h3>
+      {buzagilar.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {buzagilar.map((buzagi) => {
+            const yas = Math.floor((new Date() - new Date(buzagi.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+            const gecisHazir = yas >= 6;
+            
+            return (
+              <div
+                key={buzagi.id}
+                style={{
+                  backgroundColor: gecisHazir ? '#e8f5e9' : '#fff',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: gecisHazir ? '2px solid #4CAF50' : '1px solid #ddd'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0' }}>
+                      {buzagi.cinsiyet === 'disi' ? '♀' : '♂'} {buzagi.isim}
+                    </h4>
+                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                      #{buzagi.kupeNo}
+                    </p>
+                    <p style={{ margin: '5px 0', fontSize: '14px' }}>
+                      <strong>Anne:</strong> {buzagi.anneKupeNo || 'Belirtilmemiş'} | 
+                      <strong> Yaş:</strong> {yas} aylık | 
+                      <strong> Kilo:</strong> {buzagi.kilo || '-'} kg
+                    </p>
+                    {gecisHazir && (
+                      <p style={{ 
+                        margin: '10px 0 0 0', 
+                        padding: '8px', 
+                        backgroundColor: '#4CAF50', 
+                        color: 'white',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}>
+                        📊 Düveye Geçiş Hazır
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => buzagiSil(buzagi.id)}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🗑️ Sil
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
+      ) : (
+        <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+          Henüz buzağı kaydı yok
+        </p>
+      )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Anne İnek: *
-            </label>
-            <select
-              value={yeniBuzagiAnne}
-              onChange={(e) => setYeniBuzagiAnne(e.target.value)}
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            >
-              <option value="">Seçiniz...</option>
-              {inekler.map(inek => (
-                <option key={inek.id} value={inek.id}>
-                  {inek.isim} (#{inek.id})
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* BUZAĞI EKLEME MODAL */}
+      {buzagiEkrani && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>🍼 Yeni Buzağı Ekle</h2>
+              <button
+                onClick={() => setBuzagiEkrani(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                ✕ Kapat
+              </button>
+            </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Doğum Tarihi: *
-            </label>
-            <input 
-              type="date"
-              value={yeniBuzagiDogumTarihi}
-              onChange={(e) => setYeniBuzagiDogumTarihi(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Buzağı İsmi: *
+              </label>
+              <input
+                type="text"
+                placeholder="Örn: Minnoş"
+                value={yeniBuzagi.isim}
+                onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, isim: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Anne İnek: *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Küpe No"
+                  value={yeniBuzagi.anneKupeNo}
+                  onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, anneKupeNo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Doğum Tarihi: *
+                </label>
+                <input
+                  type="date"
+                  value={yeniBuzagi.dogumTarihi}
+                  onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, dogumTarihi: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Küpe No: *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Örn: BZ001"
+                  value={yeniBuzagi.kupeNo}
+                  onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, kupeNo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Cinsiyet: *
+                </label>
+                <select
+                  value={yeniBuzagi.cinsiyet}
+                  onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, cinsiyet: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                >
+                  <option value="disi">♀ Dişi</option>
+                  <option value="erkek">♂ Erkek</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Kilo (kg):
+              </label>
+              <input
+                type="number"
+                placeholder="Örn: 45"
+                value={yeniBuzagi.kilo}
+                onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, kilo: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={() => setBuzagiEkrani(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={buzagiEkle}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#FF9800',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Kaydet
+              </button>
+            </div>
           </div>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Cinsiyet: *
-            </label>
-            <select
-              value={yeniBuzagiCinsiyet}
-              onChange={(e) => setYeniBuzagiCinsiyet(e.target.value)}
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            >
-              <option value="disi">Dişi ♀</option>
-              <option value="erkek">Erkek ♂</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Kilo (kg): *
-            </label>
-            <input 
-              type="number"
-              value={yeniBuzagiKilo}
-              onChange={(e) => setYeniBuzagiKilo(e.target.value)}
-              placeholder="Örn: 35"
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginTop: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Notlar:
-          </label>
-          <textarea 
-            value={yeniBuzagiNotlar}
-            onChange={(e) => setYeniBuzagiNotlar(e.target.value)}
-            rows="3"
-            placeholder="Sağlık durumu, özellikler..."
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontFamily: 'Arial'
-            }}
-          />
-        </div>
-
-        <button 
-          onClick={buzagiEkle}
-          style={{ 
-            padding: '12px 30px', 
-            fontSize: '16px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            marginTop: '20px'
-          }}
-        >
-          Buzağı Ekle
-        </button>
-      </div>
+      )}
     </div>
   );
 }

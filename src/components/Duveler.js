@@ -1,361 +1,422 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as api from '../services/api';
-
 
 function Duveler({ duveler, setDuveler }) {
   const [duveEkrani, setDuveEkrani] = useState(false);
-const [yeniDuveIsim, setYeniDuveIsim] = useState('');
-  const [yeniDuveYas, setYeniDuveYas] = useState('');
-  const [yeniDuveKilo, setYeniDuveKilo] = useState('');
-  const [yeniDuveKupeNo, setYeniDuveKupeNo] = useState('');
-  const [yeniDuveDogumTarihi, setYeniDuveDogumTarihi] = useState('');
-  const [yeniDuveTohumlamaTarihi, setYeniDuveTohumlamaTarihi] = useState('');
-  const [yeniDuveNotlar, setYeniDuveNotlar] = useState('');
-
- const duveEkle = async () => {
-    if (yeniDuveIsim && yeniDuveYas && yeniDuveKilo && yeniDuveKupeNo) {
-      try {
-        const response = await api.createDuve({
-          isim: yeniDuveIsim,
-          yas: parseInt(yeniDuveYas),
-          kilo: parseFloat(yeniDuveKilo),
-          kupeNo: yeniDuveKupeNo,
-          dogumTarihi: yeniDuveDogumTarihi,
-          tohumlamaTarihi: yeniDuveTohumlamaTarihi,
-          notlar: yeniDuveNotlar,
-          eklemeTarihi: new Date().toISOString().split('T')[0]
-        });
-
-        const yeniDuve = { ...response.data, id: response.data._id };
-        setDuveler([...duveler, yeniDuve]);
-        
-        // Formu temizle
-        setYeniDuveIsim('');
-        setYeniDuveYas('');
-        setYeniDuveKilo('');
-        setYeniDuveKupeNo('');
-        setYeniDuveDogumTarihi('');
-        setYeniDuveTohumlamaTarihi('');
-        setYeniDuveNotlar('');
-        
-        alert('Düve başarıyla eklendi! 🐄');
-      } catch (error) {
-        alert('❌ Hata: ' + (error.response?.data?.message || 'Düve eklenemedi!'));
-      }
-    } else {
+ const [yeniDuve, setYeniDuve] = useState({
+    isim: '',
+    kupeNo: '',
+    dogumTarihi: '',
+    yas: '',
+    kilo: '',
+    tohumlamaTarihi: '',
+    anneKupeNo: '',
+    babaKupeNo: '',
+    not: ''
+  });
+  const duveEkle = async () => {
+    if (!yeniDuve.isim || !yeniDuve.kupeNo || !yeniDuve.dogumTarihi || !yeniDuve.yas || !yeniDuve.kilo) {
       alert('Lütfen zorunlu alanları doldurun!');
+      return;
+    }
+
+    try {
+      const response = await api.createDuve({
+        isim: yeniDuve.isim,
+        kupeNo: yeniDuve.kupeNo,
+        dogumTarihi: yeniDuve.dogumTarihi,
+        yas: parseInt(yeniDuve.yas),
+        kilo: parseFloat(yeniDuve.kilo),
+        tohumlamaTarihi: yeniDuve.tohumlamaTarihi,
+        anneKupeNo: yeniDuve.anneKupeNo,
+        babaKupeNo: yeniDuve.babaKupeNo,
+        notlar: yeniDuve.not
+      });
+      
+      setDuveEkrani(false);
+      alert('✅ Düve eklendi!');
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Düve eklenemedi!'));
     }
   };
 
- const duveSil = async (id) => {
-    if (window.confirm('Bu düveyi silmek istediğinden emin misin?')) {
-      try {
-        await api.deleteDuve(id);
-        setDuveler(duveler.filter(d => d.id !== id));
-        alert('Düve silindi! 🗑️');
-      } catch (error) {
-        alert('❌ Hata: ' + (error.response?.data?.message || 'Düve silinemedi!'));
-      }
-    }
-  };
+  const duveSil = async (id) => {
+    if (!window.confirm('Bu düveyi silmek istediğinize emin misiniz?')) return;
 
-  const buzagilamaTarihiHesapla = (tohumlamaTarihi) => {
-    if (!tohumlamaTarihi) return null;
-    const tohumlama = new Date(tohumlamaTarihi);
-    const buzagilama = new Date(tohumlama);
-    buzagilama.setDate(buzagilama.getDate() + 283); // 9 ay 10 gün
-    return buzagilama;
-  };
-
-  const kalanGunHesapla = (tohumlamaTarihi) => {
-    const buzagilama = buzagilamaTarihiHesapla(tohumlamaTarihi);
-    if (!buzagilama) return null;
-    const bugun = new Date();
-    const farkMs = buzagilama - bugun;
-    const farkGun = Math.ceil(farkMs / (1000 * 60 * 60 * 24));
-    return farkGun;
-  };
-
-  const durumBelirle = (duve) => {
-    if (!duve.tohumlamaTarihi) {
-      return { durum: 'Tohumlama Bekliyor', renk: '#fff3cd', border: '#ffc107' };
-    }
-    
-    const kalanGun = kalanGunHesapla(duve.tohumlamaTarihi);
-    
-    if (kalanGun > 30) {
-      return { durum: `Gebe (${kalanGun} gün kaldı)`, renk: '#e3f2fd', border: '#2196F3' };
-    } else if (kalanGun > 0) {
-      return { durum: `Buzağılamaya Yakın (${kalanGun} gün)`, renk: '#fff3cd', border: '#FF9800' };
-    } else {
-      return { durum: 'Buzağılama Zamanı!', renk: '#ffebee', border: '#f44336' };
+    try {
+      await api.deleteDuve(id);
+      setDuveler(duveler.filter(d => d.id !== id));
+      alert('✅ Düve silindi!');
+    } catch (error) {
+      alert('❌ Hata: Düve silinemedi!');
     }
   };
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-  <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
-  <button
-    onClick={() => setDuveEkrani(true)}
-    style={{
-      padding: '10px 20px',
-      backgroundColor: '#4CAF50',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '16px',
-      fontWeight: 'bold'
-    }}
-  >
-    + Düve Ekle
-  </button>
-</div>
-      
-      {/* Özet */}
-      <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-        <p><strong>Toplam Düve:</strong> {duveler.length}</p>
-        <p><strong>Gebe:</strong> {duveler.filter(d => d.tohumlamaTarihi).length}</p>
-        <p><strong>Tohumlama Bekliyor:</strong> {duveler.filter(d => !d.tohumlamaTarihi).length}</p>
-        <p><strong>30 Gün İçinde Buzağılayacak:</strong> {duveler.filter(d => {
-          const kalanGun = kalanGunHesapla(d.tohumlamaTarihi);
-          return kalanGun && kalanGun <= 30 && kalanGun > 0;
-        }).length}</p>
-      </div>
-
-      {/* Düve Listesi */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Düve Listesi</h3>
-        {duveler.length > 0 ? (
-          <div style={{ display: 'grid', gap: '15px' }}>
-            {duveler.map((duve) => {
-              const durum = durumBelirle(duve);
-              const buzagilamaTarihi = buzagilamaTarihiHesapla(duve.tohumlamaTarihi);
-              
-              return (
-                <div 
-                  key={duve.id}
-                  style={{
-                    backgroundColor: durum.renk,
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: `2px solid ${durum.border}`
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ margin: '0 0 5px 0' }}>
-                        {duve.isim}
-                        <span style={{ color: '#666', fontSize: '14px' }}> #{duve.id} | Küpe: {duve.kupeNo}</span>
-                      </h3>
-                      <p style={{ margin: '5px 0', color: '#666' }}>
-                        <strong>Yaş:</strong> {duve.yas} ay | 
-                        <strong> Kilo:</strong> {duve.kilo} kg
-                      </p>
-                      <p style={{ margin: '5px 0', fontWeight: 'bold', color: durum.border }}>
-                        📊 {durum.durum}
-                      </p>
-                      {buzagilamaTarihi && (
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
-                          📅 Tahmini Buzağılama: {buzagilamaTarihi.toLocaleDateString('tr-TR')}
-                        </p>
-                      )}
-                      {duve.notlar && (
-                        <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
-                          📝 {duve.notlar}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => duveSil(duve.id)}
-                        style={{
-                          padding: '8px 15px',
-                          backgroundColor: '#f44336',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        🗑️ Sil
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p>Henüz düve eklenmemiş.</p>
-        )}
-      </div>
-
-      {/* Yeni Düve Ekle */}
-      <div style={{ backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '8px' }}>
-        <h3>➕ Yeni Düve Ekle</h3>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Düve İsmi: *
-          </label>
-          <input 
-            type="text"
-            value={yeniDuveIsim}
-            onChange={(e) => setYeniDuveIsim(e.target.value)}
-            placeholder="Örn: Gülizar"
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc'
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Yaş (ay): *
-            </label>
-            <input 
-              type="number"
-              value={yeniDuveYas}
-              onChange={(e) => setYeniDuveYas(e.target.value)}
-              placeholder="Örn: 14"
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Kilo (kg): *
-            </label>
-            <input 
-              type="number"
-              value={yeniDuveKilo}
-              onChange={(e) => setYeniDuveKilo(e.target.value)}
-              placeholder="Örn: 280"
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Küpe Numarası: *
-            </label>
-            <input 
-              type="text"
-              value={yeniDuveKupeNo}
-              onChange={(e) => setYeniDuveKupeNo(e.target.value)}
-              placeholder="Örn: D001"
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              Doğum Tarihi:
-            </label>
-            <input 
-              type="date"
-              value={yeniDuveDogumTarihi}
-              onChange={(e) => setYeniDuveDogumTarihi(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                fontSize: '16px',
-                borderRadius: '4px',
-                border: '1px solid #ccc'
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginTop: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Tohumlama Tarihi:
-          </label>
-          <input 
-            type="date"
-            value={yeniDuveTohumlamaTarihi}
-            onChange={(e) => setYeniDuveTohumlamaTarihi(e.target.value)}
-            max={new Date().toISOString().split('T')[0]}
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc'
-            }}
-          />
-          {yeniDuveTohumlamaTarihi && (
-            <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
-              💡 Tahmini buzağılama tarihi: {buzagilamaTarihiHesapla(yeniDuveTohumlamaTarihi)?.toLocaleDateString('tr-TR')}
-            </p>
-          )}
-        </div>
-
-        <div style={{ marginTop: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Notlar:
-          </label>
-          <textarea 
-            value={yeniDuveNotlar}
-            onChange={(e) => setYeniDuveNotlar(e.target.value)}
-            rows="3"
-            placeholder="Sağlık durumu, özellikler..."
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              fontSize: '16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontFamily: 'Arial'
-            }}
-          />
-        </div>
-
-        <button 
-          onClick={duveEkle}
-          style={{ 
-            padding: '12px 30px', 
-            fontSize: '16px',
+        <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
+        <button
+          onClick={() => setDuveEkrani(true)}
+          style={{
+            padding: '10px 20px',
             backgroundColor: '#4CAF50',
             color: 'white',
             border: 'none',
-            borderRadius: '5px',
+            borderRadius: '8px',
             cursor: 'pointer',
-            fontWeight: 'bold',
-            marginTop: '20px'
+            fontSize: '16px',
+            fontWeight: 'bold'
           }}
         >
-          Düve Ekle
+          + Düve Ekle
         </button>
       </div>
+      
+      {/* Özet */}
+      <div style={{ 
+        backgroundColor: '#e8f5e9', 
+        padding: '15px', 
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ marginTop: 0 }}>📊 Özet</h3>
+        <p><strong>Toplam Düve:</strong> {duveler.length}</p>
+        <p><strong>Gebe:</strong> {duveler.filter(d => d.tohumlamaTarihi).length}</p>
+        <p><strong>Tohumlama Bekliyor:</strong> {duveler.filter(d => !d.tohumlamaTarihi).length}</p>
+      </div>
+
+      {/* Düve Listesi */}
+      <h3>📋 Düve Listesi</h3>
+      {duveler.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {duveler.map((duve) => {
+            const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+            
+            return (
+              <div
+                key={duve.id}
+                style={{
+                  backgroundColor: '#fff',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: duve.tohumlamaTarihi ? '2px solid #4CAF50' : '1px solid #ddd'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0' }}>
+                      🐄 {duve.isim}
+                    </h4>
+                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                      #{duve.kupeNo}
+                    </p>
+                    <p style={{ margin: '5px 0', fontSize: '14px' }}>
+                      <strong>Anne:</strong> {duve.anneKupeNo || 'Belirtilmemiş'} | 
+                      <strong> Yaş:</strong> {yas} aylık
+                    </p>
+                    {duve.tohumlamaTarihi && (
+                      <p style={{ 
+                        margin: '10px 0 0 0', 
+                        padding: '8px', 
+                        backgroundColor: '#4CAF50', 
+                        color: 'white',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}>
+                        🤰 Gebe - {new Date(duve.tohumlamaTarihi).toLocaleDateString('tr-TR')}
+                      </p>
+                    )}
+                    {duve.not && (
+                      <p style={{ margin: '10px 0 0 0', fontSize: '14px', fontStyle: 'italic', color: '#666' }}>
+                        📝 {duve.not}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => duveSil(duve.id)}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#f44336',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🗑️ Sil
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+          Henüz düve kaydı yok
+        </p>
+      )}
+
+      {/* DÜVE EKLEME MODAL */}
+      {duveEkrani && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0 }}>🐄 Yeni Düve Ekle</h2>
+              <button
+                onClick={() => setDuveEkrani(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                ✕ Kapat
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Düve İsmi: *
+              </label>
+              <input
+                type="text"
+                placeholder="Örn: Papatya"
+                value={yeniDuve.isim}
+                onChange={(e) => setYeniDuve({ ...yeniDuve, isim: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Küpe No: *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Örn: DV001"
+                  value={yeniDuve.kupeNo}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, kupeNo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Doğum Tarihi: *
+                </label>
+                <input
+                  type="date"
+                  value={yeniDuve.dogumTarihi}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, dogumTarihi: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Anne Küpe No:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Örn: 007"
+                  value={yeniDuve.anneKupeNo}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, anneKupeNo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Baba Küpe No:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Opsiyonel"
+                  value={yeniDuve.babaKupeNo}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, babaKupeNo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Yaş (ay): *
+                </label>
+                <input
+                  type="number"
+                  placeholder="Örn: 8"
+                  value={yeniDuve.yas}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, yas: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Kilo (kg): *
+                </label>
+                <input
+                  type="number"
+                  placeholder="Örn: 150"
+                  value={yeniDuve.kilo}
+                  onChange={(e) => setYeniDuve({ ...yeniDuve, kilo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Tohumlama Tarihi:
+              </label>
+              <input
+                type="date"
+                value={yeniDuve.tohumlamaTarihi}
+                onChange={(e) => setYeniDuve({ ...yeniDuve, tohumlamaTarihi: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Notlar:
+              </label>
+              <textarea
+                placeholder="Özel notlar, sağlık durumu..."
+                value={yeniDuve.not}
+                onChange={(e) => setYeniDuve({ ...yeniDuve, not: e.target.value })}
+                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={() => setDuveEkrani(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={duveEkle}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
