@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import * as api from '../services/api';
+import DuveDetay from './DuveDetay';
 
 function Duveler({ duveler, setDuveler, inekler }) {
   const [duveEkrani, setDuveEkrani] = useState(false);
+  const [secilenDuve, setSecilenDuve] = useState(null);
+  const [duzenlenecekDuve, setDuzenlenecekDuve] = useState(null);
   const [yeniDuve, setYeniDuve] = useState({
     isim: '',
     kupeNo: '',
@@ -88,8 +91,19 @@ function Duveler({ duveler, setDuveler, inekler }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
+      {/* DETAY EKRANI */}
+      {secilenDuve && (
+        <DuveDetay
+          duve={secilenDuve}
+          onKapat={() => setSecilenDuve(null)}
+        />
+      )}
+
+      {/* ANA LİSTE - Detay veya Düzenle açıksa gizle */}
+      {!secilenDuve && !duzenlenecekDuve && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
         <button
           onClick={() => setDuveEkrani(true)}
           style={{
@@ -232,24 +246,57 @@ function Duveler({ duveler, setDuveler, inekler }) {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => duveSil(duve.id)}
-                    style={{
-                      padding: '8px 12px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🗑️
-                  </button>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                    <button
+                      onClick={() => setSecilenDuve(duve)}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#2196F3',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      📋 Detay
+                    </button>
+                    <button
+                      onClick={() => setDuzenlenecekDuve({ ...duve })}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#FF9800',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      ✏️ Düzenle
+                    </button>
+                    <button
+                      onClick={() => duveSil(duve.id)}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
             );
+            
           })}
         </div>
+        
       ) : (
         <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
           Henüz düve kaydı yok
@@ -533,6 +580,8 @@ function Duveler({ duveler, setDuveler, inekler }) {
             </div>
           </div>
         </div>
+        )}
+        </>
       )}
     </div>
   );
