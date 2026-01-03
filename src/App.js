@@ -2042,17 +2042,18 @@ function App() {
       {/* Buzağılar Sayfası */}
       {aktifSayfa === 'buzagilar' && (
         <Buzagilar 
-          buzagilar={buzagilar} 
-          setBuzagilar={setBuzagilar}
-          inekler={inekler}
-        />
+            buzagilar={buzagilar} 
+            setBuzagilar={setBuzagilar}
+            inekler={inekler}
+          />
       )}
 
       {/* Düveler Sayfası */}
       {aktifSayfa === 'duveler' && (
-        <Duveler 
+       <Duveler 
           duveler={duveler} 
           setDuveler={setDuveler}
+          inekler={inekler}
         />
       )}
        {/* Tosunlar Sayfası */}

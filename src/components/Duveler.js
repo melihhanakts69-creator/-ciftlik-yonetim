@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as api from '../services/api';
 
-function Duveler({ duveler, setDuveler }) {
+function Duveler({ duveler, setDuveler, inekler }) {
   const [duveEkrani, setDuveEkrani] = useState(false);
  const [yeniDuve, setYeniDuve] = useState({
     isim: '',
@@ -11,7 +11,6 @@ function Duveler({ duveler, setDuveler }) {
     kilo: '',
     tohumlamaTarihi: '',
     anneKupeNo: '',
-    babaKupeNo: '',
     not: ''
   });
   const duveEkle = async () => {
@@ -261,13 +260,11 @@ function Duveler({ duveler, setDuveler }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-              <div>
+             <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Anne Küpe No:
+                  Anne İnek:
                 </label>
-                <input
-                  type="text"
-                  placeholder="Örn: 007"
+                <select
                   value={yeniDuve.anneKupeNo}
                   onChange={(e) => setYeniDuve({ ...yeniDuve, anneKupeNo: e.target.value })}
                   style={{
@@ -277,27 +274,17 @@ function Duveler({ duveler, setDuveler }) {
                     borderRadius: '8px',
                     border: '1px solid #ddd'
                   }}
-                />
+                >
+                  <option value="">Seçiniz...</option>
+                  {inekler && inekler.map(inek => (
+                    <option key={inek.id} value={inek.kupeNo}>
+                      {inek.isim} ({inek.kupeNo})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                  Baba Küpe No:
-                </label>
-                <input
-                  type="text"
-                  placeholder="Opsiyonel"
-                  value={yeniDuve.babaKupeNo}
-                  onChange={(e) => setYeniDuve({ ...yeniDuve, babaKupeNo: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    fontSize: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #ddd'
-                  }}
-                />
-              </div>
+            
             </div>
             </div>
 

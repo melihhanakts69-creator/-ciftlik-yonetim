@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as api from '../services/api';
 
-function Buzagilar({ buzagilar, setBuzagilar }) {
+function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
   const [buzagiEkrani, setBuzagiEkrani] = useState(false);
   const [yeniBuzagi, setYeniBuzagi] = useState({
     isim: '',
@@ -235,9 +235,7 @@ function Buzagilar({ buzagilar, setBuzagilar }) {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                   Anne İnek: *
                 </label>
-                <input
-                  type="text"
-                  placeholder="Küpe No"
+                <select
                   value={yeniBuzagi.anneKupeNo}
                   onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, anneKupeNo: e.target.value })}
                   style={{
@@ -247,7 +245,14 @@ function Buzagilar({ buzagilar, setBuzagilar }) {
                     borderRadius: '8px',
                     border: '1px solid #ddd'
                   }}
-                />
+                >
+                  <option value="">Seçiniz...</option>
+                  {inekler && inekler.map(inek => (
+                    <option key={inek.id} value={inek.kupeNo}>
+                      {inek.isim} ({inek.kupeNo})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
