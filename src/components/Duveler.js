@@ -37,8 +37,8 @@ function Duveler({ duveler, setDuveler, inekler }) {
         notlar: yeniDuve.not
       });
 
-      const yeniData = { ...response.data, id: response.data._id };
-      setDuveler([...duveler, yeniData]);
+      setDuveler([...duveler, response.data]);
+
       
       setYeniDuve({
         isim: '',
@@ -89,9 +89,10 @@ function Duveler({ duveler, setDuveler, inekler }) {
         notlar: duzenlenecekDuve.notlar
       });
 
-      setDuveler(duveler.map(d => 
-        d.id === duzenlenecekDuve.id ? { ...duzenlenecekDuve } : d
-      ));
+     setDuveler(duveler.map(d => 
+  d._id === duzenlenecekDuve._id ? { ...duzenlenecekDuve } : d
+));
+
 
       setDuzenlenecekDuve(null);
       alert('✅ Düve güncellendi!');
@@ -129,7 +130,8 @@ function Duveler({ duveler, setDuveler, inekler }) {
       )}
 
       {/* ANA LİSTE - Detay veya Düzenle açıksa gizle */}
-      {!secilenDuve && !duzenlenecekDuve && (
+      {!secilenDuve && (
+
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
@@ -187,7 +189,7 @@ function Duveler({ duveler, setDuveler, inekler }) {
             
             return (
               <div
-                key={duve.id}
+                key={duve._id}
                 style={{
                   backgroundColor: duve.gebelikDurumu === 'Gebe' ? '#e8f5e9' : '#fff',
                   padding: '15px',
@@ -305,7 +307,7 @@ function Duveler({ duveler, setDuveler, inekler }) {
                       ✏️ Düzenle
                     </button>
                     <button
-                      onClick={() => duveSil(duve.id)}
+                      onClick={() => duveSil(duve._id)}
                       style={{
                         padding: '8px 12px',
                         backgroundColor: '#f44336',
