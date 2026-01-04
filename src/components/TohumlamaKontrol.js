@@ -26,47 +26,74 @@ function TohumlamaKontrol() {
     }
   };
 
- const durumGuncelle = async (inek, tohumlama, gebelikDurumu) => {
+ const durumGuncelle = async (item, gebelikDurumu) => {
+    const { hayvan, hayvanTipi } = item;
+    
     try {
       const token = localStorage.getItem('token');
       
-      await axios.put(`${API_URL}/inekler/${inek._id}`, {
-        ...inek,
+      // İnek veya Düve güncelle
+      const endpoint = hayvanTipi === 'düve' 
+        ? `${API_URL}/duveler/${hayvan._id}` 
+        : `${API_URL}/inekler/${hayvan._id}`;
+      
+      await axios.put(endpoint, {
+        ...hayvan,
         gebelikDurumu: gebelikDurumu,
-        tohumlamaTarihi: gebelikDurumu === 'Gebe' ? tohumlama.tarih : null
+        tohumlamaTarihi: gebelikDurumu === 'Gebe' ? item.tohumlama.tarih : hayvan.tohumlamaTarihi
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      await axios.post(`${API_URL}/timeline`, {
-        hayvanId: inek._id,
-        hayvanTipi: 'inek',
-        tip: gebelikDurumu === 'Gebe' ? 'dogum' : 'tohumlama',
-        tarih: new Date().toISOString().split('T')[0],
-        aciklama: gebelikDurumu === 'Gebe' 
-          ? `Gebelik kontrolü pozitif (${tohumlama.tarih} tohumlama)`
-          : `Gebelik kontrolü negatif, yeni tohumlama gerekli`
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Timeline kaydı ekle
+      if (item.tohumlama._id) {
+        await axios.post(`${API_URL}/timeline`, {
+          hayvanId: hayvan._id,
+          hayvanTipi: hayvanTipi === 'düve' ? 'düve' : 'inek',
+          tip: gebelikDurumu === 'Gebe' ? 'dogum' : 'tohumlama',
+          tarih: new Date().toISOString().split('T')[0],
+          aciklama: gebelikDurumu === 'Gebe' 
+            ? `Gebelik kontrolü pozitif (${item.tohumlama.tarih} tohumlama)`
+            : `Gebelik kontrolü negatif, yeni tohumlama gerekli`
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
 
-      alert(`✅ ${inek.isim} - ${gebelikDurumu === 'Gebe' ? 'Gebe olarak' : 'Gebe değil olarak'} kaydedildi!`);
+      alert(`✅ ${hayvan.isim} - ${gebelikDurumu === 'Gebe' ? 'Gebe olarak' : 'Gebe değil olarak'} kaydedildi!`);
       
       kontrolleriYukle();
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Güncelleme yapılamadı!'));
     }
-  };  // ← BURASI KAPANIŞI
+  }; // ← BURASI KAPANIŞI
 
-  // YENİ FONKSİYON BURADAN BAŞLAMALI
-  const tohumlamaSil = async (tohumlama) => {
+ // TOHUMLAMA SİL FONKSİYONU
+  const tohumlamaSil = async (item) => {  // ← tohumlama → item
     if (!window.confirm('Bu tohumlama kaydını silmek istediğinize emin misiniz?')) {
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API_URL}/timeline/${tohumlama._id}`, {
+      
+      // Timeline kaydı varsa sil
+      if (item.tohumlama._id) {
+        await axios.delete(`${API_URL}/timeline/${item.tohumlama._id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      // Hayvanın tohumlama tarihini temizle
+      const endpoint = item.hayvanTipi === 'düve' 
+        ? `${API_URL}/duveler/${item.hayvan._id}` 
+        : `${API_URL}/inekler/${item.hayvan._id}`;
+      
+      await axios.put(endpoint, {
+        ...item.hayvan,
+        tohumlamaTarihi: null,
+        gebelikDurumu: 'Belirsiz'
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -115,9 +142,9 @@ function TohumlamaKontrol() {
 
       {bekleyenler.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {bekleyenler.map((item) => (
+         {bekleyenler.map((item) => (
             <div
-              key={item.inek._id}
+              key={item.hayvan._id}
               style={{
                 padding: '20px',
                 borderRadius: '12px',
@@ -127,7 +154,21 @@ function TohumlamaKontrol() {
             >
               <div style={{ marginBottom: '15px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px' }}>
-                  {item.inek.isim} (Küpe: {item.inek.kupeNo})
+                  {item.hayvanTipi === 'düve' ? '🐄' : '🐮'} {item.hayvan.isim} 
+                  <span style={{ marginLeft: '10px', fontSize: '14px', color: '#666' }}>
+                    (Küpe: {item.hayvan.kupeNo})
+                  </span>
+                  <span style={{ 
+                    marginLeft: '10px', 
+                    padding: '4px 8px', 
+                    backgroundColor: item.hayvanTipi === 'düve' ? '#4CAF50' : '#2196F3',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold'
+                  }}>
+                    {item.hayvanTipi === 'düve' ? 'DÜVE' : 'İNEK'}
+                  </span>
                 </div>
                 <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
                   Tohumlama: {new Date(item.tohumlama.tarih).toLocaleDateString('tr-TR')}
@@ -148,7 +189,7 @@ function TohumlamaKontrol() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button
-                    onClick={() => durumGuncelle(item.inek, item.tohumlama, 'Gebe')}
+                    onClick={() => durumGuncelle(item, 'Gebe')}
                     style={{
                       flex: 1,
                       minWidth: '120px',
@@ -165,7 +206,7 @@ function TohumlamaKontrol() {
                     ✅ Gebe
                   </button>
                   <button
-                    onClick={() => durumGuncelle(item.inek, item.tohumlama, 'Gebe Değil')}
+                    onClick={() => durumGuncelle(item, 'Gebe Değil')}
                     style={{
                       flex: 1,
                       minWidth: '120px',
@@ -183,9 +224,8 @@ function TohumlamaKontrol() {
                   </button>
                 </div>
               </div>
-               {/* SİL BUTONU EKLE */}
               <button
-                onClick={() => tohumlamaSil(item.tohumlama)}
+                onClick={() => tohumlamaSil(item)}
                 style={{
                   width: '100%',
                   padding: '10px',
@@ -200,7 +240,6 @@ function TohumlamaKontrol() {
               >
                 🗑️ Tohumlama Kaydını Sil
               </button>
-              
 
               {item.tohumlama.aciklama && (
                 <div style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
