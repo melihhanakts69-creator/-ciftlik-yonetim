@@ -38,6 +38,17 @@ function Duveler({ duveler, setDuveler, inekler }) {
       });
 
       setDuveler([...duveler, response.data]);
+      // TOHUMLAMA VARSA TIMELINE'A OTOMATİK KAYIT
+if (yeniDuve.tohumlamaTarihi) {
+  await api.createTimeline({
+    hayvanId: response.data._id,
+    hayvanTipi: 'duve',
+    tip: 'tohumlama',
+    tarih: yeniDuve.tohumlamaTarihi,
+    aciklama: 'Düve eklenirken girilen tohumlama'
+  });
+}
+
 
       
       setYeniDuve({
