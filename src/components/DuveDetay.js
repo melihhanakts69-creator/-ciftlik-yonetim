@@ -46,6 +46,7 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
       tarih: new Date().toISOString().split('T')[0],
       aciklama: ''
     });
+    
 
     setTimelineEkrani(false);
     setTimelineTip('');
@@ -86,17 +87,23 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     return Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
   };
 
-  const tohumlamadanGecenGun = () => {
-    if (!duve.tohumlamaTarihi) return null;
-    const tohumlama = new Date(duve.tohumlamaTarihi);
-    const bugun = new Date();
-    return Math.floor((bugun - tohumlama) / (1000 * 60 * 60 * 24));
-  };
+ 
+  const gunFarkiHesapla = (tarih) => {
+  if (!tarih) return null;
+
+  const bugun = new Date();
+  const girilenTarih = new Date(tarih + 'T00:00:00'); 
+  // 👆 kritik nokta
+
+  const farkMs = bugun.getTime() - girilenTarih.getTime();
+  return Math.floor(farkMs / (1000 * 60 * 60 * 24));
+};
+
 
   const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
   const kalanGun = kalanGunHesapla();
   const dogumTarihi = dogumTarihiHesapla();
-  const gecenGun = gunFarkiHesapla(kayit.tarih);
+  const gecenGun = gunFarkiHesapla(duve.tohumlamaTarihi);
 
 
   return (
