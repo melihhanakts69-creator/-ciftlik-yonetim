@@ -30,6 +30,11 @@ const duveSchema = new mongoose.Schema({
   tohumlamaTarihi: {
     type: String
   },
+  gebelikDurumu: {
+    type: String,
+    enum: ['Belirsiz', 'Gebe', 'Gebe Değil'],
+    default: 'Belirsiz'
+  },
   notlar: {
     type: String,
     trim: true
@@ -37,6 +42,8 @@ const duveSchema = new mongoose.Schema({
   eklemeTarihi: {
     type: String
   }
+  
+  
 }, {
   timestamps: true
 });
