@@ -96,7 +96,8 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
   const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
   const kalanGun = kalanGunHesapla();
   const dogumTarihi = dogumTarihiHesapla();
-  const gecenGun = tohumlamadanGecenGun();
+  const gecenGun = gunFarkiHesapla(kayit.tarih);
+
 
   return (
     <div>
