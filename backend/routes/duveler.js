@@ -54,5 +54,25 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
+// DÜVE GÜNCELLE
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const duve = await Duve.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      req.body,
+      { new: true }
+    );
+
+    if (!duve) {
+      return res.status(404).json({ message: 'Düve bulunamadı' });
+    }
+
+    res.json(duve);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+
 
 module.exports = router;
