@@ -31,19 +31,24 @@ router.post('/', auth, async (req, res) => {
       notlar,
       eklemeTarihi
     });
+console.log('📌 tohumlamaTarihi:', tohumlamaTarihi);
 
-    await duve.save();
-    if (tohumlamaTarihi) {
+await duve.save();
+
+
+if (tohumlamaTarihi && tohumlamaTarihi.trim() !== '') {
   await Timeline.create({
     userId: req.userId,
     hayvanId: duve._id.toString(),
     hayvanTipi: 'duve',
     tip: 'tohumlama',
     tarih: tohumlamaTarihi,
-    aciklama: 'Düve eklenirken tohumlama kaydı oluşturuldu'
+    aciklama: 'Düve eklenirken otomatik tohumlama kaydı'
   });
 }
-    res.status(201).json(duve);
+
+res.status(201).json(duve);
+
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
