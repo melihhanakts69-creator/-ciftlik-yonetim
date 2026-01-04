@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Duve = require('../models/Duve');
+const Timeline = require('../models/Timeline');
+
 
 // TÜM DÜVELERİ GETİR
 router.get('/', auth, async (req, res) => {
@@ -31,6 +33,16 @@ router.post('/', auth, async (req, res) => {
     });
 
     await duve.save();
+    if (tohumlamaTarihi) {
+  await Timeline.create({
+    userId: req.userId,
+    hayvanId: duve._id.toString(),
+    hayvanTipi: 'duve',
+    tip: 'tohumlama',
+    tarih: tohumlamaTarihi,
+    aciklama: 'Düve eklenirken tohumlama kaydı oluşturuldu'
+  });
+}
     res.status(201).json(duve);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
