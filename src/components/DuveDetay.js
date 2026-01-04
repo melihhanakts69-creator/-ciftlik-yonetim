@@ -23,38 +23,40 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     }
   };
 
-  const timelineEkle = async () => {
-    if (!yeniTimeline.tarih) {
-      alert('Tarih seçin!');
-      return;
-    }
+ const timelineEkle = async () => {
+  if (!yeniTimeline.tarih) {
+    alert('Tarih seçin!');
+    return;
+  }
 
-    try {
-      const yeniKayit = {
-        hayvanId: duve._id,
-        hayvanTipi: 'düve',
-        tip: timelineTip || 'genel',
-        tarih: yeniTimeline.tarih,
-        aciklama: yeniTimeline.aciklama
-      };
+  try {
+    const yeniKayit = {
+      hayvanId: duve._id,
+      hayvanTipi: 'duve',          // ✅ enum uyumlu
+      tip: timelineTip || 'diger', // ✅ enum uyumlu
+      tarih: yeniTimeline.tarih,  // ✅ STRING
+      aciklama: yeniTimeline.aciklama
+    };
 
-      console.log('Timeline ekleniyor:', yeniKayit);
+    console.log('Timeline ekleniyor:', yeniKayit);
 
-      await api.createTimeline(yeniKayit);
+    await api.createTimeline(yeniKayit);
 
-      setYeniTimeline({
-        tarih: new Date().toISOString().split('T')[0],
-        aciklama: ''
-      });
-      setTimelineEkrani(false);
-      setTimelineTip('');
-      timelineYukle();
-      alert('✅ Kayıt eklendi!');
-    } catch (error) {
-      console.error('Timeline ekleme hatası:', error);
-      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt eklenemedi!'));
-    }
-  };
+    setYeniTimeline({
+      tarih: new Date().toISOString().split('T')[0],
+      aciklama: ''
+    });
+
+    setTimelineEkrani(false);
+    setTimelineTip('');
+    timelineYukle();
+    alert('✅ Kayıt eklendi!');
+  } catch (error) {
+    console.error('Timeline ekleme hatası:', error);
+    alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt eklenemedi!'));
+  }
+};
+
 
   const timelineSil = async (id) => {
     if (!window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
