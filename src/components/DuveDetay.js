@@ -30,13 +30,17 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     }
 
     try {
-      await api.createTimeline({
+      const yeniKayit = {
         hayvanId: duve._id,
         hayvanTipi: 'düve',
         tip: timelineTip || 'genel',
         tarih: yeniTimeline.tarih,
         aciklama: yeniTimeline.aciklama
-      });
+      };
+
+      console.log('Timeline ekleniyor:', yeniKayit);
+
+      await api.createTimeline(yeniKayit);
 
       setYeniTimeline({
         tarih: new Date().toISOString().split('T')[0],
@@ -47,7 +51,8 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
       timelineYukle();
       alert('✅ Kayıt eklendi!');
     } catch (error) {
-      alert('❌ Hata: Kayıt eklenemedi!');
+      console.error('Timeline ekleme hatası:', error);
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt eklenemedi!'));
     }
   };
 
@@ -79,9 +84,17 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     return Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
   };
 
+  const tohumlamadanGecenGun = () => {
+    if (!duve.tohumlamaTarihi) return null;
+    const tohumlama = new Date(duve.tohumlamaTarihi);
+    const bugun = new Date();
+    return Math.floor((bugun - tohumlama) / (1000 * 60 * 60 * 24));
+  };
+
   const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
   const kalanGun = kalanGunHesapla();
   const dogumTarihi = dogumTarihiHesapla();
+  const gecenGun = tohumlamadanGecenGun();
 
   return (
     <div>
@@ -94,7 +107,8 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
           border: 'none',
           borderRadius: '8px',
           cursor: 'pointer',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          fontSize: '16px'
         }}
       >
         ← Geri
@@ -102,61 +116,151 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
 
       {/* DÜVE BİLGİLERİ */}
       <div style={{
-        backgroundColor: '#e8f5e9',
-        padding: '20px',
+        backgroundColor: '#fff',
+        padding: '25px',
         borderRadius: '12px',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ marginTop: 0 }}>🐄 {duve.isim}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '20px' }}>
+          <div>
+            <h2 style={{ margin: '0 0 10px 0', fontSize: '28px' }}>🐄 {duve.isim}</h2>
+            <p style={{ margin: 0, fontSize: '16px', color: '#666' }}>
+              Küpe No: <strong>{duve.kupeNo}</strong>
+            </p>
+          </div>
+          <div style={{
+            padding: '10px 20px',
+            backgroundColor: duve.gebelikDurumu === 'Gebe' ? '#4CAF50' : duve.gebelikDurumu === 'Belirsiz' ? '#FF9800' : '#f44336',
+            color: 'white',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            fontSize: '16px'
+          }}>
+            {duve.gebelikDurumu === 'Gebe' ? '🤰 Gebe' : duve.gebelikDurumu === 'Belirsiz' ? '❓ Belirsiz' : '❌ Gebe Değil'}
+          </div>
+        </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: '20px',
+          padding: '20px',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '8px'
+        }}>
           <div>
-            <p><strong>Küpe No:</strong> {duve.kupeNo}</p>
-            <p><strong>Yaş:</strong> {yas} aylık</p>
-            <p><strong>Kilo:</strong> {duve.kilo} kg</p>
+            <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>Yaş</div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{yas} aylık</div>
           </div>
           <div>
-            <p><strong>Doğum Tarihi:</strong> {new Date(duve.dogumTarihi).toLocaleDateString('tr-TR')}</p>
-            {duve.anneKupeNo && <p><strong>Anne:</strong> {duve.anneKupeNo}</p>}
-            <p><strong>Gebelik Durumu:</strong> {duve.gebelikDurumu}</p>
+            <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>Kilo</div>
+            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{duve.kilo} kg</div>
           </div>
+          <div>
+            <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>Doğum Tarihi</div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
+              {new Date(duve.dogumTarihi).toLocaleDateString('tr-TR')}
+            </div>
+          </div>
+          {duve.anneKupeNo && (
+            <div>
+              <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px' }}>Anne</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{duve.anneKupeNo}</div>
+            </div>
+          )}
         </div>
 
         {/* GEBELİK BİLGİLERİ */}
         {duve.tohumlamaTarihi && (
           <div style={{
-            marginTop: '15px',
-            padding: '15px',
-            backgroundColor: 'white',
-            borderRadius: '8px'
+            marginTop: '20px',
+            padding: '20px',
+            backgroundColor: duve.gebelikDurumu === 'Gebe' ? '#e8f5e9' : '#fff3e0',
+            borderRadius: '8px',
+            border: `2px solid ${duve.gebelikDurumu === 'Gebe' ? '#4CAF50' : '#FF9800'}`
           }}>
-            <h3 style={{ marginTop: 0 }}>🤰 Gebelik Bilgileri</h3>
-            <p><strong>Tohumlama Tarihi:</strong> {new Date(duve.tohumlamaTarihi).toLocaleDateString('tr-TR')}</p>
-            {dogumTarihi && (
-              <>
-                <p><strong>Beklenen Doğum:</strong> {dogumTarihi.toLocaleDateString('tr-TR')}</p>
-                {kalanGun !== null && (
-                  <p style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: kalanGun <= 30 ? '#f44336' : '#4CAF50'
-                  }}>
-                    {kalanGun > 0
-                      ? `📅 ${kalanGun} gün kaldı`
-                      : kalanGun === 0
-                      ? '⚠️ BUGÜN DOĞUM!'
-                      : `❗ ${Math.abs(kalanGun)} gün geçti`
-                    }
-                  </p>
-                )}
-              </>
-            )}
+            <h3 style={{ marginTop: 0, fontSize: '18px' }}>🤰 Gebelik Bilgileri</h3>
+            
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#666' }}>Tohumlama Tarihi:</span>
+                <strong>{new Date(duve.tohumlamaTarihi).toLocaleDateString('tr-TR')}</strong>
+              </div>
+
+              {gecenGun !== null && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#666' }}>Tohumlamadan Geçen:</span>
+                  <strong style={{ color: '#FF9800' }}>{gecenGun} gün</strong>
+                </div>
+              )}
+
+              {/* 21-28 gün arası uyarı */}
+              {gecenGun !== null && gecenGun >= 21 && gecenGun <= 28 && duve.gebelikDurumu === 'Belirsiz' && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#fff',
+                  border: '2px solid #FF9800',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  color: '#FF9800'
+                }}>
+                  ⚠️ Gebelik kontrolü zamanı! ({gecenGun}. gün)
+                </div>
+              )}
+
+              {/* Gebe ise doğum bilgileri */}
+              {duve.gebelikDurumu === 'Gebe' && dogumTarihi && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#666' }}>Beklenen Doğum:</span>
+                    <strong style={{ color: '#4CAF50' }}>
+                      {dogumTarihi.toLocaleDateString('tr-TR')}
+                    </strong>
+                  </div>
+                  
+                  {kalanGun !== null && (
+                    <div style={{
+                      padding: '15px',
+                      backgroundColor: kalanGun <= 30 ? '#ffebee' : '#fff',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      border: kalanGun <= 30 ? '2px solid #f44336' : 'none'
+                    }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: kalanGun <= 30 ? '#f44336' : '#4CAF50' }}>
+                        {kalanGun > 0
+                          ? `📅 ${kalanGun} gün kaldı`
+                          : kalanGun === 0
+                          ? '⚠️ BUGÜN DOĞUM!'
+                          : `❗ ${Math.abs(kalanGun)} gün geçti`
+                        }
+                      </div>
+                      {kalanGun <= 30 && kalanGun > 0 && (
+                        <div style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
+                          Doğuma az kaldı, hazırlık yapın!
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
 
         {duve.notlar && (
-          <div style={{ marginTop: '15px', fontStyle: 'italic', color: '#666' }}>
-            📝 {duve.notlar}
+          <div style={{ 
+            marginTop: '15px', 
+            padding: '15px',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            fontStyle: 'italic', 
+            color: '#666',
+            borderLeft: '4px solid #2196F3'
+          }}>
+            📝 <strong>Notlar:</strong> {duve.notlar}
           </div>
         )}
       </div>
@@ -164,12 +268,12 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
       {/* GEÇMİŞ / TİMELİNE */}
       <div style={{
         backgroundColor: '#fff',
-        padding: '20px',
+        padding: '25px',
         borderRadius: '12px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-          <h3 style={{ margin: 0 }}>📜 Geçmiş</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0, fontSize: '20px' }}>📜 Geçmiş</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
               onClick={() => {
@@ -177,7 +281,7 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                 setTimelineEkrani(true);
               }}
               style={{
-                padding: '8px 16px',
+                padding: '10px 16px',
                 backgroundColor: '#FF9800',
                 color: 'white',
                 border: 'none',
@@ -187,18 +291,22 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                 fontWeight: 'bold'
               }}
             >
-              🐄 Tohumlama
+              🐄 Tohumlama Ekle
             </button>
             <button
-              onClick={() => setTimelineEkrani(true)}
+              onClick={() => {
+                setTimelineTip('');
+                setTimelineEkrani(true);
+              }}
               style={{
-                padding: '8px 16px',
+                padding: '10px 16px',
                 backgroundColor: '#4CAF50',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                fontSize: '14px'
+                fontSize: '14px',
+                fontWeight: 'bold'
               }}
             >
               + Kayıt Ekle
@@ -207,53 +315,90 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
         </div>
 
         {timeline.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {timeline.map((kayit) => (
-              <div
-                key={kayit._id}
-                style={{
-                  padding: '12px',
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #4CAF50'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                  <div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                      {kayit.tip === 'tohumlama' && '🐄 Tohumlama'}
-                      {kayit.tip === 'dogum' && '🍼 Doğum'}
-                      {kayit.tip === 'genel' && '📝 Genel Kayıt'}
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#666' }}>
-                      {new Date(kayit.tarih).toLocaleDateString('tr-TR')}
-                    </div>
-                    {kayit.aciklama && (
-                      <div style={{ fontSize: '14px', marginTop: '5px' }}>
-                        {kayit.aciklama}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {timeline.sort((a, b) => new Date(b.tarih) - new Date(a.tarih)).map((kayit) => {
+              const iconMap = {
+                'tohumlama': '🐄',
+                'dogum': '🍼',
+                'asi': '💉',
+                'muayene': '🩺',
+                'genel': '📝'
+              };
+
+              const colorMap = {
+                'tohumlama': '#FF9800',
+                'dogum': '#4CAF50',
+                'asi': '#2196F3',
+                'muayene': '#9C27B0',
+                'genel': '#666'
+              };
+
+              return (
+                <div
+                  key={kayit._id}
+                  style={{
+                    padding: '15px',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '8px',
+                    borderLeft: `4px solid ${colorMap[kayit.tip] || '#666'}`
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '20px' }}>{iconMap[kayit.tip] || '📝'}</span>
+                        <span style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                          {kayit.tip === 'tohumlama' && 'Tohumlama'}
+                          {kayit.tip === 'dogum' && 'Doğum'}
+                          {kayit.tip === 'asi' && 'Aşı'}
+                          {kayit.tip === 'muayene' && 'Muayene'}
+                          {kayit.tip === 'genel' && 'Genel Kayıt'}
+                        </span>
                       </div>
-                    )}
+                      <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+                        📅 {new Date(kayit.tarih).toLocaleDateString('tr-TR', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                      {kayit.aciklama && (
+                        <div style={{ fontSize: '14px', color: '#333', marginTop: '8px' }}>
+                          {kayit.aciklama}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => timelineSil(kayit._id)}
+                      style={{
+                        padding: '6px 10px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      🗑️
+                    </button>
                   </div>
-                  <button
-                    onClick={() => timelineSil(kayit._id)}
-                    style={{
-                      padding: '4px 8px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
-                  >
-                    🗑️
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          <p style={{ textAlign: 'center', color: '#999' }}>Henüz kayıt yok</p>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '40px',
+            color: '#999',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '10px' }}>📋</div>
+            <p style={{ margin: 0 }}>Henüz kayıt yok</p>
+          </div>
         )}
       </div>
 
@@ -284,6 +429,31 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
               {timelineTip === 'tohumlama' ? '🐄 Tohumlama Ekle' : '📝 Kayıt Ekle'}
             </h2>
 
+            {!timelineTip && (
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Kayıt Tipi:
+                </label>
+                <select
+                  value={timelineTip}
+                  onChange={(e) => setTimelineTip(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="">Seçiniz...</option>
+                  <option value="genel">📝 Genel</option>
+                  <option value="asi">💉 Aşı</option>
+                  <option value="muayene">🩺 Muayene</option>
+                </select>
+              </div>
+            )}
+
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                 Tarih: *
@@ -311,6 +481,7 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                 value={yeniTimeline.aciklama}
                 onChange={(e) => setYeniTimeline({ ...yeniTimeline, aciklama: e.target.value })}
                 rows="3"
+                placeholder={timelineTip === 'tohumlama' ? 'Tohumlama detayları...' : 'Açıklama...'}
                 style={{
                   width: '100%',
                   padding: '10px',
@@ -328,6 +499,10 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                 onClick={() => {
                   setTimelineEkrani(false);
                   setTimelineTip('');
+                  setYeniTimeline({
+                    tarih: new Date().toISOString().split('T')[0],
+                    aciklama: ''
+                  });
                 }}
                 style={{
                   flex: 1,
