@@ -1,0 +1,93 @@
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  // baseURL: 'http://localhost:5000/api',
+});
+
+// Her istekte token ekle
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// AUTH
+export const register = (userData) => api.post('/auth/register', userData);
+export const login = (credentials) => api.post('/auth/login', credentials);
+export const getProfile = () => api.get('/auth/me');
+
+// İNEKLER
+export const getInekler = () => api.get('/inekler');
+export const createInek = (data) => api.post('/inekler', data);
+export const updateInek = (id, data) => api.put(`/inekler/${id}`, data);
+export const deleteInek = (id) => api.delete(`/inekler/${id}`);
+
+// BUZAĞILAR
+export const getBuzagilar = () => api.get('/buzagilar');
+export const createBuzagi = (data) => api.post('/buzagilar', data);
+export const deleteBuzagi = (id) => api.delete(`/buzagilar/${id}`);
+
+// DÜVELER
+export const getDuveler = () => api.get('/duveler');
+export const createDuve = (data) => api.post('/duveler', data);
+export const deleteDuve = (id) => api.delete(`/duveler/${id}`);
+export const updateDuve = (id, data) => {
+  return api.put(`/duveler/${id}`, data);
+};
+
+
+//Tosunlar
+export const getTosunlar = () => api.get('/tosunlar');
+export const createTosun = (data) => api.post('/tosunlar', data);
+export const updateTosun = (id, data) => api.put(`/tosunlar/${id}`, data);
+export const deleteTosun = (id) => api.delete(`/tosunlar/${id}`);
+
+// BUZAĞI GEÇİŞ
+export const getGecisKontrol = () => api.get('/buzagilar/kontrol-gecis');
+export const buzagiGecisYap = (id) => api.post(`/buzagilar/gecis-yap/${id}`);
+
+// SÜT KAYITLARI
+export const getSutKayitlari = () => api.get('/sut-kayitlari');
+export const createSutKaydi = (data) => api.post('/sut-kayitlari', data);
+export const deleteSutKaydi = (id) => api.delete(`/sut-kayitlari/${id}`);
+
+export const topluSilTarihSagim = (data) => api.delete('/sut-kayitlari/toplu-sil/tarih', { data });
+export const topluSilSecili = (kayitIdler) => api.delete('/sut-kayitlari/toplu-sil/secili', { data: { kayitIdler } });
+
+// YEM DEPOSU
+export const getYemStok = () => api.get('/yemler/stok');
+export const createYemStok = (data) => api.post('/yemler/stok', data);
+export const getYemHareketler = () => api.get('/yemler/hareketler');
+export const createYemHareket = (data) => api.post('/yemler/hareket', data);
+
+// AYARLAR
+export const getAyarlar = () => api.get('/ayarlar');
+export const updateAyarlar = (data) => api.put('/ayarlar', data);
+export const otomatikTuketimCalistir = () => api.post('/ayarlar/otomatik-tuketim');
+
+
+// TIMELINE
+export const getTimeline = (hayvanId) => api.get(`/timeline/${hayvanId}`);
+export const createTimeline = (data) => api.post('/timeline', data);
+export const deleteTimeline = (id) => api.delete(`/timeline/${id}`);
+export const getYaklasanDogumlar = () => api.get('/timeline/yaklasan/dogumlar');
+export const getKontrolBekleyenler = () => api.get('/timeline/kontrol-bekleyenler');
+
+// TOPLU SÜT
+export const topluSutOnizleme = (data) => api.post('/toplu-sut/onizleme', data);
+export const topluSutKaydet = (data) => api.post('/toplu-sut', data);
+export const topluSutGecmis = (limit) => api.get(`/toplu-sut/gecmis?limit=${limit || 30}`);
+export const topluSutDetay = (id) => api.get(`/toplu-sut/${id}`);
+export const topluSutSil = (id) => api.delete(`/toplu-sut/${id}`);
+export const topluSutSilByTarihSagim = (tarih, sagim) => api.delete(`/toplu-sut/tarih/${tarih}/${sagim}`);
+
+
+
+
+
+export default api;
