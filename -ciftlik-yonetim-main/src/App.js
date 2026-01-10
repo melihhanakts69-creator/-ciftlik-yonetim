@@ -635,40 +635,234 @@ function App() {
       {/* Ana Sayfa */}
       {aktifSayfa === 'ana' && (
         <div>
-          <h2>📊 Özet</h2>
-          {inekler.length > 0 ? (
-            <div style={{ backgroundColor: '#f0f0f0', padding: '15px', borderRadius: '8px' }}>
-              <p><strong>Toplam İnek:</strong> {inekler.length}</p>
-              <p><strong>Ortalama Yaş:</strong> {(inekler.reduce((sum, inek) => sum + inek.yas, 0) / inekler.length).toFixed(1)} yıl</p>
-              <p><strong>Ortalama Kilo:</strong> {(inekler.reduce((sum, inek) => sum + inek.kilo, 0) / inekler.length).toFixed(0)} kg</p>
-              <p><strong>Toplam Kayıt:</strong> {sutKayitlari.length} gün</p>
-              <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                <p><strong>🍼 Buzağılar:</strong></p>
-                <p style={{ marginLeft: '20px' }}>
-                  Toplam: {buzagilar.length} | 
-                  Dişi: {buzagilar.filter(b => b.cinsiyet === 'disi').length} | 
-                  Erkek: {buzagilar.filter(b => b.cinsiyet === 'erkek').length}
-                </p>
+          {/* Hoşgeldin Başlığı */}
+          <div style={{ marginBottom: '30px' }}>
+            <h1 style={{ margin: '0 0 5px 0', fontSize: '32px', fontWeight: 'bold' }}>
+              Merhaba {kullanici?.isim}!
+            </h1>
+            <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+              Bugün, {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+
+          {/* Modern Stat Kartları */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '20px',
+            marginBottom: '30px'
+          }}>
+            {/* Toplam Hayvan Kartı */}
+            <div style={{
+              background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+              borderRadius: '16px',
+              padding: '25px',
+              color: 'white',
+              boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <div style={{ fontSize: '42px', marginBottom: '10px' }}>🐄</div>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '5px' }}>
+                {inekler.length + buzagilar.length + duveler.length + tosunlar.length}
+              </div>
+              <div style={{ fontSize: '16px', opacity: 0.9 }}>Toplam Hayvan</div>
+            </div>
+
+            {/* Günlük Süt Kartı */}
+            <div style={{
+              background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
+              borderRadius: '16px',
+              padding: '25px',
+              color: 'white',
+              boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <div style={{ fontSize: '42px', marginBottom: '10px' }}>🥛</div>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '5px' }}>
+                {bugunKayitlari.length > 0
+                  ? bugunKayitlari.reduce((sum, k) => sum + k.litre, 0).toFixed(0)
+                  : '0'} L
+              </div>
+              <div style={{ fontSize: '16px', opacity: 0.9 }}>Günlük Süt</div>
+            </div>
+
+            {/* Yaklaşan Doğumlar Kartı */}
+            <div style={{
+              background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+              borderRadius: '16px',
+              padding: '25px',
+              color: 'white',
+              boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <div style={{ fontSize: '42px', marginBottom: '10px' }}>📅</div>
+              <div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '5px' }}>
+                {duveler.filter(d => {
+                  if (!d.tohumlamaTarihi) return false;
+                  const tohumlama = new Date(d.tohumlamaTarihi);
+                  const buzagilama = new Date(tohumlama);
+                  buzagilama.setDate(buzagilama.getDate() + 283);
+                  const kalanGun = Math.ceil((buzagilama - new Date()) / (1000 * 60 * 60 * 24));
+                  return kalanGun <= 30 && kalanGun > 0;
+                }).length} Gün Kaldı
+              </div>
+              <div style={{ fontSize: '16px', opacity: 0.9 }}>Doğum Yaklaşıyor</div>
+            </div>
+          </div>
+
+          {/* Hayvan Durumu Kartları */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '25px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            marginBottom: '30px'
+          }}>
+            <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '24px' }}>Hayvan Durumu</h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '15px'
+            }}>
+              {/* İnekler */}
+              <div style={{
+                backgroundColor: '#f5f5f5',
+                borderRadius: '12px',
+                padding: '20px',
+                textAlign: 'center',
+                border: '2px solid #e0e0e0'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>🐮</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '5px' }}>
+                  {inekler.length}
+                </div>
+                <div style={{ fontSize: '14px', color: '#666' }}>İnek</div>
+              </div>
+
+              {/* Buzağılar */}
+              <div style={{
+                backgroundColor: '#E3F2FD',
+                borderRadius: '12px',
+                padding: '20px',
+                textAlign: 'center',
+                border: '2px solid #BBDEFB'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>🍼</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '5px' }}>
+                  {buzagilar.length}
+                </div>
+                <div style={{ fontSize: '14px', color: '#666' }}>Buzağı</div>
+              </div>
+
+              {/* Düveler */}
+              <div style={{
+                backgroundColor: '#FFF9C4',
+                borderRadius: '12px',
+                padding: '20px',
+                textAlign: 'center',
+                border: '2px solid #FFF59D'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>🐄</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '5px' }}>
+                  {duveler.length}
+                </div>
+                <div style={{ fontSize: '14px', color: '#666' }}>Düve</div>
+              </div>
+
+              {/* Tosunlar */}
+              <div style={{
+                backgroundColor: '#FFE0B2',
+                borderRadius: '12px',
+                padding: '20px',
+                textAlign: 'center',
+                border: '2px solid #FFCC80'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>🐂</div>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '5px' }}>
+                  {tosunlar.length}
+                </div>
+                <div style={{ fontSize: '14px', color: '#666' }}>Tosun</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Görevlerim Kartı */}
+          {(buzagilar.filter(b => {
+            const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+            return farkAy >= 6;
+          }).length > 0 || duveler.filter(d => {
+            if (!d.tohumlamaTarihi) return false;
+            const tohumlama = new Date(d.tohumlamaTarihi);
+            const buzagilama = new Date(tohumlama);
+            buzagilama.setDate(buzagilama.getDate() + 283);
+            const kalanGun = Math.ceil((buzagilama - new Date()) / (1000 * 60 * 60 * 24));
+            return kalanGun <= 30 && kalanGun > 0;
+          }).length > 0) && (
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '25px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+              marginBottom: '30px'
+            }}>
+              <h2 style={{ marginTop: 0, marginBottom: '20px', fontSize: '24px' }}>Görevlerim</h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {buzagilar.filter(b => {
                   const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
                   return farkAy >= 6;
                 }).length > 0 && (
-                  <p style={{ marginLeft: '20px', color: '#4CAF50', fontWeight: 'bold' }}>
-                    ✅ Düveye geçmeye hazır: {buzagilar.filter(b => {
-                      const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-                      return farkAy >= 6;
-                    }).length}
-                  </p>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '15px',
+                    backgroundColor: '#E8F5E9',
+                    borderRadius: '12px',
+                    border: '1px solid #4CAF50'
+                  }}>
+                    <div style={{ fontSize: '24px', marginRight: '15px' }}>✅</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                        Düveye Geçmeye Hazır Buzağılar
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#666' }}>
+                        {buzagilar.filter(b => {
+                          const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+                          return farkAy >= 6;
+                        }).length} buzağı 6+ aylık oldu
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setAktifSayfa('buzagilar')}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Git
+                    </button>
+                  </div>
                 )}
-              </div>
 
-              <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                <p><strong>🐄 Düveler:</strong></p>
-                <p style={{ marginLeft: '20px' }}>
-                  Toplam: {duveler.length} | 
-                  Gebe: {duveler.filter(d => d.tohumlamaTarihi).length} | 
-                  Tohumlama Bekliyor: {duveler.filter(d => !d.tohumlamaTarihi).length}
-                </p>
                 {duveler.filter(d => {
                   if (!d.tohumlamaTarihi) return false;
                   const tohumlama = new Date(d.tohumlamaTarihi);
@@ -677,51 +871,60 @@ function App() {
                   const kalanGun = Math.ceil((buzagilama - new Date()) / (1000 * 60 * 60 * 24));
                   return kalanGun <= 30 && kalanGun > 0;
                 }).length > 0 && (
-                  <p style={{ marginLeft: '20px', color: '#FF9800', fontWeight: 'bold' }}>
-                    ⚠️ 30 gün içinde buzağılayacak: {duveler.filter(d => {
-                      if (!d.tohumlamaTarihi) return false;
-                      const tohumlama = new Date(d.tohumlamaTarihi);
-                      const buzagilama = new Date(tohumlama);
-                      buzagilama.setDate(buzagilama.getDate() + 283);
-                      const kalanGun = Math.ceil((buzagilama - new Date()) / (1000 * 60 * 60 * 24));
-                      return kalanGun <= 30 && kalanGun > 0;
-                    }).length}
-                  </p>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '15px',
+                    backgroundColor: '#FFF3E0',
+                    borderRadius: '12px',
+                    border: '1px solid #FF9800'
+                  }}>
+                    <div style={{ fontSize: '24px', marginRight: '15px' }}>⚠️</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                        30 Gün İçinde Doğum Yapacak Düveler
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#666' }}>
+                        {duveler.filter(d => {
+                          if (!d.tohumlamaTarihi) return false;
+                          const tohumlama = new Date(d.tohumlamaTarihi);
+                          const buzagilama = new Date(tohumlama);
+                          buzagilama.setDate(buzagilama.getDate() + 283);
+                          const kalanGun = Math.ceil((buzagilama - new Date()) / (1000 * 60 * 60 * 24));
+                          return kalanGun <= 30 && kalanGun > 0;
+                        }).length} düve doğum yaklaşıyor
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setAktifSayfa('duveler')}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#FF9800',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Git
+                    </button>
+                  </div>
                 )}
               </div>
-               <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                <p><strong>🐂 Tosunlar:</strong></p>
-                <p style={{ marginLeft: '20px' }}>
-                  Toplam: {tosunlar.length}
-                </p>
-              </div>
-
-              <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#2e7d32' }}>
-                 🐮 TOPLAM HAYVAN: {inekler.length + buzagilar.length + duveler.length + tosunlar.length}
-                </p>
-              </div>
-              {bugunKayitlari.length > 0 && (
-                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-                  <p><strong>🥛 Bugünün Süt Verimi:</strong></p>
-                  <p>Toplam: {bugunKayitlari.reduce((sum, k) => sum + k.litre, 0).toFixed(1)} litre</p>
-                  <p>Kayıt yapılan: {bugunKayitlari.length} / {inekler.length} inek</p>
-                </div>
-              )}
             </div>
-          ) : (
-            <p>Henüz inek eklenmemiş.</p>
           )}
-        
+
           {/* YAKLASAN DOĞUMLAR */}
           <div style={{ marginTop: '30px' }}>
-            <YaklasanDogumlar 
+            <YaklasanDogumlar
             onInekSec={setSecilenInek}
             duveler={duveler}
             onDuveSec={setSecilenDuve}
           />
           </div>
-          
+
              {/* TOHUMLAMA KONTROLLERİ */}
           <div style={{ marginTop: '30px' }}>
             <TohumlamaKontrol />
