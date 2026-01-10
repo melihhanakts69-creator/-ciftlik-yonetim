@@ -935,104 +935,248 @@ function App() {
       {/* İnek Listesi */}
       {aktifSayfa === 'inekler' && !detayInek && !duzenlenecekInek && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: 0 }}>🐮 İnekler ({inekler.length})</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+            <div>
+              <h1 style={{ margin: '0 0 5px 0', fontSize: '32px', fontWeight: 'bold' }}>
+                🐮 İnekler
+              </h1>
+              <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+                Toplam {inekler.length} inek kayıtlı
+              </p>
+            </div>
             <button
               onClick={() => setInekEkrani(true)}
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#4CAF50',
+                padding: '14px 24px',
+                background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 fontSize: '16px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)',
+                transition: 'transform 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               + İnek Ekle
             </button>
           </div>
           {inekler.length > 0 ? (
-            <div style={{ display: 'grid', gap: '15px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+              gap: '20px'
+            }}>
               {inekler.map((inek) => {
                 const performans = inekPerformansHesapla(inek.id);
                 return (
-                  <div 
+                  <div
                     key={inek.id}
                     style={{
-                      backgroundColor: '#f0f0f0',
-                      padding: '15px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd'
+                      backgroundColor: 'white',
+                      borderRadius: '16px',
+                      padding: '20px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                      border: '1px solid #e0e0e0',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-5px)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h3 style={{ margin: '0 0 5px 0' }}>
-                          {inek.isim} <span style={{ color: '#666', fontSize: '14px' }}>(Küpe: {inek.kupeNo})</span>
-                        </h3>
-                        <p style={{ margin: '5px 0', color: '#666' }}>
-                          {inek.yas} yaşında | {inek.kilo} kg | {inek.buzagiSayisi} buzağı
-                        </p>
-                        {performans.gunSayisi > 0 && (
-                          <p style={{ margin: '5px 0', color: '#2e7d32', fontWeight: 'bold' }}>
-                            📊 Ortalama: {performans.ortalama} lt/gün ({performans.gunSayisi} gün)
-                          </p>
-                        )}
+                    {/* Başlık */}
+                    <div style={{ marginBottom: '15px' }}>
+                      <h3 style={{
+                        margin: '0 0 8px 0',
+                        fontSize: '22px',
+                        fontWeight: 'bold',
+                        color: '#333'
+                      }}>
+                        {inek.isim}
+                      </h3>
+                      <div style={{
+                        display: 'inline-block',
+                        backgroundColor: '#E8F5E9',
+                        color: '#2E7D32',
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '13px',
+                        fontWeight: 'bold'
+                      }}>
+                        Küpe: {inek.kupeNo}
                       </div>
-                      <div>
-                        <button
-                          onClick={() => setSecilenInek(inek)}
-                          style={{
-                            padding: '8px 15px',
-                            backgroundColor: '#2196F3',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            marginRight: '5px'
-                          }}
-                        >
-                          📋 Detay
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDuzenlenecekInek({...inek});
-                          }}
-                          style={{
-                            padding: '8px 15px',
-                            backgroundColor: '#FF9800',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            marginRight: '5px'
-                          }}
-                        >
-                          ✏️ Düzenle
-                        </button>
-                        <button
-                          onClick={() => inekSil(inek.id)}
-                          style={{
-                            padding: '8px 15px',
-                            backgroundColor: '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          🗑️ Sil
-                        </button>
+                    </div>
+
+                    {/* İstatistikler Grid */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '10px',
+                      marginBottom: '15px'
+                    }}>
+                      <div style={{
+                        backgroundColor: '#F5F5F5',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>YAŞ</div>
+                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                          {inek.yas}
+                        </div>
                       </div>
+
+                      <div style={{
+                        backgroundColor: '#F5F5F5',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>KİLO</div>
+                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                          {inek.kilo} kg
+                        </div>
+                      </div>
+
+                      <div style={{
+                        backgroundColor: '#F5F5F5',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>BUZAĞI</div>
+                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                          {inek.buzagiSayisi}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Performans */}
+                    {performans.gunSayisi > 0 && (
+                      <div style={{
+                        backgroundColor: '#E8F5E9',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        marginBottom: '15px',
+                        borderLeft: '4px solid #4CAF50'
+                      }}>
+                        <div style={{ fontSize: '12px', color: '#2E7D32', marginBottom: '4px' }}>
+                          Ortalama Süt Verimi
+                        </div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2E7D32' }}>
+                          {performans.ortalama} lt/gün
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#66BB6A' }}>
+                          Son {performans.gunSayisi} gün
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Aksiyon Butonları */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      gap: '8px'
+                    }}>
+                      <button
+                        onClick={() => setSecilenInek(inek)}
+                        style={{
+                          padding: '10px',
+                          backgroundColor: '#2196F3',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1976D2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2196F3'}
+                      >
+                        📋 Detay
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDuzenlenecekInek({...inek});
+                        }}
+                        style={{
+                          padding: '10px',
+                          backgroundColor: '#FF9800',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F57C00'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF9800'}
+                      >
+                        ✏️ Düzenle
+                      </button>
+                      <button
+                        onClick={() => inekSil(inek.id)}
+                        style={{
+                          padding: '10px',
+                          backgroundColor: '#f44336',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: 'bold',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d32f2f'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
+                      >
+                        🗑️ Sil
+                      </button>
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p>Henüz inek eklenmemiş.</p>
+            <div style={{
+              textAlign: 'center',
+              padding: '60px 20px',
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '64px', marginBottom: '20px' }}>🐮</div>
+              <h3 style={{ color: '#666', marginBottom: '10px' }}>Henüz inek eklenmemiş</h3>
+              <p style={{ color: '#999', marginBottom: '20px' }}>
+                İlk ineğinizi eklemek için yukarıdaki butonu kullanın
+              </p>
+              <button
+                onClick={() => setInekEkrani(true)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                + İnek Ekle
+              </button>
+            </div>
           )}
         </div>
       )}
