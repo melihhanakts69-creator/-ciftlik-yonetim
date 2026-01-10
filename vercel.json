@@ -1,4 +1,7 @@
 {
   "installCommand": "rm -rf node_modules && npm install",
-  "buildCommand": "CI=false npm run build"
+  "buildCommand": "CI=false REACT_APP_API_URL=https://ciftlik-yonetim.onrender.com/api npm run build",
+  "env": {
+    "REACT_APP_API_URL": "https://ciftlik-yonetim.onrender.com/api"
+  }
 }
