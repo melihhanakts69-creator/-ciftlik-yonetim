@@ -5,6 +5,7 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
   const [timeline, setTimeline] = useState([]);
   const [timelineEkrani, setTimelineEkrani] = useState(false);
   const [duzenleEkrani, setDuzenleEkrani] = useState(false);
+  const [dogumEkrani, setDogumEkrani] = useState(false);
 
   // Düzenleme formu state'leri
   const [tohumlamaTarihi, setTohumlamaTarihi] = useState(inek.tohumlamaTarihi || '');
@@ -16,6 +17,15 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
   const [timelineTip, setTimelineTip] = useState('tohumlama');
   const [timelineTarih, setTimelineTarih] = useState(new Date().toISOString().split('T')[0]);
   const [timelineAciklama, setTimelineAciklama] = useState('');
+
+  // Doğum formu
+  const [dogumBilgisi, setDogumBilgisi] = useState({
+    dogumTarihi: new Date().toISOString().split('T')[0],
+    buzagiIsim: '',
+    buzagiCinsiyet: 'disi',
+    buzagiKilo: '',
+    notlar: ''
+  });
 
   useEffect(() => {
     timelineYukle();
@@ -75,12 +85,37 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
       setSonBuzagilamaTarihi(sonBuzagilamaTarihi);
       setGebelikDurumu(gebelikDurumu);
       setLaktasyonDonemi(laktasyonDonemi);
-      
+
       onInekGuncelle(guncelData);
       setDuzenleEkrani(false);
       alert('✅ İnek güncellendi!');
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Güncellenemedi!'));
+    }
+  };
+
+  const dogurdu = async () => {
+    if (!dogumBilgisi.buzagiIsim || !dogumBilgisi.buzagiKilo) {
+      alert('Buzağı ismi ve kilosu zorunludur!');
+      return;
+    }
+
+    if (!window.confirm(`${inek.isim} ineği doğurdu. Buzağı kaydedilsin mi?`)) return;
+
+    try {
+      await api.inekDogurdu(inek._id, {
+        dogumTarihi: dogumBilgisi.dogumTarihi,
+        buzagiIsim: dogumBilgisi.buzagiIsim,
+        buzagiCinsiyet: dogumBilgisi.buzagiCinsiyet,
+        buzagiKilo: parseFloat(dogumBilgisi.buzagiKilo),
+        notlar: dogumBilgisi.notlar
+      });
+
+      alert('✅ Doğum kaydedildi! Buzağı eklendi, inek bilgileri güncellendi.');
+      setDogumEkrani(false);
+      window.location.reload();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Doğum kaydedilemedi!'));
     }
   };
 
@@ -291,6 +326,27 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
                 </div>
               )}
             </div>
+
+            {/* DOĞURDU BUTONU */}
+            {gebelikDurumu === 'Gebe' && tahminiDogum && !tahminiDogum.gecti && tahminiDogum.kalanGun <= 30 && (
+              <button
+                onClick={() => setDogumEkrani(true)}
+                style={{
+                  marginTop: '15px',
+                  padding: '12px 20px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  width: '100%'
+                }}
+              >
+                🍼 Doğurdu
+              </button>
+            )}
           </div>
 
           {/* TIMELINE */}
@@ -644,6 +700,158 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
                   }}
                 >
                   Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DOĞUM EKRANI MODALI */}
+        {dogumEkrani && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '16px',
+              padding: '30px',
+              maxWidth: '500px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }}>
+              <h2 style={{ marginTop: 0, marginBottom: '10px' }}>🍼 Doğum Kaydı</h2>
+              <p style={{ color: '#666', marginBottom: '25px' }}>
+                {inek.isim} ineği doğurdu. Buzağı bilgilerini girin.
+              </p>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Doğum Tarihi:</label>
+                <input
+                  type="date"
+                  value={dogumBilgisi.dogumTarihi}
+                  onChange={(e) => setDogumBilgisi({ ...dogumBilgisi, dogumTarihi: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Buzağı İsmi: *</label>
+                <input
+                  type="text"
+                  value={dogumBilgisi.buzagiIsim}
+                  onChange={(e) => setDogumBilgisi({ ...dogumBilgisi, buzagiIsim: e.target.value })}
+                  placeholder="Örn: Papatya"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Cinsiyet: *</label>
+                <select
+                  value={dogumBilgisi.buzagiCinsiyet}
+                  onChange={(e) => setDogumBilgisi({ ...dogumBilgisi, buzagiCinsiyet: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                >
+                  <option value="disi">Dişi</option>
+                  <option value="erkek">Erkek</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Doğum Kilosu (kg): *</label>
+                <input
+                  type="number"
+                  value={dogumBilgisi.buzagiKilo}
+                  onChange={(e) => setDogumBilgisi({ ...dogumBilgisi, buzagiKilo: e.target.value })}
+                  placeholder="Örn: 35"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Notlar:</label>
+                <textarea
+                  value={dogumBilgisi.notlar}
+                  onChange={(e) => setDogumBilgisi({ ...dogumBilgisi, notlar: e.target.value })}
+                  placeholder="Doğum hakkında notlar..."
+                  rows="3"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setDogumEkrani(false)}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    backgroundColor: '#e0e0e0',
+                    color: '#666',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={dogurdu}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  💾 Kaydet
                 </button>
               </div>
             </div>

@@ -3,6 +3,8 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');  // ← EKLE
+const Buzagi = require('../models/Buzagi');
+const Timeline = require('../models/Timeline');
 
 // TÜM İNEKLERİ GETİR
 router.get('/', auth, async (req, res) => {
@@ -157,6 +159,69 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'İnek silindi', inek });
   } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// İNEK DOĞURDU - Buzağı oluştur ve inek bilgilerini güncelle
+router.post('/:id/dogurdu', auth, async (req, res) => {
+  try {
+    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = req.body;
+
+    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    if (!inek) {
+      return res.status(404).json({ message: 'İnek bulunamadı' });
+    }
+
+    // Validasyon
+    if (!dogumTarihi) {
+      return res.status(400).json({ message: 'Doğum tarihi zorunludur' });
+    }
+    if (!buzagiIsim || !buzagiCinsiyet || !buzagiKilo) {
+      return res.status(400).json({ message: 'Buzağı bilgileri eksik' });
+    }
+
+    // 1. Buzağı oluştur
+    const buzagi = new Buzagi({
+      userId: req.userId,
+      isim: buzagiIsim,
+      kupeNo: `BZ-${Date.now()}`,
+      anneId: inek._id.toString(),
+      anneIsim: inek.isim,
+      anneKupeNo: inek.kupeNo,
+      dogumTarihi: dogumTarihi,
+      cinsiyet: buzagiCinsiyet,
+      kilo: buzagiKilo,
+      notlar: notlar || '',
+      eklemeTarihi: new Date().toISOString().split('T')[0]
+    });
+    await buzagi.save();
+
+    // 2. İnek'i güncelle
+    inek.buzagiSayisi = (inek.buzagiSayisi || 0) + 1;
+    inek.laktasyonDonemi = (inek.laktasyonDonemi || 0) + 1;
+    inek.sonBuzagilamaTarihi = dogumTarihi;
+    inek.gebelikDurumu = 'Gebe Değil';
+    inek.tohumlamaTarihi = null;
+    await inek.save();
+
+    // 3. Timeline event'i oluştur
+    await Timeline.create({
+      userId: req.userId,
+      hayvanId: inek._id.toString(),
+      hayvanTipi: 'inek',
+      tip: 'dogum',
+      tarih: dogumTarihi,
+      aciklama: `${inek.isim} doğum yaptı - ${buzagiIsim} (${buzagiCinsiyet}) (${inek.buzagiSayisi}. buzağı)`
+    });
+
+    res.json({
+      message: 'Doğum başarıyla kaydedildi!',
+      inek: inek,
+      buzagi: buzagi
+    });
+  } catch (error) {
+    console.error('İnek doğum hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });

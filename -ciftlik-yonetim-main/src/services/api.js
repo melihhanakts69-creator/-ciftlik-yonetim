@@ -26,6 +26,7 @@ export const getInekler = () => api.get('/inekler');
 export const createInek = (data) => api.post('/inekler', data);
 export const updateInek = (id, data) => api.put(`/inekler/${id}`, data);
 export const deleteInek = (id) => api.delete(`/inekler/${id}`);
+export const inekDogurdu = (id, data) => api.post(`/inekler/${id}/dogurdu`, data);
 
 // BUZAĞILAR
 export const getBuzagilar = () => api.get('/buzagilar');
