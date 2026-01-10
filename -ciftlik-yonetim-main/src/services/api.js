@@ -87,8 +87,17 @@ export const topluSutDetay = (id) => api.get(`/toplu-sut/${id}`);
 export const topluSutSil = (id) => api.delete(`/toplu-sut/${id}`);
 export const topluSutSilByTarihSagim = (tarih, sagim) => api.delete(`/toplu-sut/tarih/${tarih}/${sagim}`);
 
-
-
-
+// FİNANSAL
+export const getFinansalKayitlar = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/finansal?${query}`);
+};
+export const getFinansalOzet = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/finansal/ozet?${query}`);
+};
+export const createFinansalKayit = (data) => api.post('/finansal', data);
+export const updateFinansalKayit = (id, data) => api.put(`/finansal/${id}`, data);
+export const deleteFinansalKayit = (id) => api.delete(`/finansal/${id}`);
 
 export default api;

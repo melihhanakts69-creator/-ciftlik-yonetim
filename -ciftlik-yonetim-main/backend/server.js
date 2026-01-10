@@ -28,6 +28,7 @@ app.use('/api/yemler', require('./routes/yemler'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/timeline', require('./routes/timeline'));
 app.use('/api/toplu-sut', require('./routes/topluSut'));
+app.use('/api/finansal', require('./routes/finansal'));
 
 const PORT = process.env.PORT || 5000;
 

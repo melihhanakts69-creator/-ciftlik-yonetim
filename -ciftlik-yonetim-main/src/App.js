@@ -9,6 +9,7 @@ import DuveDetay from './components/DuveDetay';
 import YaklasanDogumlar from './components/YaklasanDogumlar';
 import TohumlamaKontrol from './components/TohumlamaKontrol';
 import TopluSutGirisi from './components/TopluSutGirisi';
+import Finansal from './components/Finansal';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 
@@ -629,6 +630,23 @@ function App() {
               }}
             >
               🌾 Yem Deposu
+            </button>
+
+            <button
+              onClick={() => setAktifSayfa('finansal')}
+              style={{
+                padding: '10px 20px',
+                fontSize: '16px',
+                backgroundColor: aktifSayfa === 'finansal' ? '#4CAF50' : '#ddd',
+                color: aktifSayfa === 'finansal' ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginBottom: '5px',
+                marginRight: '10px'
+              }}
+            >
+              💰 Finansal
             </button>
       </div>
 
@@ -2426,6 +2444,12 @@ function App() {
       {aktifSayfa === 'yem-deposu' && (
         <YemDeposu />
       )}
+
+      {/* Finansal Yönetim */}
+      {aktifSayfa === 'finansal' && (
+        <Finansal />
+      )}
+
       {/* İnek Detay Sayfası */}
       {secilenInek && (
         <InekDetay 
