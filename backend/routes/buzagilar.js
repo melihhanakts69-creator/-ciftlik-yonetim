@@ -99,6 +99,11 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Buzağı bulunamadı' });
     }
 
+    // Yaş hesapla (ay cinsinden)
+    const dogumTarihi = new Date(buzagi.dogumTarihi);
+    const bugun = new Date();
+    const yasAy = Math.floor((bugun - dogumTarihi) / (1000 * 60 * 60 * 24 * 30));
+
     // Düve mi Tosun mu?
     if (buzagi.cinsiyet === 'disi') {
       // DÜVE OLUŞTUR
@@ -107,9 +112,12 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
         isim: buzagi.isim,
         kupeNo: buzagi.kupeNo,
         dogumTarihi: buzagi.dogumTarihi,
+        yas: yasAy,
+        kilo: buzagi.kilo || 150,
         anneKupeNo: buzagi.anneKupeNo || null,
-        babaKupeNo: buzagi.babaKupeNo || null,
-        not: `${buzagi.isim} buzağıdan otomatik geçiş`
+        gebelikDurumu: 'Belirsiz',
+        notlar: `${buzagi.isim} buzağıdan otomatik geçiş`,
+        eklemeTarihi: new Date().toISOString().split('T')[0]
       });
 
       await yeniDuve.save();
@@ -118,7 +126,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
       await Timeline.create({
         userId: req.userId,
         hayvanId: yeniDuve._id,
-        hayvanTipi: 'düve',
+        hayvanTipi: 'duve',
         tip: 'genel',
         tarih: new Date().toISOString().split('T')[0],
         aciklama: `${buzagi.isim} buzağıdan düveye otomatik geçiş yapıldı`
