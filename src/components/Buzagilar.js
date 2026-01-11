@@ -61,8 +61,6 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
       await api.buzagiGecisYap(buzagi._id);
       setBuzagilar(buzagilar.filter(b => b._id !== buzagi._id));
       alert(`✅ ${buzagi.isim} başarıyla ${hedef}'a geçirildi!`);
-      // Sayfayı yenile ki yeni düve/tosun görünsün
-      window.location.reload();
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Geçiş yapılamadı!'));
     }

@@ -113,7 +113,7 @@ function InekDetay({ inek, onGeri, onInekGuncelle }) {
 
       alert('✅ Doğum kaydedildi! Buzağı eklendi, inek bilgileri güncellendi.');
       setDogumEkrani(false);
-      window.location.reload();
+      onGeri(); // Ana sayfaya dön
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Doğum kaydedilemedi!'));
     }

@@ -124,6 +124,9 @@ function Duveler({ duveler, setDuveler, inekler }) {
         notlar: dogumBilgileri.notlar
       });
 
+      // Düveyi listeden çıkar
+      setDuveler(duveler.filter(d => d._id !== dogumYapacakDuve._id));
+
       setDogumEkrani(false);
       setDogumYapacakDuve(null);
       setDogumBilgileri({
@@ -135,7 +138,6 @@ function Duveler({ duveler, setDuveler, inekler }) {
       });
 
       alert(`✅ ${dogumYapacakDuve.isim} doğurdu ve inek oldu! Buzağı: ${dogumBilgileri.buzagiIsim}`);
-      window.location.reload();
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Doğum işlemi başarısız!'));
     }
