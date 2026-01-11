@@ -828,7 +828,7 @@ function App() {
           {/* Görevlerim Kartı */}
           {(buzagilar.filter(b => {
             const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-            return farkAy >= 6;
+            return farkAy >= 12;
           }).length > 0 || duveler.filter(d => {
             if (!d.tohumlamaTarihi) return false;
             const tohumlama = new Date(d.tohumlamaTarihi);
@@ -849,7 +849,7 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {buzagilar.filter(b => {
                   const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-                  return farkAy >= 6;
+                  return farkAy >= 12;
                 }).length > 0 && (
                   <div style={{
                     display: 'flex',
@@ -867,8 +867,8 @@ function App() {
                       <div style={{ fontSize: '14px', color: '#666' }}>
                         {buzagilar.filter(b => {
                           const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-                          return farkAy >= 6;
-                        }).length} buzağı 6+ aylık oldu
+                          return farkAy >= 12;
+                        }).length} buzağı 12+ aylık oldu
                       </div>
                     </div>
                     <button

@@ -72,7 +72,7 @@ router.get('/kontrol-gecis', auth, async (req, res) => {
       const dogumTarihi = new Date(buzagi.dogumTarihi);
       const farkAy = Math.floor((bugun - dogumTarihi) / (1000 * 60 * 60 * 24 * 30));
 
-      if (farkAy >= 6) {
+      if (farkAy >= 12) {
         gecisler.push({
           buzagi,
           yas: farkAy,
