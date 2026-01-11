@@ -6,7 +6,16 @@ const connectDB = require('./config/database');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://ciftlik-yonetim-q8bwcyd9m-melihhan-aktass-projects.vercel.app',
+    'https://ciftlik-yonetim.vercel.app',
+    /\.vercel\.app$/,  // Tüm Vercel preview'lara izin ver
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Database bağlantısı
