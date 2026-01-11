@@ -19,15 +19,18 @@ router.get('/', auth, async (req, res) => {
 // YENİ BUZAĞI EKLE
 router.post('/', auth, async (req, res) => {
   try {
-    const { isim, anneId, anneIsim, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi } = req.body;
-    
-    console.log('Gelen buzağı verisi:', { isim, anneId, anneIsim, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi, userId: req.userId });
+    const { isim, kupeNo, anneId, anneIsim, anneKupeNo, babaKupeNo, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi } = req.body;
+
+    console.log('Gelen buzağı verisi:', { isim, kupeNo, anneId, anneIsim, anneKupeNo, babaKupeNo, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi, userId: req.userId });
 
     const buzagi = new Buzagi({
       userId: req.userId,
       isim,
+      kupeNo,
       anneId,
       anneIsim,
+      anneKupeNo,
+      babaKupeNo,
       dogumTarihi,
       cinsiyet,
       kilo,
