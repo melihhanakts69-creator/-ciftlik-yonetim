@@ -237,7 +237,16 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
                 </label>
                 <select
                   value={yeniBuzagi.anneKupeNo}
-                  onChange={(e) => setYeniBuzagi({ ...yeniBuzagi, anneKupeNo: e.target.value })}
+                  onChange={(e) => {
+                    const secilenKupeNo = e.target.value;
+                    const secilenInek = inekler.find(i => i.kupeNo === secilenKupeNo);
+                    setYeniBuzagi({
+                      ...yeniBuzagi,
+                      anneKupeNo: secilenKupeNo,
+                      anneId: secilenInek?._id || '',
+                      anneIsim: secilenInek?.isim || ''
+                    });
+                  }}
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -248,7 +257,7 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
                 >
                   <option value="">Seçiniz...</option>
                   {inekler && inekler.map(inek => (
-                    <option key={inek.id} value={inek.kupeNo}>
+                    <option key={inek._id} value={inek.kupeNo}>
                       {inek.isim} ({inek.kupeNo})
                     </option>
                   ))}
