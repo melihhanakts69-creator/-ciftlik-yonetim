@@ -7,31 +7,24 @@ const Duve = require('../models/Duve');
 // YAKLASAN DOĞUMLARI GETİR
 router.get('/yaklasan/dogumlar', auth, async (req, res) => {
   try {
-     console.log('🚨 YAKLASAN DOĞUMLAR İSTEĞİ GELDİ!');
-   const inekler = await Inek.find({ 
-  userId: req.userId, 
-  $or: [
-    { durum: 'Aktif' },
-    { durum: { $exists: false } },
-    { durum: null }
-  ],
-  gebelikDurumu: 'Gebe',
-  tohumlamaTarihi: { $ne: null, $exists: true }
-});
-     console.log('📊 TOPLAM İNEK BULUNDU:', inekler.length);
-    console.log('🐄 İNEKLER:', JSON.stringify(inekler.map(i => ({
-      isim: i.isim,
-      durum: i.durum,
-      gebe: i.gebelikDurumu,
-      tohum: i.tohumlamaTarihi
-    })), null, 2));
     const bugun = new Date();
     bugun.setHours(0, 0, 0, 0);
     const yaklaşanlar = [];
 
+    // İNEKLERİ KONTROL ET
+    const inekler = await Inek.find({
+      userId: req.userId,
+      $or: [
+        { durum: 'Aktif' },
+        { durum: { $exists: false } },
+        { durum: null }
+      ],
+      gebelikDurumu: 'Gebe',
+      tohumlamaTarihi: { $ne: null, $exists: true }
+    });
+
     inekler.forEach(inek => {
       if (inek.tohumlamaTarihi) {
-        // Tarihi düzgün parse et
         const tohumlama = new Date(inek.tohumlamaTarihi.includes('T') ? inek.tohumlamaTarihi : inek.tohumlamaTarihi + 'T12:00:00Z');
         const tahminiDoğum = new Date(tohumlama);
         tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
@@ -39,11 +32,37 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
 
         const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
 
-        console.log(`İnek: ${inek.isim}, Tohum: ${inek.tohumlamaTarihi}, Doğum: ${tahminiDoğum.toISOString().split('T')[0]}, Kalan: ${kalanGun}`);
+        if (kalanGun >= 0 && kalanGun <= 30) {
+          yaklaşanlar.push({
+            hayvan: inek,
+            hayvanTipi: 'inek',
+            kalanGun: kalanGun,
+            tahminiDoğum: tahminiDoğum.toISOString().split('T')[0]
+          });
+        }
+      }
+    });
+
+    // DÜVELERİ KONTROL ET
+    const duveler = await Duve.find({
+      userId: req.userId,
+      gebelikDurumu: 'Gebe',
+      tohumlamaTarihi: { $ne: null, $exists: true }
+    });
+
+    duveler.forEach(duve => {
+      if (duve.tohumlamaTarihi) {
+        const tohumlama = new Date(duve.tohumlamaTarihi.includes('T') ? duve.tohumlamaTarihi : duve.tohumlamaTarihi + 'T12:00:00Z');
+        const tahminiDoğum = new Date(tohumlama);
+        tahminiDoğum.setDate(tahminiDoğum.getDate() + 283);
+        tahminiDoğum.setHours(0, 0, 0, 0);
+
+        const kalanGun = Math.ceil((tahminiDoğum - bugun) / (1000 * 60 * 60 * 24));
 
         if (kalanGun >= 0 && kalanGun <= 30) {
           yaklaşanlar.push({
-            inek: inek,
+            hayvan: duve,
+            hayvanTipi: 'duve',
             kalanGun: kalanGun,
             tahminiDoğum: tahminiDoğum.toISOString().split('T')[0]
           });
