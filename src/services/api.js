@@ -42,6 +42,7 @@ export const deleteDuve = (id) => api.delete(`/duveler/${id}`);
 export const updateDuve = (id, data) => {
   return api.put(`/duveler/${id}`, data);
 };
+export const duveDogurdu = (id, data) => api.post(`/duveler/${id}/dogurdu`, data);
 
 
 //Tosunlar

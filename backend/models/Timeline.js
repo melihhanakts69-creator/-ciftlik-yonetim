@@ -13,7 +13,7 @@ const timelineSchema = new mongoose.Schema({
   hayvanTipi: {
     type: String,
     required: true,
-    enum: ['inek', 'buzagi', 'duve']
+    enum: ['inek', 'buzagi', 'duve', 'tosun']
   },
   tip: {
     type: String,
