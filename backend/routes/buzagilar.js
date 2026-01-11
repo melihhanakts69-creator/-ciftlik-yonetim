@@ -114,6 +114,8 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
     }
     console.log('📅 Yaş hesaplandı:', yasAy, 'ay');
 
+    console.log('✅ VERSION CHECK: Using buzagilar.js v2.0 with validation fixes');
+
     // Düve mi Tosun mu?
     if (buzagi.cinsiyet === 'disi') {
       // DÜVE OLUŞTUR
@@ -122,6 +124,8 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
       // Kilo ve yaş kontrolü - zorunlu alanlar
       const duveYas = yasAy || 12;
       const duveKilo = buzagi.kilo ? Number(buzagi.kilo) : 150;
+
+      console.log('📊 Validation values:', { duveYas, duveKilo, 'buzagi.kilo': buzagi.kilo, yasAy });
 
       const yeniDuve = new Duve({
         userId: req.userId,
