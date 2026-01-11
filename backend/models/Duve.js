@@ -27,6 +27,14 @@ const duveSchema = new mongoose.Schema({
   dogumTarihi: {
     type: String
   },
+  anneKupeNo: {
+    type: String,
+    trim: true
+  },
+  babaKupeNo: {
+    type: String,
+    trim: true
+  },
   tohumlamaTarihi: {
     type: String
   },
