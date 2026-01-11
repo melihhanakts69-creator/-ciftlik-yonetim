@@ -6,6 +6,15 @@ function Duveler({ duveler, setDuveler, inekler }) {
   const [duveEkrani, setDuveEkrani] = useState(false);
   const [secilenDuve, setSecilenDuve] = useState(null);
   const [duzenlenecekDuve, setDuzenlenecekDuve] = useState(null);
+  const [dogumEkrani, setDogumEkrani] = useState(false);
+  const [dogumYapacakDuve, setDogumYapacakDuve] = useState(null);
+  const [dogumBilgileri, setDogumBilgileri] = useState({
+    dogumTarihi: '',
+    buzagiIsim: '',
+    buzagiCinsiyet: 'disi',
+    buzagiKilo: '',
+    notlar: ''
+  });
   const [yeniDuve, setYeniDuve] = useState({
     isim: '',
     kupeNo: '',
@@ -88,7 +97,7 @@ function Duveler({ duveler, setDuveler, inekler }) {
         notlar: duzenlenecekDuve.notlar
       });
 
-     setDuveler(duveler.map(d => 
+     setDuveler(duveler.map(d =>
   d._id === duzenlenecekDuve._id ? { ...duzenlenecekDuve } : d
 ));
 
@@ -97,6 +106,38 @@ function Duveler({ duveler, setDuveler, inekler }) {
       alert('✅ Düve güncellendi!');
     } catch (error) {
       alert('❌ Hata: ' + (error.response?.data?.message || 'Düve güncellenemedi!'));
+    }
+  };
+
+  const duveDogurdu = async () => {
+    if (!dogumBilgileri.dogumTarihi || !dogumBilgileri.buzagiIsim || !dogumBilgileri.buzagiCinsiyet || !dogumBilgileri.buzagiKilo) {
+      alert('Lütfen tüm zorunlu alanları doldurun!');
+      return;
+    }
+
+    try {
+      const response = await api.duveDogurdu(dogumYapacakDuve._id, {
+        dogumTarihi: dogumBilgileri.dogumTarihi,
+        buzagiIsim: dogumBilgileri.buzagiIsim,
+        buzagiCinsiyet: dogumBilgileri.buzagiCinsiyet,
+        buzagiKilo: parseFloat(dogumBilgileri.buzagiKilo),
+        notlar: dogumBilgileri.notlar
+      });
+
+      setDogumEkrani(false);
+      setDogumYapacakDuve(null);
+      setDogumBilgileri({
+        dogumTarihi: '',
+        buzagiIsim: '',
+        buzagiCinsiyet: 'disi',
+        buzagiKilo: '',
+        notlar: ''
+      });
+
+      alert(`✅ ${dogumYapacakDuve.isim} doğurdu ve inek oldu! Buzağı: ${dogumBilgileri.buzagiIsim}`);
+      window.location.reload();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Doğum işlemi başarısız!'));
     }
   };
 
@@ -276,7 +317,7 @@ function Duveler({ duveler, setDuveler, inekler }) {
                     )}
                   </div>
 
-              <div style={{ display: 'flex', gap: '5px' }}>
+              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => setSecilenDuve(duve)}
                       style={{
@@ -291,6 +332,33 @@ function Duveler({ duveler, setDuveler, inekler }) {
                     >
                       📋 Detay
                     </button>
+                    {duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi && (
+                      <button
+                        onClick={() => {
+                          setDogumYapacakDuve(duve);
+                          setDogumEkrani(true);
+                          setDogumBilgileri({
+                            dogumTarihi: new Date().toISOString().split('T')[0],
+                            buzagiIsim: '',
+                            buzagiCinsiyet: 'disi',
+                            buzagiKilo: '',
+                            notlar: ''
+                          });
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          backgroundColor: '#4CAF50',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        🤰 Doğurdu
+                      </button>
+                    )}
                     <button
                       onClick={() => setDuzenlenecekDuve({ ...duve })}
                       style={{
@@ -879,6 +947,215 @@ function Duveler({ duveler, setDuveler, inekler }) {
                 }}
               >
                 Güncelle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOĞUM MODAL */}
+      {dogumEkrani && dogumYapacakDuve && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+          overflow: 'auto'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: '30px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, color: '#4CAF50' }}>🤰 Düve Doğurdu</h2>
+              <button
+                onClick={() => {
+                  setDogumEkrani(false);
+                  setDogumYapacakDuve(null);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{
+              backgroundColor: '#e8f5e9',
+              padding: '15px',
+              borderRadius: '8px',
+              marginBottom: '20px'
+            }}>
+              <p style={{ margin: '5px 0', fontWeight: 'bold', fontSize: '16px' }}>
+                🐄 {dogumYapacakDuve.isim} (#{dogumYapacakDuve.kupeNo})
+              </p>
+              <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                Bu düve doğurduktan sonra otomatik olarak inek'e geçecektir.
+              </p>
+            </div>
+
+            {/* Doğum Tarihi */}
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Doğum Tarihi: *
+              </label>
+              <input
+                type="date"
+                value={dogumBilgileri.dogumTarihi}
+                onChange={(e) => setDogumBilgileri({ ...dogumBilgileri, dogumTarihi: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Buzağı İsmi */}
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Buzağı İsmi: *
+              </label>
+              <input
+                type="text"
+                placeholder="Örn: Minnoş"
+                value={dogumBilgileri.buzagiIsim}
+                onChange={(e) => setDogumBilgileri({ ...dogumBilgileri, buzagiIsim: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Buzağı Cinsiyeti & Kilo */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Buzağı Cinsiyeti: *
+                </label>
+                <select
+                  value={dogumBilgileri.buzagiCinsiyet}
+                  onChange={(e) => setDogumBilgileri({ ...dogumBilgileri, buzagiCinsiyet: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="disi">🐄 Dişi</option>
+                  <option value="erkek">🐂 Erkek</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Buzağı Kilosu (kg): *
+                </label>
+                <input
+                  type="number"
+                  placeholder="30"
+                  value={dogumBilgileri.buzagiKilo}
+                  onChange={(e) => setDogumBilgileri({ ...dogumBilgileri, buzagiKilo: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Notlar */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                Notlar:
+              </label>
+              <textarea
+                placeholder="Doğum hakkında notlar..."
+                value={dogumBilgileri.notlar}
+                onChange={(e) => setDogumBilgileri({ ...dogumBilgileri, notlar: e.target.value })}
+                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ddd',
+                  resize: 'vertical',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Butonlar */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => {
+                  setDogumEkrani(false);
+                  setDogumYapacakDuve(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={duveDogurdu}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                ✅ Kaydet
               </button>
             </div>
           </div>
