@@ -157,6 +157,10 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
 
     } else {
       // TOSUN OLUŞTUR
+      console.log('🐂 Tosun oluşturuluyor...');
+
+      const tosunKilo = buzagi.kilo ? Number(buzagi.kilo) : 150;
+
       const yeniTosun = new Tosun({
         userId: req.userId,
         isim: buzagi.isim,
@@ -164,11 +168,13 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
         dogumTarihi: buzagi.dogumTarihi,
         anneKupeNo: buzagi.anneKupeNo || null,
         babaKupeNo: buzagi.babaKupeNo || null,
-        kilo: buzagi.kilo || 0,
+        kilo: tosunKilo,
         not: `${buzagi.isim} buzağıdan otomatik geçiş`
       });
 
+      console.log('💾 Tosun kaydediliyor:', yeniTosun);
       await yeniTosun.save();
+      console.log('✅ Tosun kaydedildi');
 
       // Timeline ekle
       await Timeline.create({
