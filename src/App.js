@@ -446,12 +446,13 @@ function App() {
 
   return (
     <div style={{
-      padding: '20px',
+      padding: '20px 40px',
       fontFamily: 'Arial',
-      maxWidth: '1400px',
-      margin: '0 auto',
+      maxWidth: '100%',
+      margin: '0',
       width: '100%',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      minHeight: '100vh'
     }}>
       {!girisYapildi ? (
         <Login onLoginSuccess={handleLoginSuccess} />
