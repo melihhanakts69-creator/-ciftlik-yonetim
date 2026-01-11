@@ -53,8 +53,9 @@ router.delete('/:id', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
+});
 
-  // TARİH VE SAĞIMA GÖRE TOPLU SİL
+// TARİH VE SAĞIMA GÖRE TOPLU SİL
 router.delete('/toplu-sil/tarih', auth, async (req, res) => {
   try {
     const { tarih, sagim } = req.body;
@@ -102,9 +103,6 @@ router.delete('/toplu-sil/secili', auth, async (req, res) => {
     console.error('Seçili silme hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
-});
-
-module.exports = router;
 });
 
 module.exports = router;

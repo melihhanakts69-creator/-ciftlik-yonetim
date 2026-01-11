@@ -18,7 +18,7 @@ const timelineSchema = new mongoose.Schema({
   tip: {
     type: String,
     required: true,
-    enum: ['dogum', 'tohumlama', 'buzagi', 'hastalik', 'asi', 'satis', 'kuru-donem', 'diger']
+    enum: ['dogum', 'tohumlama', 'buzagi', 'hastalik', 'asi', 'satis', 'kuru-donem', 'genel', 'muayene', 'diger']
   },
   tarih: {
     type: String,

@@ -14,8 +14,8 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
   });
 
   const buzagiEkle = async () => {
-    if (!yeniBuzagi.isim || !yeniBuzagi.kupeNo || !yeniBuzagi.dogumTarihi) {
-      alert('Lütfen zorunlu alanları doldurun!');
+    if (!yeniBuzagi.isim || !yeniBuzagi.kupeNo || !yeniBuzagi.dogumTarihi || !yeniBuzagi.anneKupeNo) {
+      alert('Lütfen zorunlu alanları doldurun (İsim, Küpe No, Doğum Tarihi, Anne İnek)!');
       return;
     }
 

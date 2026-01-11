@@ -129,7 +129,7 @@ function App() {
   const [detayInek, setDetayInek] = useState(null);
   
   // Rapor filtreleme
-  const [secilenTarih, setSecilenTarih] = useState(bugunTarih());
+  const [raporTarihi, setRaporTarihi] = useState(bugunTarih());
   const [raporTipi, setRaporTipi] = useState('gunluk'); // gunluk, haftalik, aylik, tumu
   
  // Süt kayıtlarını API'den yükle
@@ -432,7 +432,7 @@ function App() {
   // Filtrelenmiş kayıtları getir
   const filtrelenmisKayitlar = () => {
     if (raporTipi === 'gunluk') {
-      return sutKayitlari.filter(k => k.tarih === secilenTarih);
+      return sutKayitlari.filter(k => k.tarih === raporTarihi);
     } else if (raporTipi === 'haftalik') {
       const son7Gun = sonNGun(7);
       return sutKayitlari.filter(k => son7Gun.includes(k.tarih));
@@ -2153,8 +2153,8 @@ function App() {
                 </label>
                 <input
                   type="date"
-                  value={secilenTarih}
-                  onChange={(e) => setSecilenTarih(e.target.value)}
+                  value={raporTarihi}
+                  onChange={(e) => setRaporTarihi(e.target.value)}
                   max={bugunTarih()}
                   style={{
                     padding: '8px',

@@ -24,7 +24,7 @@ async function getSon7GunOrtalama(userId) {
       inekOrtalamalari[kayit.inekId] = 0;
       inekSayaclari[kayit.inekId] = 0;
     }
-    inekOrtalamalari[kayit.inekId] += kayit.miktar;
+    inekOrtalamalari[kayit.inekId] += kayit.litre;
     inekSayaclari[kayit.inekId]++;
   });
 

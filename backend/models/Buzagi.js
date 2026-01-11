@@ -11,13 +11,26 @@ const buzagiSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
- anneId: {
+  kupeNo: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  anneId: {
     type: String,
     required: true
   },
   anneIsim: {
     type: String,
     required: true
+  },
+  anneKupeNo: {
+    type: String,
+    trim: true
+  },
+  babaKupeNo: {
+    type: String,
+    trim: true
   },
   dogumTarihi: {
     type: String,

@@ -38,19 +38,7 @@ function Duveler({ duveler, setDuveler, inekler }) {
       });
 
       setDuveler([...duveler, response.data]);
-      // TOHUMLAMA VARSA TIMELINE'A OTOMATİK KAYIT
-if (yeniDuve.tohumlamaTarihi) {
-  await api.createTimeline({
-    hayvanId: response.data._id,
-    hayvanTipi: 'duve',
-    tip: 'tohumlama',
-    tarih: yeniDuve.tohumlamaTarihi,
-    aciklama: 'Düve eklenirken girilen tohumlama'
-  });
-}
 
-
-      
       setYeniDuve({
         isim: '',
         kupeNo: '',
@@ -75,7 +63,7 @@ if (yeniDuve.tohumlamaTarihi) {
 
     try {
       await api.deleteDuve(id);
-      setDuveler(duveler.filter(d => d.id !== id));
+      setDuveler(duveler.filter(d => d._id !== id));
       alert('✅ Düve silindi!');
     } catch (error) {
       alert('❌ Hata: Düve silinemedi!');
@@ -514,7 +502,7 @@ if (yeniDuve.tohumlamaTarihi) {
               >
                 <option value="">Seçiniz...</option>
                 {inekler && inekler.map(inek => (
-                  <option key={inek.id} value={inek.kupeNo}>
+                  <option key={inek._id} value={inek.kupeNo}>
                     {inek.isim} ({inek.kupeNo})
                   </option>
                 ))}
@@ -788,7 +776,7 @@ if (yeniDuve.tohumlamaTarihi) {
               >
                 <option value="">Seçiniz...</option>
                 {inekler && inekler.map(inek => (
-                  <option key={inek.id} value={inek.kupeNo}>
+                  <option key={inek._id} value={inek.kupeNo}>
                     {inek.isim} ({inek.kupeNo})
                   </option>
                 ))}
