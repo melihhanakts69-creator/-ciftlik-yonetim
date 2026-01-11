@@ -445,7 +445,14 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '1000px' }}>
+    <div style={{
+      padding: '20px',
+      fontFamily: 'Arial',
+      maxWidth: '1400px',
+      margin: '0 auto',
+      width: '100%',
+      boxSizing: 'border-box'
+    }}>
       {!girisYapildi ? (
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : (
