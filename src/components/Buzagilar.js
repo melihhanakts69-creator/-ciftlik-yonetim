@@ -53,6 +53,21 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
     }
   };
 
+  const buzagiGecisYap = async (buzagi) => {
+    const hedef = buzagi.cinsiyet === 'disi' ? 'Düve' : 'Tosun';
+    if (!window.confirm(`${buzagi.isim} buzağısını ${hedef}'a geçirmek istediğinize emin misiniz?`)) return;
+
+    try {
+      await api.buzagiGecisYap(buzagi._id);
+      setBuzagilar(buzagilar.filter(b => b._id !== buzagi._id));
+      alert(`✅ ${buzagi.isim} başarıyla ${hedef}'a geçirildi!`);
+      // Sayfayı yenile ki yeni düve/tosun görünsün
+      window.location.reload();
+    } catch (error) {
+      alert('❌ Hata: ' + (error.response?.data?.message || 'Geçiş yapılamadı!'));
+    }
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -87,12 +102,12 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
         <p><strong>Erkek:</strong> {buzagilar.filter(b => b.cinsiyet === 'erkek').length}</p>
         {buzagilar.filter(b => {
           const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-          return farkAy >= 6;
+          return farkAy >= 12;
         }).length > 0 && (
           <p style={{ color: '#4CAF50', fontWeight: 'bold' }}>
-            ✅ Düveye geçmeye hazır: {buzagilar.filter(b => {
+            ✅ Düveye/Tosuna geçmeye hazır: {buzagilar.filter(b => {
               const farkAy = Math.floor((new Date() - new Date(b.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-              return farkAy >= 6;
+              return farkAy >= 12;
             }).length}
           </p>
         )}
@@ -104,7 +119,7 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           {buzagilar.map((buzagi) => {
             const yas = Math.floor((new Date() - new Date(buzagi.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-            const gecisHazir = yas >= 6;
+            const gecisHazir = yas >= 12;
             
             return (
               <div
@@ -130,33 +145,52 @@ function Buzagilar({ buzagilar, setBuzagilar , inekler }) {
                       <strong> Kilo:</strong> {buzagi.kilo || '-'} kg
                     </p>
                     {gecisHazir && (
-                      <p style={{ 
-                        margin: '10px 0 0 0', 
-                        padding: '8px', 
-                        backgroundColor: '#4CAF50', 
+                      <p style={{
+                        margin: '10px 0 0 0',
+                        padding: '8px',
+                        backgroundColor: '#4CAF50',
                         color: 'white',
                         borderRadius: '4px',
                         display: 'inline-block',
                         fontSize: '14px',
                         fontWeight: 'bold'
                       }}>
-                        📊 Düveye Geçiş Hazır
+                        📊 {buzagi.cinsiyet === 'disi' ? 'Düve' : 'Tosun'}ye Geçiş Hazır
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={() => buzagiSil(buzagi.id)}
-                    style={{
-                      padding: '8px 12px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🗑️ Sil
-                  </button>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {gecisHazir && (
+                      <button
+                        onClick={() => buzagiGecisYap(buzagi)}
+                        style={{
+                          padding: '8px 12px',
+                          backgroundColor: '#4CAF50',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        ➡️ {buzagi.cinsiyet === 'disi' ? 'Düve' : 'Tosun'}ye Geçir
+                      </button>
+                    )}
+                    <button
+                      onClick={() => buzagiSil(buzagi.id)}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🗑️ Sil
+                    </button>
+                  </div>
                 </div>
               </div>
             );
