@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Animal = require('../models/Animal');
+const Inek = require('../models/Inek');
+const Duve = require('../models/Duve');
+const Buzagi = require('../models/Buzagi');
+const Tosun = require('../models/Tosun');
 const SutKaydi = require('../models/SutKaydi');
 const Bildirim = require('../models/Bildirim');
 const Maliyet = require('../models/Maliyet');
@@ -13,19 +16,18 @@ router.get('/stats', auth, async (req, res) => {
     const userId = req.user.userId;
 
     // Toplam hayvan sayıları
-    const toplamInek = await Animal.countDocuments({ userId, tip: 'inek' });
-    const toplamDuve = await Animal.countDocuments({ userId, tip: 'duve' });
-    const toplamBuzagi = await Animal.countDocuments({ userId, tip: 'buzagi' });
-    const toplamTosun = await Animal.countDocuments({ userId, tip: 'tosun' });
+    const toplamInek = await Inek.countDocuments({ userId });
+    const toplamDuve = await Duve.countDocuments({ userId });
+    const toplamBuzagi = await Buzagi.countDocuments({ userId });
+    const toplamTosun = await Tosun.countDocuments({ userId });
 
     // Gebe hayvanlar
-    const gebeInek = await Animal.countDocuments({ userId, tip: 'inek', gebe: true });
-    const gebeDuve = await Animal.countDocuments({ userId, tip: 'duve', gebe: true });
+    const gebeInek = await Inek.countDocuments({ userId, gebe: true });
+    const gebeDuve = await Duve.countDocuments({ userId, gebe: true });
 
     // Sağmal inekler
-    const sagmalInek = await Animal.countDocuments({
+    const sagmalInek = await Inek.countDocuments({
       userId,
-      tip: 'inek',
       durum: { $in: ['sagmal', 'gebe'] }
     });
 
@@ -58,7 +60,7 @@ router.get('/stats', auth, async (req, res) => {
     const otuzGunSonra = new Date();
     otuzGunSonra.setDate(otuzGunSonra.getDate() + 30);
 
-    const yaklaşanDogum = await Animal.countDocuments({
+    const yaklaşanDogumInek = await Inek.countDocuments({
       userId,
       gebe: true,
       dogum_tarihi: {
@@ -66,6 +68,17 @@ router.get('/stats', auth, async (req, res) => {
         $lte: otuzGunSonra
       }
     });
+
+    const yaklaşanDogumDuve = await Duve.countDocuments({
+      userId,
+      gebe: true,
+      dogum_tarihi: {
+        $gte: new Date(),
+        $lte: otuzGunSonra
+      }
+    });
+
+    const yaklaşanDogum = yaklaşanDogumInek + yaklaşanDogumDuve;
 
     // Okunmamış bildirimler
     const okunmayanBildirim = await Bildirim.countDocuments({
@@ -206,10 +219,16 @@ router.get('/aktiviteler', auth, async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
     // Son eklenen hayvanlar
-    const sonHayvanlar = await Animal.find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(3)
-      .select('kupe_no tip ad createdAt');
+    const sonInekler = await Inek.find({ userId }).sort({ createdAt: -1 }).limit(1).select('kupe_no ad createdAt').lean();
+    const sonDuveler = await Duve.find({ userId }).sort({ createdAt: -1 }).limit(1).select('kupe_no ad createdAt').lean();
+    const sonBuzagilar = await Buzagi.find({ userId }).sort({ createdAt: -1 }).limit(1).select('kupe_no ad createdAt').lean();
+
+    // Tüm hayvanları birleştir ve tip ekle
+    const sonHayvanlar = [
+      ...sonInekler.map(h => ({ ...h, tip: 'inek' })),
+      ...sonDuveler.map(h => ({ ...h, tip: 'duve' })),
+      ...sonBuzagilar.map(h => ({ ...h, tip: 'buzagi' }))
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3);
 
     // Son süt kayıtları
     const sonSutler = await SutKaydi.find({ userId })
@@ -270,10 +289,13 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
     const userId = req.user.userId;
 
     // Hasta hayvanlar
-    const hastalar = await Animal.find({
-      userId,
-      durum: 'hasta'
-    }).select('kupe_no tip ad');
+    const hastaInekler = await Inek.find({ userId, durum: 'hasta' }).select('kupe_no ad').lean();
+    const hastaDuveler = await Duve.find({ userId, durum: 'hasta' }).select('kupe_no ad').lean();
+
+    const hastalar = [
+      ...hastaInekler.map(h => ({ ...h, tip: 'inek' })),
+      ...hastaDuveler.map(h => ({ ...h, tip: 'duve' }))
+    ];
 
     // Aşı zamanı gelen bildirimler
     const asiZamani = await Bildirim.find({
