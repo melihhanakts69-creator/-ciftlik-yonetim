@@ -175,75 +175,55 @@ function Duveler({ duveler, setDuveler, inekler }) {
       {!secilenDuve && (
 
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <div>
-          <h1 style={{ margin: '0 0 5px 0', fontSize: '32px', fontWeight: 'bold' }}>
-            🐄 Düveler
-          </h1>
-          <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
-            Toplam {duveler.length} düve kayıtlı
-            {duveler.filter(d => d.gebelikDurumu === 'Gebe').length > 0 &&
-              ` (${duveler.filter(d => d.gebelikDurumu === 'Gebe').length} gebe)`}
-          </p>
-        </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ margin: 0 }}>🐄 Düveler ({duveler.length})</h2>
         <button
           onClick={() => setDuveEkrani(true)}
           style={{
-            padding: '14px 24px',
-            background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
             color: 'white',
             border: 'none',
-            borderRadius: '12px',
+            borderRadius: '8px',
             cursor: 'pointer',
             fontSize: '16px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)',
-            transition: 'transform 0.2s'
+            fontWeight: 'bold'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
           + Düve Ekle
         </button>
       </div>
+      
+      {/* Özet */}
+      <div style={{ 
+        backgroundColor: '#e8f5e9', 
+        padding: '15px', 
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ marginTop: 0 }}>📊 Özet</h3>
+        <p><strong>Toplam Düve:</strong> {duveler.length}</p>
+        <p><strong>Gebe:</strong> {duveler.filter(d => d.gebelikDurumu === 'Gebe').length}</p>
+        <p><strong>Belirsiz:</strong> {duveler.filter(d => d.gebelikDurumu === 'Belirsiz').length}</p>
+        <p><strong>Gebe Değil:</strong> {duveler.filter(d => d.gebelikDurumu === 'Gebe Değil').length}</p>
+        
+        {duveler.filter(d => {
+          const kalan = kalanGunHesapla(d.tohumlamaTarihi);
+          return kalan !== null && kalan > 0 && kalan <= 30;
+        }).length > 0 && (
+          <p style={{ color: '#FF9800', fontWeight: 'bold', marginTop: '10px' }}>
+            ⚠️ 30 gün içinde doğum yapacak: {duveler.filter(d => {
+              const kalan = kalanGunHesapla(d.tohumlamaTarihi);
+              return kalan !== null && kalan > 0 && kalan <= 30;
+            }).length}
+          </p>
+        )}
+      </div>
 
-      {/* Özet Kartları */}
-      {duveler.filter(d => {
-        const kalan = kalanGunHesapla(d.tohumlamaTarihi);
-        return kalan !== null && kalan > 0 && kalan <= 30;
-      }).length > 0 && (
-        <div style={{
-          backgroundColor: '#FFF3E0',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          marginBottom: '20px',
-          border: '1px solid #FFB74D',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <div style={{ fontSize: '24px' }}>⚠️</div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#E65100' }}>
-              Yaklaşan Doğumlar: {duveler.filter(d => {
-                const kalan = kalanGunHesapla(d.tohumlamaTarihi);
-                return kalan !== null && kalan > 0 && kalan <= 30;
-              }).length} düve
-            </div>
-            <div style={{ fontSize: '13px', color: '#F57C00' }}>
-              30 gün içinde doğum yapacak düveler
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Düve Kartları */}
+      {/* Düve Listesi */}
+      <h3>📋 Düve Listesi</h3>
       {duveler.length > 0 ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '20px'
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           {duveler.map((duve) => {
             const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
             const kalanGun = kalanGunHesapla(duve.tohumlamaTarihi);
@@ -253,239 +233,163 @@ function Duveler({ duveler, setDuveler, inekler }) {
               <div
                 key={duve._id}
                 style={{
-                  backgroundColor: 'white',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                  border: duve.gebelikDurumu === 'Gebe' ? '2px solid #4CAF50' : '1px solid #e0e0e0',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                  backgroundColor: duve.gebelikDurumu === 'Gebe' ? '#e8f5e9' : '#fff',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  border: duve.gebelikDurumu === 'Gebe' ? '2px solid #4CAF50' : '1px solid #ddd'
                 }}
               >
-                {/* Başlık */}
-                <div style={{ marginBottom: '15px' }}>
-                  <h3 style={{
-                    margin: '0 0 8px 0',
-                    fontSize: '22px',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    🐄 {duve.isim}
-                  </h3>
-                  <div style={{
-                    display: 'inline-block',
-                    backgroundColor: '#E8F5E9',
-                    color: '#2E7D32',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '13px',
-                    fontWeight: 'bold'
-                  }}>
-                    Küpe: {duve.kupeNo}
-                  </div>
-                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ margin: '0 0 5px 0' }}>
+                      🐄 {duve.isim}
+                    </h4>
+                    <p style={{ margin: '5px 0', fontSize: '14px', color: '#666' }}>
+                      #{duve.kupeNo}
+                    </p>
+                    <p style={{ margin: '5px 0', fontSize: '14px' }}>
+                      <strong>Yaş:</strong> {yas} aylık | 
+                      <strong> Kilo:</strong> {duve.kilo} kg
+                      {duve.anneKupeNo && <span> | <strong> Anne:</strong> {duve.anneKupeNo}</span>}
+                    </p>
 
-                {/* Gebelik Durumu Kartı */}
-                {duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi && (
-                  <div style={{
-                    backgroundColor: '#E8F5E9',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    marginBottom: '15px',
-                    borderLeft: '3px solid #4CAF50'
-                  }}>
-                    <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#2E7D32', marginBottom: '4px' }}>
-                      🤰 Gebe
+                    {/* Gebelik Durumu */}
+                    <div style={{ marginTop: '10px' }}>
+                      {duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi && (
+                        <div style={{ 
+                          padding: '8px', 
+                          backgroundColor: '#4CAF50', 
+                          color: 'white',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          marginRight: '10px'
+                        }}>
+                          🤰 Gebe
+                        </div>
+                      )}
+                      
+                      {duve.gebelikDurumu === 'Belirsiz' && duve.tohumlamaTarihi && (
+                        <div style={{ 
+                          padding: '8px', 
+                          backgroundColor: '#FF9800', 
+                          color: 'white',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          marginRight: '10px'
+                        }}>
+                          ❓ Belirsiz
+                        </div>
+                      )}
+
+                      {duve.tohumlamaTarihi && kalanGun !== null && (
+                        <div style={{ 
+                          padding: '8px', 
+                          backgroundColor: kalanGun <= 30 ? '#f44336' : '#2196F3',
+                          color: 'white',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          fontSize: '14px',
+                          fontWeight: 'bold'
+                        }}>
+                          {kalanGun > 0 
+                            ? `📅 ${kalanGun} gün kaldı` 
+                            : kalanGun === 0 
+                            ? '⚠️ BUGÜN DOĞUM!'
+                            : `❗ ${Math.abs(kalanGun)} gün geçti`
+                          }
+                        </div>
+                      )}
                     </div>
-                    {kalanGun !== null && (
-                      <div style={{ fontSize: '12px', color: kalanGun <= 30 ? '#f44336' : '#66BB6A' }}>
-                        {kalanGun > 0
-                          ? `📅 ${kalanGun} gün kaldı`
-                          : kalanGun === 0
-                          ? '⚠️ BUGÜN DOĞUM!'
-                          : `❗ ${Math.abs(kalanGun)} gün geçti`
-                        }
-                      </div>
+
+                    {duve.tohumlamaTarihi && dogumTarihi && (
+                      <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#666' }}>
+                        Tohumlama: {new Date(duve.tohumlamaTarihi).toLocaleDateString('tr-TR')} → 
+                        Beklenen Doğum: {dogumTarihi.toLocaleDateString('tr-TR')}
+                      </p>
+                    )}
+
+                    {duve.not && (
+                      <p style={{ margin: '10px 0 0 0', fontSize: '14px', fontStyle: 'italic', color: '#666' }}>
+                        📝 {duve.not}
+                      </p>
                     )}
                   </div>
-                )}
 
-                {/* İstatistikler Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '10px',
-                  marginBottom: '15px'
-                }}>
-                  <div style={{
-                    backgroundColor: '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>YAŞ</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                      {yas}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>aylık</div>
-                  </div>
-
-                  <div style={{
-                    backgroundColor: '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>KİLO</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                      {duve.kilo}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>kg</div>
-                  </div>
-
-                  <div style={{
-                    backgroundColor: duve.gebelikDurumu === 'Gebe' ? '#E8F5E9' :
-                                   duve.gebelikDurumu === 'Belirsiz' ? '#FFF3E0' : '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>DURUM</div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold',
-                                 color: duve.gebelikDurumu === 'Gebe' ? '#2E7D32' :
-                                        duve.gebelikDurumu === 'Belirsiz' ? '#E65100' : '#666' }}>
-                      {duve.gebelikDurumu === 'Gebe' ? '🤰' :
-                       duve.gebelikDurumu === 'Belirsiz' ? '❓' : '❌'}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>
-                      {duve.gebelikDurumu}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tohumlama Bilgisi */}
-                {duve.tohumlamaTarihi && dogumTarihi && (
-                  <div style={{
-                    backgroundColor: '#F9F9F9',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    marginBottom: '15px',
-                    fontSize: '12px',
-                    color: '#666'
-                  }}>
-                    <div><strong>Tohumlama:</strong> {new Date(duve.tohumlamaTarihi).toLocaleDateString('tr-TR')}</div>
-                    <div><strong>Beklenen Doğum:</strong> {dogumTarihi.toLocaleDateString('tr-TR')}</div>
-                  </div>
-                )}
-
-                {/* Aksiyon Butonları */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr',
-                  gap: '8px'
-                }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSecilenDuve(duve);
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#2196F3',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1976D2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2196F3'}
-                  >
-                    📋 Detay
-                  </button>
-                  {duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi && (
+              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDogumYapacakDuve(duve);
-                        setDogumEkrani(true);
-                        setDogumBilgileri({
-                          dogumTarihi: new Date().toISOString().split('T')[0],
-                          buzagiIsim: '',
-                          buzagiCinsiyet: 'disi',
-                          buzagiKilo: '',
-                          notlar: ''
-                        });
-                      }}
+                      onClick={() => setSecilenDuve(duve)}
                       style={{
-                        padding: '10px',
-                        backgroundColor: '#4CAF50',
+                        padding: '8px 12px',
+                        backgroundColor: '#2196F3',
                         color: 'white',
                         border: 'none',
-                        borderRadius: '8px',
+                        borderRadius: '4px',
                         cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.2s'
+                        fontSize: '12px'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
                     >
-                      🤰 Doğurdu
+                      📋 Detay
                     </button>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDuzenlenecekDuve({ ...duve });
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#FF9800',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F57C00'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF9800'}
-                  >
-                    ✏️ Düzenle
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      duveSil(duve._id);
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d32f2f'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
-                  >
-                    🗑️ Sil
-                  </button>
+                    {duve.gebelikDurumu === 'Gebe' && duve.tohumlamaTarihi && (
+                      <button
+                        onClick={() => {
+                          setDogumYapacakDuve(duve);
+                          setDogumEkrani(true);
+                          setDogumBilgileri({
+                            dogumTarihi: new Date().toISOString().split('T')[0],
+                            buzagiIsim: '',
+                            buzagiCinsiyet: 'disi',
+                            buzagiKilo: '',
+                            notlar: ''
+                          });
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          backgroundColor: '#4CAF50',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        🤰 Doğurdu
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setDuzenlenecekDuve({ ...duve })}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#FF9800',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      ✏️ Düzenle
+                    </button>
+                    <button
+                      onClick={() => duveSil(duve._id)}
+                      style={{
+                        padding: '8px 12px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -494,17 +398,9 @@ function Duveler({ duveler, setDuveler, inekler }) {
         </div>
         
       ) : (
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🐄</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Henüz düve kaydı yok</h3>
-          <p style={{ color: '#999', margin: 0 }}>Yeni düve eklemek için yukarıdaki butonu kullanın</p>
-        </div>
+        <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+          Henüz düve kaydı yok
+        </p>
       )}
 
       {/* DÜVE EKLEME MODAL */}
