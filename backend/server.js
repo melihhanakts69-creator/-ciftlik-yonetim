@@ -39,6 +39,13 @@ app.use('/api/timeline', require('./routes/timeline'));
 app.use('/api/toplu-sut', require('./routes/topluSut'));
 app.use('/api/finansal', require('./routes/finansal'));
 
+// Yeni Dashboard Routes
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/maliyet', require('./routes/maliyet'));
+app.use('/api/alis-satis', require('./routes/alisSatis'));
+app.use('/api/bildirimler', require('./routes/bildirimler'));
+app.use('/api/gruplar', require('./routes/gruplar'));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
