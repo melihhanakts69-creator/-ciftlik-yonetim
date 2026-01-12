@@ -10,6 +10,7 @@ import YaklasanDogumlar from './components/YaklasanDogumlar';
 import TohumlamaKontrol from './components/TohumlamaKontrol';
 import TopluSutGirisi from './components/TopluSutGirisi';
 import Finansal from './components/Finansal';
+import Dashboard from './components/Dashboard/Dashboard';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 
@@ -486,10 +487,10 @@ function App() {
 
       {/* Menü Butonları */}       
       <div style={{ marginBottom: '20px' }}>
-        <button 
+        <button
           onClick={() => setAktifSayfa('ana')}
-          style={{ 
-            padding: '10px 20px', 
+          style={{
+            padding: '10px 20px',
             fontSize: '16px',
             backgroundColor: aktifSayfa === 'ana' ? '#4CAF50' : '#ddd',
             color: aktifSayfa === 'ana' ? 'white' : 'black',
@@ -502,15 +503,32 @@ function App() {
         >
           Ana Sayfa
         </button>
-        
-        <button 
+
+        <button
+          onClick={() => setAktifSayfa('dashboard')}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: aktifSayfa === 'dashboard' ? '#4CAF50' : '#ddd',
+            color: aktifSayfa === 'dashboard' ? 'white' : 'black',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            marginRight: '10px',
+            marginBottom: '5px'
+          }}
+        >
+          📊 Dashboard
+        </button>
+
+        <button
           onClick={() => {
             setAktifSayfa('inekler');
             setDetayInek(null);
             setDuzenlenecekInek(null);
           }}
-          style={{ 
-            padding: '10px 20px', 
+          style={{
+            padding: '10px 20px',
             fontSize: '16px',
             backgroundColor: aktifSayfa === 'inekler' ? '#4CAF50' : '#ddd',
             color: aktifSayfa === 'inekler' ? 'white' : 'black',
@@ -2451,6 +2469,11 @@ function App() {
       {/* Yem Deposu Sayfası */}
       {aktifSayfa === 'yem-deposu' && (
         <YemDeposu />
+      )}
+
+      {/* Dashboard Sayfası */}
+      {aktifSayfa === 'dashboard' && (
+        <Dashboard />
       )}
 
       {/* Finansal Yönetim */}
