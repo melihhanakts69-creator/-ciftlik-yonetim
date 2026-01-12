@@ -94,37 +94,25 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
 
     const bekleyenler = [];
     const bugun = new Date();
-    
-    console.log('🔍 KONTROL BEKLEYENLER DEBUG:');
-    console.log('Toplam tohumlama:', tohumlamalar.length);
 
     for (const tohumlama of tohumlamalar) {
       const inek = await Inek.findOne({ _id: tohumlama.hayvanId, userId: req.userId });
-      
+
       if (!inek) {
-        console.log('❌ İnek bulunamadı:', tohumlama.hayvanId);
+        // Orphan tohumlama kaydı - silinmiş ineğe ait, otomatik temizle
+        await Timeline.deleteOne({ _id: tohumlama._id });
         continue;
       }
 
       const tohumlamaTarihi = new Date(tohumlama.tarih);
       const gecenGun = Math.floor((bugun - tohumlamaTarihi) / (1000 * 60 * 60 * 24));
 
-      console.log(`📊 ${inek.isim}:`, {
-        tohumlamaTarihi: tohumlama.tarih,
-        gecenGun,
-        gebelikDurumu: inek.gebelikDurumu
-      });
-
       if (gecenGun >= 21 && gecenGun <= 28) {
-        console.log('✅ 21-28 gün arası!');
-        
         // Belirsiz olanları göster, Gebe veya Gebe Değil olanları atla
         if (inek.gebelikDurumu === 'Gebe' || inek.gebelikDurumu === 'Gebe Değil') {
-          console.log('⏭️ Zaten kontrol edilmiş, atlanıyor');
           continue;
         }
 
-        console.log('➕ Listeye ekleniyor!');
         bekleyenler.push({
           inek: inek,
           tohumlama: tohumlama,
@@ -133,11 +121,8 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
       }
     }
 
-    console.log('📋 Toplam bekleyen:', bekleyenler.length);
-        // DÜVELERE DE BAK
+    // DÜVELERE DE BAK
     const duveler = await Duve.find({ userId: req.userId });
-    
-    console.log('🐄 Düve kontrol ediliyor, toplam:', duveler.length);
 
     for (const duve of duveler) {
       if (!duve.tohumlamaTarihi) continue;
@@ -145,21 +130,10 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
       const tohumlamaTarihi = new Date(duve.tohumlamaTarihi);
       const gecenGun = Math.floor((bugun - tohumlamaTarihi) / (1000 * 60 * 60 * 24));
 
-      console.log(`🐄 ${duve.isim}:`, {
-        tohumlamaTarihi: duve.tohumlamaTarihi,
-        gecenGun,
-        gebelikDurumu: duve.gebelikDurumu
-      });
-
       if (gecenGun >= 21 && gecenGun <= 28) {
-        console.log('✅ 21-28 gün arası!');
-        
         if (duve.gebelikDurumu === 'Gebe' || duve.gebelikDurumu === 'Gebe Değil') {
-          console.log('⏭️ Zaten kontrol edilmiş, atlanıyor');
           continue;
         }
-
-        console.log('➕ Düve listeye ekleniyor!');
         bekleyenler.push({
           hayvan: duve,
           hayvanTipi: 'düve',
@@ -172,7 +146,6 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
       }
     }
 
-    console.log('📋 Toplam bekleyen (İnek + Düve):', bekleyenler.length);
     res.json(bekleyenler);
   } catch (error) {
     console.error('Kontrol bekleyenler hatası:', error);

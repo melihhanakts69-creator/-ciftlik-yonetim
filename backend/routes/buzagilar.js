@@ -93,15 +93,11 @@ router.get('/kontrol-gecis', auth, async (req, res) => {
 // BUZAĞI → DÜVE/TOSUN GEÇİŞİ
 router.post('/gecis-yap/:id', auth, async (req, res) => {
   try {
-    console.log('🔄 Geçiş başlatıldı, ID:', req.params.id);
     const buzagi = await Buzagi.findOne({ _id: req.params.id, userId: req.userId });
 
     if (!buzagi) {
-      console.log('❌ Buzağı bulunamadı');
       return res.status(404).json({ message: 'Buzağı bulunamadı' });
     }
-
-    console.log('✅ Buzağı bulundu:', buzagi);
 
     // Yaş hesapla (ay cinsinden)
     const dogumTarihi = new Date(buzagi.dogumTarihi);
@@ -112,20 +108,13 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
     if (isNaN(yasAy) || yasAy < 0) {
       yasAy = 12; // Varsayılan olarak 12 ay
     }
-    console.log('📅 Yaş hesaplandı:', yasAy, 'ay');
-
-    console.log('✅ VERSION CHECK: Using buzagilar.js v2.0 with validation fixes');
 
     // Düve mi Tosun mu?
     if (buzagi.cinsiyet === 'disi') {
       // DÜVE OLUŞTUR
-      console.log('🐄 Düve oluşturuluyor...');
-
       // Kilo ve yaş kontrolü - zorunlu alanlar
       const duveYas = yasAy || 12;
       const duveKilo = buzagi.kilo ? Number(buzagi.kilo) : 150;
-
-      console.log('📊 Validation values:', { duveYas, duveKilo, 'buzagi.kilo': buzagi.kilo, yasAy });
 
       const yeniDuve = new Duve({
         userId: req.userId,
@@ -140,9 +129,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
         eklemeTarihi: new Date().toISOString().split('T')[0]
       });
 
-      console.log('💾 Düve kaydediliyor:', yeniDuve);
       await yeniDuve.save();
-      console.log('✅ Düve kaydedildi');
 
       // Timeline ekle
       await Timeline.create({
@@ -161,8 +148,6 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
 
     } else {
       // TOSUN OLUŞTUR
-      console.log('🐂 Tosun oluşturuluyor...');
-
       const tosunKilo = buzagi.kilo ? Number(buzagi.kilo) : 150;
 
       const yeniTosun = new Tosun({
@@ -176,9 +161,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
         not: `${buzagi.isim} buzağıdan otomatik geçiş`
       });
 
-      console.log('💾 Tosun kaydediliyor:', yeniTosun);
       await yeniTosun.save();
-      console.log('✅ Tosun kaydedildi');
 
       // Timeline ekle
       await Timeline.create({
