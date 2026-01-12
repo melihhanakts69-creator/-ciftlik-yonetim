@@ -90,6 +90,27 @@ router.get('/kontrol-gecis', auth, async (req, res) => {
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
+
+// BUZAĞI GÜNCELLEME
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const buzagi = await Buzagi.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!buzagi) {
+      return res.status(404).json({ message: 'Buzağı bulunamadı' });
+    }
+
+    res.json(buzagi);
+  } catch (error) {
+    console.error('Buzağı güncelleme hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
 // BUZAĞI → DÜVE/TOSUN GEÇİŞİ
 router.post('/gecis-yap/:id', auth, async (req, res) => {
   try {

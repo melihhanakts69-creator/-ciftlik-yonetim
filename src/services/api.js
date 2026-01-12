@@ -33,6 +33,7 @@ export const inekDogurdu = (id, data) => api.post(`/inekler/${id}/dogurdu`, data
 // BUZAĞILAR
 export const getBuzagilar = () => api.get('/buzagilar');
 export const createBuzagi = (data) => api.post('/buzagilar', data);
+export const updateBuzagi = (id, data) => api.put(`/buzagilar/${id}`, data);
 export const deleteBuzagi = (id) => api.delete(`/buzagilar/${id}`);
 
 // DÜVELER
