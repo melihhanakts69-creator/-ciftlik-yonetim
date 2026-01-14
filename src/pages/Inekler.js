@@ -160,8 +160,8 @@ const Inekler = () => {
 
             {/* Tablo Görünümü */}
             {viewMode === 'table' ? (
-                <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+                    <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse' }}>
                         <thead style={{ backgroundColor: '#F8F9FA', borderBottom: '2px solid #E9ECEF' }}>
                             <tr>
                                 <th style={thStyle}>Küpe No</th>

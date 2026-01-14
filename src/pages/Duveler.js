@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import styled from 'styled-components'; // Added styled
 import { FaThLarge, FaList, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+
+const PageContainer = styled.div`
+  padding: 20px;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
 
 function Duveler() {
     const [duveler, setDuveler] = useState([]);
@@ -195,7 +204,7 @@ function Duveler() {
     }
 
     return (
-        <div>
+        <PageContainer>
             {/* ANA LİSTE */}
             <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -294,8 +303,8 @@ function Duveler() {
 
                 {/* DÜVE LİSTESİ (TABLO veya KART) */}
                 {viewMode === 'table' ? (
-                    <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+                        <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse' }}>
                             <thead style={{ backgroundColor: '#F8F9FA', borderBottom: '2px solid #E9ECEF' }}>
                                 <tr>
                                     <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>Küpe No</th>
@@ -1384,7 +1393,7 @@ function Duveler() {
                     )
                 }
             </>
-        </div>
+        </PageContainer >
     );
 }
 
