@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
 const AlisSatis = require('../models/AlisSatis');
 
@@ -73,75 +74,185 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// Yeni alış-satış kaydı oluştur
-router.post('/', auth, async (req, res) => {
+const Finansal = require('../models/Finansal');
+const Inek = require('../models/Inek');
+const Buzagi = require('../models/Buzagi');
+const Duve = require('../models/Duve');
+const Tosun = require('../models/Tosun');
+
+// Helper to get model by type
+const getModelByType = (type) => {
+  switch (type) {
+    case 'inek': return Inek;
+    case 'buzagi': return Buzagi;
+    case 'duve': return Duve;
+    case 'tosun': return Tosun;
+    default: return null;
+  }
+};
+
+// SATIŞ İŞLEMİ (Animal Sale)
+router.post('/satis', auth, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const kayitData = {
-      ...req.body,
-      userId: req.user.userId
+    const {
+      hayvanId, hayvanTipi, fiyat, aliciSatici,
+      odenenMiktar, tarih, notlar
+    } = req.body;
+
+    if (!hayvanId || !hayvanTipi || !fiyat || !aliciSatici) {
+      throw new Error('Eksik bilgi: Hayvan, Fiyat ve Alıcı zorunludur.');
+    }
+
+    // 1. Alış/Satış Kaydı (History)
+    const satisKaydi = new AlisSatis({
+      userId: req.user.userId,
+      tip: 'satis',
+      hayvanId,
+      hayvanTipi,
+      kupe_no: req.body.kupeNo, // Frontend should send this for record accuracy
+      fiyat,
+      aliciSatici,
+      odenenMiktar: odenenMiktar || 0,
+      kalanBorc: fiyat - (odenenMiktar || 0),
+      tarih: tarih || new Date(),
+      notlar,
+      durum: 'tamamlandi'
+    });
+    await satisKaydi.save({ session });
+
+    // 2. Finansal Kayıt (Income)
+    // Sadece ödenen miktar kasaya girer
+    if (odenenMiktar > 0) {
+      await Finansal.create([{
+        userId: req.user.userId,
+        tip: 'gelir',
+        kategori: 'hayvan-satisi',
+        miktar: odenenMiktar,
+        tarih: tarih || new Date().toISOString().split('T')[0],
+        aciklama: `${hayvanTipi.toUpperCase()} Satışı - Küpe: ${req.body.kupeNo} - Alıcı: ${aliciSatici}`,
+        ilgiliHayvanId: hayvanId,
+        ilgiliHayvanTipi: hayvanTipi
+      }], { session });
+    }
+
+    // 3. Hayvanı Envanterden Düş (Delete)
+    const Model = getModelByType(hayvanTipi);
+    if (Model) {
+      const deleted = await Model.findOneAndDelete({ _id: hayvanId, userId: req.user.userId }).session(session);
+      if (!deleted) throw new Error('Satılacak hayvan bulunamadı.');
+    } else {
+      throw new Error('Geçersiz hayvan tipi.');
+    }
+
+    await session.commitTransaction();
+    res.status(201).json({ message: 'Satış işlemi başarılı', kayit: satisKaydi });
+
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Satış Error:', error);
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+});
+
+// ALIŞ İŞLEMİ (Animal Purchase)
+router.post('/alis', auth, async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const {
+      hayvanTipi, fiyat, aliciSatici,
+      odenenMiktar, tarih, notlar,
+      // Hayvan Detayları
+      isim, kupeNo, dogumTarihi, cinsiyet, kilo, yas, anneKupeNo, gebelikDurumu, tohumlamaTarihi
+    } = req.body;
+
+    if (!hayvanTipi || !fiyat || !aliciSatici || !kupeNo) {
+      throw new Error('Eksik bilgi: Hayvan Tipi, Fiyat, Satıcı ve Küpe No zorunludur.');
+    }
+
+    // 1. Hayvanı Oluştur (Inventory)
+    const Model = getModelByType(hayvanTipi);
+    if (!Model) throw new Error('Geçersiz hayvan tipi.');
+
+    // Prepare animal data based on schema
+    const animalData = {
+      userId: req.user.userId,
+      isim,
+      kupeNo,
+      dogumTarihi,
+      kilo: kilo || 0,
+      notlar: `Satın alındı: ${aliciSatici} - ${tarih}`
     };
 
-    // Veresiye kontrolü
-    if (req.body.odemeTipi === 'veresiye') {
-      kayitData.odenenMiktar = req.body.odenenMiktar || 0;
-      kayitData.kalanBorc = req.body.fiyat - (req.body.odenenMiktar || 0);
+    // Add type-specific fields
+    if (hayvanTipi === 'inek' || hayvanTipi === 'duve') {
+      if (gebelikDurumu) animalData.gebelikDurumu = gebelikDurumu;
+      if (tohumlamaTarihi) animalData.tohumlamaTarihi = tohumlamaTarihi;
+      if (anneKupeNo) animalData.anneKupeNo = anneKupeNo;
+      if (hayvanTipi === 'inek') {
+        animalData.yas = yas; // Inek schema might use Number for age? double check model if needed, usually dynamic but let's pass if schema allows
+      }
+      if (hayvanTipi === 'duve') {
+        animalData.yas = yas;
+      }
+    } else if (hayvanTipi === 'buzagi') {
+      animalData.cinsiyet = cinsiyet || 'disi';
+      animalData.anneKupeNo = anneKupeNo;
+    } else if (hayvanTipi === 'tosun') {
+      animalData.dogumTarihi = dogumTarihi; // required
     }
 
-    const kayit = new AlisSatis(kayitData);
-    await kayit.save();
+    const [newAnimal] = await Model.create([animalData], { session });
 
-    res.status(201).json({
-      message: 'Alış-satış kaydı oluşturuldu',
-      kayit
+    // 2. Alış/Satış Kaydı (History)
+    const alisKaydi = new AlisSatis({
+      userId: req.user.userId,
+      tip: 'alis',
+      hayvanId: newAnimal._id,
+      hayvanTipi,
+      kupe_no: kupeNo,
+      fiyat,
+      aliciSatici, // Satıcı
+      odenenMiktar: odenenMiktar || 0,
+      kalanBorc: fiyat - (odenenMiktar || 0),
+      tarih: tarih || new Date(),
+      notlar,
+      durum: 'tamamlandi',
+      // Store snapshot details
+      yas: yas || 0,
+      agirlik: kilo || 0,
+      cinsiyet: cinsiyet,
+      irk: req.body.irk
     });
-  } catch (error) {
-    console.error('Kayıt oluşturma error:', error);
-    res.status(400).json({ message: 'Kayıt oluşturulamadı', error: error.message });
-  }
-});
+    await alisKaydi.save({ session });
 
-// Kaydı güncelle
-router.put('/:id', auth, async (req, res) => {
-  try {
-    const kayit = await AlisSatis.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        userId: req.user.userId
-      },
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    if (!kayit) {
-      return res.status(404).json({ message: 'Kayıt bulunamadı' });
+    // 3. Finansal Kayıt (Expense)
+    if (odenenMiktar > 0) {
+      await Finansal.create([{
+        userId: req.user.userId,
+        tip: 'gider',
+        kategori: 'hayvan-alisi',
+        miktar: odenenMiktar,
+        tarih: tarih || new Date().toISOString().split('T')[0],
+        aciklama: `${hayvanTipi.toUpperCase()} Alışı - Küpe: ${kupeNo} - Satıcı: ${aliciSatici}`,
+        ilgiliHayvanId: newAnimal._id,
+        ilgiliHayvanTipi: hayvanTipi
+      }], { session });
     }
 
-    res.json({
-      message: 'Kayıt güncellendi',
-      kayit
-    });
+    await session.commitTransaction();
+    res.status(201).json({ message: 'Alış işlemi başarılı', kayit: alisKaydi, hayvan: newAnimal });
+
   } catch (error) {
-    console.error('Kayıt güncelleme error:', error);
-    res.status(400).json({ message: 'Kayıt güncellenemedi', error: error.message });
-  }
-});
-
-// Kaydı sil
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const kayit = await AlisSatis.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.user.userId
-    });
-
-    if (!kayit) {
-      return res.status(404).json({ message: 'Kayıt bulunamadı' });
-    }
-
-    res.json({ message: 'Kayıt silindi' });
-  } catch (error) {
-    console.error('Kayıt silme error:', error);
-    res.status(500).json({ message: 'Kayıt silinemedi', error: error.message });
+    await session.abortTransaction();
+    console.error('Alış Error:', error);
+    res.status(400).json({ message: error.message });
+  } finally {
+    session.endSession();
   }
 });
 

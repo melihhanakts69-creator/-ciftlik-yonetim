@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaChartLine } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import SatisModal from '../components/modals/SatisModal';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -186,6 +187,7 @@ const InekDetay = () => {
     // Modal State
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
     const [showDogumModal, setShowDogumModal] = useState(false);
+    const [showSatisModal, setShowSatisModal] = useState(false);
 
     // Form State
     const [tohumlamaTarihi, setTohumlamaTarihi] = useState(new Date().toISOString().split('T')[0]);
@@ -428,6 +430,12 @@ const InekDetay = () => {
                                 style={{ backgroundColor: '#fce4ec', color: '#880e4f', width: '100%', justifyContent: 'center' }}
                             >
                                 <FaBaby /> Doğum Kaydı
+                            </ActionButton>
+                            <ActionButton
+                                onClick={() => setShowSatisModal(true)}
+                                style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
+                            >
+                                <FaMoneyBillWave /> Satış Yap
                             </ActionButton>
                         </div>
                     </Card>

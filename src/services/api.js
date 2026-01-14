@@ -126,4 +126,17 @@ export const tumunuOkunduIsaretle = () => api.patch('/bildirimler/toplu/okundu')
 export const bildirimSil = (id) => api.delete(`/bildirimler/${id}`);
 export const bildirimTamamlandiIsaretle = (id) => api.patch(`/bildirimler/${id}/tamamlandi`);
 
+// ALIŞ - SATIŞ
+export const getAlisSatisKayitlari = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/alis-satis?${query}`);
+};
+export const getAlisSatisOzet = (type, params) => { // type: 'alis' or 'satis'
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/alis-satis/ozet/${type}?${query}`);
+};
+export const createSatisIslemi = (data) => api.post('/alis-satis/satis', data);
+export const createAlisIslemi = (data) => api.post('/alis-satis/alis', data);
+export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
+
 export default api;

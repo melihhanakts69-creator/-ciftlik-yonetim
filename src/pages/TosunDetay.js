@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
+import SatisModal from '../components/modals/SatisModal';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -182,6 +183,7 @@ const TosunDetay = () => {
 
     const [showKiloModal, setShowKiloModal] = useState(false);
     const [kiloGuncel, setKiloGuncel] = useState('');
+    const [showSatisModal, setShowSatisModal] = useState(false);
 
     useEffect(() => {
         fetchDetaylar();
@@ -310,7 +312,7 @@ const TosunDetay = () => {
                                 <FaWeight /> Kilo Güncelle
                             </ActionButton>
                             <ActionButton
-                                onClick={handleSatis}
+                                onClick={() => setShowSatisModal(true)}
                                 style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
                             >
                                 <FaMoneyBillWave /> Satış Yap
@@ -349,6 +351,14 @@ const TosunDetay = () => {
                     </div>
                 )
             }
+
+            <SatisModal
+                isOpen={showSatisModal}
+                onClose={() => setShowSatisModal(false)}
+                hayvan={{ ...tosun, type: 'tosun' }}
+                onSuccess={() => navigate('/tosunlar')}
+            />
+
         </Container >
     );
 };

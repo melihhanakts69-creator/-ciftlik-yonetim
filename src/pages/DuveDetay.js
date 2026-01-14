@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaWeight } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
+import SatisModal from '../components/modals/SatisModal';
 
 // --- STYLED COMPONENTS (Shared with InekDetay ideally, but kept separate for speed) ---
 const Container = styled.div`
@@ -184,6 +185,7 @@ const DuveDetay = () => {
     const [showDogumModal, setShowDogumModal] = useState(false);
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
     const [showKiloModal, setShowKiloModal] = useState(false);
+    const [showSatisModal, setShowSatisModal] = useState(false);
 
     // Formlar
     const [tohumlamaTarihi, setTohumlamaTarihi] = useState(new Date().toISOString().split('T')[0]);
@@ -425,6 +427,12 @@ const DuveDetay = () => {
                             >
                                 <FaBaby /> Doğum Yaptı (İnek Ol)
                             </ActionButton>
+                            <ActionButton
+                                onClick={() => setShowSatisModal(true)}
+                                style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
+                            >
+                                <FaMoneyBillWave /> Satış Yap
+                            </ActionButton>
                         </div>
                     </Card>
 
@@ -554,6 +562,13 @@ const DuveDetay = () => {
                     </div>
                 )
             }
+
+            <SatisModal
+                isOpen={showSatisModal}
+                onClose={() => setShowSatisModal(false)}
+                hayvan={{ ...duve, type: 'duve' }}
+                onSuccess={() => navigate('/duveler')}
+            />
 
         </Container >
     );

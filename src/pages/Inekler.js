@@ -1,13 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
-import styled from 'styled-components'; // Added styled
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaThLarge, FaList } from 'react-icons/fa';
+import styled from 'styled-components';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaThLarge, FaList, FaTable } from 'react-icons/fa';
+import FilterBar from '../components/common/FilterBar';
 
 const PageContainer = styled.div`
   padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
   
   @media (max-width: 768px) {
+    padding: 10px;
+    padding-bottom: 80px;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+
+  h1 {
+    font-size: 24px;
+    color: #2C3E50;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+`;
+
+const ToggleViewButtons = styled.div`
+  display: flex;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+
+  button {
+    padding: 10px;
+    border: none;
+    background: white;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.2s;
+
+    &.active {
+      background: #e0e0e0;
+      color: #333;
+      font-weight: bold;
+    }
+
+    &:hover {
+      background: #f5f5f5;
+    }
+  }
+`;
+
+const AddButton = styled.button`
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    background-color: #43A047;
+  }
+
+  @media (max-width: 768px) {
+    span { display: none; }
     padding: 10px;
   }
 `;
@@ -15,29 +90,82 @@ const PageContainer = styled.div`
 const Inekler = () => {
     const navigate = useNavigate();
     const [inekler, setInekler] = useState([]);
+    const [filteredInekler, setFilteredInekler] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filtre, setFiltre] = useState('');
-    // Mobilde varsayılan olarak kart görünümü, PC'de tablo
     const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? 'card' : 'table');
 
-    // Yeni İnek Form State
-    // Yeni İnek Form State
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [sortBy, setSortBy] = useState('');
+
+    // Modal States
     const [showModal, setShowModal] = useState(false);
     const [duzenlenecekId, setDuzenlenecekId] = useState(null);
     const [yeniInek, setYeniInek] = useState({
         isim: '', yas: '', kilo: '', kupeNo: '',
         dogumTarihi: '', buzagiSayisi: 0, notlar: ''
     });
+    const [satinAlma, setSatinAlma] = useState({
+        aktif: false,
+        fiyat: '',
+        satici: '',
+        odenenMiktar: '',
+        tarih: new Date().toISOString().split('T')[0]
+    });
 
-    // Veri Yükleme
     useEffect(() => {
         fetchInekler();
+
+        const handleResize = () => {
+            if (window.innerWidth < 768) setViewMode('card');
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Filter Logic
+    useEffect(() => {
+        let result = [...inekler];
+
+        // 1. Search (Name or Ear Tag)
+        if (searchTerm) {
+            const lowerTerm = searchTerm.toLowerCase();
+            result = result.filter(inek =>
+                (inek.isim && inek.isim.toLowerCase().includes(lowerTerm)) ||
+                (inek.kupeNo && inek.kupeNo.toLowerCase().includes(lowerTerm))
+            );
+        }
+
+        // 2. Status Filter
+        if (statusFilter) {
+            result = result.filter(inek => {
+                if (statusFilter === 'gebe') return inek.gebelikDurumu === 'Gebe';
+                if (statusFilter === 'sagmal') return !inek.kuruda && inek.gebelikDurumu !== 'Gebe';
+                if (statusFilter === 'kuruda') return inek.kuruda;
+                return true;
+            });
+        }
+
+        // 3. Sorting
+        if (sortBy) {
+            result.sort((a, b) => {
+                if (sortBy === 'ad_artan') return a.isim.localeCompare(b.isim);
+                if (sortBy === 'ad_azalan') return b.isim.localeCompare(a.isim);
+                if (sortBy === 'yas_genc') return (parseFloat(a.yas) || 0) - (parseFloat(b.yas) || 0);
+                if (sortBy === 'yas_yasli') return (parseFloat(b.yas) || 0) - (parseFloat(a.yas) || 0);
+                return 0;
+            });
+        }
+
+        setFilteredInekler(result);
+    }, [searchTerm, statusFilter, sortBy, inekler]);
 
     const fetchInekler = async () => {
         try {
             const { data } = await api.getInekler();
             setInekler(data);
+            setFilteredInekler(data);
         } catch (error) {
             console.error('İnekler yüklenemedi:', error);
         } finally {
@@ -45,120 +173,96 @@ const Inekler = () => {
         }
     };
 
-    // Form Reset
-    const resetForm = () => {
-        setYeniInek({ isim: '', yas: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '' });
-        setDuzenlenecekId(null);
-        setShowModal(false);
-    };
-
-    // İnek Ekleme/Güncelleme
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (duzenlenecekId) {
-                await api.updateInek(duzenlenecekId, yeniInek);
-                alert('İnek güncellendi! ✅');
-            } else {
-                await api.createInek(yeniInek);
-                alert('İnek başarıyla eklendi! 🐄');
-            }
-            fetchInekler();
-            resetForm();
-        } catch (error) {
-            alert('Hata: ' + (error.response?.data?.message || 'İşlem başarısız'));
-        }
-    };
-
-    // Düzenleme Modunu Aç
-    const handleEdit = (inek) => {
-        setYeniInek(inek);
-        setDuzenlenecekId(inek._id);
-        setShowModal(true);
-    };
-
-    // İnek Silme
     const handleDelete = async (id) => {
         if (window.confirm('Bu ineği silmek istediğinden emin misin?')) {
             try {
                 await api.deleteInek(id);
-                setInekler(inekler.filter(i => i._id !== id));
+                setInekler(prev => prev.filter(i => i._id !== id));
             } catch (error) {
                 alert('Silme başarısız!');
             }
         }
     };
 
-    // Filtreleme
-    const filteredInekler = inekler.filter(inek =>
-        inek.isim.toLowerCase().includes(filtre.toLowerCase()) ||
-        inek.kupeNo.toLowerCase().includes(filtre.toLowerCase())
-    );
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (duzenlenecekId) {
+                await api.updateInek(duzenlenecekId, yeniInek);
+            } else {
+                if (satinAlma.aktif) {
+                    await api.createAlisIslemi({
+                        hayvanTipi: 'inek',
+                        ...yeniInek,
+                        fiyat: Number(satinAlma.fiyat),
+                        aliciSatici: satinAlma.satici,
+                        odenenMiktar: Number(satinAlma.odenenMiktar),
+                        tarih: satinAlma.tarih,
+                        notlar: `Satın Alındı. ${yeniInek.notlar || ''}`
+                    });
+                } else {
+                    await api.createInek(yeniInek);
+                }
+            }
+            fetchInekler();
+            resetModal();
+            alert('İşlem başarılı!');
+        } catch (error) {
+            alert('İşlem başarısız: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const resetModal = () => {
+        setYeniInek({ isim: '', yas: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '' });
+        setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
+        setDuzenlenecekId(null);
+        setShowModal(false);
+    };
+
+    const openEdit = (inek) => {
+        setYeniInek(inek);
+        setDuzenlenecekId(inek._id);
+        setShowModal(true);
+    };
+
+    const filterOptions = [
+        { value: 'gebe', label: 'Gebeler' },
+        { value: 'sagmal', label: 'Sağmallar' },
+        { value: 'kuruda', label: 'Kurudakiler' }
+    ];
+
+    const sortOptions = [
+        { value: 'ad_artan', label: 'İsim (A-Z)' },
+        { value: 'ad_azalan', label: 'İsim (Z-A)' },
+        { value: 'yas_genc', label: 'En Genç' },
+        { value: 'yas_yasli', label: 'En Yaşlı' }
+    ];
 
     return (
         <PageContainer>
-            <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'
-            }}>
-                <h1 style={{ fontSize: '24px', color: '#2C3E50', fontWeight: 'bold' }}>
-                    🐄 İnek Yönetimi
-                </h1>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ display: 'flex', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #ddd', overflow: 'hidden' }}>
-                        <button
-                            onClick={() => setViewMode('table')}
-                            style={{
-                                padding: '10px',
-                                border: 'none',
-                                background: viewMode === 'table' ? '#e0e0e0' : 'white',
-                                cursor: 'pointer',
-                                color: '#333'
-                            }}
-                            title="Liste Görünümü"
-                        >
-                            <FaList />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('card')}
-                            style={{
-                                padding: '10px',
-                                border: 'none',
-                                background: viewMode === 'card' ? '#e0e0e0' : 'white',
-                                cursor: 'pointer',
-                                color: '#333'
-                            }}
-                            title="Kart Görünümü"
-                        >
-                            <FaThLarge />
-                        </button>
-                    </div>
-                    <button
-                        onClick={() => { resetForm(); setShowModal(true); }}
-                        style={{
-                            backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px',
-                            border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-                        }}
-                    >
-                        <FaPlus /> Yeni İnek Ekle
-                    </button>
+            <Header>
+                <h1>🐄 İneklerimiz ({filteredInekler.length})</h1>
+                <div className="actions">
+                    <ToggleViewButtons>
+                        <button className={viewMode === 'table' ? 'active' : ''} onClick={() => setViewMode('table')}><FaTable /></button>
+                        <button className={viewMode === 'card' ? 'active' : ''} onClick={() => setViewMode('card')}><FaThLarge /></button>
+                    </ToggleViewButtons>
+                    <AddButton onClick={() => { resetModal(); setShowModal(true); }}>
+                        <FaPlus /> <span>Yeni İnek</span>
+                    </AddButton>
                 </div>
-            </div>
+            </Header>
 
-            {/* Arama Barı */}
-            <div style={{ marginBottom: '20px', position: 'relative' }}>
-                <FaSearch style={{ position: 'absolute', left: '15px', top: '12px', color: '#95A5A6' }} />
-                <input
-                    type="text"
-                    placeholder="İsim veya Küpe No ile ara..."
-                    value={filtre}
-                    onChange={(e) => setFiltre(e.target.value)}
-                    style={{
-                        width: '100%', padding: '10px 10px 10px 40px', borderRadius: '8px', border: '1px solid #DDD', fontSize: '15px'
-                    }}
-                />
-            </div>
+            <FilterBar
+                onSearch={setSearchTerm}
+                onFilterChange={setStatusFilter}
+                onSortChange={setSortBy}
+                filterOptions={filterOptions}
+                sortOptions={sortOptions}
+                placeholder="İsim veya Küpe No ara..."
+            />
 
-            {/* Tablo Görünümü */}
+            {/* Content */}
             {viewMode === 'table' ? (
                 <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
                     <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse' }}>
@@ -184,19 +288,15 @@ const Inekler = () => {
                                         <td style={tdStyle}><strong>{inek.isim}</strong></td>
                                         <td style={tdStyle}>{inek.yas}</td>
                                         <td style={tdStyle}>
-                                            <span style={{
-                                                padding: '4px 8px', borderRadius: '12px', fontSize: '12px',
-                                                backgroundColor: inek.gebelikDurumu === 'Gebe' ? '#E8F5E9' : '#FFF3E0',
-                                                color: inek.gebelikDurumu === 'Gebe' ? '#2E7D32' : '#EF6C00'
-                                            }}>
-                                                {inek.gebelikDurumu || 'Boş'}
-                                            </span>
+                                            <StatusBadge status={inek.gebelikDurumu} />
                                         </td>
                                         <td style={tdStyle}>{inek.sonBuzagilamaTarihi ? new Date(inek.sonBuzagilamaTarihi).toLocaleDateString() : '-'}</td>
                                         <td style={tdStyle}>
-                                            <button onClick={() => navigate(`/inek-detay/${inek._id}`)} title="Detay Gör" style={actionBtnStyle('#F39C12')}><FaEye /></button>
-                                            <button onClick={() => handleEdit(inek)} title="Düzenle" style={actionBtnStyle('#3498DB')}><FaEdit /></button>
-                                            <button onClick={() => handleDelete(inek._id)} title="Sil" style={actionBtnStyle('#E74C3C')}><FaTrash /></button>
+                                            <div style={{ display: 'flex' }}>
+                                                <button onClick={() => navigate(`/inek-detay/${inek._id}`)} title="Detay" style={actionBtnStyle('#F39C12')}><FaEye /></button>
+                                                <button onClick={() => openEdit(inek)} title="Düzenle" style={actionBtnStyle('#3498DB')}><FaEdit /></button>
+                                                <button onClick={() => handleDelete(inek._id)} title="Sil" style={actionBtnStyle('#E74C3C')}><FaTrash /></button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -205,87 +305,63 @@ const Inekler = () => {
                     </table>
                 </div>
             ) : (
-                /* Kart Görünümü */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '20px', width: '100%' }}>Yükleniyor...</div>
-                    ) : filteredInekler.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', width: '100%' }}>Kayıt bulunamadı.</div>
-                    ) : (
-                        filteredInekler.map(inek => (
-                            <div key={inek._id} style={{
-                                backgroundColor: 'white',
-                                borderRadius: '12px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                padding: '20px',
-                                border: inek.gebelikDurumu === 'Gebe' ? '2px solid #4CAF50' : '1px solid #eee',
-                                transition: 'transform 0.2s',
-                                cursor: 'pointer'
-                            }}
-                                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
-                                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                                onClick={() => navigate(`/inek-detay/${inek._id}`)}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-                                    <div>
-                                        <h3 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#333' }}>🐄 {inek.isim}</h3>
-                                        <span style={{ fontSize: '14px', color: '#666', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '4px' }}>
-                                            {inek.kupeNo}
-                                        </span>
-                                    </div>
-                                    <span style={{
-                                        padding: '4px 8px', borderRadius: '12px', fontSize: '12px',
-                                        backgroundColor: inek.gebelikDurumu === 'Gebe' ? '#E8F5E9' : '#FFF3E0',
-                                        color: inek.gebelikDurumu === 'Gebe' ? '#2E7D32' : '#EF6C00',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        {inek.gebelikDurumu || 'Boş'}
-                                    </span>
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center' }}>Yükleniyor...</div>
+                    ) : filteredInekler.map(inek => (
+                        <Card key={inek._id} onClick={() => navigate(`/inek-detay/${inek._id}`)}>
+                            <div className="card-header">
+                                <div>
+                                    <h3>🐄 {inek.isim}</h3>
+                                    <span className="tag">#{inek.kupeNo}</span>
                                 </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
-                                    <div style={{ backgroundColor: '#F8F9FA', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '12px', color: '#666' }}>YAŞ</div>
-                                        <div style={{ fontWeight: 'bold' }}>{inek.yas}</div>
-                                    </div>
-                                    <div style={{ backgroundColor: '#F8F9FA', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '12px', color: '#666' }}>KİLO</div>
-                                        <div style={{ fontWeight: 'bold' }}>{inek.kilo} kg</div>
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); navigate(`/inek-detay/${inek._id}`); }}
-                                        style={{ ...actionBtnStyle('#F39C12'), border: '1px solid #eee', padding: '6px', borderRadius: '4px' }}
-                                    >
-                                        <FaEye />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleEdit(inek); }}
-                                        style={{ ...actionBtnStyle('#3498DB'), border: '1px solid #eee', padding: '6px', borderRadius: '4px' }}
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(inek._id); }}
-                                        style={{ ...actionBtnStyle('#E74C3C'), border: '1px solid #eee', padding: '6px', borderRadius: '4px' }}
-                                    >
-                                        <FaTrash />
-                                    </button>
-                                </div>
+                                <StatusBadge status={inek.gebelikDurumu} />
                             </div>
-                        ))
-                    )}
+                            <div className="card-stats">
+                                <div className="stat"><span>YAŞ</span><strong>{inek.yas}</strong></div>
+                                <div className="stat"><span>KİLO</span><strong>{inek.kilo} kg</strong></div>
+                            </div>
+                            <div className="card-actions">
+                                <button onClick={(e) => { e.stopPropagation(); navigate(`/inek-detay/${inek._id}`); }} className="btn view"><FaEye /></button>
+                                <button onClick={(e) => { e.stopPropagation(); openEdit(inek); }} className="btn edit"><FaEdit /></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(inek._id); }} className="btn delete"><FaTrash /></button>
+                            </div>
+                        </Card>
+                    ))}
                 </div>
             )}
 
-            {/* Modal (Basit) */}
+            {/* Modal */}
             {showModal && (
                 <div style={modalOverlayStyle}>
                     <div style={modalContentStyle}>
                         <h2>{duzenlenecekId ? 'İnek Düzenle' : 'Yeni İnek Ekle'}</h2>
                         <form onSubmit={handleSubmit}>
+                            {!duzenlenecekId && (
+                                <div style={{ marginBottom: '20px', padding: '10px', background: '#f1f8e9', borderRadius: '8px', border: '1px solid #c5e1a5' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px', fontWeight: 'bold', color: '#2e7d32' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={satinAlma.aktif}
+                                            onChange={e => setSatinAlma({ ...satinAlma, aktif: e.target.checked })}
+                                            style={{ width: '20px', height: '20px' }}
+                                        />
+                                        Satın Alma İşlemi Gir
+                                    </label>
+
+                                    {satinAlma.aktif && (
+                                        <div style={{ marginTop: '10px', display: 'grid', gap: '10px' }}>
+                                            <input placeholder="Satıcı Adı" required={satinAlma.aktif} value={satinAlma.satici} onChange={e => setSatinAlma({ ...satinAlma, satici: e.target.value })} style={inputStyle} />
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <input type="number" placeholder="Fiyat (TL)" required={satinAlma.aktif} value={satinAlma.fiyat} onChange={e => setSatinAlma({ ...satinAlma, fiyat: e.target.value })} style={inputStyle} />
+                                                <input type="number" placeholder="Ödenen (TL)" value={satinAlma.odenenMiktar} onChange={e => setSatinAlma({ ...satinAlma, odenenMiktar: e.target.value })} style={inputStyle} />
+                                            </div>
+                                            <input type="date" value={satinAlma.tarih} onChange={e => setSatinAlma({ ...satinAlma, tarih: e.target.value })} style={inputStyle} />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div style={formGroupStyle}>
                                 <label>İsim:</label>
                                 <input type="text" required value={yeniInek.isim} onChange={e => setYeniInek({ ...yeniInek, isim: e.target.value })} style={inputStyle} />
@@ -308,9 +384,8 @@ const Inekler = () => {
                                 <label>Doğum Tarihi:</label>
                                 <input type="date" value={yeniInek.dogumTarihi} onChange={e => setYeniInek({ ...yeniInek, dogumTarihi: e.target.value })} style={inputStyle} />
                             </div>
-
                             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                                <button type="button" onClick={() => setShowModal(false)} style={{ ...btnStyle, backgroundColor: '#95A5A6' }}>İptal</button>
+                                <button type="button" onClick={resetModal} style={{ ...btnStyle, backgroundColor: '#95A5A6' }}>İptal</button>
                                 <button type="submit" style={{ ...btnStyle, backgroundColor: '#4CAF50' }}>Kaydet</button>
                             </div>
                         </form>
@@ -321,7 +396,81 @@ const Inekler = () => {
     );
 };
 
-// Styles
+// --- Sub Components & Styles ---
+
+const StatusBadge = ({ status }) => (
+    <span style={{
+        padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold',
+        backgroundColor: status === 'Gebe' ? '#E8F5E9' : '#FFF3E0',
+        color: status === 'Gebe' ? '#2E7D32' : '#EF6C00'
+    }}>
+        {status || 'Boş'}
+    </span>
+);
+
+const Card = styled.div`
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: transform 0.2s;
+  cursor: pointer;
+  border: 1px solid #eee;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+
+    h3 { margin: 0 0 5px 0; font-size: 18px; color: #333; }
+    .tag { font-size: 13px; color: #666; background: #f5f5f5; padding: 2px 8px; border-radius: 4px; }
+  }
+
+  .card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    .stat {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 6px;
+      text-align: center;
+      span { display: block; font-size: 11px; color: #999; }
+      strong { font-size: 14px; color: #333; }
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+
+    .btn {
+      border: 1px solid #eee;
+      background: white;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      
+      &.view { color: #F39C12; }
+      &.edit { color: #3498DB; }
+      &.delete { color: #E74C3C; }
+      
+      &:hover { background: #f9f9f9; }
+    }
+  }
+`;
+
 const thStyle = { padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' };
 const tdStyle = { padding: '15px', fontSize: '14px', color: '#333' };
 const actionBtnStyle = (color) => ({

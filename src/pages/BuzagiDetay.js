@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaArrowLeft, FaEdit, FaTrash, FaMars, FaVenus, FaArrowRight } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaMars, FaVenus, FaArrowRight, FaMoneyBillWave } from 'react-icons/fa';
+import SatisModal from '../components/modals/SatisModal';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -182,6 +183,7 @@ const BuzagiDetay = () => {
 
     const [showKiloModal, setShowKiloModal] = useState(false);
     const [kiloGuncel, setKiloGuncel] = useState('');
+    const [showSatisModal, setShowSatisModal] = useState(false);
 
     useEffect(() => {
         fetchDetaylar();
@@ -346,6 +348,12 @@ const BuzagiDetay = () => {
                             >
                                 <FaEdit /> Kilo Güncelle
                             </ActionButton>
+                            <ActionButton
+                                onClick={() => setShowSatisModal(true)}
+                                style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
+                            >
+                                <FaMoneyBillWave /> Satış Yap
+                            </ActionButton>
                         </div>
                     </Card>
                 </div>
@@ -372,6 +380,14 @@ const BuzagiDetay = () => {
                     </div>
                 )
             }
+
+            <SatisModal
+                isOpen={showSatisModal}
+                onClose={() => setShowSatisModal(false)}
+                hayvan={{ ...buzagi, type: 'buzagi' }}
+                onSuccess={() => navigate('/buzagilar')}
+            />
+
         </Container >
     );
 };
