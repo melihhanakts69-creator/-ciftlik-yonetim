@@ -80,6 +80,7 @@ function SutKaydi() {
     // Geçmiş & Takvim State
     const [gecmisKayitlar, setGecmisKayitlar] = useState([]);
     const [seciliTarih, setSeciliTarih] = useState(new Date());
+    const [tumunuGoster, setTumunuGoster] = useState(false);
 
     useEffect(() => {
         fetchGecmis();
@@ -331,9 +332,24 @@ function SutKaydi() {
                         {renderCalendar()}
 
                         <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                            <h4 style={{ marginBottom: '15px' }}>Son Kayıtlar</h4>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h4 style={{ margin: 0 }}>Son Kayıtlar</h4>
+                                <button
+                                    onClick={() => setTumunuGoster(!tumunuGoster)}
+                                    style={{
+                                        border: 'none',
+                                        background: 'none',
+                                        color: '#2196F3',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    {tumunuGoster ? 'Daha Az Göster' : 'Tümünü Göster'}
+                                </button>
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-                                {gecmisKayitlar.slice(0, 6).map(kayit => (
+                                {gecmisKayitlar.slice(0, tumunuGoster ? gecmisKayitlar.length : 3).map(kayit => (
                                     <div key={kayit._id} style={{ padding: '15px', borderRadius: '12px', backgroundColor: '#f8f9fa', borderLeft: `4px solid ${kayit.sagim === 'sabah' ? '#FF9800' : '#2196F3'}` }}>
                                         <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>{new Date(kayit.tarih).toLocaleDateString()}</div>
                                         <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{kayit.toplamSut} Lt</div>
@@ -342,6 +358,11 @@ function SutKaydi() {
                                     </div>
                                 ))}
                             </div>
+                            {!tumunuGoster && gecmisKayitlar.length > 3 && (
+                                <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '12px', color: '#999' }}>
+                                    Toplam {gecmisKayitlar.length} kayıt var
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
