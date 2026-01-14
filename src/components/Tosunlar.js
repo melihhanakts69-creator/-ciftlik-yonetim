@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import { FaThLarge, FaList, FaEdit, FaTrash } from 'react-icons/fa';
 
 function Tosunlar() {
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState('card');
   const [tosunlar, setTosunlar] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [tosunEkrani, setTosunEkrani] = useState(false);
-  const [detayTosun, setDetayTosun] = useState(null);
   const [duzenlenecekTosun, setDuzenlenecekTosun] = useState(null);
   const [yeniTosun, setYeniTosun] = useState({
     isim: '',
@@ -80,151 +83,7 @@ function Tosunlar() {
     return <div style={{ textAlign: 'center', padding: '20px' }}>Yükleniyor...</div>;
   }
 
-  // Detay ekranı
-  if (detayTosun) {
-    const yas = Math.floor((new Date() - new Date(detayTosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-
-    return (
-      <div>
-        <button
-          onClick={() => setDetayTosun(null)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#666',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginBottom: '20px',
-            fontSize: '16px'
-          }}
-        >
-          ← Geri
-        </button>
-
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '30px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-            <div>
-              <h1 style={{ margin: '0 0 10px 0', fontSize: '32px' }}>
-                🐂 {detayTosun.isim}
-              </h1>
-              <div style={{
-                display: 'inline-block',
-                backgroundColor: '#FFF3E0',
-                color: '#E65100',
-                padding: '6px 14px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}>
-                Küpe: {detayTosun.kupeNo}
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '15px',
-            marginBottom: '30px'
-          }}>
-            <div style={{
-              backgroundColor: '#F5F5F5',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>YAŞ</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>
-                {yas} aylık
-              </div>
-            </div>
-
-            <div style={{
-              backgroundColor: '#F5F5F5',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>KİLO</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>
-                {detayTosun.kilo || '-'} kg
-              </div>
-            </div>
-
-            <div style={{
-              backgroundColor: '#F5F5F5',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>DOĞUM TARİHİ</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                {new Date(detayTosun.dogumTarihi).toLocaleDateString('tr-TR')}
-              </div>
-            </div>
-          </div>
-
-          {detayTosun.not && (
-            <div style={{
-              backgroundColor: '#F9F9F9',
-              borderRadius: '12px',
-              padding: '20px',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ marginTop: 0, marginBottom: '10px' }}>📝 Notlar</h3>
-              <p style={{ margin: 0, color: '#666' }}>{detayTosun.not}</p>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
-            <button
-              onClick={() => {
-                setDetayTosun(null);
-                setDuzenlenecekTosun(detayTosun);
-              }}
-              style={{
-                flex: 1,
-                padding: '14px',
-                backgroundColor: '#FF9800',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
-            >
-              ✏️ Düzenle
-            </button>
-            <button
-              onClick={() => {
-                if (window.confirm('Bu tosunu silmek istediğinize emin misiniz?')) {
-                  tosunSil(detayTosun._id);
-                  setDetayTosun(null);
-                }
-              }}
-              style={{
-                flex: 1,
-                padding: '14px',
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold'
-              }}
-            >
-              🗑️ Sil
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Detay ekranı kaldırıldı, yeni sayfaya yönlendiriliyor.
 
   return (
     <div>
@@ -237,229 +96,296 @@ function Tosunlar() {
             Toplam {tosunlar.length} tosun kayıtlı
           </p>
         </div>
-        <button
-          onClick={() => setTosunEkrani(true)}
-          style={{
-            padding: '14px 24px',
-            background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)',
-            transition: 'transform 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-        >
-          + Tosun Ekle
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #ddd', overflow: 'hidden' }}>
+            <button
+              onClick={() => setViewMode('table')}
+              style={{
+                padding: '10px',
+                border: 'none',
+                background: viewMode === 'table' ? '#e0e0e0' : 'white',
+                cursor: 'pointer',
+                color: '#333'
+              }}
+              title="Liste Görünümü"
+            >
+              <FaList />
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              style={{
+                padding: '10px',
+                border: 'none',
+                background: viewMode === 'card' ? '#e0e0e0' : 'white',
+                cursor: 'pointer',
+                color: '#333'
+              }}
+              title="Kart Görünümü"
+            >
+              <FaThLarge />
+            </button>
+          </div>
+          <button
+            onClick={() => setTosunEkrani(true)}
+            style={{
+              padding: '14px 24px',
+              background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            + Tosun Ekle
+          </button>
+        </div>
       </div>
 
-      {tosunlar.length > 0 ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '20px'
-        }}>
-          {tosunlar.map((tosun) => {
-            const yas = Math.floor((new Date() - new Date(tosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
-
-            return (
-              <div
-                key={tosun._id}
-                style={{
-                  backgroundColor: 'white',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                  border: '1px solid #e0e0e0',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-                }}
-              >
-                {/* Başlık */}
-                <div style={{ marginBottom: '15px' }}>
-                  <h3 style={{
-                    margin: '0 0 8px 0',
-                    fontSize: '22px',
-                    fontWeight: 'bold',
-                    color: '#333'
-                  }}>
-                    🐂 {tosun.isim}
-                  </h3>
-                  <div style={{
-                    display: 'inline-block',
-                    backgroundColor: '#FFF3E0',
-                    color: '#E65100',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '13px',
-                    fontWeight: 'bold'
-                  }}>
-                    Küpe: {tosun.kupeNo}
-                  </div>
-                </div>
-
-                {/* İstatistikler Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '10px',
-                  marginBottom: '15px'
-                }}>
-                  <div style={{
-                    backgroundColor: '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>YAŞ</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                      {yas}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>aylık</div>
-                  </div>
-
-                  <div style={{
-                    backgroundColor: '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>KİLO</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                      {tosun.kilo || '-'}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>kg</div>
-                  </div>
-
-                  <div style={{
-                    backgroundColor: '#F5F5F5',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>CİNSİYET</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-                      ♂
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>erkek</div>
-                  </div>
-                </div>
-
-                {/* Not */}
-                {tosun.not && (
-                  <div style={{
-                    backgroundColor: '#F9F9F9',
-                    borderRadius: '8px',
-                    padding: '10px',
-                    marginBottom: '15px',
-                    fontSize: '13px',
-                    color: '#666',
-                    fontStyle: 'italic'
-                  }}>
-                    📝 {tosun.not}
-                  </div>
-                )}
-
-                {/* Aksiyon Butonları */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '8px'
-                }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDetayTosun(tosun);
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#2196F3',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1976D2'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2196F3'}
-                  >
-                    📋 Detay
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDuzenlenecekTosun({ ...tosun });
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#FF9800',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F57C00'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF9800'}
-                  >
-                    ✏️ Düzenle
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      tosunSil(tosun._id);
-                    }}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 'bold',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d32f2f'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
-                  >
-                    🗑️ Sil
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+      {/* TOSUN LİSTESİ (TABLO veya KART) */}
+      {viewMode === 'table' ? (
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ backgroundColor: '#F8F9FA', borderBottom: '2px solid #E9ECEF' }}>
+              <tr>
+                <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>Küpe No</th>
+                <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>İsim</th>
+                <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>Yaş</th>
+                <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>Kilo</th>
+                <th style={{ padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' }}>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tosunlar.length === 0 ? (
+                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Kayıt bulunamadı.</td></tr>
+              ) : (
+                tosunlar.map(tosun => (
+                  <tr key={tosun._id} style={{ borderBottom: '1px solid #EEE' }}>
+                    <td style={{ padding: '15px', fontSize: '14px' }}>{tosun.kupeNo}</td>
+                    <td style={{ padding: '15px', fontSize: '14px' }}><strong>{tosun.isim}</strong></td>
+                    <td style={{ padding: '15px', fontSize: '14px' }}>{Math.floor((new Date() - new Date(tosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30))} ay</td>
+                    <td style={{ padding: '15px', fontSize: '14px' }}>{tosun.kilo || '-'} kg</td>
+                    <td style={{ padding: '15px', fontSize: '14px', display: 'flex', gap: '8px' }}>
+                      <button onClick={() => navigate(`/tosun-detay/${tosun._id}`)} title="Detay" style={{ border: 'none', background: 'none', color: '#2196F3', cursor: 'pointer' }}><FaList /></button>
+                      <button onClick={() => setDuzenlenecekTosun({ ...tosun })} title="Düzenle" style={{ border: 'none', background: 'none', color: '#FF9800', cursor: 'pointer' }}><FaEdit /></button>
+                      <button onClick={() => tosunSil(tosun._id)} title="Sil" style={{ border: 'none', background: 'none', color: '#f44336', cursor: 'pointer' }}><FaTrash /></button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       ) : (
-        <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🐂</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Henüz tosun kaydı yok</h3>
-          <p style={{ color: '#999', margin: 0 }}>Yeni tosun eklemek için yukarıdaki butonu kullanın</p>
-        </div>
-      )}
+        /* KART GÖRÜNÜMÜ */
+        tosunlar.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '20px'
+          }}>
+            {tosunlar.map((tosun) => {
+              const yas = Math.floor((new Date() - new Date(tosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
+
+              return (
+                <div
+                  key={tosun._id}
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                    border: '1px solid #e0e0e0',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  {/* Başlık */}
+                  <div style={{ marginBottom: '15px' }}>
+                    <h3 style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      color: '#333'
+                    }}>
+                      🐂 {tosun.isim}
+                    </h3>
+                    <div style={{
+                      display: 'inline-block',
+                      backgroundColor: '#FFF3E0',
+                      color: '#E65100',
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '13px',
+                      fontWeight: 'bold'
+                    }}>
+                      Küpe: {tosun.kupeNo}
+                    </div>
+                  </div>
+
+                  {/* İstatistikler Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{
+                      backgroundColor: '#F5F5F5',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>YAŞ</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                        {yas}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#999' }}>aylık</div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: '#F5F5F5',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>KİLO</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                        {tosun.kilo || '-'}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#999' }}>kg</div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: '#F5F5F5',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '11px', color: '#999', marginBottom: '4px' }}>CİNSİYET</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+                        ♂
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#999' }}>erkek</div>
+                    </div>
+                  </div>
+
+                  {/* Not */}
+                  {tosun.not && (
+                    <div style={{
+                      backgroundColor: '#F9F9F9',
+                      borderRadius: '8px',
+                      padding: '10px',
+                      marginBottom: '15px',
+                      fontSize: '13px',
+                      color: '#666',
+                      fontStyle: 'italic'
+                    }}>
+                      📝 {tosun.not}
+                    </div>
+                  )}
+
+                  {/* Aksiyon Butonları */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: '8px'
+                  }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tosun-detay/${tosun._id}`);
+                      }}
+                      style={{
+                        padding: '10px',
+                        backgroundColor: '#2196F3',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1976D2'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2196F3'}
+                    >
+                      📋 Detay
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDuzenlenecekTosun({ ...tosun });
+                      }}
+                      style={{
+                        padding: '10px',
+                        backgroundColor: '#FF9800',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F57C00'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FF9800'}
+                    >
+                      ✏️ Düzenle
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        tosunSil(tosun._id);
+                      }}
+                      style={{
+                        padding: '10px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#d32f2f'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
+                    >
+                      🗑️ Sil
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          }}>
+            {/* Empty State */}
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>🐂</div>
+            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Henüz tosun kaydı yok</h3>
+            <p style={{ color: '#999', margin: 0 }}>Yeni tosun eklemek için yukarıdaki butonu kullanın</p>
+          </div>
+        ))}
 
       {/* TOSUN EKLEME/DÜZENLEME MODAL */}
       {(tosunEkrani || duzenlenecekTosun) && (

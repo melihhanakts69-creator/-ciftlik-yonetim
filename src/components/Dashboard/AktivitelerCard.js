@@ -81,17 +81,23 @@ const AktivitelerCard = ({ aktiviteler = [] }) => {
   };
 
   const getActivityMessage = (aktivite) => {
+    if (!aktivite || !aktivite.veri) return 'Bilinmeyen Aktivite';
+
+    const veri = aktivite.veri;
+
     switch (aktivite.tip) {
       case 'hayvan_eklendi':
-        return `${aktivite.veri.kupe_no} küpe nolu ${aktivite.veri.tip} eklendi`;
+        const kupe = veri.kupe_no || veri.kupeNo || '?';
+        const tip = veri.tip || 'hayvan';
+        return `${kupe} küpe nolu ${tip} eklendi`;
       case 'hayvan_alindi':
-        return `${aktivite.veri.hayvanTipi} alındı - ${aktivite.veri.fiyat} ₺`;
+        return `${veri.hayvanTipi || 'Hayvan'} alındı - ${veri.fiyat || 0} ₺`;
       case 'hayvan_satildi':
-        return `${aktivite.veri.hayvanTipi} satıldı - ${aktivite.veri.fiyat} ₺`;
+        return `${veri.hayvanTipi || 'Hayvan'} satıldı - ${veri.fiyat || 0} ₺`;
       case 'sut_kaydi':
-        return `${aktivite.veri.miktar} lt süt kaydedildi`;
+        return `${veri.miktar || veri.litre || 0} lt süt kaydedildi`;
       case 'maliyet':
-        return `${aktivite.veri.kategori} - ${aktivite.veri.tutar} ₺`;
+        return `${veri.kategori || 'Masraf'} - ${veri.tutar || 0} ₺`;
       default:
         return 'Aktivite';
     }

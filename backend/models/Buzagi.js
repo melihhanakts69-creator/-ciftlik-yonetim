@@ -17,12 +17,10 @@ const buzagiSchema = new mongoose.Schema({
     trim: true
   },
   anneId: {
-    type: String,
-    required: true
+    type: String
   },
   anneIsim: {
-    type: String,
-    required: true
+    type: String
   },
   anneKupeNo: {
     type: String,

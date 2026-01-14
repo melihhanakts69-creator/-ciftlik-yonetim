@@ -208,4 +208,17 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
   }
 });
 
+// TEK BİR BUZAĞIYI GETİR
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const buzagi = await Buzagi.findOne({ _id: req.params.id, userId: req.userId });
+    if (!buzagi) {
+      return res.status(404).json({ message: 'Buzağı bulunamadı' });
+    }
+    res.json(buzagi);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
 module.exports = router;

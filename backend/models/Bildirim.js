@@ -101,37 +101,37 @@ bildirimSchema.index({ userId: 1, tamamlandi: 1 });
 bildirimSchema.index({ userId: 1, oncelik: 1 });
 
 // Virtual: Geç kaldı mı?
-bildirimSchema.virtual('gecKaldi').get(function() {
+bildirimSchema.virtual('gecKaldi').get(function () {
   return !this.tamamlandi && this.hatirlatmaTarihi < new Date();
 });
 
 // Instance method: Bildirimi okundu olarak işaretle
-bildirimSchema.methods.okunduIsaretle = function() {
+bildirimSchema.methods.okunduIsaretle = function () {
   this.okundu = true;
   this.okunmaTarihi = new Date();
   return this.save();
 };
 
 // Instance method: Tamamlandı olarak işaretle
-bildirimSchema.methods.tamamlandiIsaretle = function() {
+bildirimSchema.methods.tamamlandiIsaretle = function () {
   this.tamamlandi = true;
   this.tamamlanmaTarihi = new Date();
   return this.save();
 };
 
 // Statik method: Okunmamış bildirimler
-bildirimSchema.statics.okunmayanlar = async function(userId) {
+bildirimSchema.statics.okunmayanlar = async function (userId) {
   return await this.find({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     okundu: false,
     aktif: true
   })
-  .sort({ oncelik: -1, hatirlatmaTarihi: 1 })
-  .limit(50);
+    .sort({ oncelik: -1, hatirlatmaTarihi: 1 })
+    .limit(50);
 };
 
 // Statik method: Bugünün bildirimleri
-bildirimSchema.statics.bugununkiler = async function(userId) {
+bildirimSchema.statics.bugununkiler = async function (userId) {
   const bugun = new Date();
   bugun.setHours(0, 0, 0, 0);
 
@@ -139,37 +139,37 @@ bildirimSchema.statics.bugununkiler = async function(userId) {
   yarin.setDate(yarin.getDate() + 1);
 
   return await this.find({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     hatirlatmaTarihi: {
       $gte: bugun,
       $lt: yarin
     },
     aktif: true
   })
-  .sort({ oncelik: -1, hatirlatmaTarihi: 1 });
+    .sort({ oncelik: -1, hatirlatmaTarihi: 1 });
 };
 
 // Statik method: Gecikmiş bildirimler
-bildirimSchema.statics.gecikmisler = async function(userId) {
+bildirimSchema.statics.gecikmisler = async function (userId) {
   const simdi = new Date();
 
   return await this.find({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     hatirlatmaTarihi: { $lt: simdi },
     tamamlandi: false,
     aktif: true
   })
-  .sort({ oncelik: -1, hatirlatmaTarihi: 1 });
+    .sort({ oncelik: -1, hatirlatmaTarihi: 1 });
 };
 
 // Statik method: Yaklaşan bildirimler (7 gün içinde)
-bildirimSchema.statics.yaklaşanlar = async function(userId, gun = 7) {
+bildirimSchema.statics.yaklaşanlar = async function (userId, gun = 7) {
   const simdi = new Date();
   const gelecek = new Date();
   gelecek.setDate(gelecek.getDate() + gun);
 
   return await this.find({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     hatirlatmaTarihi: {
       $gte: simdi,
       $lte: gelecek
@@ -177,31 +177,31 @@ bildirimSchema.statics.yaklaşanlar = async function(userId, gun = 7) {
     tamamlandi: false,
     aktif: true
   })
-  .sort({ hatirlatmaTarihi: 1 });
+    .sort({ hatirlatmaTarihi: 1 });
 };
 
 // Statik method: Bildirim istatistikleri
-bildirimSchema.statics.istatistikler = async function(userId) {
+bildirimSchema.statics.istatistikler = async function (userId) {
   const toplam = await this.countDocuments({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     aktif: true
   });
 
   const okunmayan = await this.countDocuments({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     okundu: false,
     aktif: true
   });
 
   const geciken = await this.countDocuments({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     hatirlatmaTarihi: { $lt: new Date() },
     tamamlandi: false,
     aktif: true
   });
 
   const tamamlanan = await this.countDocuments({
-    userId: mongoose.Types.ObjectId(userId),
+    userId: new mongoose.Types.ObjectId(userId),
     tamamlandi: true
   });
 

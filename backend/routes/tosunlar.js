@@ -35,11 +35,11 @@ router.put('/:id', auth, async (req, res) => {
       req.body,
       { new: true }
     );
-    
+
     if (!tosun) {
       return res.status(404).json({ message: 'Tosun bulunamadı' });
     }
-    
+
     res.json(tosun);
   } catch (error) {
     res.status(500).json({ message: 'Güncelleme başarısız', error: error.message });
@@ -49,18 +49,31 @@ router.put('/:id', auth, async (req, res) => {
 // SİL
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const tosun = await Tosun.findOneAndDelete({ 
-      _id: req.params.id, 
-      userId: req.userId 
+    const tosun = await Tosun.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.userId
     });
-    
+
     if (!tosun) {
       return res.status(404).json({ message: 'Tosun bulunamadı' });
     }
-    
+
     res.json({ message: 'Tosun silindi' });
   } catch (error) {
     res.status(500).json({ message: 'Silme başarısız', error: error.message });
+  }
+});
+
+// TEK BİR TOSUNU GETİR
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const tosun = await Tosun.findOne({ _id: req.params.id, userId: req.userId });
+    if (!tosun) {
+      return res.status(404).json({ message: 'Tosun bulunamadı' });
+    }
+    res.json(tosun);
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
 

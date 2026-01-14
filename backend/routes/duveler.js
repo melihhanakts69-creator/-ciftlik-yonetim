@@ -33,23 +33,23 @@ router.post('/', auth, async (req, res) => {
       notlar,
       eklemeTarihi
     });
-console.log('📌 tohumlamaTarihi:', tohumlamaTarihi);
+    console.log('📌 tohumlamaTarihi:', tohumlamaTarihi);
 
-await duve.save();
+    await duve.save();
 
 
-if (tohumlamaTarihi && tohumlamaTarihi.trim() !== '') {
-  await Timeline.create({
-    userId: req.userId,
-    hayvanId: duve._id.toString(),
-    hayvanTipi: 'duve',
-    tip: 'tohumlama',
-    tarih: tohumlamaTarihi,
-    aciklama: 'Düve eklenirken otomatik tohumlama kaydı'
-  });
-}
+    if (tohumlamaTarihi && tohumlamaTarihi.trim() !== '') {
+      await Timeline.create({
+        userId: req.userId,
+        hayvanId: duve._id.toString(),
+        hayvanTipi: 'duve',
+        tip: 'tohumlama',
+        tarih: tohumlamaTarihi,
+        aciklama: 'Düve eklenirken otomatik tohumlama kaydı'
+      });
+    }
 
-res.status(201).json(duve);
+    res.status(201).json(duve);
 
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
@@ -129,7 +129,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
       isim: duve.isim,
       kupeNo: duve.kupeNo,
       dogumTarihi: duve.dogumTarihi,
-      yas: duve.yas,
+      yas: Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 365)), // Otomatik yaş hesapla (Yıl)
       kilo: duve.kilo,
       buzagiSayisi: 1,
       laktasyonDonemi: 1,
@@ -172,6 +172,72 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Düve doğum hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TOHUMLAMA EKLE
+router.post('/:id/tohumlama', auth, async (req, res) => {
+  try {
+    const { tohumlamaTarihi } = req.body;
+    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+
+    if (!duve) {
+      return res.status(404).json({ message: 'Düve bulunamadı' });
+    }
+
+    // Düveyi güncelle
+    duve.tohumlamaTarihi = tohumlamaTarihi;
+    duve.gebelikDurumu = 'Belirsiz';
+    await duve.save();
+
+    // Timeline'a ekle
+    await Timeline.create({
+      userId: req.userId,
+      hayvanId: duve._id.toString(),
+      hayvanTipi: 'duve',
+      tip: 'tohumlama',
+      tarih: tohumlamaTarihi,
+      aciklama: `Tohumlama yapıldı. Tarih: ${tohumlamaTarihi}`
+    });
+
+    res.json({ message: 'Tohumlama kaydedildi', duve });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TOHUMLAMA SİL
+router.delete('/:id/tohumlama', auth, async (req, res) => {
+  try {
+    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    if (!duve) return res.status(404).json({ message: 'Düve bulunamadı' });
+
+    duve.tohumlamaTarihi = null;
+    duve.gebelikDurumu = 'Boş';
+    await duve.save();
+
+    // Timeline sil
+    await Timeline.findOneAndDelete({
+      hayvanId: duve._id.toString(),
+      tip: 'tohumlama'
+    }, { sort: { createdAt: -1 } });
+
+    res.json({ message: 'Tohumlama kaydı silindi', duve });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TEK BİR DÜVEYİ GETİR
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    if (!duve) {
+      return res.status(404).json({ message: 'Düve bulunamadı' });
+    }
+    res.json(duve);
+  } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });

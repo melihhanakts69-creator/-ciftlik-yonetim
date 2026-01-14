@@ -100,4 +100,44 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
   }
 });
 
+// PROFİL GÜNCELLE
+router.put('/update', require('../middleware/auth'), async (req, res) => {
+  try {
+    const { isim, email, isletmeAdi, mevcutSifre, yeniSifre } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
+    }
+
+    // Şifre değişikliği isteniyorsa
+    if (mevcutSifre && yeniSifre) {
+      const sifreDogru = await bcrypt.compare(mevcutSifre, user.sifre);
+      if (!sifreDogru) {
+        return res.status(400).json({ message: 'Mevcut şifre hatalı!' });
+      }
+      user.sifre = await bcrypt.hash(yeniSifre, 10);
+    }
+
+    // Bilgileri güncelle
+    if (isim) user.isim = isim;
+    if (email) user.email = email;
+    if (isletmeAdi) user.isletmeAdi = isletmeAdi;
+
+    await user.save();
+
+    res.json({
+      message: 'Profil güncellendi!',
+      user: {
+        id: user._id,
+        isim: user.isim,
+        email: user.email,
+        isletmeAdi: user.isletmeAdi
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
 module.exports = router;

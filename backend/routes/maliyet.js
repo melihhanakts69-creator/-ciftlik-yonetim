@@ -6,7 +6,7 @@ const Maliyet = require('../models/Maliyet');
 // Tüm maliyetleri listele (filtreleme + sayfalama)
 router.get('/', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const {
       kategori,
       hayvanTipi,
@@ -142,7 +142,7 @@ router.delete('/:id', auth, async (req, res) => {
 // Toplam maliyet hesapla
 router.get('/ozet/toplam', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { baslangic, bitis } = req.query;
 
     if (!baslangic || !bitis) {
@@ -161,7 +161,7 @@ router.get('/ozet/toplam', auth, async (req, res) => {
 // Kategoriye göre maliyet özeti
 router.get('/ozet/kategori', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { baslangic, bitis } = req.query;
 
     if (!baslangic || !bitis) {
@@ -180,7 +180,7 @@ router.get('/ozet/kategori', auth, async (req, res) => {
 // Aylık maliyet raporu
 router.get('/rapor/aylik', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { yil, ay } = req.query;
 
     if (!yil || !ay) {
@@ -197,7 +197,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
     const gunlukDetay = await Maliyet.aggregate([
       {
         $match: {
-          userId: req.user.userId,
+          userId: req.userId,
           tarih: { $gte: baslangic, $lte: bitis }
         }
       },
@@ -228,7 +228,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
 router.get('/hayvan/:hayvanId', auth, async (req, res) => {
   try {
     const maliyetler = await Maliyet.find({
-      userId: req.user.userId,
+      userId: req.userId,
       hayvanId: req.params.hayvanId
     }).sort({ tarih: -1 });
 

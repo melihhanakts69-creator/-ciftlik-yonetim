@@ -22,32 +22,41 @@ api.interceptors.request.use((config) => {
 export const register = (userData) => api.post('/auth/register', userData);
 export const login = (credentials) => api.post('/auth/login', credentials);
 export const getProfile = () => api.get('/auth/me');
+export const updateProfile = (data) => api.put('/auth/update', data);
 
 // İNEKLER
 export const getInekler = () => api.get('/inekler');
+export const getInek = (id) => api.get(`/inekler/${id}`); // YENİ
 export const createInek = (data) => api.post('/inekler', data);
 export const updateInek = (id, data) => api.put(`/inekler/${id}`, data);
 export const deleteInek = (id) => api.delete(`/inekler/${id}`);
 export const inekDogurdu = (id, data) => api.post(`/inekler/${id}/dogurdu`, data);
+export const inekTohumla = (id, data) => api.post(`/inekler/${id}/tohumlama`, data);
+export const deleteInekTohumlama = (id) => api.delete(`/inekler/${id}/tohumlama`);
 
 // BUZAĞILAR
 export const getBuzagilar = () => api.get('/buzagilar');
+export const getBuzagi = (id) => api.get(`/buzagilar/${id}`); // YENİ
 export const createBuzagi = (data) => api.post('/buzagilar', data);
 export const updateBuzagi = (id, data) => api.put(`/buzagilar/${id}`, data);
 export const deleteBuzagi = (id) => api.delete(`/buzagilar/${id}`);
 
 // DÜVELER
 export const getDuveler = () => api.get('/duveler');
+export const getDuve = (id) => api.get(`/duveler/${id}`); // YENİ
 export const createDuve = (data) => api.post('/duveler', data);
 export const deleteDuve = (id) => api.delete(`/duveler/${id}`);
 export const updateDuve = (id, data) => {
   return api.put(`/duveler/${id}`, data);
 };
 export const duveDogurdu = (id, data) => api.post(`/duveler/${id}/dogurdu`, data);
+export const duveTohumla = (id, data) => api.post(`/duveler/${id}/tohumlama`, data);
+export const deleteDuveTohumlama = (id) => api.delete(`/duveler/${id}/tohumlama`);
 
 
 //Tosunlar
 export const getTosunlar = () => api.get('/tosunlar');
+export const getTosun = (id) => api.get(`/tosunlar/${id}`); // YENİ
 export const createTosun = (data) => api.post('/tosunlar', data);
 export const updateTosun = (id, data) => api.put(`/tosunlar/${id}`, data);
 export const deleteTosun = (id) => api.delete(`/tosunlar/${id}`);
@@ -103,5 +112,18 @@ export const getFinansalOzet = (params) => {
 export const createFinansalKayit = (data) => api.post('/finansal', data);
 export const updateFinansalKayit = (id, data) => api.put(`/finansal/${id}`, data);
 export const deleteFinansalKayit = (id) => api.delete(`/finansal/${id}`);
+
+// BİLDİRİMLER
+export const getBildirimler = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/bildirimler?${query}`);
+};
+export const getOkunmayanBildirimler = () => api.get('/bildirimler/liste/okunmayan');
+export const getYaklasanBildirimler = (gun = 7) => api.get(`/bildirimler/liste/yaklasan?gun=${gun}`);
+export const getBildirimIstatistikleri = () => api.get('/bildirimler/ozet/istatistik');
+export const bildirimOkunduIsaretle = (id) => api.patch(`/bildirimler/${id}/okundu`);
+export const tumunuOkunduIsaretle = () => api.patch('/bildirimler/toplu/okundu');
+export const bildirimSil = (id) => api.delete(`/bildirimler/${id}`);
+export const bildirimTamamlandiIsaretle = (id) => api.patch(`/bildirimler/${id}/tamamlandi`);
 
 export default api;

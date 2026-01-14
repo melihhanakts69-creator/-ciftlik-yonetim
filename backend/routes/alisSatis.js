@@ -6,7 +6,7 @@ const AlisSatis = require('../models/AlisSatis');
 // Tüm alış-satış kayıtlarını listele
 router.get('/', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const {
       tip,
       hayvanTipi,
@@ -148,7 +148,7 @@ router.delete('/:id', auth, async (req, res) => {
 // Toplam alış özeti
 router.get('/ozet/alis', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { baslangic, bitis } = req.query;
 
     if (!baslangic || !bitis) {
@@ -167,7 +167,7 @@ router.get('/ozet/alis', auth, async (req, res) => {
 // Toplam satış özeti
 router.get('/ozet/satis', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { baslangic, bitis } = req.query;
 
     if (!baslangic || !bitis) {
@@ -186,7 +186,7 @@ router.get('/ozet/satis', auth, async (req, res) => {
 // Kar-zarar özeti
 router.get('/ozet/kar-zarar', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { baslangic, bitis } = req.query;
 
     if (!baslangic || !bitis) {
@@ -205,7 +205,7 @@ router.get('/ozet/kar-zarar', auth, async (req, res) => {
 // Veresiye borçlar
 router.get('/ozet/veresiye', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
 
     const veresiyeler = await AlisSatis.veresiyeler(userId);
 
@@ -215,8 +215,8 @@ router.get('/ozet/veresiye', auth, async (req, res) => {
       kalanBorc: { $gt: 0 },
       durum: 'tamamlandi'
     })
-    .sort({ tarih: -1 })
-    .select('tip aliciSatici fiyat odenenMiktar kalanBorc tarih telefon');
+      .sort({ tarih: -1 })
+      .select('tip aliciSatici fiyat odenenMiktar kalanBorc tarih telefon');
 
     res.json({
       ozet: veresiyeler,
@@ -269,7 +269,7 @@ router.post('/:id/odeme', auth, async (req, res) => {
 router.get('/hayvan/:hayvanId', auth, async (req, res) => {
   try {
     const kayitlar = await AlisSatis.find({
-      userId: req.user.userId,
+      userId: req.userId,
       hayvanId: req.params.hayvanId
     }).sort({ tarih: -1 });
 
@@ -283,7 +283,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
 // Aylık rapor
 router.get('/rapor/aylik', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { yil, ay } = req.query;
 
     if (!yil || !ay) {

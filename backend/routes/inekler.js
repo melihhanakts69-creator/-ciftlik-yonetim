@@ -21,7 +21,7 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
   try {
     const inekler = await Inek.find({ userId: req.userId });
     const duveler = await Duve.find({ userId: req.userId });
-    
+
     const bugun = new Date();
     const yaklasanlar = [];
 
@@ -222,6 +222,92 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('İnek doğum hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TEK BİR İNEĞİ GETİR (ve son 30 günlük süt verisi)
+// TOHUMLAMA EKLE
+router.post('/:id/tohumlama', auth, async (req, res) => {
+  try {
+    const { tohumlamaTarihi } = req.body;
+    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+
+    if (!inek) {
+      return res.status(404).json({ message: 'İnek bulunamadı' });
+    }
+
+    // İneği güncelle
+    inek.tohumlamaTarihi = tohumlamaTarihi;
+    inek.gebelikDurumu = 'Belirsiz'; // Yeni tohumlandığı için
+    await inek.save();
+
+    // Timeline'a ekle
+    const Timeline = require('../models/Timeline');
+    await Timeline.create({
+      userId: req.userId,
+      hayvanId: inek._id.toString(),
+      hayvanTipi: 'inek',
+      tip: 'tohumlama',
+      tarih: tohumlamaTarihi,
+      aciklama: `Tohumlama yapıldı. Tarih: ${tohumlamaTarihi}`
+    });
+
+    res.json({ message: 'Tohumlama kaydedildi', inek });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+// TOHUMLAMA SİL
+router.delete('/:id/tohumlama', auth, async (req, res) => {
+  try {
+    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    if (!inek) return res.status(404).json({ message: 'İnek bulunamadı' });
+
+    inek.tohumlamaTarihi = null;
+    inek.gebelikDurumu = 'Boş';
+    await inek.save();
+
+    // En son eklenen tohumlama timeline kaydını sil
+    const Timeline = require('../models/Timeline');
+    await Timeline.findOneAndDelete({
+      hayvanId: inek._id.toString(),
+      tip: 'tohumlama'
+    }, { sort: { createdAt: -1 } });
+
+    res.json({ message: 'Tohumlama kaydı silindi', inek });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+  }
+});
+
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    if (!inek) {
+      return res.status(404).json({ message: 'İnek bulunamadı' });
+    }
+
+    // Son 30 günlük süt verisi
+    const SutKaydi = require('../models/SutKaydi');
+    const otuzGunOnce = new Date();
+    otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+    const tarihStr = otuzGunOnce.toISOString().split('T')[0];
+
+    // İnek detayına süt verisini de ekle
+    const sutGecmisi = await SutKaydi.find({
+      userId: req.userId,
+      inekId: inek._id,
+      tarih: { $gte: tarihStr }
+    }).sort({ tarih: 1 });
+
+    // Mongoose belgesini objeye çevirip süt geçmişini ekliyoruz
+    const inekObj = inek.toObject();
+    inekObj.sutGecmisi = sutGecmisi;
+
+    res.json(inekObj);
+  } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }
 });
