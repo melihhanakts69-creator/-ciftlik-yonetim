@@ -18,10 +18,7 @@ import TosunDetay from './pages/TosunDetay';
 import BuzagiDetay from './pages/BuzagiDetay';
 import Bildirimler from './pages/Bildirimler';
 import Aktiviteler from './pages/Aktiviteler';
-
-// Geçici olarak Raporlar sayfası (Sonra ayrılacak)
-const Raporlar = () => <div>Raporlar Sayfası (Yapım Aşamasında)</div>;
-// Raporlar placeholder kalabilir
+import Raporlar from './pages/Raporlar';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -58,7 +55,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home kullanici={kullanici} />} />
 
-        {/* Diğer modüller (Eski componentler olduğu gibi kullanılıyor) */}
+        {/* Diğer modüller */}
         <Route path="/inekler" element={<IneklerPage />} />
         <Route path="/ayarlar" element={<Ayarlar />} />
         <Route path="/buzagilar" element={<Buzagilar />} />
