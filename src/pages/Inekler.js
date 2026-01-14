@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import styled from 'styled-components'; // Added styled
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaThLarge, FaList } from 'react-icons/fa';
+
+const PageContainer = styled.div`
+  padding: 20px;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
 
 const Inekler = () => {
     const navigate = useNavigate();
@@ -87,7 +96,7 @@ const Inekler = () => {
     );
 
     return (
-        <div style={{ padding: '20px' }}>
+        <PageContainer>
             <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'
             }}>
@@ -308,7 +317,7 @@ const Inekler = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </PageContainer>
     );
 };
 

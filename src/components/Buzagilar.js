@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import styled from 'styled-components'; // Added styled
 import { FaBaby, FaMars, FaVenus, FaPlus, FaSearch, FaEllipsisV, FaEdit, FaTrash, FaArrowRight, FaThLarge, FaList } from 'react-icons/fa';
+
+const PageContainer = styled.div`
+  padding: 20px;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
 
 const Buzagilar = () => {
   const navigate = useNavigate();
@@ -115,7 +124,7 @@ const Buzagilar = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <PageContainer>
       {/* Üst Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <div>
@@ -382,7 +391,7 @@ const Buzagilar = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };
 

@@ -11,6 +11,10 @@ const Container = styled.div`
   padding: 20px;
   background-color: #f8f9fa;
   min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const Header = styled.div`
@@ -22,12 +26,24 @@ const Header = styled.div`
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+  }
 `;
 
 const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 `;
 
 const BackButton = styled.button`
@@ -48,10 +64,16 @@ const Title = styled.h1`
   display: flex;
   align-items: center;
   gap: 15px;
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 `;
 
 const TagBadge = styled.span`
-  background-color: #FF9800; // Default
+  background-color: #FF9800;
   color: white;
   padding: 5px 12px;
   border-radius: 20px;
@@ -62,6 +84,12 @@ const TagBadge = styled.span`
 const ActionButtons = styled.div`
   display: flex;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 `;
 
 const ActionButton = styled.button`
@@ -76,6 +104,11 @@ const ActionButton = styled.button`
   transition: transform 0.2s;
   
   &:hover { transform: translateY(-2px); }
+
+  @media (max-width: 768px) {
+    flex: 1;
+    justify-content: center;
+  }
 `;
 
 const Grid = styled.div`
