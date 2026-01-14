@@ -3,13 +3,16 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import StatsCard from '../components/common/StatsCard';
 import PerformansChart from '../components/Dashboard/PerformansChart';
-import YapilacaklarCard from '../components/Dashboard/YapilacaklarCard';
 import AktivitelerCard from '../components/Dashboard/AktivitelerCard';
+import FinansOzetCard from '../components/Dashboard/FinansOzetCard'; // Yeni
+import StokUyariCard from '../components/Dashboard/StokUyariCard'; // Yeni
+import * as api from '../services/api'; // API servisi
 
-// Styled Components (Dashboard.js'den uyarlandı)
+// Styled Components
 const DashboardContainer = styled.div`
   max-width: 1400px;
   margin: 0 auto;
+  padding-bottom: 40px;
 `;
 
 const Header = styled.div`
@@ -31,14 +34,24 @@ const Subtitle = styled.p`
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Mobilde 2'li olması için 280 -> 160 */
-  gap: 15px; /* Mobilde boşluk çok olmasın */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Biraz genişlettik */
+  gap: 20px;
   margin-bottom: 30px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    
+    /* Finans kartını tam genişlik yap */
+    .full-width-mobile {
+      grid-column: 1 / -1;
+    }
+  }
 `;
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr; /* Yapılacaklar kalktığı için tek kolon */
+  grid-template-columns: 1fr;
   gap: 24px;
   margin-bottom: 30px;
 `;
@@ -68,8 +81,9 @@ const Home = ({ kullanici }) => {
     const [dashboardData, setDashboardData] = useState({
         stats: null,
         performans: [],
-        yapilacaklar: [],
-        aktiviteler: []
+        aktiviteler: [],
+        finans: null, // Yeni
+        stoklar: []   // Yeni
     });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -87,60 +101,41 @@ const Home = ({ kullanici }) => {
                 throw new Error('Oturum bulunamadı');
             }
 
+            // fetch için header
             const headers = {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             };
 
-            // Paralel istekler
-            const [statsRes, performansRes, yapilacaklarRes, aktivitelerRes] = await Promise.all([
+            // Paralel istekler (API servis fonksiyonlarını da kullanabiliriz ama mevcut yapı fetch üzerine kurulu, uyumlu gidelim dedik ama finans/stok için api.js kullanalım)
+            const [statsRes, performansRes, aktivitelerRes, finansRes, stokRes] = await Promise.all([
                 fetch(`${API_URL}/dashboard/stats`, { headers }),
                 fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }),
-                fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }),
-                fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers })
+                fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }),
+                api.getFinansalOzet({}), // Bu ayın özeti
+                api.getYemStok()
             ]);
 
-            if (!statsRes.ok || !performansRes.ok || !yapilacaklarRes.ok || !aktivitelerRes.ok) {
-                throw new Error('Veri yüklenirken hata oluştu');
-            }
-
-            const [stats, performans, yapilacaklarData, aktiviteler] = await Promise.all([
+            const [stats, performans, aktiviteler] = await Promise.all([
                 statsRes.json(),
                 performansRes.json(),
-                yapilacaklarRes.json(),
                 aktivitelerRes.json()
             ]);
 
             setDashboardData({
                 stats,
                 performans,
-                yapilacaklar: [...(yapilacaklarData.geciken || []), ...(yapilacaklarData.bugun || [])],
-                aktiviteler
+                aktiviteler,
+                finans: finansRes.data,
+                stoklar: stokRes.data
             });
 
             setError(null);
         } catch (err) {
             console.error('Dashboard yükleme hatası:', err);
-            // Hata olsa bile kullanıcıya bir şeyler göstermek isteyebiliriz, şimdilik error state
-            setError(err.message);
+            setError(err.message || 'Veri yüklenemedi');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleTaskComplete = async (bildirimId) => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`${API_URL}/bildirimler/${bildirimId}/tamamlandi`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            fetchDashboardData(); // Verileri yenile
-        } catch (err) {
-            console.error('Görev tamamlama hatası:', err);
         }
     };
 
@@ -153,36 +148,20 @@ const Home = ({ kullanici }) => {
         });
     };
 
-    if (loading) {
-        return <LoadingContainer>Veriler yükleniyor...</LoadingContainer>;
-    }
+    if (loading) return <LoadingContainer>Mutlu Çiftlik Yükleniyor... 🚜</LoadingContainer>;
 
     if (error) {
         return (
             <DashboardContainer>
                 <ErrorContainer>
                     ❌ Hata: {error}
-                    <br />
-                    <button
-                        onClick={fetchDashboardData}
-                        style={{
-                            marginTop: '16px',
-                            padding: '8px 16px',
-                            background: '#f44336',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Tekrar Dene
-                    </button>
+                    <button onClick={fetchDashboardData} style={{ display: 'block', margin: '15px auto', padding: '10px' }}>Tekrar Dene</button>
                 </ErrorContainer>
             </DashboardContainer>
         );
     }
 
-    const { stats, performans, yapilacaklar, aktiviteler } = dashboardData;
+    const { stats, performans, aktiviteler, finans, stoklar } = dashboardData;
 
     return (
         <DashboardContainer>
@@ -191,8 +170,18 @@ const Home = ({ kullanici }) => {
                 <Subtitle>{getBugunTarih()}</Subtitle>
             </Header>
 
-            {/* İstatistik Kartları */}
+            {/* Stok Uyarısı */}
+            {stoklar && <StokUyariCard stoklar={stoklar} onNavigate={() => navigate('/yem-deposu')} />}
+
+            {/* İstatistik Grid */}
             <StatsGrid>
+                {/* Finans Kartı - En başa veya sona */}
+                {finans && (
+                    <div className="full-width-mobile" style={{ cursor: 'pointer' }} onClick={() => navigate('/finansal')}>
+                        <FinansOzetCard data={finans} />
+                    </div>
+                )}
+
                 <div style={{ cursor: 'pointer' }} onClick={() => navigate('/inekler')}>
                     <StatsCard
                         title="Toplam Hayvan"
@@ -200,24 +189,13 @@ const Home = ({ kullanici }) => {
                         icon="🐄"
                         color="#4CAF50"
                         bgColor="#E8F5E9"
-                        description={`${stats?.toplamHayvan?.inek || 0} İnek, ${stats?.toplamHayvan?.duve || 0} Düve, ${stats?.toplamHayvan?.buzagi || 0} Buzağı, ${stats?.toplamHayvan?.tosun || 0} Tosun`}
-                    />
-                </div>
-
-                <div style={{ cursor: 'pointer' }} onClick={() => navigate('/duveler')}>
-                    <StatsCard
-                        title="Gebe Hayvanlar"
-                        value={stats?.gebe?.toplam || 0}
-                        icon="🤰"
-                        color="#2E7D32"
-                        bgColor="#C8E6C9"
-                        description={`${stats?.yaklaşanDogum || 0} yaklaşan doğum`}
+                        description={`${stats?.toplamHayvan?.inek || 0} İnek, ${stats?.toplamHayvan?.buzagi || 0} Buzağı`}
                     />
                 </div>
 
                 <div style={{ cursor: 'pointer' }} onClick={() => navigate('/sut-kaydi')}>
                     <StatsCard
-                        title="Bugünün Süt Üretimi"
+                        title="Günlük Süt"
                         value={stats?.bugunSut?.toFixed(1) || '0.0'}
                         unit="lt"
                         icon="🥛"
@@ -227,14 +205,14 @@ const Home = ({ kullanici }) => {
                     />
                 </div>
 
-                <div style={{ cursor: 'pointer' }} onClick={() => console.log('Bildirimlere git')}>
+                <div style={{ cursor: 'pointer' }} onClick={() => navigate('/duveler')}>
                     <StatsCard
-                        title="Bildirimler"
-                        value={stats?.okunmayanBildirim || 0}
-                        icon="🔔"
-                        color="#FF9800"
-                        bgColor="#FFF3E0"
-                        description="Okunmamış bildirim"
+                        title="Yaklaşan Doğum"
+                        value={stats?.yaklasanDogum || 0}
+                        icon="🤰"
+                        color="#9C27B0"
+                        bgColor="#F3E5F5"
+                        description="Takip edilen"
                     />
                 </div>
             </StatsGrid>
@@ -251,22 +229,15 @@ const Home = ({ kullanici }) => {
                 </div>
             )}
 
-            {/* Sadece Aktiviteler - Kısa Liste */}
+            {/* Aktiviteler */}
             <ContentGrid>
-                <AktivitelerCard aktiviteler={aktiviteler.slice(0, 4)} />
+                <AktivitelerCard aktiviteler={aktiviteler.slice(0, 5)} />
                 <div style={{ textAlign: 'center', marginTop: '-15px' }}>
                     <button
                         onClick={() => navigate('/aktiviteler')}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#4CAF50',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            padding: '10px'
-                        }}
+                        style={{ background: 'none', border: 'none', color: '#4CAF50', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                        Tüm Aktiviteleri Gör →
+                        Tümünü Gör →
                     </button>
                 </div>
             </ContentGrid>
