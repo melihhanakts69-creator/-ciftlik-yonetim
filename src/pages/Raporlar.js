@@ -10,27 +10,39 @@ const PageContainer = styled.div`
   padding: 20px;
   background-color: #f4f7f6;
   min-height: 100vh;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const Header = styled.div`
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   h1 {
     font-size: 28px;
     font-weight: 800;
     color: #2c3e50;
     margin: 0;
+    @media (max-width: 768px) { font-size: 24px; }
   }
   p {
     color: #7f8c8d;
     margin-top: 5px;
+    @media (max-width: 768px) { font-size: 14px; }
   }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr; /* Mobilde yan yana 2'li */
+    gap: 10px;
+    margin-bottom: 20px;
+  }
 `;
 
 const Card = styled.div`
@@ -43,6 +55,11 @@ const Card = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 15px; /* Mobilde daha az padding */
+    border-radius: 12px;
+  }
 `;
 
 const StatValue = styled.div`
@@ -50,6 +67,11 @@ const StatValue = styled.div`
   font-weight: 800;
   color: ${props => props.color || '#2c3e50'};
   margin: 10px 0;
+
+  @media (max-width: 768px) {
+    font-size: 24px; /* Mobilde daha küçük font */
+    margin: 5px 0;
+  }
 `;
 
 const StatLabel = styled.div`
@@ -58,6 +80,10 @@ const StatLabel = styled.div`
   color: #95a5a6;
   text-transform: uppercase;
   letter-spacing: 1px;
+
+  @media (max-width: 768px) {
+    font-size: 11px; /* Mobilde daha küçük label */
+  }
 `;
 
 const ChartContainer = styled.div`
@@ -67,6 +93,12 @@ const ChartContainer = styled.div`
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   height: 400px;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    height: 300px; /* Mobilde daha kısa grafik */
+    padding: 15px;
+    border-radius: 12px;
+  }
 `;
 
 const ChartTitle = styled.h3`
@@ -74,6 +106,11 @@ const ChartTitle = styled.h3`
   color: #2c3e50;
   font-size: 18px;
   font-weight: 700;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
 `;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -156,23 +193,23 @@ const Raporlar = () => {
             {/* Özet Kartlar */}
             <Grid>
                 <Card>
-                    <div style={{ fontSize: '40px' }}>🐄</div>
+                    <div style={{ fontSize: '32px' }}>🐄</div>
                     <StatValue color="#2196F3">{stats.toplamHayvan}</StatValue>
                     <StatLabel>Toplam Hayvan</StatLabel>
                 </Card>
                 <Card>
-                    <div style={{ fontSize: '40px' }}>🥛</div>
+                    <div style={{ fontSize: '32px' }}>🥛</div>
                     <StatValue color="#4CAF50">{avgSut} Lt</StatValue>
                     <StatLabel>Günlük Ort. Süt (Son 30 Gün)</StatLabel>
                 </Card>
                 <Card>
-                    <div style={{ fontSize: '40px' }}>🍼</div>
+                    <div style={{ fontSize: '32px' }}>🍼</div>
                     <StatValue color="#FF9800">{stats.buzagi}</StatValue>
                     <StatLabel>Buzağı Sayısı</StatLabel>
                 </Card>
             </Grid>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
                 {/* Süt Grafiği */}
                 <ChartContainer>
                     <ChartTitle>🥛 Son 30 Günlük Süt Üretimi</ChartTitle>
