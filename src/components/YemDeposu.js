@@ -306,7 +306,25 @@ const YemDeposu = () => {
     aciklama: ''
   });
 
-  const yemTipleri = ['Karma Yem', 'Arpa', 'Mısır', 'Saman', 'Yonca', 'Kepek', 'Diğer'];
+  const yemTipleri = [
+    'Süt Yemi',
+    'Besi Yemi',
+    'Düve Yemi',
+    'Buzağı Başlangıç Yemi',
+    'Buzağı Geliştirme Yemi',
+    'Mısır Silajı',
+    'Pancar Küspesi',
+    'Yonca Balyası',
+    'Yulaf Balyası',
+    'Korunga Balyası',
+    'Fiğ Balyası',
+    'Çayır Balyası',
+    'Saman Balyası',
+    'Arpa',
+    'Mısır (Dane)',
+    'Kepek',
+    'Diğer'
+  ];
 
   useEffect(() => {
     fetchData();
