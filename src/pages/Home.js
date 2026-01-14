@@ -38,13 +38,9 @@ const StatsGrid = styled.div`
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr; /* Yapılacaklar kalktığı için tek kolon */
   gap: 24px;
   margin-bottom: 30px;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
 const LoadingContainer = styled.div`
@@ -255,14 +251,9 @@ const Home = ({ kullanici }) => {
                 </div>
             )}
 
-            {/* Yapılacaklar ve Aktiviteler */}
+            {/* Sadece Aktiviteler */}
             <ContentGrid>
-                <YapilacaklarCard
-                    bildirimler={yapilacaklar}
-                    onTaskComplete={handleTaskComplete}
-                    onTaskClick={(bildirim) => console.log('Bildirim detay:', bildirim)}
-                    onViewAll={() => console.log('Tüm bildirimlere git')}
-                />
+                {/* YapilacaklarCard kaldırıldı */}
                 <AktivitelerCard aktiviteler={aktiviteler} />
             </ContentGrid>
         </DashboardContainer>

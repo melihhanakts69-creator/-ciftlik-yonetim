@@ -5,7 +5,7 @@ import { colors, shadows, borderRadius, spacing } from '../../styles/colors';
 const Card = styled.div`
   background: ${colors.bg.card};
   border-radius: ${borderRadius.lg};
-  padding: ${spacing.lg};
+  padding: ${spacing.md}; /* Reduced from lg */
   box-shadow: ${shadows.md};
   transition: all 0.3s ease;
   cursor: ${props => props.clickable ? 'pointer' : 'default'};
@@ -21,12 +21,12 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: ${spacing.md};
+  margin-bottom: ${spacing.sm}; /* Reduced from md */
 `;
 
 const Title = styled.h3`
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px; /* Reduced from 14px */
+  font-weight: 600;
   color: ${colors.text.secondary};
   margin: 0;
   text-transform: uppercase;
@@ -34,29 +34,29 @@ const Title = styled.h3`
 `;
 
 const IconWrapper = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 32px; /* Reduced from 40px */
+  height: 32px; /* Reduced from 40px */
   border-radius: ${borderRadius.md};
   background: ${props => props.bgColor || colors.bg.green};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px; /* Reduced from 20px */
 `;
 
 const Value = styled.div`
-  font-size: 32px;
+  font-size: 24px; /* Reduced from 32px */
   font-weight: 700;
   color: ${colors.text.primary};
-  margin-bottom: ${spacing.sm};
+  margin-bottom: ${spacing.xs}; /* Reduced from sm */
   display: flex;
   align-items: baseline;
-  gap: ${spacing.sm};
+  gap: ${spacing.xs};
 `;
 
 const Unit = styled.span`
-  font-size: 16px;
-  font-weight: 400;
+  font-size: 14px; /* Reduced from 16px */
+  font-weight: 500;
   color: ${colors.text.secondary};
 `;
 
