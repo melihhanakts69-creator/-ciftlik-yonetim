@@ -1,576 +1,542 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  BarChart, Bar, Legend
+} from 'recharts';
+import { FaPlus, FaBoxOpen, FaClipboardList, FaArrowDown, FaArrowUp, FaFire, FaHistory } from 'react-icons/fa';
 import * as api from '../services/api';
 
-function YemDeposu() {
+// --- Styled Components ---
+
+const PageContainer = styled.div`
+  padding: 20px;
+  background-color: #f4f7f6;
+  min-height: 100vh;
+  padding-bottom: 80px;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+    padding-bottom: 80px;
+  }
+`;
+
+const Header = styled.div`
+  margin-bottom: 20px;
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    @media (max-width: 768px) {
+      font-size: 24px;
+    }
+  }
+`;
+
+const TabContainer = styled.div`
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+`;
+
+const TabButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${props => props.active ? '#4CAF50' : '#7f8c8d'};
+  cursor: pointer;
+  position: relative;
+  padding: 5px 10px;
+
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #4CAF50;
+    transform: scaleX(${props => props.active ? 1 : 0});
+    transition: transform 0.2s;
+  }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+`;
+
+const StockCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  position: relative;
+  border-left: 5px solid ${props => props.color};
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+
+    h3 {
+      margin: 0;
+      color: #2c3e50;
+      font-size: 18px;
+    }
+
+    .badge {
+      background: ${props => props.color};
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  }
+
+  .amount {
+    font-size: 32px;
+    font-weight: 800;
+    color: ${props => props.color};
+    margin-bottom: 5px;
+  }
+
+  .unit {
+    color: #7f8c8d;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 15px;
+    
+    .price {
+      font-size: 13px;
+      color: #95a5a6;
+    }
+  }
+`;
+
+const ProgressBarContainer = styled.div`
+  background: #ecf0f1;
+  border-radius: 10px;
+  height: 10px;
+  width: 100%;
+  margin-top: 15px;
+  overflow: hidden;
+`;
+
+const ProgressBarFill = styled.div`
+  height: 100%;
+  width: ${props => Math.min(props.percent, 100)}%;
+  background: ${props => props.color};
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out;
+`;
+
+const ChartCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+  height: 350px;
+
+  h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 18px;
+  }
+`;
+
+const MovementList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`;
+
+const MovementCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+  }
+
+  .info {
+    h4 { margin: 0 0 4px 0; color: #2c3e50; font-size: 16px; }
+    p { margin: 0; color: #7f8c8d; font-size: 12px; }
+  }
+
+  .amount {
+    font-weight: 800;
+    font-size: 18px;
+  }
+`;
+
+const FAB = styled.button`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.2s;
+
+  &:hover { transform: scale(1.1); }
+  &:active { transform: scale(0.95); }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+
+  h2 { margin-top: 0; color: #2c3e50; }
+`;
+
+const Button = styled.button`
+  padding: 12px 24px;
+  background: ${props => props.primary ? '#4CAF50' : '#eee'};
+  color: ${props => props.primary ? 'white' : '#333'};
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  width: ${props => props.full ? '100%' : 'auto'};
+`;
+
+const InputGroup = styled.div`
+  margin-bottom: 20px;
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    &:focus { border-color: #4CAF50; }
+  }
+`;
+
+const YemDeposu = () => {
   const [stoklar, setStoklar] = useState([]);
-  const [ayarlar, setAyarlar] = useState(null);
-  const [otomatikCalisiyor, setOtomatikCalisiyor] = useState(false);
   const [hareketler, setHareketler] = useState([]);
   const [aktifSekme, setAktifSekme] = useState('stok');
-  const [hareketEkrani, setHareketEkrani] = useState(false);
+  const [modalAcik, setModalAcik] = useState(false);
+  const [ayarlar, setAyarlar] = useState(null);
 
-  // Hareket formu
-  const [yemTipi, setYemTipi] = useState('Karma Yem');
-  const [hareketTipi, setHareketTipi] = useState('Alım');
-  const [miktar, setMiktar] = useState('');
-  const [birimFiyat, setBirimFiyat] = useState('');
-  const [tarih, setTarih] = useState(new Date().toISOString().split('T')[0]);
-  const [aciklama, setAciklama] = useState('');
+  // Form State
+  const [form, setForm] = useState({
+    yemTipi: 'Karma Yem',
+    hareketTipi: 'Alım',
+    miktar: '',
+    birimFiyat: '',
+    tarih: new Date().toISOString().split('T')[0],
+    aciklama: ''
+  });
 
   const yemTipleri = ['Karma Yem', 'Arpa', 'Mısır', 'Saman', 'Yonca', 'Kepek', 'Diğer'];
 
-  // Stokları yükle
   useEffect(() => {
-    stoklariYukle();
-    hareketleriYukle();
-    
-    ayarlariYukle();
+    fetchData();
   }, []);
 
-  const stoklariYukle = async () => {
+  const fetchData = async () => {
     try {
-      const response = await api.getYemStok();
-      setStoklar(response.data);
+      const [stokRes, hareketRes, ayarRes] = await Promise.all([
+        api.getYemStok(),
+        api.getYemHareketler(),
+        api.getAyarlar()
+      ]);
+      setStoklar(stokRes.data);
+      setHareketler(hareketRes.data);
+      setAyarlar(ayarRes.data);
     } catch (error) {
-      console.error('Stoklar yüklenemedi:', error);
+      console.error('Veri hatası:', error);
     }
   };
 
-  const hareketleriYukle = async () => {
-    try {
-      const response = await api.getYemHareketler();
-      setHareketler(response.data);
-    } catch (error) {
-      console.error('Hareketler yüklenemedi:', error);
-    }
-  };
-
- const hareketEkle = async () => {
-    if (!miktar || miktar <= 0) {
-      alert('Geçerli bir miktar girin!');
-      return;
-    }
+  const hareketEkle = async () => {
+    if (!form.miktar || form.miktar <= 0) return alert('Geçerli miktar giriniz');
 
     try {
       await api.createYemHareket({
-        yemTipi,
-        hareketTipi,
-        miktar: parseFloat(miktar),
-        birimFiyat: parseFloat(birimFiyat) || 0,
-        tarih,
-        aciklama
+        ...form,
+        miktar: parseFloat(form.miktar),
+        birimFiyat: parseFloat(form.birimFiyat) || 0
       });
-
-      setMiktar('');
-      setBirimFiyat('');
-      setAciklama('');
-      setHareketEkrani(false);
-
-      await stoklariYukle();
-      await hareketleriYukle();
-
-      alert(`✅ ${hareketTipi} kaydedildi!`);
+      setModalAcik(false);
+      setForm({ ...form, miktar: '', birimFiyat: '', aciklama: '' });
+      fetchData();
     } catch (error) {
-      alert('❌ Hata: ' + (error.response?.data?.message || 'Hareket eklenemedi!'));
+      alert('Kayıt eklenemedi');
     }
   };
 
-  const ayarlariYukle = async () => {
-    try {
-      const response = await api.getAyarlar();
-      setAyarlar(response.data);
-    } catch (error) {
-      console.error('Ayarlar yüklenemedi:', error);
-    }
-  };
+  // Helper: Stok rengi ve durum belirleme
+  const getStockStatus = (stok) => {
+    // Görsel amaçlı bir 'maksimum' kapasite varsayımı yapıyoruz (minStok * 4) veya mantıklı bir üst sınır
+    const maxCapacity = stok.minimumStok * 5 || 1000;
+    const percent = (stok.miktar / maxCapacity) * 100;
 
-  const otomatikToggle = async () => {
-    if (!ayarlar) return;
+    let color = '#4CAF50'; // Yeşil
+    let status = 'İyi';
 
-    try {
-      const response = await api.updateAyarlar({
-        otomatikYemTuketim: !ayarlar.otomatikYemTuketim
-      });
-      setAyarlar(response.data);
-      alert(`Otomatik tüketim ${response.data.otomatikYemTuketim ? 'açıldı' : 'kapatıldı'}!`);
-    } catch (error) {
-      alert('❌ Hata: ' + (error.response?.data?.message || 'Ayar güncellenemedi!'));
-    }
-  };
-
-  const otomatikTuketimCalistir = async () => {
-    if (!ayarlar || !ayarlar.otomatikYemTuketim) {
-      alert('❌ Otomatik tüketim kapalı!');
-      return;
-    }
-
-    if (window.confirm('Bugün için otomatik yem tüketimi yapılsın mı?')) {
-      setOtomatikCalisiyor(true);
-      try {
-        const response = await api.otomatikTuketimCalistir();
-        alert(`✅ ${response.data.message}\n\n${response.data.tuketimler.map(t => `${t.yemTipi}: ${t.miktar} kg`).join('\n')}`);
-        
-        await stoklariYukle();
-        await hareketleriYukle();
-        await ayarlariYukle();
-      } catch (error) {
-        alert('❌ Hata: ' + (error.response?.data?.message || 'Otomatik tüketim yapılamadı!'));
-      } finally {
-        setOtomatikCalisiyor(false);
-      }
-    }
-  };
-
-  // Stok uyarısı kontrolü
-  const stokUyarisi = (stok) => {
     if (stok.miktar <= stok.minimumStok) {
-      return '⚠️ Kritik Seviye!';
+      color = '#f44336'; // Kırmızı
+      status = 'KRİTİK';
     } else if (stok.miktar <= stok.minimumStok * 2) {
-      return '⚡ Azalıyor!';
+      color = '#FF9800'; // Turuncu
+      status = 'AZALIYOR';
     }
-    return '✅ Yeterli';
+
+    return { color, status, percent };
   };
 
-  const stokRenk = (stok) => {
-    if (stok.miktar <= stok.minimumStok) {
-      return '#f44336';
-    } else if (stok.miktar <= stok.minimumStok * 2) {
-      return '#FF9800';
+  // Helper: Hareket ikonu ve rengi
+  const getMovementStyle = (type) => {
+    switch (type) {
+      case 'Alım': return { icon: <FaArrowUp />, color: '#4CAF50', bg: '#E8F5E9' };
+      case 'Tüketim': return { icon: <FaArrowDown />, color: '#FF9800', bg: '#FFF3E0' };
+      case 'Fire': return { icon: <FaFire />, color: '#f44336', bg: '#FFEBEE' };
+      default: return { icon: <FaHistory />, color: '#95a5a6', bg: '#ecf0f1' };
     }
-    return '#4CAF50';
   };
+
+  // Chart Data: Son 7 günlük tüketim
+  const consumptionData = React.useMemo(() => {
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+
+    return last7Days.map(date => {
+      const dailyTotal = hareketler
+        .filter(h => h.hareketTipi === 'Tüketim' && h.tarih.startsWith(date))
+        .reduce((acc, curr) => acc + curr.miktar, 0);
+      return {
+        name: new Date(date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+        tuketim: dailyTotal
+      };
+    });
+  }, [hareketler]);
 
   return (
-    <div>
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h2 style={{ margin: 0 }}>🌾 Yem Deposu</h2>
-          <button
-            onClick={() => setHareketEkrani(true)}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}
-          >
-            + Yem Hareketi Ekle
-          </button>
-        </div>
+    <PageContainer>
+      <Header>
+        <h1>🌾 Yem Deposu</h1>
+      </Header>
 
-        {/* OTOMATİK TÜKETİM KONTROL PANELİ */}
-        {ayarlar && (
-          <div style={{
-            backgroundColor: ayarlar.otomatikYemTuketim ? '#e8f5e9' : '#fff3e0',
-            padding: '15px 20px',
-            borderRadius: '12px',
-            border: `2px solid ${ayarlar.otomatikYemTuketim ? '#4CAF50' : '#FF9800'}`,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '10px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
-                  🤖 Otomatik Tüketim:
-                </span>
-                <button
-                  onClick={otomatikToggle}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: ayarlar.otomatikYemTuketim ? '#4CAF50' : '#9e9e9e',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  {ayarlar.otomatikYemTuketim ? '● AÇIK' : '○ KAPALI'}
-                </button>
-              </div>
+      <TabContainer>
+        <TabButton active={aktifSekme === 'stok'} onClick={() => setAktifSekme('stok')}>
+          <FaBoxOpen /> Stoklar
+        </TabButton>
+        <TabButton active={aktifSekme === 'hareketler'} onClick={() => setAktifSekme('hareketler')}>
+          <FaClipboardList /> Hareketler
+        </TabButton>
+      </TabContainer>
 
-              {ayarlar.sonTuketimTarihi && (
-                <div style={{ fontSize: '13px', color: '#666' }}>
-                  Son tüketim: {new Date(ayarlar.sonTuketimTarihi).toLocaleDateString('tr-TR')}
-                </div>
-              )}
-            </div>
-
-            {ayarlar.otomatikYemTuketim && (
-              <button
-                onClick={otomatikTuketimCalistir}
-                disabled={otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0]}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? '#ccc' : '#2196F3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: otomatikCalisiyor || ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: 'bold'
-                }}
-              >
-                {otomatikCalisiyor ? '⏳ İşleniyor...' : ayarlar.sonTuketimTarihi === new Date().toISOString().split('T')[0] ? '✅ Bugün Yapıldı' : '▶️ Bugün İçin Çalıştır'}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Sekmeler */}
-      <div style={{ display: 'flex', marginBottom: '20px', borderBottom: '2px solid #e0e0e0' }}>
-        <button
-          onClick={() => setAktifSekme('stok')}
-          style={{
-            padding: '12px 24px',
-            border: 'none',
-            backgroundColor: 'transparent',
-            borderBottom: aktifSekme === 'stok' ? '3px solid #4CAF50' : 'none',
-            fontWeight: aktifSekme === 'stok' ? 'bold' : 'normal',
-            fontSize: '16px',
-            cursor: 'pointer',
-            color: aktifSekme === 'stok' ? '#4CAF50' : '#666'
-          }}
-        >
-          📦 Stok Durumu
-        </button>
-        <button
-          onClick={() => setAktifSekme('hareketler')}
-          style={{
-            padding: '12px 24px',
-            border: 'none',
-            backgroundColor: 'transparent',
-            borderBottom: aktifSekme === 'hareketler' ? '3px solid #4CAF50' : 'none',
-            fontWeight: aktifSekme === 'hareketler' ? 'bold' : 'normal',
-            fontSize: '16px',
-            cursor: 'pointer',
-            color: aktifSekme === 'hareketler' ? '#4CAF50' : '#666'
-          }}
-        >
-          📋 Hareketler
-        </button>
-      </div>
-
-      {/* STOK DURUMU */}
       {aktifSekme === 'stok' && (
-        <div>
-          {stoklar.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-              {stoklar.map((stok) => (
-                <div
-                  key={stok._id}
-                  style={{
-                    backgroundColor: '#fff',
-                    padding: '20px',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    border: `3px solid ${stokRenk(stok)}`
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h3 style={{ margin: 0, fontSize: '20px' }}>🌾 {stok.yemTipi}</h3>
-                    <span style={{
-                      padding: '4px 12px',
-                      backgroundColor: stokRenk(stok),
-                      color: 'white',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 'bold'
-                    }}>
-                      {stokUyarisi(stok)}
-                    </span>
-                  </div>
+        <>
+          {/* Tüketim Grafiği */}
+          <ChartCard>
+            <h3>📉 Yem Tüketim Trendi (Son 7 Gün)</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <LineChart data={consumptionData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis />
+                <RechartsTooltip />
+                <Line type="monotone" dataKey="tuketim" name="Tüketim (kg)" stroke="#FF9800" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
 
-                  <div style={{ fontSize: '32px', fontWeight: 'bold', color: stokRenk(stok), marginBottom: '10px' }}>
-                    {stok.miktar.toFixed(0)} {stok.birim}
+          {/* Stok Grid */}
+          <Grid>
+            {stoklar.map(stok => {
+              const { color, status, percent } = getStockStatus(stok);
+              return (
+                <StockCard key={stok._id} color={color}>
+                  <div className="header">
+                    <h3>{stok.yemTipi}</h3>
+                    <span className="badge">{status}</span>
                   </div>
-
-                  <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
-                    Minimum: {stok.minimumStok} {stok.birim}
+                  <div className="amount">
+                    {stok.miktar.toLocaleString()} <span className="unit">{stok.birim}</span>
                   </div>
-
-                  {stok.birimFiyat > 0 && (
-                    <div style={{ fontSize: '14px', color: '#666' }}>
-                      Birim Fiyat: {stok.birimFiyat.toFixed(2)} ₺/{stok.birim}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f5f5f5', borderRadius: '12px' }}>
-              <p style={{ fontSize: '18px', color: '#666' }}>📦 Henüz yem stoku yok</p>
-              <p style={{ fontSize: '14px', color: '#999' }}>Yem hareketi ekleyerek başlayın!</p>
-            </div>
-          )}
-        </div>
+                  <div className="footer">
+                    <div className="unit">Min: {stok.minimumStok}</div>
+                    <div className="price">{stok.birimFiyat ? `${stok.birimFiyat} ₺/kg` : '-'}</div>
+                  </div>
+                  <ProgressBarContainer>
+                    <ProgressBarFill percent={percent} color={color} />
+                  </ProgressBarContainer>
+                </StockCard>
+              );
+            })}
+          </Grid>
+        </>
       )}
 
-      {/* HAREKETLER */}
       {aktifSekme === 'hareketler' && (
-        <div>
-          {hareketler.length > 0 ? (
-            <div style={{ backgroundColor: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              {hareketler.map((hareket, index) => (
-                <div
-                  key={hareket._id}
-                  style={{
-                    padding: '16px 20px',
-                    borderBottom: index < hareketler.length - 1 ? '1px solid #e0e0e0' : 'none',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px' }}>
-                      {hareket.hareketTipi === 'Alım' ? '📥' : hareket.hareketTipi === 'Tüketim' ? '📤' : '🔥'} {hareket.yemTipi}
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#666' }}>
-                      {new Date(hareket.tarih).toLocaleDateString('tr-TR')}
-                      {hareket.aciklama && ` • ${hareket.aciklama}`}
-                    </div>
+        <MovementList>
+          {hareketler.map(h => {
+            const style = getMovementStyle(h.hareketTipi);
+            return (
+              <MovementCard key={h._id}>
+                <div className="left">
+                  <div className="icon" style={{ background: style.bg, color: style.color }}>
+                    {style.icon}
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      color: hareket.hareketTipi === 'Alım' ? '#4CAF50' : '#f44336'
-                    }}>
-                      {hareket.hareketTipi === 'Alım' ? '+' : '-'}{hareket.miktar} kg
-                    </div>
-                    {hareket.toplamTutar > 0 && (
-                      <div style={{ fontSize: '14px', color: '#666' }}>
-                        {hareket.toplamTutar.toFixed(2)} ₺
-                      </div>
-                    )}
+                  <div className="info">
+                    <h4>{h.yemTipi} ({h.hareketTipi})</h4>
+                    <p>{new Date(h.tarih).toLocaleDateString('tr-TR')} • {h.aciklama || 'Açıklama yok'}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f5f5f5', borderRadius: '12px' }}>
-              <p style={{ fontSize: '18px', color: '#666' }}>📋 Henüz hareket kaydı yok</p>
-            </div>
-          )}
-        </div>
+                <div className="amount" style={{ color: style.color }}>
+                  {h.hareketTipi === 'Alım' ? '+' : '-'}{h.miktar} kg
+                </div>
+              </MovementCard>
+            );
+          })}
+        </MovementList>
       )}
 
-      {/* HAREKET EKLEME MODAL */}
-      {hareketEkrani && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '16px',
-            maxWidth: '500px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <h2 style={{ marginTop: 0 }}>➕ Yem Hareketi Ekle</h2>
+      <FAB onClick={() => setModalAcik(true)}>
+        <FaPlus />
+      </FAB>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Yem Tipi:</label>
-              <select
-                value={yemTipi}
-                onChange={(e) => setYemTipi(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #ddd'
-                }}
-              >
-                {yemTipleri.map(tip => (
-                  <option key={tip} value={tip}>{tip}</option>
+      {modalAcik && (
+        <ModalOverlay onClick={() => setModalAcik(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h2>Hareket Ekle</h2>
+            <InputGroup>
+              <label>Hareket Tipi</label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['Alım', 'Tüketim', 'Fire'].map(type => (
+                  <Button
+                    key={type}
+                    primary={form.hareketTipi === type}
+                    onClick={() => setForm({ ...form, hareketTipi: type })}
+                    style={{ flex: 1 }}
+                  >
+                    {type}
+                  </Button>
                 ))}
+              </div>
+            </InputGroup>
+
+            <InputGroup>
+              <label>Yem Tipi</label>
+              <select value={form.yemTipi} onChange={e => setForm({ ...form, yemTipi: e.target.value })}>
+                {yemTipleri.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
-            </div>
+            </InputGroup>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Hareket Tipi:</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => setHareketTipi('Alım')}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    backgroundColor: hareketTipi === 'Alım' ? '#4CAF50' : '#e0e0e0',
-                    color: hareketTipi === 'Alım' ? 'white' : '#666',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  📥 Alım
-                </button>
-                <button
-                  onClick={() => setHareketTipi('Tüketim')}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    backgroundColor: hareketTipi === 'Tüketim' ? '#FF9800' : '#e0e0e0',
-                    color: hareketTipi === 'Tüketim' ? 'white' : '#666',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  📤 Tüketim
-                </button>
-                <button
-                  onClick={() => setHareketTipi('Fire')}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    backgroundColor: hareketTipi === 'Fire' ? '#f44336' : '#e0e0e0',
-                    color: hareketTipi === 'Fire' ? 'white' : '#666',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  🔥 Fire
-                </button>
-              </div>
-            </div>
+            <InputGroup>
+              <label>Miktar (kg)</label>
+              <input type="number" value={form.miktar} onChange={e => setForm({ ...form, miktar: e.target.value })} />
+            </InputGroup>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Miktar (kg): *</label>
-              <input
-                type="number"
-                value={miktar}
-                onChange={(e) => setMiktar(e.target.value)}
-                placeholder="Örn: 500"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #ddd'
-                }}
-              />
-            </div>
-
-            {hareketTipi === 'Alım' && (
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Birim Fiyat (₺/kg):</label>
-                <input
-                  type="number"
-                  value={birimFiyat}
-                  onChange={(e) => setBirimFiyat(e.target.value)}
-                  placeholder="Örn: 15.50"
-                  step="0.01"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid #ddd'
-                  }}
-                />
-              </div>
+            {form.hareketTipi === 'Alım' && (
+              <InputGroup>
+                <label>Birim Fiyat (₺)</label>
+                <input type="number" value={form.birimFiyat} onChange={e => setForm({ ...form, birimFiyat: e.target.value })} />
+              </InputGroup>
             )}
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Tarih: *</label>
-              <input
-                type="date"
-                value={tarih}
-                onChange={(e) => setTarih(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #ddd'
-                }}
-              />
-            </div>
+            <InputGroup>
+              <label>Tarih</label>
+              <input type="date" value={form.tarih} onChange={e => setForm({ ...form, tarih: e.target.value })} />
+            </InputGroup>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Açıklama:</label>
-              <textarea
-                value={aciklama}
-                onChange={(e) => setAciklama(e.target.value)}
-                placeholder="Opsiyonel açıklama..."
-                rows="3"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #ddd',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
+            <InputGroup>
+              <label>Açıklama</label>
+              <input type="text" value={form.aciklama} onChange={e => setForm({ ...form, aciklama: e.target.value })} />
+            </InputGroup>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={() => setHareketEkrani(false)}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  backgroundColor: '#e0e0e0',
-                  color: '#666',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                İptal
-              </button>
-              <button
-                onClick={hareketEkle}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  backgroundColor: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold'
-                }}
-              >
-                Kaydet
-              </button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Button full onClick={() => setModalAcik(false)}>İptal</Button>
+              <Button full primary onClick={hareketEkle}>Kaydet</Button>
             </div>
-          </div>
-        </div>
+          </ModalContent>
+        </ModalOverlay>
       )}
-    </div>
+    </PageContainer>
   );
-}
+};
 
 export default YemDeposu;
