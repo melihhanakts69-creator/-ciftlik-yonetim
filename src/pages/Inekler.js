@@ -8,7 +8,8 @@ const Inekler = () => {
     const [inekler, setInekler] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtre, setFiltre] = useState('');
-    const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
+    // Mobilde varsayılan olarak kart görünümü, PC'de tablo
+    const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? 'card' : 'table');
 
     // Yeni İnek Form State
     // Yeni İnek Form State

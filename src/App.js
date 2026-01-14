@@ -17,6 +17,7 @@ import DuveDetay from './pages/DuveDetay';
 import TosunDetay from './pages/TosunDetay';
 import BuzagiDetay from './pages/BuzagiDetay';
 import Bildirimler from './pages/Bildirimler';
+import Aktiviteler from './pages/Aktiviteler';
 
 // Geçici olarak Raporlar sayfası (Sonra ayrılacak)
 const Raporlar = () => <div>Raporlar Sayfası (Yapım Aşamasında)</div>;
@@ -71,6 +72,7 @@ function App() {
         <Route path="/yem-deposu" element={<YemDeposuComponent />} />
         <Route path="/finansal" element={<Finansal />} />
         <Route path="/bildirimler" element={<Bildirimler />} />
+        <Route path="/aktiviteler" element={<Aktiviteler />} />
         <Route path="/raporlar" element={<Raporlar />} />
 
         {/* Bilinmeyen rotalar */}

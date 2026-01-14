@@ -31,8 +31,8 @@ const Subtitle = styled.p`
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Mobilde 2'li olması için 280 -> 160 */
+  gap: 15px; /* Mobilde boşluk çok olmasın */
   margin-bottom: 30px;
 `;
 
@@ -251,10 +251,24 @@ const Home = ({ kullanici }) => {
                 </div>
             )}
 
-            {/* Sadece Aktiviteler */}
+            {/* Sadece Aktiviteler - Kısa Liste */}
             <ContentGrid>
-                {/* YapilacaklarCard kaldırıldı */}
-                <AktivitelerCard aktiviteler={aktiviteler} />
+                <AktivitelerCard aktiviteler={aktiviteler.slice(0, 4)} />
+                <div style={{ textAlign: 'center', marginTop: '-15px' }}>
+                    <button
+                        onClick={() => navigate('/aktiviteler')}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#4CAF50',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            padding: '10px'
+                        }}
+                    >
+                        Tüm Aktiviteleri Gör →
+                    </button>
+                </div>
             </ContentGrid>
         </DashboardContainer>
     );

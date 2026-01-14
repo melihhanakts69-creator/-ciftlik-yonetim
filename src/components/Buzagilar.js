@@ -5,7 +5,8 @@ import { FaBaby, FaMars, FaVenus, FaPlus, FaSearch, FaEllipsisV, FaEdit, FaTrash
 
 const Buzagilar = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState('card');
+  // Mobilde varsayılan olarak kart görünümü, PC'de tablo
+  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? 'card' : 'table');
   // State
   const [buzagilar, setBuzagilar] = useState([]);
   const [inekler, setInekler] = useState([]); // Anne seçimi için
