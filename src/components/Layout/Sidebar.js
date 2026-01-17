@@ -2,9 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-    FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
-    FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
-    FaSignOutAlt, FaTimes
+  FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
+  FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
+  FaSignOutAlt, FaTimes
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
 
@@ -121,47 +121,48 @@ const IconWrapper = styled.span`
 `;
 
 const Sidebar = ({ onLogout, isOpen, onClose }) => {
-    const menuItems = [
-        { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
-        { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
-        { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
-        { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
-        { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
-        { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
-        { path: '/yem-deposu', name: 'Yem Deposu', icon: <FaWarehouse /> },
-        { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
-        { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
-    ];
+  const menuItems = [
+    { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+    { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
+    { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
+    { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
+    { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
+    { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
+    { path: '/yem-deposu', name: 'Yem Deposu', icon: <FaWarehouse /> },
+    { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> }, // Yeni Modül
+    { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
+    { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
+  ];
 
-    return (
-        <SidebarContainer isOpen={isOpen}>
-            <SidebarHeader>
-                <Brand>🚜 ÇiftlikMod</Brand>
-                <CloseButton onClick={onClose} aria-label="Menüyü Kapat">
-                    <FaTimes />
-                </CloseButton>
-            </SidebarHeader>
+  return (
+    <SidebarContainer isOpen={isOpen}>
+      <SidebarHeader>
+        <Brand>🚜 ÇiftlikMod</Brand>
+        <CloseButton onClick={onClose} aria-label="Menüyü Kapat">
+          <FaTimes />
+        </CloseButton>
+      </SidebarHeader>
 
-            <MenuArea>
-                {menuItems.map((item, index) => (
-                    <StyledNavLink
-                        key={index}
-                        to={item.path}
-                        onClick={onClose} // Mobilde linke tıklayınca menü kapansın
-                    >
-                        <IconWrapper>{item.icon}</IconWrapper>
-                        {item.name}
-                    </StyledNavLink>
-                ))}
-            </MenuArea>
+      <MenuArea>
+        {menuItems.map((item, index) => (
+          <StyledNavLink
+            key={index}
+            to={item.path}
+            onClick={onClose} // Mobilde linke tıklayınca menü kapansın
+          >
+            <IconWrapper>{item.icon}</IconWrapper>
+            {item.name}
+          </StyledNavLink>
+        ))}
+      </MenuArea>
 
-            <FooterArea>
-                <LogoutButton onClick={onLogout}>
-                    <FaSignOutAlt style={{ marginRight: '10px' }} /> Çıkış Yap
-                </LogoutButton>
-            </FooterArea>
-        </SidebarContainer>
-    );
+      <FooterArea>
+        <LogoutButton onClick={onLogout}>
+          <FaSignOutAlt style={{ marginRight: '10px' }} /> Çıkış Yap
+        </LogoutButton>
+      </FooterArea>
+    </SidebarContainer>
+  );
 };
 
 export default Sidebar;
