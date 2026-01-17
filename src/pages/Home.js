@@ -52,7 +52,7 @@ const StatsGrid = styled.div`
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 24px;
   margin-bottom: 30px;
 `;
@@ -177,13 +177,7 @@ const Home = ({ kullanici }) => {
             {/* Stok Uyarısı */}
             {stoklar && <StokUyariCard stoklar={stoklar} onNavigate={() => navigate('/yem-deposu')} />}
 
-            {/* GÜNLÜK İŞLER WIDGET */}
-            {dashboardData.yapilacaklar && (
-                <GunlukIsler
-                    data={dashboardData.yapilacaklar}
-                    onRefresh={fetchDashboardData} // İşlem tamamlanınca yenile
-                />
-            )}
+
 
             {/* İstatistik Grid */}
             <StatsGrid>
@@ -241,16 +235,26 @@ const Home = ({ kullanici }) => {
                 </div>
             )}
 
-            {/* Aktiviteler */}
+            {/* Aktiviteler ve İşler */}
             <ContentGrid>
-                <AktivitelerCard aktiviteler={aktiviteler.slice(0, 5)} />
-                <div style={{ textAlign: 'center', marginTop: '-15px' }}>
-                    <button
-                        onClick={() => navigate('/aktiviteler')}
-                        style={{ background: 'none', border: 'none', color: '#4CAF50', fontWeight: 'bold', cursor: 'pointer' }}
-                    >
-                        Tümünü Gör →
-                    </button>
+                {/* GÜNLÜK İŞLER WIDGET */}
+                {dashboardData.yapilacaklar && (
+                    <GunlukIsler
+                        data={dashboardData.yapilacaklar}
+                        onRefresh={fetchDashboardData}
+                    />
+                )}
+
+                <div>
+                    <AktivitelerCard aktiviteler={aktiviteler.slice(0, 5)} />
+                    <div style={{ textAlign: 'center', marginTop: '-15px' }}>
+                        <button
+                            onClick={() => navigate('/aktiviteler')}
+                            style={{ background: 'none', border: 'none', color: '#4CAF50', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                            Tümünü Gör →
+                        </button>
+                    </div>
                 </div>
             </ContentGrid>
         </DashboardContainer>
