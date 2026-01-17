@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaPlus, FaTrash, FaSave } from 'react-icons/fa';
 import * as api from '../../services/api';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const CalculatorContainer = styled.div`
   background: white;
@@ -187,10 +188,55 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                 </div>
             </TotalBar>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 30 }}>
+                {/* Dağılım Grafiği */}
+                <div style={{ height: 250, background: '#f8f9fa', borderRadius: 12, padding: 10 }}>
+                    <h4 style={{ textAlign: 'center', margin: '5px 0' }}>Yem Dağılımı (Kg)</h4>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={secilenYemler.filter(x => x.yemId).map(x => ({
+                                    name: yemler.find(y => y._id === x.yemId)?.ad || '?',
+                                    value: x.miktar
+                                }))}
+                                cx="50%" cy="50%" outerRadius={80} fill="#8884d8"
+                                dataKey="value" label
+                            >
+                                {secilenYemler.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'][index % 5]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Besin Değerleri Grafiği */}
+                <div style={{ height: 250, background: '#f8f9fa', borderRadius: 12, padding: 10 }}>
+                    <h4 style={{ textAlign: 'center', margin: '5px 0' }}>Besin Değerleri (Analiz)</h4>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={[
+                                { name: 'KM (kg)', value: totals.km },
+                                { name: 'Prot (kg)', value: totals.protein },
+                                { name: 'Enerji (Mcal)', value: totals.enerji || 0 }
+                            ]}
+                            layout="vertical"
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            <YAxis dataKey="name" type="category" width={100} />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#82ca9d" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
             <div style={{ marginTop: 20, textAlign: 'right' }}>
                 <Button onClick={handleSave}><FaSave /> Rasyonu Kaydet</Button>
             </div>
-
         </CalculatorContainer>
     );
 };

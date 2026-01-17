@@ -9,7 +9,7 @@ const yemStokSchema = new mongoose.Schema({
   yemTipi: {
     type: String,
     required: true,
-    enum: ['Karma Yem', 'Arpa', 'Mısır', 'Saman', 'Yonca', 'Kepek', 'Diğer']
+    trim: true
   },
   miktar: {
     type: Number,

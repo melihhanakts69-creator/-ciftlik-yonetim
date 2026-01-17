@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { FaLeaf, FaClipboardList, FaCheckCircle, FaTrash } from 'react-icons/fa';
 import * as api from '../services/api';
 import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
+import YemEkleModal from '../components/Yem/YemEkleModal';
 
 const PageContainer = styled.div`
   padding: 20px;
@@ -46,6 +47,7 @@ const YemMerkezi = () => {
     const [yemler, setYemler] = useState([]);
     const [rasyonlar, setRasyonlar] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -163,17 +165,40 @@ const YemMerkezi = () => {
 
             {activeTab === 'kutuphane' && (
                 <Card>
-                    <h2>Mevcut Yemler</h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <h2 style={{ margin: 0 }}>Mevcut Yemler</h2>
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            style={{ background: '#2e7d32', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 'bold' }}
+                        >
+                            <FaLeaf /> Yeni Yem Ekle
+                        </button>
+                    </div>
+
                     {yemler.map(yem => (
-                        <div key={yem._id} style={{ padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>{yem.ad}</span>
-                            <span style={{ fontWeight: 'bold' }}>{yem.birimFiyat} TL/Kg</span>
+                        <div key={yem._id} style={{ padding: '15px 10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <span style={{ fontWeight: 'bold' }}>{yem.ad}</span>
+                                <div style={{ fontSize: '0.8rem', color: '#888' }}>
+                                    KM: %{yem.kuruMadde} | HP: %{yem.protein} | Enerji: {yem.enerji} Mcal
+                                </div>
+                            </div>
+                            <span style={{ fontWeight: 'bold', color: '#2c3e50', background: '#e0f2f1', padding: '5px 10px', borderRadius: '8px' }}>
+                                {yem.birimFiyat} TL/Kg
+                            </span>
                         </div>
                     ))}
-                    <div style={{ marginTop: 20, textAlign: 'center', color: '#888' }}>
-                        * Yem ekleme özelliği yakında eklenecek. Şimdilik veritabanından ekleyin veya `YemStok` ile entegre.
-                    </div>
                 </Card>
+            )}
+
+            {showAddModal && (
+                <YemEkleModal
+                    onClose={() => setShowAddModal(false)}
+                    onSave={() => {
+                        loadData();
+                        setShowAddModal(false);
+                    }}
+                />
             )}
 
         </PageContainer>

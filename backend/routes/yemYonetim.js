@@ -23,9 +23,30 @@ router.get('/kutuphane', auth, async (req, res) => {
 // Yeni yem ekle
 router.post('/kutuphane', auth, async (req, res) => {
     try {
+        // YemStok entegrasyonu: Stokta bu isimle kayıt var mı bak, yoksa oluştur
+        let stok = await YemStok.findOne({ userId: req.userId, yemTipi: req.body.ad });
+
+        if (!stok) {
+            stok = new YemStok({
+                userId: req.userId,
+                yemTipi: req.body.ad,
+                miktar: 0, // İlk başta 0 stok
+                birim: 'kg',
+                birimFiyat: req.body.birimFiyat || 0
+            });
+            await stok.save();
+        } else {
+            // Stok varsa birim fiyatını güncelle
+            if (req.body.birimFiyat) {
+                stok.birimFiyat = req.body.birimFiyat;
+                await stok.save();
+            }
+        }
+
         const yeniYem = new YemKutuphanesi({
             userId: req.userId,
-            ...req.body
+            ...req.body,
+            yemStokId: stok._id // Bağlantıyı kur
         });
         await yeniYem.save();
         res.status(201).json(yeniYem);
@@ -167,12 +188,39 @@ router.post('/dagit', auth, async (req, res) => {
             toplamGunlukMaliyet += kalemMaliyeti;
 
             // Stoktan düş (YemStok modeli varsa, yoksa YemKutuphanesi'ndeki basit stoktan)
-            if (yem.stokTakibi) {
-                // YemKutuphanesi üzerindeki stoktan düşelim (Basit yöntem)
-                yem.stokMiktari -= harcananMiktar;
-                await yem.save();
+            // YemStok entegrasyonu: Gerçek stoktan düş
+            // Öncelik: yem.yemStokId varsa onu kullan, yoksa isme göre bul
+            let stok = null;
+            if (yem.yemStokId) {
+                stok = await YemStok.findById(yem.yemStokId);
+            }
 
-                // Eğer YemStok kullanıyorsak oradan da düşmeliyiz (İleri seviye)
+            if (!stok) {
+                // İsimle bulmayı dene
+                stok = await YemStok.findOne({ userId, yemTipi: yem.ad });
+            }
+
+            if (stok) {
+                stok.miktar -= harcananMiktar;
+                await stok.save();
+
+                // Yem Hareketi Kaydet
+                await YemHareket.create({
+                    userId,
+                    yemTipi: stok.yemTipi,
+                    hareketTipi: 'Kullanım',
+                    miktar: harcananMiktar,
+                    birimFiyat: stok.birimFiyat,
+                    toplamTutar: kalemMaliyeti,
+                    tarih: islemTarihi,
+                    aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} baş)`
+                });
+            } else {
+                // Stok bulunamadıysa YemKutuphanesi'ndeki basit alanı güncelle (Fallback)
+                if (yem.stokTakibi) {
+                    yem.stokMiktari -= harcananMiktar;
+                    await yem.save();
+                }
             }
         }
 
