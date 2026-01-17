@@ -40,7 +40,7 @@ const LandingPage = () => {
             <header className="landing-header">
                 <div className="brand-logo">
                     <div className="logo-icon">🏡</div>
-                    <span>Çiftlik Yönetim</span>
+                    <span>HARMAN</span>
                 </div>
 
                 <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
@@ -182,7 +182,7 @@ const LandingPage = () => {
             <footer className="landing-footer" id="contact">
                 <div className="footer-content">
                     <div className="footer-brand">
-                        <h2><span style={{ fontSize: '2rem' }}>🏡</span> Çiftlik Yönetim</h2>
+                        <h2><span style={{ fontSize: '2rem' }}>🏡</span> HARMAN</h2>
                         <p style={{ lineHeight: '1.6', color: '#888' }}>
                             Modern çiftçilik için geliştirilmiş, kullanımı kolay ve kapsamlı yönetim platformu.
                         </p>
