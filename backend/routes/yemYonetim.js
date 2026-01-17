@@ -70,26 +70,32 @@ const MASTER_FEED_DATA = {
 };
 
 // Yem eşitleme (Smart Sync)
+// Yem eşitleme (Smart Sync)
 router.post('/kutuphane/sync-stok', auth, async (req, res) => {
     try {
         const stoklar = await YemStok.find({ userId: req.userId });
         let addedCount = 0;
         let matchedCount = 0;
 
+        // Master keys sorted by length desc (Specificity First: "sut 21" checked before "sut")
+        const masterKeys = Object.keys(MASTER_FEED_DATA).sort((a, b) => b.length - a.length);
+
         for (let stok of stoklar) {
             // Zaten kütüphanede var mı?
             const exist = await YemKutuphanesi.findOne({ userId: req.userId, ad: stok.yemTipi });
-            if (!exist) {
-                // Master Data Match
-                const normalizedName = stok.yemTipi.toLowerCase()
-                    .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
-                    .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c');
 
-                // Fuzzy search logic (basit içerir mantığı)
+            if (!exist) {
+                // Normalize Name (Turkish aware)
+                const normalizedName = stok.yemTipi.toLocaleLowerCase('tr-TR')
+                    .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                    .replace(/[^a-z0-9 ]/g, ''); // Remove special chars
+
                 let masterValues = { kuruMadde: 0, protein: 0, enerji: 0, nisasta: 0 };
                 let isMatch = false;
 
-                for (const key in MASTER_FEED_DATA) {
+                // Priority Check
+                for (const key of masterKeys) {
                     if (normalizedName.includes(key)) {
                         masterValues = MASTER_FEED_DATA[key];
                         isMatch = true;
