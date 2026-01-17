@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaLeaf, FaClipboardList, FaCheckCircle, FaTrash } from 'react-icons/fa';
 import * as api from '../services/api';
-import RasyonHesaplayici from '../../components/Yem/RasyonHesaplayici';
+import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 
 const PageContainer = styled.div`
   padding: 20px;
