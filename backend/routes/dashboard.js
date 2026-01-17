@@ -196,6 +196,9 @@ router.get('/yapilacaklar', auth, async (req, res) => {
   try {
     const userId = req.userId;
 
+    // 1. OTOMATİK GÖREV OLUŞTURMA (Her çağrıldığında kontrol eder)
+    await otomatikGorevleriKontrolEt(userId);
+
     // Bugünün bildirimleri
     const bugununkiler = await Bildirim.bugununkiler(userId);
 
@@ -339,5 +342,140 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
     res.status(500).json({ message: 'Sağlık uyarıları alınamadı', error: error.message });
   }
 });
+
+// YARDIMCI FONSİYON: Otomatik Görev Kontrolü
+async function otomatikGorevleriKontrolEt(userId) {
+  try {
+    const bugun = new Date();
+    const yediGunSonra = new Date();
+    yediGunSonra.setDate(bugun.getDate() + 7);
+
+    // 1. DOĞUM KONTROLÜ (7 gün kalanlar)
+    const gebeler = await Promise.all([
+      Inek.find({ userId, gebelikDurumu: 'Gebe' }),
+      Duve.find({ userId, gebelikDurumu: 'Gebe' })
+    ]);
+
+    const tumGebeler = [...gebeler[0], ...gebeler[1]];
+
+    for (const hayvan of tumGebeler) {
+      if (!hayvan.tohumlamaTarihi) continue;
+
+      const tohumlama = new Date(hayvan.tohumlamaTarihi);
+      const dogum = new Date(tohumlama);
+      dogum.setDate(dogum.getDate() + 283); // Tahmini doğum
+
+      // Eğer doğum yaklaştıysa (0-7 gün kaldıysa)
+      if (dogum >= bugun && dogum <= yediGunSonra) {
+        // Zaten bildirim var mı? (Tamamlanmış olsa bile tekrar oluşturma - Bu gebelik için)
+        // Bildirim oluşturulma tarihi tohumlamadan sonra olmalı
+        const varMi = await Bildirim.findOne({
+          userId,
+          tip: 'dogum',
+          hayvanId: hayvan._id,
+          createdAt: { $gte: tohumlama } // Tohumlamadan sonra oluşturulmuş bir bildirim var mı?
+        });
+
+        if (!varMi) {
+          const kalanGun = Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
+          const hayvanTipi = hayvan instanceof Inek ? 'inek' : 'duve';
+
+          await Bildirim.create({
+            userId,
+            tip: 'dogum',
+            baslik: `Doğum Yaklaşıyor: ${hayvan.isim || hayvan.kupeNo}`,
+            mesaj: `Tahmini doğuma ${kalanGun} gün kaldı. Hazırlıkları kontrol et.`,
+            hayvanId: hayvan._id,
+            hayvanTipi,
+            kupe_no: hayvan.kupeNo,
+            oncelik: 'yuksek',
+            hatirlatmaTarihi: bugun
+          });
+        }
+      }
+    }
+
+    // 2. KURU DÖNEM KONTROLÜ (Doğuma 60 gün kala)
+    // Tohumlama + 223 gün = Kuruya ayırma zamanı (283 - 60)
+    for (const hayvan of tumGebeler) {
+      if (!hayvan.tohumlamaTarihi) continue;
+
+      const tohumlama = new Date(hayvan.tohumlamaTarihi);
+      const kuruTarihi = new Date(tohumlama);
+      kuruTarihi.setDate(kuruTarihi.getDate() + 223);
+
+      // Kuruya ayrılma zamanı geldi mi? (bugün ile +7 gün arası)
+      if (kuruTarihi >= bugun && kuruTarihi <= yediGunSonra) {
+        // Zaten bildirim var mı? (Bu gebelik için)
+        const varMi = await Bildirim.findOne({
+          userId,
+          tip: 'kuru_donem',
+          hayvanId: hayvan._id,
+          createdAt: { $gte: tohumlama }
+        });
+
+        if (!varMi) {
+          const kalanGun = Math.ceil((kuruTarihi - bugun) / (1000 * 60 * 60 * 24));
+          const hayvanTipi = hayvan instanceof Inek ? 'inek' : 'duve';
+
+          await Bildirim.create({
+            userId,
+            tip: 'kuru_donem',
+            baslik: `Kuruya Ayırma: ${hayvan.isim || hayvan.kupeNo}`,
+            mesaj: `Doğuma 60 gün kaldı. Hayvanı kuruya ayırma vakti geldi (${kalanGun} gün).`,
+            hayvanId: hayvan._id,
+            hayvanTipi,
+            kupe_no: hayvan.kupeNo,
+            oncelik: 'yuksek',
+            hatirlatmaTarihi: bugun
+          });
+        }
+      }
+    }
+
+    // 3. SÜTTEN KESME KONTROLÜ (2.5 - 3 ay arası buzağılar)
+    const buzagilar = await Buzagi.find({
+      userId,
+      cinsiyet: { $exists: true } // Hepsi
+    });
+
+    for (const buzagi of buzagilar) {
+      if (buzagi.dogumTarihi) {
+        const dogum = new Date(buzagi.dogumTarihi);
+        const gunFarki = Math.floor((bugun - dogum) / (1000 * 60 * 60 * 24));
+
+        // 75-90 gün arası (2.5 - 3 ay) ve henüz sütten kesilmemişse
+        // Not: Buzagi modelinde 'durum' veya 'suttenKesildi' alanı varsa kontrol edilmeli.
+        // Şimdilik sadece gününe bakıyoruz ve bildirim yoksa ekliyoruz.
+        if (gunFarki >= 75 && gunFarki <= 95) {
+          const varMi = await Bildirim.findOne({
+            userId,
+            // tip: 'diger', // İptal, tip ile değil ID ile bakacağız
+            hayvanId: buzagi._id,
+            baslik: { $regex: 'Sütten Kesme' }
+            // Tamamlanmış olsa bile tekrar sorma
+          });
+
+          if (!varMi) {
+            await Bildirim.create({
+              userId,
+              tip: 'diger',
+              baslik: `Sütten Kesme: ${buzagi.kupeNo}`,
+              mesaj: `Buzağı ${Math.floor(gunFarki / 30)} aylık oldu. Sütten kesmeyi planla.`,
+              hayvanId: buzagi._id,
+              hayvanTipi: 'buzagi',
+              kupe_no: buzagi.kupeNo,
+              oncelik: 'normal',
+              hatirlatmaTarihi: bugun
+            });
+          }
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error('Otomatik görev hatası:', err);
+  }
+}
 
 module.exports = router;

@@ -6,6 +6,7 @@ import PerformansChart from '../components/Dashboard/PerformansChart';
 import AktivitelerCard from '../components/Dashboard/AktivitelerCard';
 import FinansOzetCard from '../components/Dashboard/FinansOzetCard'; // Yeni
 import StokUyariCard from '../components/Dashboard/StokUyariCard'; // Yeni
+import GunlukIsler from '../components/Dashboard/GunlukIsler'; // Yeni Widget
 import * as api from '../services/api'; // API servisi
 
 // Styled Components
@@ -83,7 +84,8 @@ const Home = ({ kullanici }) => {
         performans: [],
         aktiviteler: [],
         finans: null, // Yeni
-        stoklar: []   // Yeni
+        stoklar: [],   // Yeni
+        yapilacaklar: null // Yeni: Günlük İşler
     });
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -108,12 +110,13 @@ const Home = ({ kullanici }) => {
             };
 
             // Paralel istekler (API servis fonksiyonlarını da kullanabiliriz ama mevcut yapı fetch üzerine kurulu, uyumlu gidelim dedik ama finans/stok için api.js kullanalım)
-            const [statsRes, performansRes, aktivitelerRes, finansRes, stokRes] = await Promise.all([
+            const [statsRes, performansRes, aktivitelerRes, finansRes, stokRes, yapilacaklarRes] = await Promise.all([
                 fetch(`${API_URL}/dashboard/stats`, { headers }),
                 fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }),
                 fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }),
                 api.getFinansalOzet({}), // Bu ayın özeti
-                api.getYemStok()
+                api.getYemStok(),
+                api.getYapilacaklar() // Yeni: Günlük işler
             ]);
 
             const [stats, performans, aktiviteler] = await Promise.all([
@@ -127,7 +130,8 @@ const Home = ({ kullanici }) => {
                 performans,
                 aktiviteler,
                 finans: finansRes.data,
-                stoklar: stokRes.data
+                stoklar: stokRes.data,
+                yapilacaklar: yapilacaklarRes?.data || null // Yeni
             });
 
             setError(null);
@@ -172,6 +176,14 @@ const Home = ({ kullanici }) => {
 
             {/* Stok Uyarısı */}
             {stoklar && <StokUyariCard stoklar={stoklar} onNavigate={() => navigate('/yem-deposu')} />}
+
+            {/* GÜNLÜK İŞLER WIDGET */}
+            {dashboardData.yapilacaklar && (
+                <GunlukIsler
+                    data={dashboardData.yapilacaklar}
+                    onRefresh={fetchDashboardData} // İşlem tamamlanınca yenile
+                />
+            )}
 
             {/* İstatistik Grid */}
             <StatsGrid>

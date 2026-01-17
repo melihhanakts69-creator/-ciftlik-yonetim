@@ -139,4 +139,7 @@ export const createSatisIslemi = (data) => api.post('/alis-satis/satis', data);
 export const createAlisIslemi = (data) => api.post('/alis-satis/alis', data);
 export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
 
+// DASHBOARD
+export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
+
 export default api;
