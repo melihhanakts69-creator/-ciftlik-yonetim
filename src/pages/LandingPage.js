@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../logo.png';
 import '../styles/LandingPage.css';
 
 const LandingPage = () => {
@@ -39,7 +40,7 @@ const LandingPage = () => {
             {/* HEADER */}
             <header className="landing-header">
                 <div className="brand-logo">
-                    <div className="logo-icon">🏡</div>
+                    <img src={logo} alt="HARMAN Logo" className="logo-image" style={{ height: '50px', width: '50px', objectFit: 'contain' }} />
                     <span>HARMAN</span>
                 </div>
 
@@ -182,7 +183,7 @@ const LandingPage = () => {
             <footer className="landing-footer" id="contact">
                 <div className="footer-content">
                     <div className="footer-brand">
-                        <h2><span style={{ fontSize: '2rem' }}>🏡</span> HARMAN</h2>
+                        <h2><img src={logo} alt="HARMAN Logo" style={{ height: '40px', marginRight: '10px' }} /> HARMAN</h2>
                         <p style={{ lineHeight: '1.6', color: '#888' }}>
                             Modern çiftçilik için geliştirilmiş, kullanımı kolay ve kapsamlı yönetim platformu.
                         </p>
