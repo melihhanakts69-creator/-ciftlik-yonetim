@@ -7,6 +7,7 @@ import AktivitelerCard from '../components/Dashboard/AktivitelerCard';
 import FinansOzetCard from '../components/Dashboard/FinansOzetCard'; // Yeni
 import StokUyariCard from '../components/Dashboard/StokUyariCard'; // Yeni
 import GunlukIsler from '../components/Dashboard/GunlukIsler'; // Yeni Widget
+import HizliYemlemeWidget from '../components/Dashboard/HizliYemlemeWidget'; // Yeni: Hızlı Yemleme
 import * as api from '../services/api'; // API servisi
 
 // Styled Components
@@ -244,6 +245,9 @@ const Home = ({ kullanici }) => {
                         onRefresh={fetchDashboardData}
                     />
                 )}
+
+                {/* HIZLI YEMLEME WIDGET */}
+                <HizliYemlemeWidget />
 
                 <div>
                     <AktivitelerCard aktiviteler={aktiviteler.slice(0, 5)} />
