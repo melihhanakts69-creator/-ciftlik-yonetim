@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaPlus, FaTrash, FaSave, FaCalculator, FaInfoCircle, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // --- STYLED COMPONENTS ---
 const PageGrid = styled.div`
@@ -18,7 +18,11 @@ const CalculatorContainer = styled.div`
 
 const InfoPanel = styled.div`
   background: #f8f9fa; border-radius: 12px; padding: 25px;
-  border: 1px solid #e9ecef; position: sticky; top: 20px; h-fit: 100%;
+  border: 1px solid #e9ecef; position: sticky; top: 20px; min-height: 500px;
+`;
+
+const SectionTitle = styled.h3`
+  color: #2c3e50; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1.2rem;
 `;
 
 const InputGroup = styled.div`
@@ -63,10 +67,6 @@ const ProgressBar = styled.div`
   div { height: 100%; background: ${props => props.bg}; width: ${props => props.width}%; transition: width 0.5s; }
 `;
 
-const SectionTitle = styled.h3`
-  color: #2c3e50; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1.2rem;
-`;
-
 // --- CONSTANTS ---
 const NUTRIENT_TARGETS = {
     sagmal: { protein: [16, 18], enerji: [2.6, 2.8], km: [20, 24] },
@@ -76,19 +76,14 @@ const NUTRIENT_TARGETS = {
     kuru: { protein: [12, 14], enerji: [1.8, 2.1], km: [12, 14] }
 };
 
-const RasyonHesaplayici = ({ yemler, onSave }) => {
+const RasyonHesaplayici = ({ yemler = [], onSave }) => {
     const [rasyonAdi, setRasyonAdi] = useState('');
     const [hedefGrup, setHedefGrup] = useState('sagmal');
-    const [hayvanSayisi, setHayvanSayisi] = useState(50); // Batch size
+    const [hayvanSayisi, setHayvanSayisi] = useState(50);
     const [secilenYemler, setSecilenYemler] = useState([{ yemId: '', miktar: 0 }]);
-    const [activeFeedId, setActiveFeedId] = useState(null); // Last interacted feed for Info Panel
+    const [activeFeedId, setActiveFeedId] = useState(null);
 
-    // Analysis State
-    const [analysis, setAnalysis] = useState({ maliyet: 0, km: 0, protein: 0, enerji: 0 });
-
-    useEffect(() => {
-        calculateAnalysis();
-    }, [secilenYemler, yemler, hayvanSayisi]);
+    const [analysis, setAnalysis] = useState({ maliyet: 0, km: 0, proteinPct: 0, enerjiAvg: 0 });
 
     const calculateAnalysis = () => {
         let m = 0, k = 0, p = 0, e = 0;
@@ -98,20 +93,15 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
             const yem = yemler.find(y => y._id === item.yemId);
             if (yem && item.miktar > 0) {
                 totalKg += item.miktar;
-                m += item.miktar * yem.birimFiyat;
-                k += (item.miktar * yem.kuruMadde) / 100;
-                e += (item.miktar * yem.enerji);
-                p += (item.miktar * yem.protein) / 100; // Protein % ise kg hesabı
+                m += item.miktar * (yem.birimFiyat || 0);
+                k += (item.miktar * (yem.kuruMadde || 0)) / 100;
+                e += (item.miktar * (yem.enerji || 0));
+                p += (item.miktar * (yem.protein || 0)) / 100;
             }
         });
 
-        // Ağırlıklı ortalama hesaplar (Örn: Rasyonun toplam protein yüzdesi)
-        // Basit toplam yerine, toplam KM içindeki oranı bulmak daha doğru olur ama 
-        // şimdilik kullanıcıya "Toplam Protein (gr)" veya "Ortalama %" göstermek için:
-        // Biz burada basitçe "Rasyondaki Ortalama %"yi hesaplayalım:
-
-        let avgProtein = totalKg > 0 ? (p * 100 / totalKg) : 0; // %
-        let avgEnerji = totalKg > 0 ? (e / totalKg) : 0; // Mcal/kg
+        let avgProtein = totalKg > 0 ? (p * 100 / totalKg) : 0;
+        let avgEnerji = totalKg > 0 ? (e / totalKg) : 0;
 
         if (isNaN(avgProtein)) avgProtein = 0;
         if (isNaN(avgEnerji)) avgEnerji = 0;
@@ -119,11 +109,14 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
         setAnalysis({ maliyet: m, km: k, proteinPct: avgProtein, enerjiAvg: avgEnerji, totalKg });
     };
 
+    useEffect(() => {
+        calculateAnalysis();
+    }, [secilenYemler, yemler, hayvanSayisi]);
+
     const handleFeedChange = (index, field, value) => {
         const list = [...secilenYemler];
         list[index][field] = value;
         setSecilenYemler(list);
-
         if (field === 'yemId') setActiveFeedId(value);
     };
 
@@ -133,15 +126,14 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
             ad: rasyonAdi,
             hedefGrup,
             icerik: secilenYemler.filter(x => x.yemId && x.miktar > 0),
-            toplamMaliyet: analysis.maliyet // Kaydederken maliyeti de ekle
+            toplamMaliyet: analysis.maliyet
         });
     };
 
     const activeFeed = yemler.find(y => y._id === activeFeedId);
     const targets = NUTRIENT_TARGETS[hedefGrup] || NUTRIENT_TARGETS.sagmal;
 
-    // Helper for Status Badge
-    const getStatus = (val, min, max, label) => {
+    const getStatus = (val, min, max) => {
         if (val < min) return { color: '#ffebee', text: '#c62828', icon: <FaExclamationTriangle />, msg: 'Düşük' };
         if (val > max) return { color: '#fff3e0', text: '#ef6c00', icon: <FaExclamationTriangle />, msg: 'Yüksek' };
         return { color: '#e8f5e9', text: '#2e7d32', icon: <FaCheckCircle />, msg: 'İdeal' };
@@ -150,9 +142,16 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
     const proteinStatus = getStatus(analysis.proteinPct, targets.protein[0], targets.protein[1]);
     const energyStatus = getStatus(analysis.enerjiAvg, targets.enerji[0], targets.enerji[1]);
 
+    // Safety for Pie Chart
+    const pieData = secilenYemler
+        .filter(x => x.yemId && x.miktar > 0)
+        .map(x => ({
+            name: yemler.find(y => y._id === x.yemId)?.ad || '?',
+            value: x.miktar
+        }));
+
     return (
         <PageGrid>
-            {/* LEFT COLUMN: CALCULATOR */}
             <CalculatorContainer>
                 <SectionTitle><FaCalculator /> Rasyon Planlama</SectionTitle>
 
@@ -178,7 +177,7 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
 
                 <div style={{ background: '#f8f9fa', padding: 10, borderRadius: 8, marginBottom: 15, display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr auto', fontWeight: 'bold', color: '#666' }}>
                     <span>Yem Adı</span>
-                    <span>1 Hayvan (Kg)</span>
+                    <span>1 Baş (Kg)</span>
                     <span>{hayvanSayisi} Baş (Kg)</span>
                     <span></span>
                 </div>
@@ -187,7 +186,7 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                     <FeedRow key={index} active={item.yemId === activeFeedId} onClick={() => setActiveFeedId(item.yemId)}>
                         <select value={item.yemId} onChange={e => handleFeedChange(index, 'yemId', e.target.value)}>
                             <option value="">Yem Seç...</option>
-                            {yemler.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
+                            {yemler && yemler.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
                         </select>
 
                         <input
@@ -201,7 +200,8 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                             {(item.miktar * hayvanSayisi).toFixed(0)} <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>Kg</span>
                         </div>
 
-                        <button onClick={() => {
+                        <button onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click
                             const list = [...secilenYemler];
                             list.splice(index, 1);
                             setSecilenYemler(list);
@@ -223,7 +223,7 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                             <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#2e7d32' }}>{analysis.maliyet.toFixed(2)} TL</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.9rem', color: '#666' }}>Toplam Mikser Maliyeti ({hayvanSayisi} Baş)</div>
+                            <div style={{ fontSize: '0.9rem', color: '#666' }}>Toplam Mikser ({hayvanSayisi} Baş)</div>
                             <div style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333' }}>{(analysis.maliyet * hayvanSayisi).toFixed(2)} TL</div>
                         </div>
                     </div>
@@ -237,11 +237,9 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
             </CalculatorContainer>
 
 
-            {/* RIGHT COLUMN: INFO PANEL */}
             <InfoPanel>
                 <SectionTitle><FaInfoCircle /> Analiz & Rehber</SectionTitle>
 
-                {/* 1. SEÇİLİ YEM DETAYI */}
                 {activeFeed ? (
                     <div style={{ background: 'white', padding: 15, borderRadius: 10, marginBottom: 20, borderLeft: '5px solid #2196f3' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -261,7 +259,6 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                     </div>
                 )}
 
-                {/* 2. RASYON ANALİZİ */}
                 <h4 style={{ color: '#2c3e50', borderBottom: '1px solid #eee', paddingBottom: 5 }}>Rasyon Dengesi</h4>
 
                 <StatCard>
@@ -289,14 +286,11 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
-                                data={secilenYemler.filter(x => x.yemId).map(x => ({
-                                    name: yemler.find(y => y._id === x.yemId)?.ad || '?',
-                                    value: x.miktar
-                                }))}
+                                data={pieData}
                                 cx="50%" cy="50%" innerRadius={40} outerRadius={70} fill="#8884d8" paddingAngle={5}
                                 dataKey="value"
                             >
-                                {secilenYemler.map((entry, index) => (
+                                {pieData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'][index % 5]} />
                                 ))}
                             </Pie>
@@ -310,7 +304,5 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
         </PageGrid>
     );
 };
-
-
 
 export default RasyonHesaplayici;
