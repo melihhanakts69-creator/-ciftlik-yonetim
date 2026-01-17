@@ -6,7 +6,8 @@ const Bildirim = require('../models/Bildirim');
 // Tüm bildirimleri listele
 router.get('/', auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.userId;
+
     const {
       tip,
       oncelik,
@@ -55,7 +56,7 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const bildirim = await Bildirim.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!bildirim) {
@@ -74,7 +75,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const bildirimData = {
       ...req.body,
-      userId: req.user.userId
+      userId: req.userId
     };
 
     const bildirim = new Bildirim(bildirimData);
@@ -96,7 +97,7 @@ router.put('/:id', auth, async (req, res) => {
     const bildirim = await Bildirim.findOneAndUpdate(
       {
         _id: req.params.id,
-        userId: req.user.userId
+        userId: req.userId
       },
       req.body,
       { new: true, runValidators: true }
@@ -122,7 +123,7 @@ router.delete('/:id', auth, async (req, res) => {
     const bildirim = await Bildirim.findOneAndUpdate(
       {
         _id: req.params.id,
-        userId: req.user.userId
+        userId: req.userId
       },
       { aktif: false },
       { new: true }
@@ -144,7 +145,7 @@ router.patch('/:id/okundu', auth, async (req, res) => {
   try {
     const bildirim = await Bildirim.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!bildirim) {
@@ -168,7 +169,7 @@ router.patch('/:id/tamamlandi', auth, async (req, res) => {
   try {
     const bildirim = await Bildirim.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!bildirim) {
@@ -192,7 +193,7 @@ router.patch('/toplu/okundu', auth, async (req, res) => {
   try {
     const result = await Bildirim.updateMany(
       {
-        userId: req.user.userId,
+        userId: req.userId,
         okundu: false,
         aktif: true
       },
@@ -215,7 +216,7 @@ router.patch('/toplu/okundu', auth, async (req, res) => {
 // Okunmamış bildirimler
 router.get('/liste/okunmayan', auth, async (req, res) => {
   try {
-    const bildirimler = await Bildirim.okunmayanlar(req.user.userId);
+    const bildirimler = await Bildirim.okunmayanlar(req.userId);
 
     res.json(bildirimler);
   } catch (error) {
@@ -227,7 +228,7 @@ router.get('/liste/okunmayan', auth, async (req, res) => {
 // Bugünün bildirimleri
 router.get('/liste/bugun', auth, async (req, res) => {
   try {
-    const bildirimler = await Bildirim.bugununkiler(req.user.userId);
+    const bildirimler = await Bildirim.bugununkiler(req.userId);
 
     res.json(bildirimler);
   } catch (error) {
@@ -239,7 +240,7 @@ router.get('/liste/bugun', auth, async (req, res) => {
 // Gecikmiş bildirimler
 router.get('/liste/geciken', auth, async (req, res) => {
   try {
-    const bildirimler = await Bildirim.gecikmisler(req.user.userId);
+    const bildirimler = await Bildirim.gecikmisler(req.userId);
 
     res.json(bildirimler);
   } catch (error) {
@@ -253,7 +254,7 @@ router.get('/liste/yaklasan', auth, async (req, res) => {
   try {
     const gun = parseInt(req.query.gun) || 7;
 
-    const bildirimler = await Bildirim.yaklaşanlar(req.user.userId, gun);
+    const bildirimler = await Bildirim.yaklaşanlar(req.userId, gun);
 
     res.json(bildirimler);
   } catch (error) {
@@ -265,7 +266,7 @@ router.get('/liste/yaklasan', auth, async (req, res) => {
 // Bildirim istatistikleri
 router.get('/ozet/istatistik', auth, async (req, res) => {
   try {
-    const istatistikler = await Bildirim.istatistikler(req.user.userId);
+    const istatistikler = await Bildirim.istatistikler(req.userId);
 
     res.json(istatistikler);
   } catch (error) {
@@ -278,7 +279,7 @@ router.get('/ozet/istatistik', auth, async (req, res) => {
 router.get('/hayvan/:hayvanId', auth, async (req, res) => {
   try {
     const bildirimler = await Bildirim.find({
-      userId: req.user.userId,
+      userId: req.userId,
       hayvanId: req.params.hayvanId,
       aktif: true
     }).sort({ hatirlatmaTarihi: -1 });
@@ -294,12 +295,12 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
 router.get('/tip/:tip', auth, async (req, res) => {
   try {
     const bildirimler = await Bildirim.find({
-      userId: req.user.userId,
+      userId: req.userId,
       tip: req.params.tip,
       aktif: true
     })
-    .sort({ hatirlatmaTarihi: -1 })
-    .limit(50);
+      .sort({ hatirlatmaTarihi: -1 })
+      .limit(50);
 
     res.json(bildirimler);
   } catch (error) {

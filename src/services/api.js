@@ -142,4 +142,17 @@ export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
 // DASHBOARD
 export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
 
+// YEM YÖNETİM SİSTEMİ (Phase 3.5)
+export const getYemKutuphanesi = () => api.get('/yem-yonetim/kutuphane');
+export const createYemItem = (data) => api.post('/yem-yonetim/kutuphane', data);
+export const deleteYemItem = (id) => api.delete(`/yem-yonetim/kutuphane/${id}`);
+
+export const getRasyonlar = () => api.get('/yem-yonetim/rasyon');
+export const createRasyon = (data) => api.post('/yem-yonetim/rasyon', data);
+export const deleteRasyon = (id) => api.delete(`/yem-yonetim/rasyon/${id}`);
+
+// Yem Dağıt (Depodan düş, maliyet yaz)
+// data: { rasyonId: string, tarih: string (optional) }
+export const rasyonDagit = (data) => api.post('/yem-yonetim/dagit', data);
+
 export default api;

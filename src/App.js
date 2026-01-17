@@ -20,6 +20,7 @@ import BuzagiDetay from './pages/BuzagiDetay';
 import Bildirimler from './pages/Bildirimler';
 import Aktiviteler from './pages/Aktiviteler';
 import Raporlar from './pages/Raporlar';
+import YemMerkezi from './pages/YemMerkezi'; // Yeni Modül
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -78,6 +79,7 @@ function App() {
         <Route path="/bildirimler" element={<Bildirimler />} />
         <Route path="/aktiviteler" element={<Aktiviteler />} />
         <Route path="/raporlar" element={<Raporlar />} />
+        <Route path="/yem-merkezi" element={<YemMerkezi />} />
 
         {/* Bilinmeyen rotalar */}
         <Route path="*" element={<Navigate to="/" replace />} />
