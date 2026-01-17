@@ -145,6 +145,7 @@ export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
 // YEM YÖNETİM SİSTEMİ (Phase 3.5)
 export const getYemKutuphanesi = () => api.get('/yem-yonetim/kutuphane');
 export const createYemItem = (data) => api.post('/yem-yonetim/kutuphane', data);
+export const syncStokToLibrary = () => api.post('/yem-yonetim/kutuphane/sync-stok');
 export const deleteYemItem = (id) => api.delete(`/yem-yonetim/kutuphane/${id}`);
 
 export const getRasyonlar = () => api.get('/yem-yonetim/rasyon');

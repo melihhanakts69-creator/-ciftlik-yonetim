@@ -10,6 +10,80 @@ const Inek = require('../models/Inek');
 
 // --- YEM KÜTÜPHANESİ ---
 
+const MASTER_FEED_DATA = {
+    'misir silaji': { kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
+    'misir silaj': { kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
+    'yonca': { kuruMadde: 90, protein: 16, enerji: 2.1, nisasta: 2 },
+    'yonca kuru': { kuruMadde: 90, protein: 16, enerji: 2.1, nisasta: 2 },
+    'saman': { kuruMadde: 90, protein: 3, enerji: 1.6, nisasta: 0 },
+    'bugday samani': { kuruMadde: 90, protein: 3, enerji: 1.6, nisasta: 0 },
+    'arpa': { kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
+    'arpa ezme': { kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
+    'misir': { kuruMadde: 88, protein: 9, enerji: 3.1, nisasta: 70 },
+    'misir flake': { kuruMadde: 88, protein: 9, enerji: 3.2, nisasta: 72 },
+    'sut yemi': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
+    'sut yemi 19': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
+    'sut yemi 21': { kuruMadde: 88, protein: 21, enerji: 2.7, nisasta: 25 },
+    'besi yemi': { kuruMadde: 88, protein: 14, enerji: 2.8, nisasta: 35 },
+    'soya': { kuruMadde: 90, protein: 48, enerji: 3.3, nisasta: 5 },
+    'soya kuspesi': { kuruMadde: 90, protein: 48, enerji: 3.3, nisasta: 5 },
+    'pamuk': { kuruMadde: 90, protein: 24, enerji: 2.2, nisasta: 2 }, // Tohum
+    'pamuk kuspesi': { kuruMadde: 90, protein: 28, enerji: 2.1, nisasta: 2 },
+    'kepek': { kuruMadde: 89, protein: 15, enerji: 2.3, nisasta: 20 },
+    'bugday kepegi': { kuruMadde: 89, protein: 15, enerji: 2.3, nisasta: 20 },
+    'yulaf': { kuruMadde: 89, protein: 11, enerji: 2.6, nisasta: 40 },
+    'pancar posasi': { kuruMadde: 22, protein: 9, enerji: 2.6, nisasta: 1 }, // Yaş
+};
+
+// Yem eşitleme (Smart Sync)
+router.post('/kutuphane/sync-stok', auth, async (req, res) => {
+    try {
+        const stoklar = await YemStok.find({ userId: req.userId });
+        let addedCount = 0;
+        let matchedCount = 0;
+
+        for (let stok of stoklar) {
+            // Zaten kütüphanede var mı?
+            const exist = await YemKutuphanesi.findOne({ userId: req.userId, ad: stok.yemTipi });
+            if (!exist) {
+                // Master Data Match
+                const normalizedName = stok.yemTipi.toLowerCase()
+                    .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c');
+
+                // Fuzzy search logic (basit içerir mantığı)
+                let masterValues = { kuruMadde: 0, protein: 0, enerji: 0, nisasta: 0 };
+                let isMatch = false;
+
+                for (const key in MASTER_FEED_DATA) {
+                    if (normalizedName.includes(key)) {
+                        masterValues = MASTER_FEED_DATA[key];
+                        isMatch = true;
+                        break;
+                    }
+                }
+
+                if (isMatch) matchedCount++;
+
+                const yeniYem = new YemKutuphanesi({
+                    userId: req.userId,
+                    ad: stok.yemTipi,
+                    birimFiyat: stok.birimFiyat,
+                    yemStokId: stok._id,
+                    ...masterValues
+                });
+                await yeniYem.save();
+                addedCount++;
+            }
+        }
+
+        res.json({ message: 'Eşitleme tamamlandı', added: addedCount, matched: matchedCount });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // Tüm yemleri getir
 router.get('/kutuphane', auth, async (req, res) => {
     try {

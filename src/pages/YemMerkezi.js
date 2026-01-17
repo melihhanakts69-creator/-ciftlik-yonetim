@@ -168,6 +168,25 @@ const YemMerkezi = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                         <h2 style={{ margin: 0 }}>Mevcut Yemler</h2>
                         <button
+                            onClick={async () => {
+                                if (window.confirm('Depodaki yemler kütüphaneye aktarılacak ve besin değerleri otomatik doldurulacak. Onaylıyor musun?')) {
+                                    setLoading(true);
+                                    try {
+                                        const res = await api.syncStokToLibrary();
+                                        alert(`İşlem Tamam! ${res.data.added} yem eklendi, ${res.data.matched} tanesi otomatik tanımlandı.`);
+                                        loadData();
+                                    } catch (e) {
+                                        alert('Hata oluştu');
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }
+                            }}
+                            style={{ background: '#0288d1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 'bold', marginRight: 10 }}
+                        >
+                            <FaClipboardList /> Akıllı Eşitle
+                        </button>
+                        <button
                             onClick={() => setShowAddModal(true)}
                             style={{ background: '#2e7d32', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 'bold' }}
                         >
