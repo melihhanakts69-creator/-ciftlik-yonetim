@@ -1,197 +1,284 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaPlus, FaTrash, FaSave } from 'react-icons/fa';
-import * as api from '../../services/api';
+import { FaPlus, FaTrash, FaSave, FaCalculator, FaInfoCircle, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
+// --- STYLED COMPONENTS ---
+const PageGrid = styled.div`
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  @media (max-width: 1000px) { grid-template-columns: 1fr; }
+`;
+
 const CalculatorContainer = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
+  background: white; border-radius: 12px; padding: 25px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 `;
 
-const SectionTitle = styled.h3`
-  color: #2c3e50;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const InfoPanel = styled.div`
+  background: #f8f9fa; border-radius: 12px; padding: 25px;
+  border: 1px solid #e9ecef; position: sticky; top: 20px; h-fit: 100%;
 `;
 
 const InputGroup = styled.div`
-  margin-bottom: 15px;
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
+  margin-bottom: 20px;
+  label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
   input, select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+    &:focus { border-color: #4caf50; outline: none; }
   }
 `;
 
 const FeedRow = styled.div`
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr auto;
+  grid-template-columns: 2.5fr 1fr 1fr auto;
   gap: 15px;
   align-items: center;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 10px;
-`;
-
-const TotalBar = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  background: #2e7d32;
-  color: white;
   padding: 15px;
-  border-radius: 8px;
-  margin-top: 20px;
-  text-align: center;
-
-  div {
-    display: flex;
-    flex-direction: column;
-    span.val { font-size: 1.2rem; font-weight: bold; }
-    span.lbl { font-size: 0.8rem; opacity: 0.8; }
-  }
+  background: ${props => props.active ? '#e8f5e9' : '#fff'};
+  border: 1px solid ${props => props.active ? '#c8e6c9' : '#eee'};
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+  &:hover { background: #f1f8e9; transform: translateX(5px); }
 `;
 
-const Button = styled.button`
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  background: ${props => props.danger ? '#ef5350' : '#4caf50'};
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
+const Badge = styled.span`
+  background: ${props => props.color || '#eee'};
+  color: ${props => props.textColor || '#333'};
+  padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold;
 `;
+
+const StatCard = styled.div`
+  background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+  h4 { margin: 0 0 10px 0; font-size: 0.9rem; color: #666; }
+  .value { font-size: 1.4rem; font-weight: 800; color: #2c3e50; }
+  .sub { font-size: 0.8rem; color: #999; }
+`;
+
+const ProgressBar = styled.div`
+  height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 5px;
+  div { height: 100%; background: ${props => props.bg}; width: ${props => props.width}%; transition: width 0.5s; }
+`;
+
+// --- CONSTANTS ---
+const NUTRIENT_TARGETS = {
+    sagmal: { protein: [16, 18], enerji: [2.6, 2.8], km: [20, 24] },
+    besi: { protein: [13, 15], enerji: [2.7, 2.9], km: [10, 15] },
+    genc_duve: { protein: [14, 16], enerji: [2.4, 2.6], km: [15, 18] },
+    buzagi: { protein: [18, 22], enerji: [2.8, 3.1], km: [5, 10] },
+    kuru: { protein: [12, 14], enerji: [1.8, 2.1], km: [12, 14] }
+};
 
 const RasyonHesaplayici = ({ yemler, onSave }) => {
     const [rasyonAdi, setRasyonAdi] = useState('');
     const [hedefGrup, setHedefGrup] = useState('sagmal');
-    const [secilenYemler, setSecilenYemler] = useState([]); // [{ yemId, miktar }]
+    const [hayvanSayisi, setHayvanSayisi] = useState(50); // Batch size
+    const [secilenYemler, setSecilenYemler] = useState([{ yemId: '', miktar: 0 }]);
+    const [activeFeedId, setActiveFeedId] = useState(null); // Last interacted feed for Info Panel
 
-    // Totals
-    const [totals, setTotals] = useState({ maliyet: 0, km: 0, protein: 0 });
+    // Analysis State
+    const [analysis, setAnalysis] = useState({ maliyet: 0, km: 0, protein: 0, enerji: 0 });
 
     useEffect(() => {
-        let m = 0, k = 0, p = 0;
+        calculateAnalysis();
+    }, [secilenYemler, yemler, hayvanSayisi]);
+
+    const calculateAnalysis = () => {
+        let m = 0, k = 0, p = 0, e = 0;
+        let totalKg = 0;
+
         secilenYemler.forEach(item => {
             const yem = yemler.find(y => y._id === item.yemId);
-            if (yem) {
+            if (yem && item.miktar > 0) {
+                totalKg += item.miktar;
                 m += item.miktar * yem.birimFiyat;
-                k += (item.miktar * yem.kuruMadde) / 100; // KG cinsinden KM
-                p += (item.miktar * yem.protein) / 1000; // Varsayım: protein % değil gr/kg ise
-                // Not: Sadelik için protein yüzdesini doğrudan topluyoruz gibi
+                k += (item.miktar * yem.kuruMadde) / 100;
+                e += (item.miktar * yem.enerji);
+                p += (item.miktar * yem.protein) / 100; // Protein % ise kg hesabı
             }
         });
-        setTotals({ maliyet: m, km: k, protein: p });
-    }, [secilenYemler, yemler]);
 
-    const handleAddFeed = () => {
-        setSecilenYemler([...secilenYemler, { yemId: '', miktar: 0 }]);
+        // Ağırlıklı ortalama hesaplar (Örn: Rasyonun toplam protein yüzdesi)
+        // Basit toplam yerine, toplam KM içindeki oranı bulmak daha doğru olur ama 
+        // şimdilik kullanıcıya "Toplam Protein (gr)" veya "Ortalama %" göstermek için:
+        // Biz burada basitçe "Rasyondaki Ortalama %"yi hesaplayalım:
+
+        let avgProtein = totalKg > 0 ? (p * 100 / totalKg) : 0; // %
+        let avgEnerji = totalKg > 0 ? (e / totalKg) : 0; // Mcal/kg
+
+        setAnalysis({ maliyet: m, km: k, proteinPct: avgProtein, enerjiAvg: avgEnerji, totalKg });
     };
 
     const handleFeedChange = (index, field, value) => {
         const list = [...secilenYemler];
         list[index][field] = value;
         setSecilenYemler(list);
-    };
 
-    const handleRemoveFeed = (index) => {
-        const list = [...secilenYemler];
-        list.splice(index, 1);
-        setSecilenYemler(list);
+        if (field === 'yemId') setActiveFeedId(value);
     };
 
     const handleSave = () => {
-        if (!rasyonAdi || secilenYemler.length === 0) return alert('İsim ve içerik giriniz');
+        if (!rasyonAdi || secilenYemler.filter(x => x.yemId).length === 0) return alert('Lütfen isim ve en az bir yem giriniz.');
         onSave({
             ad: rasyonAdi,
             hedefGrup,
-            icerik: secilenYemler.filter(x => x.yemId && x.miktar > 0)
+            icerik: secilenYemler.filter(x => x.yemId && x.miktar > 0),
+            toplamMaliyet: analysis.maliyet // Kaydederken maliyeti de ekle
         });
     };
 
+    const activeFeed = yemler.find(y => y._id === activeFeedId);
+    const targets = NUTRIENT_TARGETS[hedefGrup] || NUTRIENT_TARGETS.sagmal;
+
+    // Helper for Status Badge
+    const getStatus = (val, min, max, label) => {
+        if (val < min) return { color: '#ffebee', text: '#c62828', icon: <FaExclamationTriangle />, msg: 'Düşük' };
+        if (val > max) return { color: '#fff3e0', text: '#ef6c00', icon: <FaExclamationTriangle />, msg: 'Yüksek' };
+        return { color: '#e8f5e9', text: '#2e7d32', icon: <FaCheckCircle />, msg: 'İdeal' };
+    };
+
+    const proteinStatus = getStatus(analysis.proteinPct, targets.protein[0], targets.protein[1]);
+    const energyStatus = getStatus(analysis.enerjiAvg, targets.enerji[0], targets.enerji[1]);
+
     return (
-        <CalculatorContainer>
-            <SectionTitle><FaPlus /> Yeni Rasyon Oluştur</SectionTitle>
+        <PageGrid>
+            {/* LEFT COLUMN: CALCULATOR */}
+            <CalculatorContainer>
+                <SectionTitle><FaCalculator /> Rasyon Planlama</SectionTitle>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
-                <InputGroup>
-                    <label>Rasyon Adı (Örn: Kışlık Karışım)</label>
-                    <input value={rasyonAdi} onChange={e => setRasyonAdi(e.target.value)} placeholder="Rasyon adı..." />
-                </InputGroup>
-                <InputGroup>
-                    <label>Hedef Grup</label>
-                    <select value={hedefGrup} onChange={e => setHedefGrup(e.target.value)}>
-                        <option value="sagmal">Sağmal İnekler</option>
-                        <option value="kuru">Kuru Dönem</option>
-                        <option value="genc_duve">Genç Düveler</option>
-                        <option value="buzagi">Buzağılar</option>
-                    </select>
-                </InputGroup>
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 15, marginBottom: 25 }}>
+                    <InputGroup>
+                        <label>Rasyon Adı</label>
+                        <input value={rasyonAdi} onChange={e => setRasyonAdi(e.target.value)} placeholder="Tarih - Grup..." />
+                    </InputGroup>
+                    <InputGroup>
+                        <label>Hedef Grup</label>
+                        <select value={hedefGrup} onChange={e => setHedefGrup(e.target.value)}>
+                            <option value="sagmal">Sağmal (Süt)</option>
+                            <option value="besi">Besi (Et)</option>
+                            <option value="buzagi">Buzağı</option>
+                            <option value="kuru">Kuru Dönem</option>
+                        </select>
+                    </InputGroup>
+                    <InputGroup>
+                        <label>Hayvan Sayısı (Miks)</label>
+                        <input type="number" value={hayvanSayisi} onChange={e => setHayvanSayisi(e.target.value)} />
+                    </InputGroup>
+                </div>
 
-            <h4 style={{ margin: '20px 0 10px' }}>Rasyon İçeriği (Hayvan Başı)</h4>
-            {secilenYemler.map((item, index) => (
-                <FeedRow key={index}>
-                    <select
-                        value={item.yemId}
-                        onChange={e => handleFeedChange(index, 'yemId', e.target.value)}
-                    >
-                        <option value="">Yem Seç...</option>
-                        {yemler.map(y => <option key={y._id} value={y._id}>{y.ad} ({y.birimFiyat} TL/kg)</option>)}
-                    </select>
+                <div style={{ background: '#f8f9fa', padding: 10, borderRadius: 8, marginBottom: 15, display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr auto', fontWeight: 'bold', color: '#666' }}>
+                    <span>Yem Adı</span>
+                    <span>1 Hayvan (Kg)</span>
+                    <span>{hayvanSayisi} Baş (Kg)</span>
+                    <span></span>
+                </div>
 
-                    <input
-                        type="number"
-                        value={item.miktar}
-                        onChange={e => handleFeedChange(index, 'miktar', parseFloat(e.target.value))}
-                        placeholder="Kg"
-                    />
+                {secilenYemler.map((item, index) => (
+                    <FeedRow key={index} active={item.yemId === activeFeedId} onClick={() => setActiveFeedId(item.yemId)}>
+                        <select value={item.yemId} onChange={e => handleFeedChange(index, 'yemId', e.target.value)}>
+                            <option value="">Yem Seç...</option>
+                            {yemler.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
+                        </select>
 
-                    <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                        {item.yemId && yemler.find(y => y._id === item.yemId) ?
-                            `${(item.miktar * yemler.find(y => y._id === item.yemId).birimFiyat).toFixed(2)} TL`
-                            : '0 TL'}
+                        <input
+                            type="number" step="0.1"
+                            value={item.miktar}
+                            onChange={e => handleFeedChange(index, 'miktar', parseFloat(e.target.value))}
+                            placeholder="Kg/Baş"
+                        />
+
+                        <div style={{ fontWeight: 'bold', color: '#2c3e50', fontSize: '1.1rem' }}>
+                            {(item.miktar * hayvanSayisi).toFixed(0)} <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>Kg</span>
+                        </div>
+
+                        <button onClick={() => {
+                            const list = [...secilenYemler];
+                            list.splice(index, 1);
+                            setSecilenYemler(list);
+                        }} style={{ border: 'none', background: 'transparent', color: '#ef5350', cursor: 'pointer' }}><FaTrash /></button>
+                    </FeedRow>
+                ))}
+
+                <button
+                    onClick={() => setSecilenYemler([...secilenYemler, { yemId: '', miktar: 0 }])}
+                    style={{ background: '#eee', border: 'none', padding: '10px 20px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', color: '#333' }}
+                >
+                    <FaPlus /> Yem Ekle
+                </button>
+
+                <div style={{ marginTop: 40, borderTop: '2px solid #eee', paddingTop: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <div style={{ fontSize: '0.9rem', color: '#666' }}>Hayvan Başı Maliyet</div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#2e7d32' }}>{analysis.maliyet.toFixed(2)} TL</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.9rem', color: '#666' }}>Toplam Mikser Maliyeti ({hayvanSayisi} Baş)</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '600', color: '#333' }}>{(analysis.maliyet * hayvanSayisi).toFixed(2)} TL</div>
+                        </div>
                     </div>
-
-                    <button onClick={() => handleRemoveFeed(index)} style={{ border: 'none', background: 'transparent', color: 'red', cursor: 'pointer' }}>
-                        <FaTrash />
+                    <button
+                        onClick={handleSave}
+                        style={{ width: '100%', marginTop: 20, background: '#2196f3', color: 'white', border: 'none', padding: '15px', borderRadius: 10, fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                        <FaSave /> Rasyonu Kaydet
                     </button>
-                </FeedRow>
-            ))}
-
-            <Button onClick={handleAddFeed} style={{ marginTop: 10, background: '#eee', color: '#333' }}>+ Yem Ekle</Button>
-
-            <TotalBar>
-                <div>
-                    <span className="val">{totals.maliyet.toFixed(2)} TL</span>
-                    <span className="lbl">Günlük Maliyet (Baş)</span>
                 </div>
-                <div>
-                    <span className="val">{totals.km.toFixed(1)} Kg</span>
-                    <span className="lbl">Kuru Madde</span>
-                </div>
-                <div>
-                    <span className="val">ANALİZ</span>
-                    <span className="lbl">Yakında...</span>
-                </div>
-            </TotalBar>
+            </CalculatorContainer>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 30 }}>
-                {/* Dağılım Grafiği */}
-                <div style={{ height: 250, background: '#f8f9fa', borderRadius: 12, padding: 10 }}>
-                    <h4 style={{ textAlign: 'center', margin: '5px 0' }}>Yem Dağılımı (Kg)</h4>
+
+            {/* RIGHT COLUMN: INFO PANEL */}
+            <InfoPanel>
+                <SectionTitle><FaInfoCircle /> Analiz & Rehber</SectionTitle>
+
+                {/* 1. SEÇİLİ YEM DETAYI */}
+                {activeFeed ? (
+                    <div style={{ background: 'white', padding: 15, borderRadius: 10, marginBottom: 20, borderLeft: '5px solid #2196f3' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{activeFeed.ad}</h4>
+                            <Badge color="#e3f2fd" textColor="#1565c0">{activeFeed.birimFiyat} TL/Kg</Badge>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: '0.9rem' }}>
+                            <div><strong>Protein:</strong> %{activeFeed.protein}</div>
+                            <div><strong>Enerji:</strong> {activeFeed.enerji} Mcal</div>
+                            <div><strong>K. Madde:</strong> %{activeFeed.kuruMadde}</div>
+                            <div><strong>Nişasta:</strong> %{activeFeed.nisasta || '-'}</div>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ padding: 20, textAlign: 'center', color: '#999', fontStyle: 'italic', background: 'white', borderRadius: 10, marginBottom: 20 }}>
+                        Detaylarını görmek için soldaki listeden bir yeme tıkla.
+                    </div>
+                )}
+
+                {/* 2. RASYON ANALİZİ */}
+                <h4 style={{ color: '#2c3e50', borderBottom: '1px solid #eee', paddingBottom: 5 }}>Rasyon Dengesi</h4>
+
+                <StatCard>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Protein Dengesi</span>
+                        <Badge color={proteinStatus.color} textColor={proteinStatus.text}>{proteinStatus.icon} {proteinStatus.msg}</Badge>
+                    </div>
+                    <div className="value">%{analysis.proteinPct.toFixed(1)}</div>
+                    <div className="sub">Hedef: %{targets.protein[0]} - %{targets.protein[1]}</div>
+                    <ProgressBar bg={proteinStatus.text} width={Math.min(100, (analysis.proteinPct / targets.protein[1]) * 100)} />
+                </StatCard>
+
+                <StatCard>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Enerji Yoğunluğu</span>
+                        <Badge color={energyStatus.color} textColor={energyStatus.text}>{energyStatus.icon} {energyStatus.msg}</Badge>
+                    </div>
+                    <div className="value">{analysis.enerjiAvg.toFixed(2)} <span style={{ fontSize: '0.8rem' }}>Mcal/kg</span></div>
+                    <div className="sub">Hedef: {targets.enerji[0]} - {targets.enerji[1]}</div>
+                    <ProgressBar bg={energyStatus.text} width={Math.min(100, (analysis.enerjiAvg / targets.enerji[1]) * 100)} />
+                </StatCard>
+
+                <div style={{ height: 200, marginTop: 20 }}>
+                    <h5 style={{ textAlign: 'center', margin: '0 0 10px' }}>Karışım Oranları</h5>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
@@ -199,46 +286,26 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
                                     name: yemler.find(y => y._id === x.yemId)?.ad || '?',
                                     value: x.miktar
                                 }))}
-                                cx="50%" cy="50%" outerRadius={80} fill="#8884d8"
-                                dataKey="value" label
+                                cx="50%" cy="50%" innerRadius={40} outerRadius={70} fill="#8884d8" paddingAngle={5}
+                                dataKey="value"
                             >
                                 {secilenYemler.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'][index % 5]} />
                                 ))}
                             </Pie>
                             <Tooltip />
-                            <Legend />
+                            <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
 
-                {/* Besin Değerleri Grafiği */}
-                <div style={{ height: 250, background: '#f8f9fa', borderRadius: 12, padding: 10 }}>
-                    <h4 style={{ textAlign: 'center', margin: '5px 0' }}>Besin Değerleri (Analiz)</h4>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={[
-                                { name: 'KM (kg)', value: totals.km },
-                                { name: 'Prot (kg)', value: totals.protein },
-                                { name: 'Enerji (Mcal)', value: totals.enerji || 0 }
-                            ]}
-                            layout="vertical"
-                        >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" />
-                            <YAxis dataKey="name" type="category" width={100} />
-                            <Tooltip />
-                            <Bar dataKey="value" fill="#82ca9d" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            <div style={{ marginTop: 20, textAlign: 'right' }}>
-                <Button onClick={handleSave}><FaSave /> Rasyonu Kaydet</Button>
-            </div>
-        </CalculatorContainer>
+            </InfoPanel>
+        </PageGrid>
     );
 };
+
+const SectionTitle = styled.h3`
+  color: #2c3e50; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1.2rem;
+`;
 
 export default RasyonHesaplayici;
