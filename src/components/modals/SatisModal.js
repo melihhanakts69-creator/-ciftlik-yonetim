@@ -19,6 +19,8 @@ const ModalContainer = styled.div`
   position: relative;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   animation: slideIn 0.3s ease-out;
+  max-height: 85vh; /* Ekranın %85'ini geçmesin */
+  overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu çıksın */
 
   @keyframes slideIn {
     from { transform: translateY(50px); opacity: 0; }

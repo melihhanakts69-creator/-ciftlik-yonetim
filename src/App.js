@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Login from './components/Auth/Login';
+import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 
 import IneklerPage from './pages/Inekler'; // Yeni Sayfa
@@ -47,7 +48,13 @@ function App() {
   };
 
   if (!girisYapildi) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
   return (

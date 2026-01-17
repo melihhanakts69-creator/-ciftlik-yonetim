@@ -36,7 +36,7 @@ const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Biraz genişlettik */
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 50px; /* Grafikle arayı açtık */
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr 1fr;

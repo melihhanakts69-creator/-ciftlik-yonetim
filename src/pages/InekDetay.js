@@ -520,6 +520,20 @@ const InekDetay = () => {
                 )
             }
 
+
+            {/* SATIŞ MODAL */}
+            <SatisModal
+                isOpen={showSatisModal}
+                onClose={() => setShowSatisModal(false)}
+                hayvan={inek ? { ...inek, type: 'inek' } : null}
+                onSuccess={() => {
+                    fetchDetaylar();
+                    // Satış başarılı olduğunda (örneğin hayvan durumu değiştiyse veya listeden çıktıysa)
+                    // kullanıcıyı listeye yönlendirebiliriz veya detayları güncelleyebiliriz.
+                    // Şimdilik detayları güncelliyoruz.
+                }}
+            />
+
         </Container >
     );
 };

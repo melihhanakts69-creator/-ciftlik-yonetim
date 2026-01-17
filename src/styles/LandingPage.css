@@ -1,0 +1,368 @@
+/* LandingPage.css */
+
+/* Genel Ayarlar */
+.landing-container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #333;
+  overflow-x: hidden;
+}
+
+/* Header / Navbar */
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 4rem;
+  background-color: rgba(30, 41, 26, 0.95); /* Koyu yeşil opak */
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-links a {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: #ffffff;
+}
+
+.btn-header-login {
+  background-color: #384e34;
+  color: white;
+  border: 1px solid #556b2f;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-header-register {
+  background-color: #d97706; /* Turuncu */
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.btn-header-login:hover {
+  background-color: #4a6844;
+}
+
+.btn-header-register:hover {
+  background-color: #b45309;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  height: 90vh; /* Ekranın %90'ı */
+  background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2664&auto=format&fit=crop') no-repeat center center/cover;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 6rem;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  color: white;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  color: #2e3b28; /* Koyu yeşil metin */
+  text-shadow: none; /* Arka plan koyu değilse */
+}
+/* Görseldeki gibi metin stilleri için override */
+.hero-content h1 {
+  color: #1a2f16;
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  text-shadow: none;
+}
+.hero-content h2 {
+    color: #1a2f16;
+    font-size: 3rem;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    text-shadow: none;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+  color: #2f3e2b;
+  font-weight: 500;
+  text-shadow: none;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-hero-primary {
+  background-color: #4CAF50; /* Yeşil */
+  color: white;
+  padding: 12px 30px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+.btn-hero-secondary {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 12px 30px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.btn-hero-primary:hover, .btn-hero-secondary:hover {
+  transform: translateY(-2px);
+}
+
+/* Feature Cards */
+.features-section {
+    padding: 2rem 4rem;
+    background-color: #f7f3eb; /* Kağıt rengi/hafif bej */
+    position: relative;
+    top: -80px; /* Hero'nun üzerine binsin */
+    z-index: 10;
+    margin-bottom: -40px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background-color: #fdfbf7;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Yumuşak gölge */
+    text-align: center;
+    border: 1px solid #e5e0d8;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    color: #4a6844;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.feature-desc {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Blog / Recent Posts */
+.blog-section {
+    padding: 4rem 4rem;
+    background-color: #f2efe9;
+}
+
+.section-title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.blog-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.3s;
+    border: 1px solid #e0e0e0;
+}
+
+.blog-card:hover {
+    transform: translateY(-3px);
+}
+
+.blog-image {
+    height: 180px;
+    background-color: #ddd;
+    background-size: cover;
+    background-position: center;
+}
+
+.blog-content {
+    padding: 1.5rem;
+}
+
+.blog-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #1f2937;
+}
+
+.blog-excerpt {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
+}
+
+.btn-read-more {
+    background-color: #8c6b3e; /* Kahverengi buton */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+.btn-read-more:hover {
+    background-color: #6d522e;
+}
+
+/* Login/Register Form Overlay Section in Footer or Separate */
+.cta-register-section {
+    padding: 4rem 2rem;
+    background: url('https://images.unsplash.com/photo-1541804797-2a1e0b583f79?q=80&w=2670&auto=format&fit=crop') no-repeat center center/cover;
+    display: flex;
+    justify-content: flex-end; /* Sağa yasla */
+    align-items: center;
+    position: relative;
+    padding-right: 15%;
+}
+
+.cta-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
+    z-index: 1;
+}
+
+.mini-login-card {
+    position: relative;
+    z-index: 2;
+    background-color: rgba(253, 251, 247, 0.95);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.mini-login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+/* Footer */
+.landing-footer {
+    background-color: #2b3328;
+    color: #a0a0a0;
+    padding: 2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+}
+
+.footer-links a {
+    color: #a0a0a0;
+    margin-right: 1.5rem;
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: white;
+}

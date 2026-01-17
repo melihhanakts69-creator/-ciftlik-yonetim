@@ -60,7 +60,7 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const kayit = await AlisSatis.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!kayit) {
@@ -105,17 +105,21 @@ router.post('/satis', auth, async (req, res) => {
       throw new Error('Eksik bilgi: Hayvan, Fiyat ve Alıcı zorunludur.');
     }
 
+    // Sayısal değerlere çevir
+    const fiyatNum = Number(fiyat);
+    const odenenMiktarNum = odenenMiktar ? Number(odenenMiktar) : 0;
+
     // 1. Alış/Satış Kaydı (History)
     const satisKaydi = new AlisSatis({
-      userId: req.user.userId,
+      userId: req.userId,
       tip: 'satis',
       hayvanId,
       hayvanTipi,
       kupe_no: req.body.kupeNo, // Frontend should send this for record accuracy
-      fiyat,
+      fiyat: fiyatNum,
       aliciSatici,
-      odenenMiktar: odenenMiktar || 0,
-      kalanBorc: fiyat - (odenenMiktar || 0),
+      odenenMiktar: odenenMiktarNum,
+      kalanBorc: fiyatNum - odenenMiktarNum,
       tarih: tarih || new Date(),
       notlar,
       durum: 'tamamlandi'
@@ -124,23 +128,24 @@ router.post('/satis', auth, async (req, res) => {
 
     // 2. Finansal Kayıt (Income)
     // Sadece ödenen miktar kasaya girer
-    if (odenenMiktar > 0) {
-      await Finansal.create([{
-        userId: req.user.userId,
+    if (odenenMiktarNum > 0) {
+      const yeniFinansal = new Finansal({
+        userId: req.userId,
         tip: 'gelir',
         kategori: 'hayvan-satisi',
-        miktar: odenenMiktar,
-        tarih: tarih || new Date().toISOString().split('T')[0],
+        miktar: odenenMiktarNum,
+        tarih: new Date(tarih || new Date()).toISOString().split('T')[0],
         aciklama: `${hayvanTipi.toUpperCase()} Satışı - Küpe: ${req.body.kupeNo} - Alıcı: ${aliciSatici}`,
         ilgiliHayvanId: hayvanId,
         ilgiliHayvanTipi: hayvanTipi
-      }], { session });
+      });
+      await yeniFinansal.save({ session });
     }
 
     // 3. Hayvanı Envanterden Düş (Delete)
     const Model = getModelByType(hayvanTipi);
     if (Model) {
-      const deleted = await Model.findOneAndDelete({ _id: hayvanId, userId: req.user.userId }).session(session);
+      const deleted = await Model.findOneAndDelete({ _id: hayvanId, userId: req.userId }).session(session);
       if (!deleted) throw new Error('Satılacak hayvan bulunamadı.');
     } else {
       throw new Error('Geçersiz hayvan tipi.');
@@ -180,7 +185,7 @@ router.post('/alis', auth, async (req, res) => {
 
     // Prepare animal data based on schema
     const animalData = {
-      userId: req.user.userId,
+      userId: req.userId,
       isim,
       kupeNo,
       dogumTarihi,
@@ -210,7 +215,7 @@ router.post('/alis', auth, async (req, res) => {
 
     // 2. Alış/Satış Kaydı (History)
     const alisKaydi = new AlisSatis({
-      userId: req.user.userId,
+      userId: req.userId,
       tip: 'alis',
       hayvanId: newAnimal._id,
       hayvanTipi,
@@ -232,16 +237,17 @@ router.post('/alis', auth, async (req, res) => {
 
     // 3. Finansal Kayıt (Expense)
     if (odenenMiktar > 0) {
-      await Finansal.create([{
-        userId: req.user.userId,
+      const yeniFinansal = new Finansal({
+        userId: req.userId,
         tip: 'gider',
         kategori: 'hayvan-alisi',
         miktar: odenenMiktar,
-        tarih: tarih || new Date().toISOString().split('T')[0],
+        tarih: new Date(tarih || new Date()).toISOString().split('T')[0],
         aciklama: `${hayvanTipi.toUpperCase()} Alışı - Küpe: ${kupeNo} - Satıcı: ${aliciSatici}`,
         ilgiliHayvanId: newAnimal._id,
         ilgiliHayvanTipi: hayvanTipi
-      }], { session });
+      });
+      await yeniFinansal.save({ session });
     }
 
     await session.commitTransaction();
@@ -350,7 +356,7 @@ router.post('/:id/odeme', auth, async (req, res) => {
 
     const kayit = await AlisSatis.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!kayit) {
@@ -410,7 +416,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
     const gunlukDetay = await AlisSatis.aggregate([
       {
         $match: {
-          userId: req.user.userId,
+          userId: req.userId,
           tarih: { $gte: baslangic, $lte: bitis },
           durum: 'tamamlandi'
         }

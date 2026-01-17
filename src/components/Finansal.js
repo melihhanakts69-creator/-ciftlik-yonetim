@@ -448,7 +448,7 @@ function Finansal() {
           <ResponsiveContainer width="100%" height="90%">
             <PieChart>
               <Pie
-                data={pieData}
+                data={pieData.filter(d => d.value > 0)}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -456,10 +456,11 @@ function Finansal() {
                 paddingAngle={5}
                 dataKey="value"
               >
-                <Cell fill="#4CAF50" />
-                <Cell fill="#ef5350" />
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === 'Gelir' ? '#4CAF50' : '#ef5350'} />
+                ))}
               </Pie>
-              <RechartsTooltip />
+              <RechartsTooltip formatter={(value) => `${value.toLocaleString()} ₺`} />
               <Legend verticalAlign="bottom" height={36} />
             </PieChart>
           </ResponsiveContainer>
@@ -471,15 +472,14 @@ function Finansal() {
           <ResponsiveContainer width="100%" height="90%">
             <BarChart data={giderDagilimi}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" hide />
-              <YAxis />
-              <RechartsTooltip cursor={{ fill: 'transparent' }} />
-              <Bar dataKey="value" name="Tutar" radius={[4, 4, 0, 0]}>
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tickFormatter={(value) => `${value}`} />
+              <RechartsTooltip cursor={{ fill: 'transparent' }} formatter={(value) => `${value.toLocaleString()} ₺`} />
+              <Bar dataKey="value" name="Tutar" radius={[8, 8, 0, 0]} barSize={50}>
                 {giderDagilimi.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
-              <Legend />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

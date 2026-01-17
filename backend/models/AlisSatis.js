@@ -80,7 +80,7 @@ const alisSatisSchema = new mongoose.Schema({
   },
   cinsiyet: {
     type: String,
-    enum: ['erkek', 'dişi']
+    enum: ['erkek', 'dişi', 'disi']
   },
   irk: {
     type: String,
@@ -102,12 +102,12 @@ alisSatisSchema.index({ userId: 1, hayvanId: 1 });
 alisSatisSchema.index({ userId: 1, durum: 1 });
 
 // Virtual: Tam ödeme durumu
-alisSatisSchema.virtual('tamOdendi').get(function() {
+alisSatisSchema.virtual('tamOdendi').get(function () {
   return this.kalanBorc === 0;
 });
 
 // Statik method: Toplam alış tutarı
-alisSatisSchema.statics.toplamAlis = async function(userId, baslangic, bitis) {
+alisSatisSchema.statics.toplamAlis = async function (userId, baslangic, bitis) {
   const result = await this.aggregate([
     {
       $match: {
@@ -133,7 +133,7 @@ alisSatisSchema.statics.toplamAlis = async function(userId, baslangic, bitis) {
 };
 
 // Statik method: Toplam satış tutarı
-alisSatisSchema.statics.toplamSatis = async function(userId, baslangic, bitis) {
+alisSatisSchema.statics.toplamSatis = async function (userId, baslangic, bitis) {
   const result = await this.aggregate([
     {
       $match: {
@@ -159,7 +159,7 @@ alisSatisSchema.statics.toplamSatis = async function(userId, baslangic, bitis) {
 };
 
 // Statik method: Kar/Zarar hesaplama
-alisSatisSchema.statics.karZarar = async function(userId, baslangic, bitis) {
+alisSatisSchema.statics.karZarar = async function (userId, baslangic, bitis) {
   const alis = await this.toplamAlis(userId, baslangic, bitis);
   const satis = await this.toplamSatis(userId, baslangic, bitis);
 
@@ -173,7 +173,7 @@ alisSatisSchema.statics.karZarar = async function(userId, baslangic, bitis) {
 };
 
 // Statik method: Veresiye borçlar
-alisSatisSchema.statics.veresiyeler = async function(userId) {
+alisSatisSchema.statics.veresiyeler = async function (userId) {
   return await this.aggregate([
     {
       $match: {

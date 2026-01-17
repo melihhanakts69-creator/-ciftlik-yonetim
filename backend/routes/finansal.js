@@ -119,6 +119,16 @@ router.get('/ozet', auth, async (req, res) => {
 
     let query = { userId: req.userId };
 
+    const mongoose = require('mongoose'); // Ensure mongoose is required
+
+    // ...
+
+    // Aggregation için userId'yi ObjectId'ye çevir
+    // NOT: aggregate queries string userId ile çalışmaz, auto-cast yapmaz
+    if (query.userId) {
+      query.userId = new mongoose.Types.ObjectId(req.userId);
+    }
+
     // Tarih aralığı filtresi
     if (baslangic && bitis) {
       query.tarih = { $gte: baslangic, $lte: bitis };
