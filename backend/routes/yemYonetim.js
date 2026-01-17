@@ -11,28 +11,62 @@ const Inek = require('../models/Inek');
 // --- YEM KÜTÜPHANESİ ---
 
 const MASTER_FEED_DATA = {
+    // SİLAJLAR
     'misir silaji': { kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
     'misir silaj': { kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
+    'yonca silaji': { kuruMadde: 35, protein: 18, enerji: 2.2, nisasta: 2 },
+    'ot silaji': { kuruMadde: 35, protein: 14, enerji: 2.1, nisasta: 1 },
+    'fig silaji': { kuruMadde: 35, protein: 15, enerji: 2.1, nisasta: 2 },
+
+    // KURU OTLAR / KABA YEMLER
     'yonca': { kuruMadde: 90, protein: 16, enerji: 2.1, nisasta: 2 },
     'yonca kuru': { kuruMadde: 90, protein: 16, enerji: 2.1, nisasta: 2 },
     'saman': { kuruMadde: 90, protein: 3, enerji: 1.6, nisasta: 0 },
     'bugday samani': { kuruMadde: 90, protein: 3, enerji: 1.6, nisasta: 0 },
+    'arpa samani': { kuruMadde: 90, protein: 3.5, enerji: 1.65, nisasta: 0 },
+    'ryegrass': { kuruMadde: 20, protein: 16, enerji: 2.5, nisasta: 10 }, // Yeşil
+    'cayir otu': { kuruMadde: 88, protein: 10, enerji: 1.9, nisasta: 2 },
+
+    // TAHILLAR
     'arpa': { kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
     'arpa ezme': { kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
     'misir': { kuruMadde: 88, protein: 9, enerji: 3.1, nisasta: 70 },
     'misir flake': { kuruMadde: 88, protein: 9, enerji: 3.2, nisasta: 72 },
-    'sut yemi': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
-    'sut yemi 19': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
-    'sut yemi 21': { kuruMadde: 88, protein: 21, enerji: 2.7, nisasta: 25 },
-    'besi yemi': { kuruMadde: 88, protein: 14, enerji: 2.8, nisasta: 35 },
+    'bugday': { kuruMadde: 88, protein: 12, enerji: 3.0, nisasta: 65 },
+    'yulaf': { kuruMadde: 89, protein: 11, enerji: 2.6, nisasta: 40 },
+    'cavdar': { kuruMadde: 88, protein: 11, enerji: 2.7, nisasta: 55 },
+
+    // KÜSPELER (PROTEİN KAYNAKLARI)
     'soya': { kuruMadde: 90, protein: 48, enerji: 3.3, nisasta: 5 },
     'soya kuspesi': { kuruMadde: 90, protein: 48, enerji: 3.3, nisasta: 5 },
+    'aycicek': { kuruMadde: 90, protein: 32, enerji: 2.1, nisasta: 2 }, // 32'lik
+    'aycicek kuspesi': { kuruMadde: 90, protein: 28, enerji: 2.0, nisasta: 2 }, // 28'lik ortalama
+    'aycicegi kuspesi': { kuruMadde: 90, protein: 28, enerji: 2.0, nisasta: 2 },
     'pamuk': { kuruMadde: 90, protein: 24, enerji: 2.2, nisasta: 2 }, // Tohum
     'pamuk kuspesi': { kuruMadde: 90, protein: 28, enerji: 2.1, nisasta: 2 },
+    'kanola': { kuruMadde: 90, protein: 36, enerji: 2.6, nisasta: 4 },
+    'kanola kuspesi': { kuruMadde: 90, protein: 36, enerji: 2.6, nisasta: 4 },
+
+    // FABRİKA YEMLERİ (KARMA YEMLER)
+    'sut yemi': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
+    'sut 19': { kuruMadde: 88, protein: 19, enerji: 2.7, nisasta: 25 },
+    'sut 21': { kuruMadde: 88, protein: 21, enerji: 2.7, nisasta: 25 },
+    'besi yemi': { kuruMadde: 88, protein: 14, enerji: 2.8, nisasta: 35 },
+    'besi baslangic': { kuruMadde: 88, protein: 16, enerji: 2.7, nisasta: 30 },
+    'besi bitis': { kuruMadde: 88, protein: 13, enerji: 2.9, nisasta: 40 },
+    'duve yemi': { kuruMadde: 88, protein: 16, enerji: 2.6, nisasta: 25 },
+    'buzagi yemi': { kuruMadde: 89, protein: 18, enerji: 2.9, nisasta: 35 },
+    'buzagi baslangic': { kuruMadde: 89, protein: 20, enerji: 3.0, nisasta: 35 },
+
+    // YAN ÜRÜNLER
     'kepek': { kuruMadde: 89, protein: 15, enerji: 2.3, nisasta: 20 },
     'bugday kepegi': { kuruMadde: 89, protein: 15, enerji: 2.3, nisasta: 20 },
-    'yulaf': { kuruMadde: 89, protein: 11, enerji: 2.6, nisasta: 40 },
+    'razmol': { kuruMadde: 88, protein: 16, enerji: 2.4, nisasta: 25 },
     'pancar posasi': { kuruMadde: 22, protein: 9, enerji: 2.6, nisasta: 1 }, // Yaş
+    'kuru pancar': { kuruMadde: 90, protein: 9, enerji: 2.6, nisasta: 1 },
+    'melas': { kuruMadde: 75, protein: 4, enerji: 2.9, nisasta: 0 }, // Şeker
+    'bira mayasi': { kuruMadde: 92, protein: 45, enerji: 2.8, nisasta: 5 },
+    'bira posasi': { kuruMadde: 25, protein: 24, enerji: 2.6, nisasta: 5 }, // Yaş
 };
 
 // Yem eşitleme (Smart Sync)
