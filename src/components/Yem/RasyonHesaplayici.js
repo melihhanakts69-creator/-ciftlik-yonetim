@@ -63,6 +63,10 @@ const ProgressBar = styled.div`
   div { height: 100%; background: ${props => props.bg}; width: ${props => props.width}%; transition: width 0.5s; }
 `;
 
+const SectionTitle = styled.h3`
+  color: #2c3e50; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1.2rem;
+`;
+
 // --- CONSTANTS ---
 const NUTRIENT_TARGETS = {
     sagmal: { protein: [16, 18], enerji: [2.6, 2.8], km: [20, 24] },
@@ -108,6 +112,9 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
 
         let avgProtein = totalKg > 0 ? (p * 100 / totalKg) : 0; // %
         let avgEnerji = totalKg > 0 ? (e / totalKg) : 0; // Mcal/kg
+
+        if (isNaN(avgProtein)) avgProtein = 0;
+        if (isNaN(avgEnerji)) avgEnerji = 0;
 
         setAnalysis({ maliyet: m, km: k, proteinPct: avgProtein, enerjiAvg: avgEnerji, totalKg });
     };
@@ -304,8 +311,6 @@ const RasyonHesaplayici = ({ yemler, onSave }) => {
     );
 };
 
-const SectionTitle = styled.h3`
-  color: #2c3e50; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; font-size: 1.2rem;
-`;
+
 
 export default RasyonHesaplayici;
