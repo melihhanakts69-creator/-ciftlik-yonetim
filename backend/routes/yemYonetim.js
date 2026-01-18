@@ -207,6 +207,7 @@ router.get('/rasyon', auth, async (req, res) => {
 });
 
 // Rasyon oluştur
+// Rasyon oluştur
 router.post('/rasyon', auth, async (req, res) => {
     try {
         // Hesaplamaları yap (Back-end validasyonu)
@@ -220,12 +221,15 @@ router.post('/rasyon', auth, async (req, res) => {
         for (let item of icerik) {
             const yem = await YemKutuphanesi.findById(item.yemId);
             if (yem) {
-                toplamMaliyet += yem.birimFiyat * item.miktar;
+                const fiyat = yem.birimFiyat || 0;
+                toplamMaliyet += fiyat * item.miktar;
                 toplamKM += (yem.kuruMadde * item.miktar) / 100;
                 // Diğer değerler de benzer mantıkla toplanır...
                 // Basitlik için sadece maliyeti kesinleştiriyoruz
             }
         }
+
+        if (isNaN(toplamMaliyet)) toplamMaliyet = 0;
 
         const yeniRasyon = new Rasyon({
             userId: req.userId,
@@ -268,17 +272,12 @@ router.post('/dagit', auth, async (req, res) => {
         const Buzagi = require('../models/Buzagi');
         const Tosun = require('../models/Tosun');
 
+        let hayvanSayisi = 0;
+
         if (rasyon.hedefGrup === 'sagmal') {
-            hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Aktif' }); // Basit varsayım: Aktif tüm inekler
+            hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Aktif' });
         } else if (rasyon.hedefGrup === 'kuru') {
-            // Kuru inekleri bulmak için Inek modelinde 'sutVerimi' veya 'durum' kontrolü gerekebilir. 
-            // Şimdilik 'Kuru' durumu varsayıyoruz. 
-            // Eğer yoksa, geliştirilmeli. Basitlik için 'Aktif' ineklerin bir kısmı kabul edilebilir ama doğrusu:
             hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Kuru' });
-            if (hayvanSayisi === 0) {
-                // Eğer 'Kuru' durumu yoksa, not düş:
-                console.log("Kuru inek bulunamadı, 0 sayıldı.");
-            }
         } else if (rasyon.hedefGrup === 'genc_duve') {
             hayvanSayisi = await Duve.countDocuments({ userId });
         } else if (rasyon.hedefGrup === 'buzagi') {
@@ -286,24 +285,31 @@ router.post('/dagit', auth, async (req, res) => {
         } else if (rasyon.hedefGrup === 'besi') {
             hayvanSayisi = await Tosun.countDocuments({ userId });
         } else {
-            // Bilinmeyen grup
             return res.status(400).json({ message: 'Geçersiz hedef grup' });
         }
 
-        if (hayvanSayisi === 0) return res.status(400).json({ message: 'Bu grupta hayvan yok!' });
+        if (hayvanSayisi === 0) {
+            return res.status(400).json({
+                message: `Seçilen grupta (${rasyon.hedefGrup}) hiç hayvan bulunamadı. Yemleme yapılamaz.`
+            });
+        }
 
         // 3. Stoktan Düş ve Hareket Ekle
         let toplamGunlukMaliyet = 0;
 
         for (let item of rasyon.icerik) {
             const yem = item.yemId; // Populated
+
+            // Yem silinmiş olabilir
+            if (!yem) continue;
+
             const harcananMiktar = item.miktar * hayvanSayisi;
-            const kalemMaliyeti = harcananMiktar * yem.birimFiyat;
+            const birimFiyat = yem.birimFiyat || 0; // NaN önlemi
+            const kalemMaliyeti = harcananMiktar * birimFiyat;
+
             toplamGunlukMaliyet += kalemMaliyeti;
 
             // Stoktan düş (YemStok modeli varsa, yoksa YemKutuphanesi'ndeki basit stoktan)
-            // YemStok entegrasyonu: Gerçek stoktan düş
-            // Öncelik: yem.yemStokId varsa onu kullan, yoksa isme göre bul
             let stok = null;
             if (yem.yemStokId) {
                 stok = await YemStok.findById(yem.yemStokId);
@@ -324,7 +330,7 @@ router.post('/dagit', auth, async (req, res) => {
                     yemTipi: stok.yemTipi,
                     hareketTipi: 'Kullanım',
                     miktar: harcananMiktar,
-                    birimFiyat: stok.birimFiyat,
+                    birimFiyat: stok.birimFiyat || 0,
                     toplamTutar: kalemMaliyeti,
                     tarih: islemTarihi,
                     aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} baş)`
@@ -332,11 +338,14 @@ router.post('/dagit', auth, async (req, res) => {
             } else {
                 // Stok bulunamadıysa YemKutuphanesi'ndeki basit alanı güncelle (Fallback)
                 if (yem.stokTakibi) {
-                    yem.stokMiktari -= harcananMiktar;
+                    yem.stokMiktari = (yem.stokMiktari || 0) - harcananMiktar;
                     await yem.save();
                 }
             }
         }
+
+        // NaN kontrolü
+        if (isNaN(toplamGunlukMaliyet)) toplamGunlukMaliyet = 0;
 
         // 4. Maliyet Tablosuna İşle
         await Maliyet.create({
@@ -344,7 +353,7 @@ router.post('/dagit', auth, async (req, res) => {
             kategori: 'yem',
             tutar: toplamGunlukMaliyet,
             tarih: islemTarihi,
-            aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} Baş x ${rasyon.toplamMaliyet.toFixed(2)} TL)`
+            aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} Baş x ${(toplamGunlukMaliyet / hayvanSayisi).toFixed(2)} TL)`
         });
 
         res.json({
@@ -354,8 +363,8 @@ router.post('/dagit', auth, async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Yemleme işlemi başarısız', error: err.message });
+        console.error("Yemleme Hatası:", err);
+        res.status(500).json({ message: 'Yemleme işlemi başarısız: ' + err.message });
     }
 });
 
