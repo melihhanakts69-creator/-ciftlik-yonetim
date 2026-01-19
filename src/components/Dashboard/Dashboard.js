@@ -5,6 +5,7 @@ import StatsCard from '../common/StatsCard';
 import PerformansChart from './PerformansChart';
 import YapilacaklarCard from './YapilacaklarCard';
 import AktivitelerCard from './AktivitelerCard';
+import HizliYemlemeWidget from './HizliYemlemeWidget';
 
 const DashboardContainer = styled.div`
   padding: ${spacing.lg};
@@ -262,6 +263,11 @@ const Dashboard = () => {
           />
         </div>
       )}
+
+      {/* Hızlı Yemleme Widget */}
+      <HizliYemlemeWidget />
+
+
 
       {/* Yapılacaklar ve Aktiviteler */}
       <ContentGrid>

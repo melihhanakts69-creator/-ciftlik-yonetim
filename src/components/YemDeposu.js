@@ -289,7 +289,7 @@ const InputGroup = styled.div`
   }
 `;
 
-const YemDeposu = () => {
+const YemDeposu = ({ isEmbedded = false }) => {
   const [stoklar, setStoklar] = useState([]);
   const [hareketler, setHareketler] = useState([]);
   const [aktifSekme, setAktifSekme] = useState('stok');
@@ -411,11 +411,13 @@ const YemDeposu = () => {
     });
   }, [hareketler]);
 
-  return (
-    <PageContainer>
-      <Header>
-        <h1>🌾 Yem Deposu</h1>
-      </Header>
+  const Content = (
+    <>
+      {!isEmbedded && (
+        <Header>
+          <h1>🌾 Yem Deposu</h1>
+        </Header>
+      )}
 
       <TabContainer>
         <TabButton active={aktifSekme === 'stok'} onClick={() => setAktifSekme('stok')}>
@@ -553,6 +555,16 @@ const YemDeposu = () => {
           </ModalContent>
         </ModalOverlay>
       )}
+    </>
+  );
+
+  if (isEmbedded) {
+    return <div>{Content}</div>;
+  }
+
+  return (
+    <PageContainer>
+      {Content}
     </PageContainer>
   );
 };
