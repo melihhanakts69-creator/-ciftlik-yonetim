@@ -109,7 +109,8 @@ router.get('/stats', auth, async (req, res) => {
       sagmal: sagmalInek,
       bugunSut: bugunSut.length > 0 ? bugunSut[0].toplam : 0,
       yaklaşanDogum: yaklaşanDogumSayisi,
-      okunmayanBildirim
+      okunmayanBildirim,
+      trendler: await calculateTrends(userId)
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -216,6 +217,62 @@ router.get('/yapilacaklar', auth, async (req, res) => {
   } catch (error) {
     console.error('Yapılacaklar error:', error);
     res.status(500).json({ message: 'Yapılacaklar alınamadı', error: error.message });
+  }
+});
+
+// En iyi süt veren inekler (Son 30 gün ortalaması)
+router.get('/top-performers', auth, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const gunSayisi = 30;
+
+    const baslangicTarihi = new Date();
+    baslangicTarihi.setDate(baslangicTarihi.getDate() - gunSayisi);
+    const baslangicStr = baslangicTarihi.toISOString().split('T')[0];
+
+    const topCows = await SutKaydi.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.userId),
+          tarih: { $gte: baslangicStr }
+        }
+      },
+      {
+        $group: {
+          _id: '$hayvanId',
+          toplamSut: { $sum: '$litre' },
+          gunSayisi: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: 'inekler', // Koleksiyon adı 'inekler' olmalı (model dosyasına bakmak lazım ama genelde çoğul)
+          localField: '_id',
+          foreignField: '_id',
+          as: 'inekBilgi'
+        }
+      },
+      {
+        $unwind: '$inekBilgi'
+      },
+      {
+        $project: {
+          _id: 1,
+          isim: '$inekBilgi.isim',
+          kupeNo: '$inekBilgi.kupeNo',
+          toplamSut: 1,
+          ortalama: { $divide: ['$toplamSut', '$gunSayisi'] }
+        }
+      },
+      { $sort: { ortalama: -1 } },
+      { $limit: 5 }
+    ]);
+
+    res.json(topCows);
+  } catch (error) {
+    console.error('Top performers error:', error);
+    // Koleksiyon adı hatası olabilir, boş array dönelim ki patlamasın
+    res.json([]);
   }
 });
 
@@ -475,6 +532,62 @@ async function otomatikGorevleriKontrolEt(userId) {
 
   } catch (err) {
     console.error('Otomatik görev hatası:', err);
+  }
+}
+
+// YARDIMCI: Trend Hesaplama (Son 30 gün vs Önceki 30 gün)
+async function calculateTrends(userId) {
+  try {
+    const today = new Date();
+    const last30Start = new Date(today);
+    last30Start.setDate(today.getDate() - 30);
+
+    const prev30Start = new Date(last30Start);
+    prev30Start.setDate(last30Start.getDate() - 30);
+
+    const format = d => d.toISOString().split('T')[0];
+
+    // Süt Trendi
+    const result = await SutKaydi.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          tarih: { $gte: format(prev30Start) }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            period: {
+              $cond: [
+                { $gte: ['$tarih', format(last30Start)] },
+                'current',
+                'previous'
+              ]
+            }
+          },
+          total: { $sum: '$litre' }
+        }
+      }
+    ]);
+
+    const current = result.find(r => r._id === 'current')?.total || 0;
+    const previous = result.find(r => r._id === 'previous')?.total || 0;
+
+    let sutArtisYuzdesi = 0;
+    if (previous > 0) {
+      sutArtisYuzdesi = ((current - previous) / previous) * 100;
+    } else if (current > 0) {
+      sutArtisYuzdesi = 100; // Önceki veri yoksa %100 artış
+    }
+
+    return {
+      sut: sutArtisYuzdesi.toFixed(1),
+      sutFark: current - previous
+    };
+  } catch (err) {
+    console.error('Trend hesaplama hatası:', err);
+    return { sut: 0, sutFark: 0 };
   }
 }
 

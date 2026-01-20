@@ -1,60 +1,148 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { colors, spacing } from '../../styles/colors';
+import { colors, spacing, borderRadius, shadows } from '../../styles/colors';
 import StatsCard from '../common/StatsCard';
 import PerformansChart from './PerformansChart';
 import YapilacaklarCard from './YapilacaklarCard';
 import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { FaPlus, FaMoneyBillWave, FaSyringe, FaTint } from 'react-icons/fa';
+
+// --- Styled Components ---
 
 const DashboardContainer = styled.div`
   padding: ${spacing.lg};
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 `;
 
 const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: ${spacing.xl};
 `;
+
+const TitleSection = styled.div``;
 
 const Title = styled.h1`
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 800;
   color: ${colors.text.primary};
-  margin: 0 0 ${spacing.sm} 0;
+  margin: 0 0 ${spacing.xs} 0;
+  letter-spacing: -0.5px;
 `;
 
 const Subtitle = styled.p`
-  font-size: 14px;
+  font-size: 15px;
   color: ${colors.text.secondary};
   margin: 0;
+  font-weight: 500;
 `;
 
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: ${spacing.lg};
-  margin-bottom: ${spacing.xl};
+const QuickActions = styled.div`
+  display: flex;
+  gap: 10px;
 `;
 
-const ContentGrid = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: ${spacing.lg};
-  margin-bottom: ${spacing.xl};
+const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: ${colors.text.primary};
+  box-shadow: ${shadows.sm};
+  font-size: 13px;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${shadows.md};
+    background: #f8f9fa;
+  }
+  
+  &.primary {
+    background: ${colors.primary};
+    color: white;
+    &:hover { background: #1b5e20; }
   }
 `;
 
-const SectionGrid = styled.div`
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${spacing.lg};
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
 
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+`;
+
+const Widget = styled.div`
+  background: white;
+  border-radius: ${borderRadius.lg};
+  padding: 24px;
+  box-shadow: ${shadows.md};
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  h3 {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: ${colors.text.primary};
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+`;
+
+const TopCowList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`;
+
+const TopCowItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child { border-bottom: none; }
+
+  .rank {
+    width: 24px; height: 24px;
+    background: #FFD700; color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 12px;
+    margin-right: 12px;
+  }
+  
+  .info {
+    flex: 1;
+    strong { display: block; font-size: 14px; color: #333; }
+    span { font-size: 12px; color: #888; }
+  }
+
+  .value {
+    font-weight: 800;
+    color: ${colors.primary};
+    font-size: 15px;
   }
 `;
 
@@ -67,218 +155,203 @@ const LoadingContainer = styled.div`
   font-size: 16px;
 `;
 
-const ErrorContainer = styled.div`
-  background: ${colors.bg.red};
-  border: 1px solid ${colors.danger};
-  border-radius: 8px;
-  padding: ${spacing.lg};
-  color: ${colors.danger};
-  text-align: center;
-`;
-
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
+  const [data, setData] = useState({
     stats: null,
     performans: [],
     yapilacaklar: [],
-    aktiviteler: []
+    aktiviteler: [],
+    topCows: []
   });
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
 
-      if (!token) {
-        throw new Error('Oturum bulunamadı');
-      }
-
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      // Paralel istekler
-      const [statsRes, performansRes, yapilacaklarRes, aktivitelerRes] = await Promise.all([
+      const [statsRes, perfRes, tasksRes, actsRes, topRes] = await Promise.all([
         fetch(`${API_URL}/dashboard/stats`, { headers }),
         fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }),
         fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }),
-        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers })
+        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }),
+        fetch(`${API_URL}/dashboard/top-performers`, { headers })
       ]);
 
-      if (!statsRes.ok || !performansRes.ok || !yapilacaklarRes.ok || !aktivitelerRes.ok) {
-        throw new Error('Veri yüklenirken hata oluştu');
-      }
+      const stats = await statsRes.json();
+      const performans = await perfRes.json();
+      const tasks = await tasksRes.json();
+      const aktiviteler = await actsRes.json();
+      const topCows = await topRes.json();
 
-      const [stats, performans, yapilacaklarData, aktiviteler] = await Promise.all([
-        statsRes.json(),
-        performansRes.json(),
-        yapilacaklarRes.json(),
-        aktivitelerRes.json()
-      ]);
-
-      setDashboardData({
+      setData({
         stats,
         performans,
-        yapilacaklar: [...(yapilacaklarData.geciken || []), ...(yapilacaklarData.bugun || [])],
-        aktiviteler
+        yapilacaklar: [...(tasks.geciken || []), ...(tasks.bugun || [])],
+        aktiviteler,
+        topCows
       });
-
-      setError(null);
     } catch (err) {
-      console.error('Dashboard yükleme hatası:', err);
+      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleTaskComplete = async (bildirimId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/bildirimler/${bildirimId}/tamamlandi`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // Verileri yenile
-      fetchDashboardData();
-    } catch (err) {
-      console.error('Görev tamamlama hatası:', err);
-    }
+  const getHerdData = () => {
+    if (!data.stats) return [];
+    return [
+      { name: 'Sağmal', value: data.stats.sagmal || 0, color: '#4CAF50' },
+      { name: 'Kuru/Diğer', value: (data.stats.toplamHayvan?.inek - data.stats.sagmal) || 0, color: '#FF9800' },
+      { name: 'Düve', value: data.stats.toplamHayvan?.duve || 0, color: '#2196F3' },
+      { name: 'Buzağı', value: data.stats.toplamHayvan?.buzagi || 0, color: '#9C27B0' },
+    ].filter(d => d.value > 0);
   };
 
-  const getBugunTarih = () => {
-    const bugun = new Date();
-    return bugun.toLocaleDateString('tr-TR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  if (loading) {
-    return (
-      <DashboardContainer>
-        <LoadingContainer>
-          Yükleniyor...
-        </LoadingContainer>
-      </DashboardContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardContainer>
-        <ErrorContainer>
-          ❌ Hata: {error}
-          <br />
-          <button
-            onClick={fetchDashboardData}
-            style={{
-              marginTop: spacing.md,
-              padding: '8px 16px',
-              background: colors.danger,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Tekrar Dene
-          </button>
-        </ErrorContainer>
-      </DashboardContainer>
-    );
-  }
-
-  const { stats, performans, yapilacaklar, aktiviteler } = dashboardData;
+  if (loading) return <DashboardContainer><LoadingContainer>Veriler yükleniyor...</LoadingContainer></DashboardContainer>;
 
   return (
     <DashboardContainer>
       <Header>
-        <Title>Dashboard</Title>
-        <Subtitle>{getBugunTarih()}</Subtitle>
+        <TitleSection>
+          <Title>Çiftlik Paneli</Title>
+          <Subtitle>{new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Subtitle>
+        </TitleSection>
+        <QuickActions>
+          <ActionButton className="primary"><FaPlus /> Süt Ekle</ActionButton>
+          <ActionButton><FaMoneyBillWave /> Gider Ekle</ActionButton>
+          <ActionButton><FaSyringe /> Aşı Gir</ActionButton>
+        </QuickActions>
       </Header>
 
-      {/* İstatistik Kartları */}
-      <StatsGrid>
+      {/* --- KPI CARDS ROW --- */}
+      <Grid style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <StatsCard
-          title="Toplam Hayvan"
-          value={stats?.toplamHayvan?.toplam || 0}
-          icon="🐄"
-          color={colors.primary}
-          bgColor={colors.bg.green}
-          description={`${stats?.toplamHayvan?.inek || 0} İnek, ${stats?.toplamHayvan?.duve || 0} Düve`}
-        />
-        <StatsCard
-          title="Gebe Hayvanlar"
-          value={stats?.gebe?.toplam || 0}
-          icon="🤰"
-          color={colors.success}
-          bgColor={colors.bg.lightGreen}
-          description={`${stats?.yaklaşanDogum || 0} yaklaşan doğum`}
-        />
-        <StatsCard
-          title="Bugünün Süt Üretimi"
-          value={stats?.bugunSut?.toFixed(1) || '0.0'}
-          unit="lt"
+          title="Günlük Süt"
+          value={data.stats?.bugunSut?.toFixed(1) || '0.0'}
+          unit="Lt"
           icon="🥛"
           color={colors.info}
-          bgColor={colors.bg.blue}
-          description={`${stats?.sagmal || 0} sağmal inek`}
+          bg={colors.bg.blue}
+          trend={data.stats?.trendler?.sut || 0}
+          description="Son 30 güne göre"
         />
         <StatsCard
-          title="Bildirimler"
-          value={stats?.okunmayanBildirim || 0}
+          title="Sağmal İnek"
+          value={data.stats?.sagmal || 0}
+          unit="Baş"
+          icon="🐄"
+          color={colors.primary}
+          bg={colors.bg.green}
+          description={`${data.stats?.toplamHayvan?.inek} Toplam İnek`}
+        />
+        <StatsCard
+          title="Aktif Bildirimler"
+          value={data.stats?.okunmayanBildirim || 0}
+          unit="Adet"
           icon="🔔"
           color={colors.warning}
-          bgColor={colors.bg.orange}
-          description="Okunmamış bildirim"
+          bg={colors.bg.orange}
+          description="Okunmamış"
           clickable
-          onClick={() => console.log('Bildirimlere git')}
         />
-      </StatsGrid>
+        <StatsCard
+          title="Yaklaşan Doğum"
+          value={data.stats?.yaklaşanDogum || 0}
+          unit="Adet"
+          icon="🤰"
+          color={colors.secondary}
+          bg={colors.bg.purple}
+          description="Önümüzdeki 30 gün"
+        />
+      </Grid>
 
-      {/* Performans Grafiği */}
-      {performans && performans.length > 0 && (
-        <div style={{ marginBottom: spacing.xl }}>
+      {/* --- CHARTS ROW --- */}
+      <Grid>
+        {/* Süt Grafiği - Geniş */}
+        <div style={{ gridColumn: 'span 8' }}>
           <PerformansChart
-            data={performans}
-            title="Son 30 Günlük Süt Performansı"
+            data={data.performans}
+            title="Süt Performans Eğrisi (30 Gün)"
             type="area"
             color={colors.primary}
           />
         </div>
-      )}
 
-      {/* Hızlı Yemleme Widget */}
-      <HizliYemlemeWidget />
+        {/* Sürü Dağılımı - Dar */}
+        <div style={{ gridColumn: 'span 4' }}>
+          <Widget>
+            <h3>📊 Sürü Dağılımı</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={getHerdData()}
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {getHerdData().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
+          </Widget>
+        </div>
+      </Grid>
 
+      {/* --- WIDGETS ROW --- */}
+      <Grid>
+        {/* Top Performers */}
+        <div style={{ gridColumn: 'span 4' }}>
+          <Widget>
+            <h3>🏆 Şampiyonlar (En Çok Süt)</h3>
+            <TopCowList>
+              {data.topCows.length === 0 && <p style={{ color: '#999' }}>Veri yok</p>}
+              {data.topCows.map((cow, index) => (
+                <TopCowItem key={cow._id}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div className="rank" style={{ background: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#eee' }}>{index + 1}</div>
+                    <div className="info">
+                      <strong>{cow.isim || 'İsimsiz'}</strong>
+                      <span>Küpe: {cow.kupeNo}</span>
+                    </div>
+                  </div>
+                  <div className="value">{cow.ortalama.toFixed(1)} Lt</div>
+                </TopCowItem>
+              ))}
+            </TopCowList>
+          </Widget>
+        </div>
 
+        {/* Yapılacaklar */}
+        <div style={{ gridColumn: 'span 4' }}>
+          <YapilacaklarCard
+            bildirimler={data.yapilacaklar}
+          // onTaskComplete logic placeholder
+          />
+        </div>
 
-      {/* Yapılacaklar ve Aktiviteler */}
-      <ContentGrid>
-        <YapilacaklarCard
-          bildirimler={yapilacaklar}
-          onTaskComplete={handleTaskComplete}
-          onTaskClick={(bildirim) => console.log('Bildirim detay:', bildirim)}
-          onViewAll={() => console.log('Tüm bildirimlere git')}
-        />
-        <AktivitelerCard aktiviteler={aktiviteler} />
-      </ContentGrid>
+        {/* Hızlı Yemleme (Eski Widget) */}
+        <div style={{ gridColumn: 'span 4' }}>
+          <HizliYemlemeWidget />
+        </div>
+      </Grid>
+
+      <AktivitelerCard aktiviteler={data.aktiviteler} />
+
     </DashboardContainer>
   );
 };

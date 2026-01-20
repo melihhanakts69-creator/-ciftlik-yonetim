@@ -10,7 +10,6 @@ import Buzagilar from './components/Buzagilar';
 import Duveler from './pages/Duveler';
 import Tosunlar from './components/Tosunlar';
 import SutKaydiPage from './pages/SutKaydi';
-import YemDeposuComponent from './components/YemDeposu';
 import Finansal from './components/Finansal';
 import InekDetay from './pages/InekDetay';
 import Ayarlar from './pages/Ayarlar';
@@ -74,7 +73,6 @@ function App() {
         <Route path="/duve-detay/:id" element={<DuveDetay />} />
         <Route path="/tosun-detay/:id" element={<TosunDetay />} />
         <Route path="/buzagi-detay/:id" element={<BuzagiDetay />} />
-        <Route path="/yem-deposu" element={<YemDeposuComponent />} />
         <Route path="/finansal" element={<Finansal />} />
         <Route path="/bildirimler" element={<Bildirimler />} />
         <Route path="/aktiviteler" element={<Aktiviteler />} />

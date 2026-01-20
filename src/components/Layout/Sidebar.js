@@ -128,7 +128,6 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
     { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
     { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
     { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
-    { path: '/yem-deposu', name: 'Yem Deposu', icon: <FaWarehouse /> },
     { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> }, // Yeni Modül
     { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
     { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
