@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { colors, spacing, borderRadius, shadows } from '../../styles/colors';
 import StatsCard from '../common/StatsCard';
@@ -155,15 +156,72 @@ const LoadingContainer = styled.div`
   font-size: 16px;
 `;
 
-import { useNavigate } from 'react-router-dom';
 
-// ... (imports remain)
 
 const Dashboard = () => {
-  const navigate = useNavigate(); // Hook ekle
-  // ... (state remain)
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    stats: null,
+    performans: [],
+    yapilacaklar: [],
+    aktiviteler: [],
+    topCows: []
+  });
 
-  // ... (fetchData remain)
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const [statsRes, perfRes, tasksRes, actsRes, topRes] = await Promise.all([
+        fetch(`${API_URL}/dashboard/stats`, { headers }),
+        fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }),
+        fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }),
+        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }),
+        fetch(`${API_URL}/dashboard/top-performers`, { headers })
+      ]);
+
+      const stats = await statsRes.json();
+      const performans = await perfRes.json();
+      const tasks = await tasksRes.json();
+      const aktiviteler = await actsRes.json();
+      const topCows = await topRes.json();
+
+      setData({
+        stats,
+        performans,
+        yapilacaklar: [...(tasks.geciken || []), ...(tasks.bugun || [])],
+        aktiviteler,
+        topCows
+      });
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getHerdData = () => {
+    if (!data.stats) return [];
+    return [
+      { name: 'Sağmal', value: data.stats.sagmal || 0, color: '#4CAF50' },
+      { name: 'Kuru/Diğer', value: (data.stats.toplamHayvan?.inek - data.stats.sagmal) || 0, color: '#FF9800' },
+      { name: 'Düve', value: data.stats.toplamHayvan?.duve || 0, color: '#2196F3' },
+      { name: 'Buzağı', value: data.stats.toplamHayvan?.buzagi || 0, color: '#9C27B0' },
+    ].filter(d => d.value > 0);
+  };
+
+  if (loading) return <DashboardContainer><LoadingContainer>Veriler yükleniyor...</LoadingContainer></DashboardContainer>;
 
   return (
     <DashboardContainer>
