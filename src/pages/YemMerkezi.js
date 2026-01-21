@@ -156,89 +156,129 @@ const RationGrid = styled.div`
 
 const RationCard = styled.div`
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 24px;
-  border: 1px solid #f0f0f0;
-  transition: all 0.2s;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
 
   &::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
-    background: ${props => props.color || '#2196f3'};
+    top: 0; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(90deg, #2e7d32, #81c784);
+    opacity: 0.8;
   }
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
     border-color: transparent;
+    
+    .actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
   }
 
   .header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 
-    h3 { margin: 0; font-size: 18px; color: #1a1a1a; }
+    h3 { 
+        margin: 0; 
+        font-size: 19px; 
+        color: #1a1a1a; 
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
   }
 
   .badge {
-    background: #e3f2fd; color: #1565c0;
-    padding: 6px 12px; border-radius: 20px;
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    background: #e8f5e9; color: #2e7d32;
+    padding: 6px 14px; border-radius: 30px;
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid #c8e6c9;
   }
 
   .cost {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 800;
     color: #1a1a1a;
-    margin: 15px 0;
+    margin: 10px 0 20px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
     
-    span { font-size: 14px; color: #666; font-weight: 500; }
+    span { font-size: 14px; color: #888; font-weight: 500; }
   }
 
   .ingredients {
-    margin: 15px 0;
+    flex: 1;
+    margin-bottom: 20px;
     padding: 15px;
-    background: #f8f9fa;
-    border-radius: 12px;
+    background: #fafafa;
+    border-radius: 16px;
     font-size: 13px;
     color: #555;
+    border: 1px solid #f5f5f5;
     
-    div { margin-bottom: 4px; display: flex; justify-content: space-between; }
+    div { 
+        margin-bottom: 8px; 
+        display: flex; 
+        justify-content: space-between;
+        align-items: center;
+        &:last-child { margin-bottom: 0; }
+        
+        span { display: flex; align-items: center; gap: 6px; }
+    }
   }
 
   .actions {
     display: flex;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: auto;
+    background: white;
   }
 `;
 
 const ActionButton = styled.button`
   flex: 1;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   transition: all 0.2s;
+  font-size: 14px;
   
   ${props => props.variant === 'primary' && `
-    background: #2e7d32; color: white;
-    &:hover { background: #1b5e20; }
+    background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%); 
+    color: white;
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+    
+    &:hover { 
+        filter: brightness(1.1);
+        transform: scale(1.02);
+        box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3);
+    }
   `}
 
   ${props => props.variant === 'danger' && `
-    background: #ffebee; color: #c62828;
-    &:hover { background: #ffcdd2; }
+    background: #ffebee; color: #d32f2f;
+    border: 1px solid #ffcdd2;
+    &:hover { background: #ffcdd2; transform: scale(1.02); }
   `}
 `;
 
@@ -421,7 +461,7 @@ const YemMerkezi = () => {
                             <div className="ingredients">
                                 {rasyon.icerik.map((item, i) => (
                                     <div key={i}>
-                                        <span>{item.yemId?.ad || 'Silinmiş Yem'}</span>
+                                        <span><FaLeaf size={10} color="#81c784" /> {item.yemId?.ad || 'Silinmiş Yem'}</span>
                                         <strong>{item.miktar} Kg</strong>
                                     </div>
                                 ))}
