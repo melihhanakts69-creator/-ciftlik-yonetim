@@ -83,45 +83,64 @@ const Grid = styled.div`
 
 const StockCard = styled.div`
   background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   position: relative;
-  border-left: 5px solid ${props => props.color};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.03);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 6px; height: 100%;
+    background: ${props => props.color};
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  }
 
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 
     h3 {
       margin: 0;
-      color: #2c3e50;
-      font-size: 18px;
+      color: #1a1a1a;
+      font-size: 19px;
+      font-weight: 700;
     }
 
     .badge {
-      background: ${props => props.color};
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
+      background: ${props => props.color}15; // 15% opacity
+      color: ${props => props.color};
+      padding: 6px 12px;
+      border-radius: 30px;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
   }
 
   .amount {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 800;
     color: ${props => props.color};
-    margin-bottom: 5px;
+    margin: 15px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
   }
 
   .unit {
-    color: #7f8c8d;
-    font-size: 14px;
+    color: #999;
+    font-size: 15px;
     font-weight: 600;
   }
 
@@ -129,11 +148,17 @@ const StockCard = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-top: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed #f0f0f0;
     
     .price {
       font-size: 13px;
-      color: #95a5a6;
+      color: #7f8c8d;
+      font-weight: 500;
+      background: #f8f9fa;
+      padding: 4px 10px;
+      border-radius: 8px;
     }
   }
 `;
@@ -157,16 +182,21 @@ const ProgressBarFill = styled.div`
 
 const ChartCard = styled.div`
   background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   margin-bottom: 30px;
-  height: 350px;
+  height: 400px;
+  border: 1px solid rgba(0,0,0,0.03);
 
   h3 {
-    margin: 0 0 20px 0;
-    color: #2c3e50;
+    margin: 0 0 25px 0;
+    color: #1a1a1a;
     font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 `;
 
@@ -435,11 +465,13 @@ const YemDeposu = ({ isEmbedded = false }) => {
             <h3>📉 Yem Tüketim Trendi (Son 7 Gün)</h3>
             <ResponsiveContainer width="100%" height="90%">
               <LineChart data={consumptionData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis />
-                <RechartsTooltip />
-                <Line type="monotone" dataKey="tuketim" name="Tüketim (kg)" stroke="#FF9800" strokeWidth={3} dot={{ r: 4 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#777' }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <RechartsTooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                />
+                <Line type="monotone" dataKey="tuketim" name="Tüketim (kg)" stroke="#FF9800" strokeWidth={4} dot={{ r: 5, fill: '#FF9800', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
