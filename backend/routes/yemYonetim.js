@@ -260,6 +260,7 @@ router.delete('/rasyon/:id', auth, async (req, res) => {
 router.post('/dagit', auth, async (req, res) => {
     try {
         const { rasyonId, tarih } = req.body;
+        console.log('Rasyon Dağıt İsteği:', rasyonId); // Debug log to force deployment update
         const userId = req.userId;
         const islemTarihi = tarih ? new Date(tarih) : new Date();
 
@@ -328,7 +329,7 @@ router.post('/dagit', auth, async (req, res) => {
                 await YemHareket.create({
                     userId,
                     yemTipi: stok.yemTipi,
-                    hareketTipi: 'Kullanım',
+                    hareketTipi: 'Tüketim',
                     miktar: harcananMiktar,
                     birimFiyat: stok.birimFiyat || 0,
                     toplamTutar: kalemMaliyeti,
