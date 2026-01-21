@@ -13,7 +13,7 @@ const yemHareketSchema = new mongoose.Schema({
   hareketTipi: {
     type: String,
     required: true,
-    enum: ['Alım', 'Tüketim', 'Fire']
+    enum: ['Alım', 'Tüketim', 'Fire', 'Kullanım']
   },
   miktar: {
     type: Number,
