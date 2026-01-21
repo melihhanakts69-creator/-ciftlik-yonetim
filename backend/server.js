@@ -23,7 +23,15 @@ connectDB();
 
 // Test route
 app.get('/', (req, res) => {
-  res.json({ message: '🐄 Çiftlik API çalışıyor!' });
+  res.json({ message: '🐄 Çiftlik API çalışıyor!', version: '1.0.1-fix-enum' });
+});
+
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '1.0.1-fix-enum',
+    timestamp: new Date().toISOString(),
+    fix: 'YemHareket enum relaxed'
+  });
 });
 
 // Routes
