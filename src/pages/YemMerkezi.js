@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
     FaLeaf, FaClipboardList, FaCheckCircle, FaTrash, FaCalculator,
-    FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch
+    FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd
 } from 'react-icons/fa';
 import * as api from '../services/api';
 import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 import YemEkleModal from '../components/Yem/YemEkleModal';
-import YemDeposu from '../components/YemDeposu'; // Yem Deposu bileşenini buraya entegre ediyoruz
+import YemDeposu from '../components/YemDeposu';
+import YemDanismani from '../components/Yem/YemDanismani';
 
 // --- STYLED COMPONENTS ---
 
@@ -126,6 +127,7 @@ const TabButton = styled.button`
     color: ${props => props.active ? 'white' : '#1a1a1a'};
   }
 `;
+
 
 const Card = styled.div`
   background: white;
@@ -375,12 +377,20 @@ const YemMerkezi = () => {
                 <TabButton active={activeTab === 'hesapla'} onClick={() => setActiveTab('hesapla')}>
                     <FaCalculator /> Hesaplayıcı
                 </TabButton>
+                <TabButton active={activeTab === 'danisman'} onClick={() => setActiveTab('danisman')}>
+                    <FaUserMd /> Yem Danışmanı
+                    <span style={{ background: '#e3f2fd', color: '#1565c0', fontSize: 10, padding: '2px 6px', borderRadius: 10, marginLeft: -2 }}>YENİ</span>
+                </TabButton>
                 <TabButton active={activeTab === 'kutuphane'} onClick={() => setActiveTab('kutuphane')}>
                     <FaLeaf /> Yem Kütüphanesi
                 </TabButton>
             </TabContainer>
 
             {/* --- TAB CONTENT --- */}
+
+            {activeTab === 'danisman' && (
+                <YemDanismani />
+            )}
 
             {activeTab === 'stok' && (
                 // YemDeposu bileşenini direkt kullanıyoruz, bu bileşen kendi içinde API çağrılarını yapıyor
