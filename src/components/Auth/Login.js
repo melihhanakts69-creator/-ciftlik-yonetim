@@ -57,9 +57,9 @@ const LogoContainer = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 140px;
+  width: 180px;
   height: auto;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
 `;
 
