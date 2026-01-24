@@ -49,13 +49,14 @@ const BrandContainer = styled.div`
 `;
 
 const LogoImage = styled.img`
-  width: 55px;
-  height: 55px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
   object-fit: contain;
-  background: white;
-  padding: 3px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: #f8f9fa;
+  padding: 4px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  border: 2px solid rgba(255,255,255,0.1);
 `;
 
 const BrandText = styled.div`
