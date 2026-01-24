@@ -70,10 +70,18 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: white;
-  font-size: 1.4rem;
+}
+
+.brand-logo span {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #8B4513 0%, #5D4037 50%, #3E2723 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+  text-shadow: none;
 }
 
 /* .logo-icon style removed */
@@ -456,11 +464,16 @@
 }
 
 .footer-brand h2 {
-  color: white;
+  font-family: 'Playfair Display', Georgia, serif;
+  background: linear-gradient(135deg, #D4AF37 0%, #C5A028 50%, #AA8C2C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 1rem;
+  font-size: 1.8rem;
 }
 
 .footer-section h4 {
