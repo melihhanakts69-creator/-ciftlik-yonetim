@@ -53,6 +53,9 @@ const LogoImage = styled.img`
   height: 55px;
   border-radius: 12px;
   object-fit: contain;
+  background: white;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 `;
 
 const BrandText = styled.div`

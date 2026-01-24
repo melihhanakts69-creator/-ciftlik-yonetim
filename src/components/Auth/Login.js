@@ -60,7 +60,10 @@ const Logo = styled.img`
   width: 180px;
   height: auto;
   margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  background: white;
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 `;
 
 const Tagline = styled.p`
