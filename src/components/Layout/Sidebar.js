@@ -7,7 +7,7 @@ import {
   FaSignOutAlt, FaTimes, FaCog
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
-import logo from '../../agrolina-logo.png';
+import logo from '../../logo.png';
 
 // --- Styled Components ---
 

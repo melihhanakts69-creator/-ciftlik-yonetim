@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { login, register } from '../../services/api';
-import logo from '../../agrolina-logo.png';
+import logo from '../../logo.png';
 
 // Animations
 const fadeIn = keyframes`
