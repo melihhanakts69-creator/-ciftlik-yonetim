@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../logo.png';
+import logo from '../agrolina-logo.png';
 import '../styles/LandingPage.css';
 
 const LandingPage = () => {
@@ -40,8 +40,8 @@ const LandingPage = () => {
             {/* HEADER */}
             <header className="landing-header">
                 <div className="brand-logo">
-                    <img src={logo} alt="HARMAN Logo" className="logo-image" style={{ height: '50px', width: '50px', objectFit: 'contain' }} />
-                    <span>HARMAN</span>
+                    <img src={logo} alt="Agrolina Logo" className="logo-image" style={{ height: '50px', width: '50px', objectFit: 'contain' }} />
+                    <span>Agrolina</span>
                 </div>
 
                 <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
@@ -183,7 +183,7 @@ const LandingPage = () => {
             <footer className="landing-footer" id="contact">
                 <div className="footer-content">
                     <div className="footer-brand">
-                        <h2><img src={logo} alt="HARMAN Logo" style={{ height: '40px', marginRight: '10px' }} /> HARMAN</h2>
+                        <h2><img src={logo} alt="Agrolina Logo" style={{ height: '40px', marginRight: '10px' }} /> Agrolina</h2>
                         <p style={{ lineHeight: '1.6', color: '#888' }}>
                             Modern çiftçilik için geliştirilmiş, kullanımı kolay ve kapsamlı yönetim platformu.
                         </p>

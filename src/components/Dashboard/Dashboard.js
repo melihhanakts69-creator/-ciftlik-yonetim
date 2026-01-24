@@ -227,7 +227,7 @@ const Dashboard = () => {
     <DashboardContainer>
       <Header>
         <TitleSection>
-          <Title>Çiftlik Paneli</Title>
+          <Title>🌿 Agrolina Paneli</Title>
           <Subtitle>{new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Subtitle>
         </TitleSection>
         <QuickActions>

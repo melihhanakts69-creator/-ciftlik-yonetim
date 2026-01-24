@@ -1,6 +1,7 @@
 {
   "short_name": "Agrolina",
-  "name": "Agrolina - Çiftlik Yönetim Sistemi",
+  "name": "Agrolina - Akıllı Çiftlik Yönetimi",
+  "description": "Hayvan takibi, süt kaydı, finansal analiz ve yapay zeka destekli çiftlik yönetim sistemi",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,49 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#4CAF50",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Süt Kaydı Ekle",
+      "short_name": "Süt",
+      "description": "Günlük süt kaydı ekle",
+      "url": "/sut-kaydi",
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "İnekleri Gör",
+      "short_name": "İnekler",
+      "description": "Tüm inekleri listele",
+      "url": "/inekler",
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }
