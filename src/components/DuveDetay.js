@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as api from '../services/api';
+import { showSuccess, showError, showWarning } from '../utils/toast';
 
 function DuveDetay({ duve, onKapat, onGuncelle }) {
   const [timeline, setTimeline] = useState([]);
@@ -23,40 +24,40 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     }
   };
 
- const timelineEkle = async () => {
-  if (!yeniTimeline.tarih) {
-    alert('Tarih seçin!');
-    return;
-  }
+  const timelineEkle = async () => {
+    if (!yeniTimeline.tarih) {
+      showWarning('Tarih seçin!');
+      return;
+    }
 
-  try {
-    const yeniKayit = {
-      hayvanId: duve._id,
-      hayvanTipi: 'duve',          // ✅ enum uyumlu
-      tip: timelineTip || 'diger', // ✅ enum uyumlu
-      tarih: yeniTimeline.tarih,  // ✅ STRING
-      aciklama: yeniTimeline.aciklama
-    };
+    try {
+      const yeniKayit = {
+        hayvanId: duve._id,
+        hayvanTipi: 'duve',          // ✅ enum uyumlu
+        tip: timelineTip || 'diger', // ✅ enum uyumlu
+        tarih: yeniTimeline.tarih,  // ✅ STRING
+        aciklama: yeniTimeline.aciklama
+      };
 
-    console.log('Timeline ekleniyor:', yeniKayit);
+      console.log('Timeline ekleniyor:', yeniKayit);
 
-    await api.createTimeline(yeniKayit);
+      await api.createTimeline(yeniKayit);
 
-    setYeniTimeline({
-      tarih: new Date().toISOString().split('T')[0],
-      aciklama: ''
-    });
-    
+      setYeniTimeline({
+        tarih: new Date().toISOString().split('T')[0],
+        aciklama: ''
+      });
 
-    setTimelineEkrani(false);
-    setTimelineTip('');
-    timelineYukle();
-    alert('✅ Kayıt eklendi!');
-  } catch (error) {
-    console.error('Timeline ekleme hatası:', error);
-    alert('❌ Hata: ' + (error.response?.data?.message || 'Kayıt eklenemedi!'));
-  }
-};
+
+      setTimelineEkrani(false);
+      setTimelineTip('');
+      timelineYukle();
+      showSuccess('Kayıt eklendi!');
+    } catch (error) {
+      console.error('Timeline ekleme hatası:', error);
+      showError(error.response?.data?.message || 'Kayıt eklenemedi!');
+    }
+  };
 
 
   const timelineSil = async (id) => {
@@ -65,9 +66,9 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     try {
       await api.deleteTimeline(id);
       timelineYukle();
-      alert('✅ Kayıt silindi!');
+      showSuccess('Kayıt silindi!');
     } catch (error) {
-      alert('❌ Hata: Kayıt silinemedi!');
+      showError('Kayıt silinemedi!');
     }
   };
 
@@ -87,17 +88,17 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
     return Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
   };
 
- 
+
   const gunFarkiHesapla = (tarih) => {
-  if (!tarih) return null;
+    if (!tarih) return null;
 
-  const bugun = new Date();
-  const girilenTarih = new Date(tarih + 'T00:00:00'); 
-  // 👆 kritik nokta
+    const bugun = new Date();
+    const girilenTarih = new Date(tarih + 'T00:00:00');
+    // 👆 kritik nokta
 
-  const farkMs = bugun.getTime() - girilenTarih.getTime();
-  return Math.floor(farkMs / (1000 * 60 * 60 * 24));
-};
+    const farkMs = bugun.getTime() - girilenTarih.getTime();
+    return Math.floor(farkMs / (1000 * 60 * 60 * 24));
+  };
 
 
   const yas = Math.floor((new Date() - new Date(duve.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
@@ -150,10 +151,10 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
             {duve.gebelikDurumu === 'Gebe' ? '🤰 Gebe' : duve.gebelikDurumu === 'Belirsiz' ? '❓ Belirsiz' : '❌ Gebe Değil'}
           </div>
         </div>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '20px',
           padding: '20px',
           backgroundColor: '#f5f5f5',
@@ -191,7 +192,7 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
             border: `2px solid ${duve.gebelikDurumu === 'Gebe' ? '#4CAF50' : '#FF9800'}`
           }}>
             <h3 style={{ marginTop: 0, fontSize: '18px' }}>🤰 Gebelik Bilgileri</h3>
-            
+
             <div style={{ display: 'grid', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#666' }}>Tohumlama Tarihi:</span>
@@ -230,7 +231,7 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                       {dogumTarihi.toLocaleDateString('tr-TR')}
                     </strong>
                   </div>
-                  
+
                   {kalanGun !== null && (
                     <div style={{
                       padding: '15px',
@@ -243,8 +244,8 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
                         {kalanGun > 0
                           ? `📅 ${kalanGun} gün kaldı`
                           : kalanGun === 0
-                          ? '⚠️ BUGÜN DOĞUM!'
-                          : `❗ ${Math.abs(kalanGun)} gün geçti`
+                            ? '⚠️ BUGÜN DOĞUM!'
+                            : `❗ ${Math.abs(kalanGun)} gün geçti`
                         }
                       </div>
                       {kalanGun <= 30 && kalanGun > 0 && (
@@ -261,12 +262,12 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
         )}
 
         {duve.notlar && (
-          <div style={{ 
-            marginTop: '15px', 
+          <div style={{
+            marginTop: '15px',
             padding: '15px',
             backgroundColor: '#f5f5f5',
             borderRadius: '8px',
-            fontStyle: 'italic', 
+            fontStyle: 'italic',
             color: '#666',
             borderLeft: '4px solid #2196F3'
           }}>
@@ -399,8 +400,8 @@ function DuveDetay({ duve, onKapat, onGuncelle }) {
             })}
           </div>
         ) : (
-          <div style={{ 
-            textAlign: 'center', 
+          <div style={{
+            textAlign: 'center',
             padding: '40px',
             color: '#999',
             backgroundColor: '#f5f5f5',

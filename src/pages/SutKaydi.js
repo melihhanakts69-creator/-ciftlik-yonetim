@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import { FaCalendarAlt, FaHistory, FaCheckCircle, FaTrash, FaPlus, FaList } from 'react-icons/fa';
+import { showSuccess, showError, showWarning } from '../utils/toast';
 
 // --- Styled Components ---
 
@@ -97,7 +98,7 @@ function SutKaydi() {
 
     const onizlemeAl = async () => {
         if (!toplamSut || toplamSut <= 0) {
-            alert('Lütfen geçerli bir süt miktarı girin!');
+            showWarning('Lütfen geçerli bir süt miktarı girin!');
             return;
         }
 
@@ -112,7 +113,7 @@ function SutKaydi() {
             setOnizleme(response.data);
             setAdim(2);
         } catch (error) {
-            alert('❌ Hata: ' + (error.response?.data?.message || 'Önizleme alınamadı!'));
+            showError(error.response?.data?.message || 'Önizleme alınamadı!');
         } finally {
             setYukleniyor(false);
         }
@@ -129,7 +130,7 @@ function SutKaydi() {
                 detaylar: onizleme.detaylar,
                 notlar
             });
-            alert('✅ Kayıt Başarılı!');
+            showSuccess('Kayıt Başarılı!');
             setAdim(1);
             setToplamSut('');
             setOnizleme(null);
@@ -137,9 +138,9 @@ function SutKaydi() {
             setActiveTab('gecmis'); // Kayıttan sonra geçmişe at
         } catch (error) {
             if (error.response?.status === 409) {
-                alert('⚠️ Bu tarih ve sağım için kayıt zaten var! Geçmiş sekmesinden eskisini silip tekrar deneyin.');
+                showWarning('Bu tarih ve sağım için kayıt zaten var! Geçmiş sekmesinden eskisini silip tekrar deneyin.');
             } else {
-                alert('Hata oluştu: ' + error.message);
+                showError('Hata oluştu: ' + error.message);
             }
         } finally {
             setYukleniyor(false);
@@ -151,9 +152,9 @@ function SutKaydi() {
             try {
                 await api.topluSutSilByTarihSagim(tarih, sagim);
                 fetchGecmis();
-                alert('Kayıt silindi.');
+                showSuccess('Kayıt silindi.');
             } catch (error) {
-                alert('Silme işlemi başarısız.');
+                showError('Silme işlemi başarısız.');
             }
         }
     };

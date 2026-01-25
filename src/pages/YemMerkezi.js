@@ -9,6 +9,7 @@ import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 import YemEkleModal from '../components/Yem/YemEkleModal';
 import YemDeposu from '../components/YemDeposu';
 import YemDanismani from '../components/Yem/YemDanismani';
+import { showSuccess, showError } from '../utils/toast';
 
 // --- STYLED COMPONENTS ---
 
@@ -339,11 +340,11 @@ const YemMerkezi = () => {
     const handleCreateRasyon = async (data) => {
         try {
             await api.createRasyon(data);
-            alert('Rasyon başarıyla oluşturuldu! 🎉');
+            showSuccess('Rasyon başarıyla oluşturuldu! 🎉');
             setActiveTab('rasyon');
             loadData();
         } catch (error) {
-            alert('Hata oluştu');
+            showError('Hata oluştu');
         }
     };
 
@@ -352,9 +353,9 @@ const YemMerkezi = () => {
 
         try {
             const res = await api.rasyonDagit({ rasyonId });
-            alert(`✅ İşlem Başarılı!\n${res.data.hayvanSayisi} hayvan yemlendi.\nToplam Maliyet: ${res.data.toplamMaliyet.toFixed(2)} TL`);
+            showSuccess(`İşlem Başarılı! ${res.data.hayvanSayisi} hayvan yemlendi. Toplam Maliyet: ${res.data.toplamMaliyet.toFixed(2)} TL`);
         } catch (error) {
-            alert('Yemleme başarısız: ' + (error.response?.data?.message || 'Hata'));
+            showError('Yemleme başarısız: ' + (error.response?.data?.message || 'Hata'));
         }
     };
 
@@ -506,9 +507,9 @@ const YemMerkezi = () => {
                                         setLoading(true);
                                         try {
                                             const res = await api.syncStokToLibrary();
-                                            alert(`İşlem Tamam! ${res.data.added} yem eklendi, ${res.data.matched} tanesi otomatik tanımlandı.`);
+                                            showSuccess(`İşlem Tamam! ${res.data.added} yem eklendi, ${res.data.matched} tanesi otomatik tanımlandı.`);
                                             loadData();
-                                        } catch (e) { alert('Hata oluştu'); } finally { setLoading(false); }
+                                        } catch (e) { showError('Hata oluştu'); } finally { setLoading(false); }
                                     }
                                 }}
                                 style={{ background: '#0288d1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', marginRight: 10 }}

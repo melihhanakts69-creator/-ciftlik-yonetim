@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout/Layout';
 import Login from './components/Auth/Login';
 import LandingPage from './pages/LandingPage';
@@ -20,6 +22,7 @@ import Bildirimler from './pages/Bildirimler';
 import Aktiviteler from './pages/Aktiviteler';
 import Raporlar from './pages/Raporlar';
 import YemMerkezi from './pages/YemMerkezi'; // Yeni Modül
+import NotFound from './pages/NotFound';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -58,31 +61,45 @@ function App() {
   }
 
   return (
-    <Layout onLogout={handleLogout}>
-      <Routes>
-        <Route path="/" element={<Home kullanici={kullanici} />} />
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <Layout onLogout={handleLogout}>
+        <Routes>
+          <Route path="/" element={<Home kullanici={kullanici} />} />
 
-        {/* Diğer modüller */}
-        <Route path="/inekler" element={<IneklerPage />} />
-        <Route path="/ayarlar" element={<Ayarlar />} />
-        <Route path="/buzagilar" element={<Buzagilar />} />
-        <Route path="/duveler" element={<Duveler />} />
-        <Route path="/tosunlar" element={<Tosunlar />} />
-        <Route path="/sut-kaydi" element={<SutKaydiPage />} />
-        <Route path="/inek-detay/:id" element={<InekDetay />} />
-        <Route path="/duve-detay/:id" element={<DuveDetay />} />
-        <Route path="/tosun-detay/:id" element={<TosunDetay />} />
-        <Route path="/buzagi-detay/:id" element={<BuzagiDetay />} />
-        <Route path="/finansal" element={<Finansal />} />
-        <Route path="/bildirimler" element={<Bildirimler />} />
-        <Route path="/aktiviteler" element={<Aktiviteler />} />
-        <Route path="/raporlar" element={<Raporlar />} />
-        <Route path="/yem-merkezi" element={<YemMerkezi />} />
+          {/* Diğer modüller */}
+          <Route path="/inekler" element={<IneklerPage />} />
+          <Route path="/ayarlar" element={<Ayarlar />} />
+          <Route path="/buzagilar" element={<Buzagilar />} />
+          <Route path="/duveler" element={<Duveler />} />
+          <Route path="/tosunlar" element={<Tosunlar />} />
+          <Route path="/sut-kaydi" element={<SutKaydiPage />} />
+          <Route path="/inek-detay/:id" element={<InekDetay />} />
+          <Route path="/duve-detay/:id" element={<DuveDetay />} />
+          <Route path="/tosun-detay/:id" element={<TosunDetay />} />
+          <Route path="/buzagi-detay/:id" element={<BuzagiDetay />} />
+          <Route path="/finansal" element={<Finansal />} />
+          <Route path="/bildirimler" element={<Bildirimler />} />
+          <Route path="/aktiviteler" element={<Aktiviteler />} />
+          <Route path="/raporlar" element={<Raporlar />} />
+          <Route path="/yem-merkezi" element={<YemMerkezi />} />
 
-        {/* Bilinmeyen rotalar */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+          {/* Bilinmeyen rotalar */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+    </>
   );
 }
 

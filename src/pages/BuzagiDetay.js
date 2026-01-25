@@ -4,6 +4,7 @@ import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaMars, FaVenus, FaArrowRight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
+import { showSuccess, showError, showWarning } from '../utils/toast';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -196,7 +197,7 @@ const BuzagiDetay = () => {
                 setBuzagi(res.data);
                 setKiloGuncel(res.data.kilo || '');
             } else {
-                alert('Buzağı bulunamadı!');
+                showError('Buzağı bulunamadı!');
                 navigate('/buzagilar');
             }
         } catch (error) {
@@ -219,11 +220,11 @@ const BuzagiDetay = () => {
         try {
             setLoading(true);
             const res = await api.buzagiGecisYap(id);
-            alert(res.data.message);
+            showSuccess(res.data.message);
             navigate(isDisi ? '/duveler' : '/tosunlar');
         } catch (error) {
             console.error('Geçiş hatası:', error);
-            alert('Transfer başarısız: ' + (error.response?.data?.message || error.message));
+            showError('Transfer başarısız: ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
         }
@@ -234,11 +235,11 @@ const BuzagiDetay = () => {
         try {
             setLoading(true);
             await api.updateBuzagi(id, { ...buzagi, kilo: Number(kiloGuncel) });
-            alert('Kilo güncellendi!');
+            showSuccess('Kilo güncellendi!');
             setShowKiloModal(false);
             fetchDetaylar();
         } catch (error) {
-            alert('İşlem başarısız');
+            showError('İşlem başarısız');
         } finally {
             setLoading(false);
         }

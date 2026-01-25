@@ -4,6 +4,7 @@ import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
+import { showSuccess, showError, showInfo } from '../utils/toast';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -196,7 +197,7 @@ const TosunDetay = () => {
                 setTosun(res.data);
                 setKiloGuncel(res.data.kilo || '');
             } else {
-                alert('Tosun bulunamadı!');
+                showError('Tosun bulunamadı!');
                 navigate('/tosunlar');
             }
         } catch (error) {
@@ -212,11 +213,11 @@ const TosunDetay = () => {
         try {
             setLoading(true);
             await api.updateTosun(id, { ...tosun, kilo: Number(kiloGuncel) });
-            alert('Kilo güncellendi!');
+            showSuccess('Kilo güncellendi!');
             setShowKiloModal(false);
             fetchDetaylar();
         } catch (error) {
-            alert('İşlem başarısız');
+            showError('İşlem başarısız');
         } finally {
             setLoading(false);
         }
@@ -224,7 +225,7 @@ const TosunDetay = () => {
 
     // Satış logic henüz tam değil, placeholder
     const handleSatis = () => {
-        alert('Satış modülü yakında eklenecek!');
+        showInfo('Satış modülü yakında eklenecek!');
     };
 
     if (loading) return <Container>Yükleniyor...</Container>;

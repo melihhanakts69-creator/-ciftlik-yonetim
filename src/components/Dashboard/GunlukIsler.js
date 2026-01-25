@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { bildirimTamamlandiIsaretle } from '../../services/api';
+import { showError } from '../../utils/toast';
 
 const WidgetContainer = styled.div`
   background: white;
@@ -116,84 +117,84 @@ const EmptyState = styled.div`
 `;
 
 const GunlukIsler = ({ data, onRefresh }) => {
-    const [loadingMap, setLoadingMap] = useState({});
+  const [loadingMap, setLoadingMap] = useState({});
 
-    // Verileri grupla: Gecikenler + Bugün + Yaklaşanlar
-    const allTasks = [
-        ...(data?.geciken || []).map(t => ({ ...t, isOverdue: true })),
-        ...(data?.bugun || []),
-        ...(data?.yaklaşan || [])
-    ];
+  // Verileri grupla: Gecikenler + Bugün + Yaklaşanlar
+  const allTasks = [
+    ...(data?.geciken || []).map(t => ({ ...t, isOverdue: true })),
+    ...(data?.bugun || []),
+    ...(data?.yaklaşan || [])
+  ];
 
-    const handleComplete = async (id) => {
-        try {
-            setLoadingMap(prev => ({ ...prev, [id]: true }));
-            await bildirimTamamlandiIsaretle(id);
-            if (onRefresh) onRefresh();
-        } catch (error) {
-            console.error('Görev tamamlanamadı:', error);
-            alert('İşlem başarısız oldu.');
-        } finally {
-            setLoadingMap(prev => ({ ...prev, [id]: false }));
-        }
-    };
+  const handleComplete = async (id) => {
+    try {
+      setLoadingMap(prev => ({ ...prev, [id]: true }));
+      await bildirimTamamlandiIsaretle(id);
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Görev tamamlanamadı:', error);
+      showError('İşlem başarısız oldu.');
+    } finally {
+      setLoadingMap(prev => ({ ...prev, [id]: false }));
+    }
+  };
 
-    const getIconAndColor = (tip) => {
-        switch (tip) {
-            case 'dogum': return { icon: '🤰', color: '#9c27b0' };
-            case 'asi': return { icon: '💉', color: '#f44336' };
-            case 'muayene': return { icon: '🩺', color: '#2196f3' };
-            case 'kuru_donem': return { icon: '🩸', color: '#ff9800' };
-            case 'sutten_kesme': return { icon: '🍼', color: '#795548' };
-            default: return { icon: '📝', color: '#607d8b' };
-        }
-    };
+  const getIconAndColor = (tip) => {
+    switch (tip) {
+      case 'dogum': return { icon: '🤰', color: '#9c27b0' };
+      case 'asi': return { icon: '💉', color: '#f44336' };
+      case 'muayene': return { icon: '🩺', color: '#2196f3' };
+      case 'kuru_donem': return { icon: '🩸', color: '#ff9800' };
+      case 'sutten_kesme': return { icon: '🍼', color: '#795548' };
+      default: return { icon: '📝', color: '#607d8b' };
+    }
+  };
 
-    return (
-        <WidgetContainer>
-            <Header>
-                <Title>
-                    <span>✅</span> Bugünün İşleri
-                </Title>
-                <StatusBadge count={data?.geciken?.length || 0}>
-                    {data?.geciken?.length > 0 ? `${data.geciken.length} Geciken İş` : 'Her Şey Yolunda'}
-                </StatusBadge>
-            </Header>
+  return (
+    <WidgetContainer>
+      <Header>
+        <Title>
+          <span>✅</span> Bugünün İşleri
+        </Title>
+        <StatusBadge count={data?.geciken?.length || 0}>
+          {data?.geciken?.length > 0 ? `${data.geciken.length} Geciken İş` : 'Her Şey Yolunda'}
+        </StatusBadge>
+      </Header>
 
-            <TaskList>
-                {allTasks.length === 0 ? (
-                    <EmptyState>
-                        <span style={{ fontSize: '2rem', display: 'block', marginBottom: '10px' }}>🎉</span>
-                        Bugün için yapılacak bir iş yok. Keyfine bak!
-                    </EmptyState>
-                ) : (
-                    allTasks.map(task => {
-                        const style = getIconAndColor(task.tip);
-                        const isLoading = loadingMap[task._id];
-                        const date = new Date(task.hatirlatmaTarihi).toLocaleDateString('tr-TR');
+      <TaskList>
+        {allTasks.length === 0 ? (
+          <EmptyState>
+            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '10px' }}>🎉</span>
+            Bugün için yapılacak bir iş yok. Keyfine bak!
+          </EmptyState>
+        ) : (
+          allTasks.map(task => {
+            const style = getIconAndColor(task.tip);
+            const isLoading = loadingMap[task._id];
+            const date = new Date(task.hatirlatmaTarihi).toLocaleDateString('tr-TR');
 
-                        return (
-                            <TaskItem key={task._id} color={style.color} isOverdue={task.isOverdue}>
-                                <div style={{ fontSize: '1.5rem', background: 'white', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-                                    {style.icon}
-                                </div>
-                                <TaskContent>
-                                    <TaskTitle>{task.baslik}</TaskTitle>
-                                    <TaskDesc>{task.mesaj}</TaskDesc>
-                                    <DateBadge isOverdue={task.isOverdue}>
-                                        {task.isOverdue ? `⚠️ Gecikmiş (${date})` : `📅 ${date}`}
-                                    </DateBadge>
-                                </TaskContent>
-                                <ActionButton onClick={() => handleComplete(task._id)} disabled={isLoading}>
-                                    {isLoading ? '...' : (task.isOverdue ? 'Şimdi Yapıldı' : 'Tamamla')}
-                                </ActionButton>
-                            </TaskItem>
-                        );
-                    })
-                )}
-            </TaskList>
-        </WidgetContainer>
-    );
+            return (
+              <TaskItem key={task._id} color={style.color} isOverdue={task.isOverdue}>
+                <div style={{ fontSize: '1.5rem', background: 'white', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+                  {style.icon}
+                </div>
+                <TaskContent>
+                  <TaskTitle>{task.baslik}</TaskTitle>
+                  <TaskDesc>{task.mesaj}</TaskDesc>
+                  <DateBadge isOverdue={task.isOverdue}>
+                    {task.isOverdue ? `⚠️ Gecikmiş (${date})` : `📅 ${date}`}
+                  </DateBadge>
+                </TaskContent>
+                <ActionButton onClick={() => handleComplete(task._id)} disabled={isLoading}>
+                  {isLoading ? '...' : (task.isOverdue ? 'Şimdi Yapıldı' : 'Tamamla')}
+                </ActionButton>
+              </TaskItem>
+            );
+          })
+        )}
+      </TaskList>
+    </WidgetContainer>
+  );
 };
 
 export default GunlukIsler;

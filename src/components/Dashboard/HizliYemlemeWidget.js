@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaUtensils, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import * as api from '../../services/api';
+import { showSuccess, showError } from '../../utils/toast';
 
 const WidgetContainer = styled.div`
   background: white;
@@ -82,9 +83,9 @@ const HizliYemlemeWidget = () => {
         try {
             await api.rasyonDagit({ rasyonId });
             setCompleted(prev => ({ ...prev, [rasyonId]: true }));
-            alert('Yemleme Kaydedildi! ✅');
+            showSuccess('Yemleme Kaydedildi!');
         } catch (error) {
-            alert('Hata: ' + (error.response?.data?.message || 'İşlem başarısız'));
+            showError(error.response?.data?.message || 'İşlem başarısız');
         } finally {
             setLoading(false);
         }

@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
   FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
-  FaSignOutAlt, FaTimes, FaCog
+  FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
 import logo from '../../logo.png';
+import * as api from '../../services/api';
 
 // --- Styled Components ---
 
@@ -170,6 +171,25 @@ const IconWrapper = styled.span`
 `;
 
 const Sidebar = ({ onLogout, isOpen, onClose }) => {
+  const [okunmamisSayisi, setOkunmamisSayisi] = useState(0);
+
+  // Okunmamış bildirim sayısını çek
+  useEffect(() => {
+    const fetchOkunmamis = async () => {
+      try {
+        const res = await api.getBildirimler();
+        const okunmamis = res.data.filter(b => !b.okundu).length;
+        setOkunmamisSayisi(okunmamis);
+      } catch (e) {
+        console.log('Bildirim sayısı alınamadı');
+      }
+    };
+    fetchOkunmamis();
+    // Her 60 saniyede bir kontrol et
+    const interval = setInterval(fetchOkunmamis, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const menuItems = [
     { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
     { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
@@ -182,6 +202,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
   const yonetimItems = [
     { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
     { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
+    { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
     { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
     { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
   ];
@@ -223,9 +244,26 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
               key={index}
               to={item.path}
               onClick={onClose}
+              style={{ position: 'relative' }}
             >
               <IconWrapper>{item.icon}</IconWrapper>
               {item.name}
+              {item.badge > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  right: '15px',
+                  background: '#f44336',
+                  color: 'white',
+                  borderRadius: '10px',
+                  padding: '2px 8px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  minWidth: '20px',
+                  textAlign: 'center'
+                }}>
+                  {item.badge}
+                </span>
+              )}
             </StyledNavLink>
           ))}
         </MenuSection>

@@ -4,6 +4,7 @@ import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaBaby, FaMars, FaVenus, FaPlus, FaEllipsisV, FaEdit, FaTrash, FaArrowRight, FaThLarge, FaList } from 'react-icons/fa';
 import FilterBar from '../components/common/FilterBar';
+import { showSuccess, showError } from '../utils/toast';
 
 const PageContainer = styled.div`
   padding: 20px;
@@ -162,9 +163,9 @@ const Buzagilar = () => {
       }
       fetchData();
       closeModal();
-      alert('İşlem Başarılı!');
+      showSuccess('İşlem Başarılı!');
     } catch (error) {
-      alert('Ekleme başarısız: ' + (error.response?.data?.message || ''));
+      showError('Ekleme başarısız: ' + (error.response?.data?.message || ''));
     }
   };
 
@@ -174,9 +175,9 @@ const Buzagilar = () => {
       await api.updateBuzagi(duzenlenecekBuzagi._id, duzenlenecekBuzagi);
       fetchData();
       closeModal();
-      alert('Güncellendi!');
+      showSuccess('Güncellendi!');
     } catch (error) {
-      alert('Güncelleme başarısız');
+      showError('Güncelleme başarısız');
     }
   };
 
@@ -186,7 +187,7 @@ const Buzagilar = () => {
         await api.deleteBuzagi(id);
         setBuzagilar(buzagilar.filter(b => b._id !== id));
       } catch (error) {
-        alert('Silme başarısız');
+        showError('Silme başarısız');
       }
     }
   };
@@ -197,9 +198,9 @@ const Buzagilar = () => {
       try {
         await api.buzagiGecisYap(buzagi._id);
         fetchData();
-        alert(`Transfer başarılı: ${hedef}`);
+        showSuccess(`Transfer başarılı: ${hedef}`);
       } catch (error) {
-        alert('Transfer başarısız');
+        showError('Transfer başarısız');
       }
     }
   };
