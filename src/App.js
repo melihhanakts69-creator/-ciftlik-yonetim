@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout/Layout';
@@ -37,10 +37,13 @@ function App() {
     }
   }, []);
 
+  const navigate = useNavigate();
+
   const handleLoginSuccess = (user) => {
     setGirisYapildi(true);
     setKullanici(user);
     localStorage.setItem('user', JSON.stringify(user));
+    navigate('/', { replace: true });
   };
 
   const handleLogout = () => {
@@ -97,6 +100,9 @@ function App() {
           <Route path="/aktiviteler" element={<Aktiviteler />} />
           <Route path="/raporlar" element={<Raporlar />} />
           <Route path="/yem-merkezi" element={<YemMerkezi />} />
+
+          {/* Login/Landing yönlendirmeleri */}
+          <Route path="/login" element={<Navigate to="/" replace />} />
 
           {/* Bilinmeyen rotalar */}
           <Route path="*" element={<NotFound />} />
