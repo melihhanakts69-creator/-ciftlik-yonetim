@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaMars, FaVenus, FaArrowRight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
 import { showSuccess, showError, showWarning } from '../utils/toast';
+import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -327,8 +328,10 @@ const BuzagiDetay = () => {
                             </div>
                         </div>
                     </Card>
-                </div>
 
+                    {/* SAĞLIK GEÇMİŞİ */}
+                    <SaglikGecmisi hayvanId={id} />
+                </div>
                 {/* SAĞ KOLON */}
                 <div>
                     {/* HIZLI İŞLEMLER */}

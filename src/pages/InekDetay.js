@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import SatisModal from '../components/modals/SatisModal';
+import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -408,6 +409,9 @@ const InekDetay = () => {
                             </div>
                         </Card>
                     )}
+
+                    {/* SAĞLIK GEÇMİŞİ */}
+                    <SaglikGecmisi hayvanId={id} />
                 </div>
 
                 {/* SAĞ KOLON */}
@@ -422,7 +426,10 @@ const InekDetay = () => {
                             >
                                 <FaSyringe /> Tohumlama Ekle
                             </ActionButton>
-                            <ActionButton style={{ backgroundColor: '#e0f2f1', color: '#00695c', width: '100%', justifyContent: 'center' }}>
+                            <ActionButton
+                                onClick={() => navigate('/saglik-merkezi')}
+                                style={{ backgroundColor: '#e0f2f1', color: '#00695c', width: '100%', justifyContent: 'center' }}
+                            >
                                 <FaNotesMedical /> Sağlık Kaydı
                             </ActionButton>
                             <ActionButton

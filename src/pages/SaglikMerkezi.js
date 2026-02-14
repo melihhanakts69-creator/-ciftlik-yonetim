@@ -473,18 +473,23 @@ function SaglikMerkezi() {
             if (filtreTip) params.tip = filtreTip;
             if (filtreDurum) params.durum = filtreDurum;
 
-            const [kayitRes, asiRes, istatRes] = await Promise.all([
+            const [kayitRes, asiRes, istatRes] = await Promise.allSettled([
                 api.getSaglikKayitlari(params),
                 api.getAsiTakvimi(),
                 api.getSaglikIstatistikleri()
             ]);
 
-            setKayitlar(kayitRes.data.kayitlar || []);
-            setAsilar(asiRes.data.asilar || []);
-            setIstatistikler(istatRes.data);
+            if (kayitRes.status === 'fulfilled') {
+                setKayitlar(kayitRes.value.data.kayitlar || []);
+            }
+            if (asiRes.status === 'fulfilled') {
+                setAsilar(asiRes.value.data.asilar || []);
+            }
+            if (istatRes.status === 'fulfilled') {
+                setIstatistikler(istatRes.value.data);
+            }
         } catch (error) {
             console.error('Sağlık verileri yüklenemedi:', error);
-            toast.error('Veriler yüklenirken hata oluştu');
         } finally {
             setYukleniyor(false);
         }

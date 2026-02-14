@@ -4,6 +4,7 @@ import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
+import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 
 // --- STYLED COMPONENTS (Shared with InekDetay ideally, but kept separate for speed) ---
 const Container = styled.div`
@@ -400,6 +401,9 @@ const DuveDetay = () => {
                             </div>
                         </Card>
                     )}
+
+                    {/* SAĞLIK GEÇMİŞİ */}
+                    <SaglikGecmisi hayvanId={id} />
                 </div>
 
                 {/* SAĞ KOLON */}

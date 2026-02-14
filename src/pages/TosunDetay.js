@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
 import { showSuccess, showError, showInfo } from '../utils/toast';
+import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 
 // --- STYLED COMPONENTS ---
 const Container = styled.div`
@@ -298,6 +299,9 @@ const TosunDetay = () => {
                             Kilo artış grafiği yakında burada olacak...
                         </div>
                     </Card>
+
+                    {/* SAĞLIK GEÇMİŞİ */}
+                    <SaglikGecmisi hayvanId={id} />
                 </div>
 
                 {/* SAĞ KOLON */}
