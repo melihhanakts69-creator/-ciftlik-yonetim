@@ -66,6 +66,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/maliyet', require('./routes/maliyet'));
 app.use('/api/alis-satis', require('./routes/alisSatis'));
 app.use('/api/bildirimler', require('./routes/bildirimler'));
+app.use('/api/saglik', require('./routes/saglik')); // Sağlık Modülü
 app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
 // app.use('/api/gruplar', require('./routes/gruplar')); // TODO: Animal model düzeltmesi gerekiyor
 

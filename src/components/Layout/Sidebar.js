@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import {
   FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
   FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
-  FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun
+  FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun, FaHeartbeat
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
 import logo from '../../logo.png';
@@ -201,6 +201,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
 
   const yonetimItems = [
     { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
+    { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
     { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
     { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
     { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },

@@ -22,6 +22,7 @@ import Bildirimler from './pages/Bildirimler';
 import Aktiviteler from './pages/Aktiviteler';
 import Raporlar from './pages/Raporlar';
 import YemMerkezi from './pages/YemMerkezi'; // Yeni Modül
+import SaglikMerkezi from './pages/SaglikMerkezi'; // Sağlık Modülü
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -100,6 +101,7 @@ function App() {
           <Route path="/aktiviteler" element={<Aktiviteler />} />
           <Route path="/raporlar" element={<Raporlar />} />
           <Route path="/yem-merkezi" element={<YemMerkezi />} />
+          <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
 
           {/* Login/Landing yönlendirmeleri */}
           <Route path="/login" element={<Navigate to="/" replace />} />

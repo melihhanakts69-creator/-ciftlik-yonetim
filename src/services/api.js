@@ -251,4 +251,25 @@ export const deleteRasyon = (id) => api.delete(`/yem-yonetim/rasyon/${id}`);
 // data: { rasyonId: string, tarih: string (optional) }
 export const rasyonDagit = (data) => api.post('/yem-yonetim/dagit', data);
 
+// SAĞLIK MODÜLÜ
+export const getSaglikKayitlari = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/saglik?${query}`);
+};
+export const getSaglikByHayvan = (hayvanId) => api.get(`/saglik/hayvan/${hayvanId}`);
+export const getSaglikIstatistikleri = () => api.get('/saglik/istatistik');
+export const getYaklasanSagliklar = (gun = 7) => api.get(`/saglik/yaklasan?gun=${gun}`);
+export const createSaglikKaydi = (data) => api.post('/saglik', data);
+export const updateSaglikKaydi = (id, data) => api.put(`/saglik/${id}`, data);
+export const deleteSaglikKaydi = (id) => api.delete(`/saglik/${id}`);
+
+// AŞI TAKVİMİ
+export const getAsiTakvimi = (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/saglik/asi-takvimi?${query}`);
+};
+export const createAsiKaydi = (data) => api.post('/saglik/asi', data);
+export const updateAsiKaydi = (id, data) => api.put(`/saglik/asi/${id}`, data);
+export const deleteAsiKaydi = (id) => api.delete(`/saglik/asi/${id}`);
+
 export default api;
