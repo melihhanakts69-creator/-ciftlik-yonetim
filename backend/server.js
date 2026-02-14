@@ -70,6 +70,7 @@ app.use('/api/saglik', require('./routes/saglik')); // Sağlık Modülü
 app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
 // app.use('/api/gruplar', require('./routes/gruplar')); // TODO: Animal model düzeltmesi gerekiyor
 app.use('/api/takvim', require('./routes/takvim')); // Takvim Modülü
+app.use('/api/stok', require('./routes/stok')); // Stok Modülü
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);

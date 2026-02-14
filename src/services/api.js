@@ -275,4 +275,10 @@ export const deleteAsiKaydi = (id) => api.delete(`/saglik/asi/${id}`);
 // TAKVİM MODÜLÜ
 export const getTakvim = (ay, yil) => api.get(`/takvim?ay=${ay}&yil=${yil}`);
 
+// STOK MODÜLÜ
+export const getStoklar = () => api.get('/stok');
+export const createStok = (data) => api.post('/stok', data);
+export const updateStok = (id, data) => api.put(`/stok/${id}`, data);
+export const deleteStok = (id) => api.delete(`/stok/${id}`);
+
 export default api;

@@ -24,6 +24,7 @@ import Raporlar from './pages/Raporlar';
 import YemMerkezi from './pages/YemMerkezi'; // Yeni Modül
 import SaglikMerkezi from './pages/SaglikMerkezi'; // Sağlık Modülü
 import Takvim from './pages/Takvim'; // Takvim Modülü
+import StokYonetimi from './pages/StokYonetimi'; // Stok Modülü
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -104,6 +105,7 @@ function App() {
           <Route path="/yem-merkezi" element={<YemMerkezi />} />
           <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
           <Route path="/takvim" element={<Takvim />} />
+          <Route path="/stok-yonetimi" element={<StokYonetimi />} />
 
           {/* Login/Landing yönlendirmeleri */}
           <Route path="/login" element={<Navigate to="/" replace />} />
