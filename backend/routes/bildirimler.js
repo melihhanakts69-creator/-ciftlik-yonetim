@@ -47,7 +47,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Bildirimler listesi error:', error);
-    res.status(500).json({ message: 'Bildirimler listelenemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirimler listelenemedi' });
   }
 });
 
@@ -66,7 +66,7 @@ router.get('/:id', auth, async (req, res) => {
     res.json(bildirim);
   } catch (error) {
     console.error('Bildirim getirme error:', error);
-    res.status(500).json({ message: 'Bildirim getirilemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirim getirilemedi' });
   }
 });
 
@@ -87,7 +87,7 @@ router.post('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Bildirim oluşturma error:', error);
-    res.status(400).json({ message: 'Bildirim oluşturulamadı', error: error.message });
+    res.status(400).json({ message: 'Bildirim oluşturulamadı' });
   }
 });
 
@@ -113,7 +113,7 @@ router.put('/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Bildirim güncelleme error:', error);
-    res.status(400).json({ message: 'Bildirim güncellenemedi', error: error.message });
+    res.status(400).json({ message: 'Bildirim güncellenemedi' });
   }
 });
 
@@ -136,7 +136,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Bildirim silindi' });
   } catch (error) {
     console.error('Bildirim silme error:', error);
-    res.status(500).json({ message: 'Bildirim silinemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirim silinemedi' });
   }
 });
 
@@ -160,7 +160,7 @@ router.patch('/:id/okundu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Okundu işaretleme error:', error);
-    res.status(500).json({ message: 'Bildirim işaretlenemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirim işaretlenemedi' });
   }
 });
 
@@ -184,7 +184,7 @@ router.patch('/:id/tamamlandi', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Tamamlandı işaretleme error:', error);
-    res.status(500).json({ message: 'Bildirim işaretlenemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirim işaretlenemedi' });
   }
 });
 
@@ -209,7 +209,7 @@ router.patch('/toplu/okundu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Toplu okundu işaretleme error:', error);
-    res.status(500).json({ message: 'Bildirimler işaretlenemedi', error: error.message });
+    res.status(500).json({ message: 'Bildirimler işaretlenemedi' });
   }
 });
 
@@ -221,7 +221,7 @@ router.get('/liste/okunmayan', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Okunmayanlar error:', error);
-    res.status(500).json({ message: 'Okunmamış bildirimler alınamadı', error: error.message });
+    res.status(500).json({ message: 'Okunmamış bildirimler alınamadı' });
   }
 });
 
@@ -233,7 +233,7 @@ router.get('/liste/bugun', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Bugünkü bildirimler error:', error);
-    res.status(500).json({ message: 'Bugünün bildirimleri alınamadı', error: error.message });
+    res.status(500).json({ message: 'Bugünün bildirimleri alınamadı' });
   }
 });
 
@@ -245,7 +245,7 @@ router.get('/liste/geciken', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Gecikenler error:', error);
-    res.status(500).json({ message: 'Geciken bildirimler alınamadı', error: error.message });
+    res.status(500).json({ message: 'Geciken bildirimler alınamadı' });
   }
 });
 
@@ -259,7 +259,7 @@ router.get('/liste/yaklasan', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Yaklaşanlar error:', error);
-    res.status(500).json({ message: 'Yaklaşan bildirimler alınamadı', error: error.message });
+    res.status(500).json({ message: 'Yaklaşan bildirimler alınamadı' });
   }
 });
 
@@ -271,7 +271,7 @@ router.get('/ozet/istatistik', auth, async (req, res) => {
     res.json(istatistikler);
   } catch (error) {
     console.error('İstatistikler error:', error);
-    res.status(500).json({ message: 'İstatistikler alınamadı', error: error.message });
+    res.status(500).json({ message: 'İstatistikler alınamadı' });
   }
 });
 
@@ -287,7 +287,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Hayvan bildirimleri error:', error);
-    res.status(500).json({ message: 'Hayvan bildirimleri alınamadı', error: error.message });
+    res.status(500).json({ message: 'Hayvan bildirimleri alınamadı' });
   }
 });
 
@@ -305,7 +305,7 @@ router.get('/tip/:tip', auth, async (req, res) => {
     res.json(bildirimler);
   } catch (error) {
     console.error('Tip bildirimleri error:', error);
-    res.status(500).json({ message: 'Bildirimler alınamadı', error: error.message });
+    res.status(500).json({ message: 'Bildirimler alınamadı' });
   }
 });
 

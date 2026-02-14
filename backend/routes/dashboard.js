@@ -114,7 +114,7 @@ router.get('/stats', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
-    res.status(500).json({ message: 'Dashboard istatistikleri alınamadı', error: error.message });
+    res.status(500).json({ message: 'Dashboard istatistikleri alınamadı' });
   }
 });
 
@@ -150,7 +150,7 @@ router.get('/performans/sut', auth, async (req, res) => {
     res.json(sutVerileri);
   } catch (error) {
     console.error('Süt performans error:', error);
-    res.status(500).json({ message: 'Süt performansı alınamadı', error: error.message });
+    res.status(500).json({ message: 'Süt performansı alınamadı' });
   }
 });
 
@@ -188,7 +188,7 @@ router.get('/finansal', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Finansal özet error:', error);
-    res.status(500).json({ message: 'Finansal özet alınamadı', error: error.message });
+    res.status(500).json({ message: 'Finansal özet alınamadı' });
   }
 });
 
@@ -216,7 +216,7 @@ router.get('/yapilacaklar', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Yapılacaklar error:', error);
-    res.status(500).json({ message: 'Yapılacaklar alınamadı', error: error.message });
+    res.status(500).json({ message: 'Yapılacaklar alınamadı' });
   }
 });
 
@@ -238,15 +238,20 @@ router.get('/top-performers', auth, async (req, res) => {
         }
       },
       {
+        $addFields: {
+          inekObjId: { $toObjectId: '$inekId' }
+        }
+      },
+      {
         $group: {
-          _id: '$hayvanId',
+          _id: '$inekObjId',
           toplamSut: { $sum: '$litre' },
           gunSayisi: { $sum: 1 }
         }
       },
       {
         $lookup: {
-          from: 'inekler', // Koleksiyon adı 'inekler' olmalı (model dosyasına bakmak lazım ama genelde çoğul)
+          from: 'ineks',
           localField: '_id',
           foreignField: '_id',
           as: 'inekBilgi'
@@ -351,7 +356,7 @@ router.get('/aktiviteler', auth, async (req, res) => {
     res.json(sonAktiviteler);
   } catch (error) {
     console.error('Aktiviteler error:', error);
-    res.status(500).json({ message: 'Aktiviteler alınamadı', error: error.message });
+    res.status(500).json({ message: 'Aktiviteler alınamadı' });
   }
 });
 
@@ -360,14 +365,9 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Hasta hayvanlar
-    const hastaInekler = await Inek.find({ userId, durum: 'hasta' }).select('kupe_no ad').lean();
-    const hastaDuveler = await Duve.find({ userId, durum: 'hasta' }).select('kupe_no ad').lean();
-
-    const hastalar = [
-      ...hastaInekler.map(h => ({ ...h, tip: 'inek' })),
-      ...hastaDuveler.map(h => ({ ...h, tip: 'duve' }))
-    ];
+    // Hasta hayvanlar — Not: Mevcut modelde 'hasta' durumu tanımlı değil.
+    // İleride 'hasta' enum değeri eklenirse bu sorgu çalışacak.
+    const hastalar = [];
 
     // Aşı zamanı gelen bildirimler
     const asiZamani = await Bildirim.find({
@@ -396,7 +396,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Sağlık uyarıları error:', error);
-    res.status(500).json({ message: 'Sağlık uyarıları alınamadı', error: error.message });
+    res.status(500).json({ message: 'Sağlık uyarıları alınamadı' });
   }
 });
 
@@ -571,8 +571,8 @@ async function calculateTrends(userId) {
       }
     ]);
 
-    const current = result.find(r => r._id === 'current')?.total || 0;
-    const previous = result.find(r => r._id === 'previous')?.total || 0;
+    const current = result.find(r => r._id?.period === 'current')?.total || 0;
+    const previous = result.find(r => r._id?.period === 'previous')?.total || 0;
 
     let sutArtisYuzdesi = 0;
     if (previous > 0) {

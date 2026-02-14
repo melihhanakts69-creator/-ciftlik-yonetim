@@ -3,9 +3,20 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken');
+const { registerValidation, loginValidation, updateValidation } = require('../validators/authValidator');
+
+// Token oluşturma yardımcı fonksiyonu
+const generateAccessToken = (userId) => {
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }  // 15 dakika
+  );
+};
 
 // KAYIT OL
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidation, async (req, res) => {
   try {
     const { isim, email, sifre, isletmeAdi, telefon } = req.body;
 
@@ -29,16 +40,14 @@ router.post('/register', async (req, res) => {
 
     await user.save();
 
-    // Token oluştur
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    // Token'lar oluştur
+    const token = generateAccessToken(user._id);
+    const refreshToken = await RefreshToken.createToken(user._id);
 
     res.status(201).json({
       message: 'Kayıt başarılı!',
       token,
+      refreshToken,
       user: {
         id: user._id,
         isim: user.isim,
@@ -47,12 +56,12 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
 // GİRİŞ YAP
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidation, async (req, res) => {
   try {
     const { email, sifre } = req.body;
 
@@ -68,16 +77,14 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email veya şifre hatalı!' });
     }
 
-    // Token oluştur
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    // Token'lar oluştur
+    const token = generateAccessToken(user._id);
+    const refreshToken = await RefreshToken.createToken(user._id);
 
     res.json({
       message: 'Giriş başarılı!',
       token,
+      refreshToken,
       user: {
         id: user._id,
         isim: user.isim,
@@ -86,7 +93,56 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// TOKEN YENİLE
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Refresh token gerekli' });
+    }
+
+    // Refresh token'ı doğrula
+    const storedToken = await RefreshToken.verifyToken(refreshToken);
+    if (!storedToken) {
+      return res.status(401).json({ message: 'Geçersiz veya süresi dolmuş token' });
+    }
+
+    // Kullanıcı hala var mı kontrol et
+    const user = await User.findById(storedToken.userId);
+    if (!user) {
+      await RefreshToken.revokeAllUserTokens(storedToken.userId);
+      return res.status(401).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    // Eski refresh token'ı sil, yenisini üret (rotation)
+    await storedToken.deleteOne();
+    const newRefreshToken = await RefreshToken.createToken(user._id);
+    const newAccessToken = generateAccessToken(user._id);
+
+    res.json({
+      token: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// ÇIKIŞ YAP (Refresh token'ı geçersiz kıl)
+router.post('/logout', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (refreshToken) {
+      await RefreshToken.deleteOne({ token: refreshToken });
+    }
+    res.json({ message: 'Çıkış başarılı!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -101,7 +157,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 });
 
 // PROFİL GÜNCELLE
-router.put('/update', require('../middleware/auth'), async (req, res) => {
+router.put('/update', require('../middleware/auth'), updateValidation, async (req, res) => {
   try {
     const { isim, email, isletmeAdi, mevcutSifre, yeniSifre } = req.body;
     const user = await User.findById(req.userId);
@@ -136,7 +192,7 @@ router.put('/update', require('../middleware/auth'), async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

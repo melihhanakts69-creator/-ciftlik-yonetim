@@ -60,7 +60,7 @@ router.post('/onizleme', auth, async (req, res) => {
     if (dagilimTipi === 'esit') {
       // EŞİT DAĞILIM
       const inekBasinaSut = toplamSut / inekler.length;
-      
+
       detaylar = inekler.map(inek => ({
         inekId: inek._id.toString(),
         inekIsim: inek.isim,
@@ -72,7 +72,7 @@ router.post('/onizleme', auth, async (req, res) => {
     } else if (dagilimTipi === 'akilli') {
       // AKILLI DAĞILIM - Son 7 günlük ortalamaya göre
       const ortalamaları = await getSon7GunOrtalama(req.userId);
-      
+
       // Toplam ortalama süt hesapla
       let toplamOrtalama = 0;
       const inekOranlari = {};
@@ -100,7 +100,7 @@ router.post('/onizleme', auth, async (req, res) => {
           const inekId = inek._id.toString();
           const oran = inekOranlari[inekId] / toplamOrtalama;
           const miktar = toplamSut * oran;
-          
+
           return {
             inekId: inekId,
             inekIsim: inek.isim,
@@ -114,7 +114,7 @@ router.post('/onizleme', auth, async (req, res) => {
 
     // Toplam kontrolü
     const hesaplananToplam = detaylar.reduce((sum, d) => sum + d.miktar, 0);
-    
+
     res.json({
       detaylar: detaylar,
       toplamSut: toplamSut,
@@ -125,7 +125,7 @@ router.post('/onizleme', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Önizleme hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -185,7 +185,7 @@ router.post('/', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Toplu süt kayıt hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -201,7 +201,7 @@ router.get('/gecmis', auth, async (req, res) => {
     res.json(gecmis);
   } catch (error) {
     console.error('Geçmiş getirme hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -219,7 +219,7 @@ router.get('/:id', auth, async (req, res) => {
 
     res.json(kayit);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -248,7 +248,7 @@ router.delete('/tarih/:tarih/:sagim', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Silme hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

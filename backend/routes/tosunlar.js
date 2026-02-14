@@ -9,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const tosunlar = await Tosun.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(tosunlar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -23,7 +23,7 @@ router.post('/', auth, async (req, res) => {
     await yeniTosun.save();
     res.status(201).json(yeniTosun);
   } catch (error) {
-    res.status(500).json({ message: 'Tosun eklenemedi', error: error.message });
+    res.status(500).json({ message: 'Tosun eklenemedi' });
   }
 });
 
@@ -42,7 +42,7 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json(tosun);
   } catch (error) {
-    res.status(500).json({ message: 'Güncelleme başarısız', error: error.message });
+    res.status(500).json({ message: 'Güncelleme başarısız' });
   }
 });
 
@@ -60,7 +60,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Tosun silindi' });
   } catch (error) {
-    res.status(500).json({ message: 'Silme başarısız', error: error.message });
+    res.status(500).json({ message: 'Silme başarısız' });
   }
 });
 
@@ -73,7 +73,7 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.json(tosun);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

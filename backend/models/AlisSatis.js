@@ -111,7 +111,7 @@ alisSatisSchema.statics.toplamAlis = async function (userId, baslangic, bitis) {
   const result = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         tip: 'alis',
         durum: 'tamamlandi',
         tarih: {
@@ -137,7 +137,7 @@ alisSatisSchema.statics.toplamSatis = async function (userId, baslangic, bitis) 
   const result = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         tip: 'satis',
         durum: 'tamamlandi',
         tarih: {
@@ -177,7 +177,7 @@ alisSatisSchema.statics.veresiyeler = async function (userId) {
   return await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         kalanBorc: { $gt: 0 },
         durum: 'tamamlandi'
       }

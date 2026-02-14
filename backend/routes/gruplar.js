@@ -21,7 +21,7 @@ router.get('/', auth, async (req, res) => {
     res.json(gruplar);
   } catch (error) {
     console.error('Gruplar listesi error:', error);
-    res.status(500).json({ message: 'Gruplar listelenemedi', error: error.message });
+    res.status(500).json({ message: 'Gruplar listelenemedi' });
   }
 });
 
@@ -48,7 +48,7 @@ router.get('/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Grup getirme error:', error);
-    res.status(500).json({ message: 'Grup getirilemedi', error: error.message });
+    res.status(500).json({ message: 'Grup getirilemedi' });
   }
 });
 
@@ -69,7 +69,7 @@ router.post('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Grup oluşturma error:', error);
-    res.status(400).json({ message: 'Grup oluşturulamadı', error: error.message });
+    res.status(400).json({ message: 'Grup oluşturulamadı' });
   }
 });
 
@@ -95,7 +95,7 @@ router.put('/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Grup güncelleme error:', error);
-    res.status(400).json({ message: 'Grup güncellenemedi', error: error.message });
+    res.status(400).json({ message: 'Grup güncellenemedi' });
   }
 });
 
@@ -124,7 +124,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Grup silindi' });
   } catch (error) {
     console.error('Grup silme error:', error);
-    res.status(500).json({ message: 'Grup silinemedi', error: error.message });
+    res.status(500).json({ message: 'Grup silinemedi' });
   }
 });
 
@@ -160,7 +160,7 @@ router.post('/:id/hayvan', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Hayvan ekleme error:', error);
-    res.status(500).json({ message: 'Hayvan eklenemedi', error: error.message });
+    res.status(500).json({ message: 'Hayvan eklenemedi' });
   }
 });
 
@@ -190,7 +190,7 @@ router.delete('/:id/hayvan/:hayvanId', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Hayvan çıkarma error:', error);
-    res.status(500).json({ message: 'Hayvan çıkarılamadı', error: error.message });
+    res.status(500).json({ message: 'Hayvan çıkarılamadı' });
   }
 });
 
@@ -230,7 +230,7 @@ router.post('/:id/hayvanlar', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Toplu ekleme error:', error);
-    res.status(500).json({ message: 'Hayvanlar eklenemedi', error: error.message });
+    res.status(500).json({ message: 'Hayvanlar eklenemedi' });
   }
 });
 
@@ -254,7 +254,7 @@ router.patch('/:id/istatistik-guncelle', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('İstatistik güncelleme error:', error);
-    res.status(500).json({ message: 'İstatistikler güncellenemedi', error: error.message });
+    res.status(500).json({ message: 'İstatistikler güncellenemedi' });
   }
 });
 
@@ -266,7 +266,7 @@ router.get('/ozet/istatistik', auth, async (req, res) => {
     res.json(istatistikler);
   } catch (error) {
     console.error('Grup istatistikleri error:', error);
-    res.status(500).json({ message: 'Grup istatistikleri alınamadı', error: error.message });
+    res.status(500).json({ message: 'Grup istatistikleri alınamadı' });
   }
 });
 
@@ -286,7 +286,7 @@ router.get('/ozet/grupsuz-hayvanlar', auth, async (req, res) => {
     res.json(hayvanlar);
   } catch (error) {
     console.error('Grupsuz hayvanlar error:', error);
-    res.status(500).json({ message: 'Grupsuz hayvanlar alınamadı', error: error.message });
+    res.status(500).json({ message: 'Grupsuz hayvanlar alınamadı' });
   }
 });
 
@@ -302,7 +302,7 @@ router.get('/tip/:tip', auth, async (req, res) => {
     res.json(gruplar);
   } catch (error) {
     console.error('Tip grupları error:', error);
-    res.status(500).json({ message: 'Gruplar alınamadı', error: error.message });
+    res.status(500).json({ message: 'Gruplar alınamadı' });
   }
 });
 

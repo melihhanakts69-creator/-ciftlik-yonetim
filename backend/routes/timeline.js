@@ -75,7 +75,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
     res.json(yaklaşanlar);
   } catch (error) {
     console.error('❌ Yaklaşan doğumlar hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -149,20 +149,20 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
     res.json(bekleyenler);
   } catch (error) {
     console.error('Kontrol bekleyenler hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 // HAYVAN TIMELINE'INI GETİR
 router.get('/:hayvanId', auth, async (req, res) => {
   try {
-    const timeline = await Timeline.find({ 
-      userId: req.userId, 
-      hayvanId: req.params.hayvanId 
+    const timeline = await Timeline.find({
+      userId: req.userId,
+      hayvanId: req.params.hayvanId
     }).sort({ tarih: -1 });
-    
+
     res.json(timeline);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -185,7 +185,7 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json(timelineKaydi);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -205,11 +205,11 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Kayıt silindi!' });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 
 
-  
+
 });
 
 module.exports = router;

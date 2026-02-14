@@ -12,7 +12,7 @@ router.get('/', auth, async (req, res) => {
     const inekler = await Inek.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(inekler);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -71,7 +71,7 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
     res.json(yaklasanlar);
   } catch (error) {
     console.error('Yaklaşan doğumlar hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -94,7 +94,7 @@ router.post('/', auth, async (req, res) => {
     await inek.save();
     res.status(201).json(inek);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -141,7 +141,7 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json(inek);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -159,7 +159,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'İnek silindi', inek });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -222,7 +222,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('İnek doğum hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -255,7 +255,7 @@ router.post('/:id/tohumlama', auth, async (req, res) => {
 
     res.json({ message: 'Tohumlama kaydedildi', inek });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -266,19 +266,19 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
     if (!inek) return res.status(404).json({ message: 'İnek bulunamadı' });
 
     inek.tohumlamaTarihi = null;
-    inek.gebelikDurumu = 'Boş';
+    inek.gebelikDurumu = 'Gebe Değil';
     await inek.save();
 
     // En son eklenen tohumlama timeline kaydını sil
-    const Timeline = require('../models/Timeline');
-    await Timeline.findOneAndDelete({
+    const lastTimeline = await Timeline.findOne({
       hayvanId: inek._id.toString(),
       tip: 'tohumlama'
-    }, { sort: { createdAt: -1 } });
+    }).sort({ createdAt: -1 });
+    if (lastTimeline) await lastTimeline.deleteOne();
 
     res.json({ message: 'Tohumlama kaydı silindi', inek });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -308,7 +308,7 @@ router.get('/:id', auth, async (req, res) => {
 
     res.json(inekObj);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

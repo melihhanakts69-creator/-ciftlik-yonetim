@@ -27,7 +27,7 @@ router.get('/', auth, async (req, res) => {
     const kayitlar = await Finansal.find(query).sort({ tarih: -1, createdAt: -1 });
     res.json(kayitlar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -63,7 +63,7 @@ router.post('/', auth, async (req, res) => {
     await kayit.save();
     res.status(201).json(kayit);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -79,10 +79,10 @@ router.put('/:id', auth, async (req, res) => {
     }
 
     // Güncellenecek alanlar
-    if (tip) kayit.tip = tip;
-    if (kategori) kayit.kategori = kategori;
-    if (miktar) kayit.miktar = miktar;
-    if (tarih) kayit.tarih = tarih;
+    if (tip !== undefined) kayit.tip = tip;
+    if (kategori !== undefined) kayit.kategori = kategori;
+    if (miktar !== undefined) kayit.miktar = miktar;
+    if (tarih !== undefined) kayit.tarih = tarih;
     if (aciklama !== undefined) kayit.aciklama = aciklama;
     if (ilgiliHayvanId !== undefined) kayit.ilgiliHayvanId = ilgiliHayvanId;
     if (ilgiliHayvanTipi !== undefined) kayit.ilgiliHayvanTipi = ilgiliHayvanTipi;
@@ -90,7 +90,7 @@ router.put('/:id', auth, async (req, res) => {
     await kayit.save();
     res.json(kayit);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -108,7 +108,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Kayıt silindi', kayit });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -175,7 +175,7 @@ router.get('/ozet', auth, async (req, res) => {
       giderKategorileri
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

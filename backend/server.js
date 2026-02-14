@@ -1,22 +1,36 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
 const connectDB = require('./config/database');
+const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// Middleware
+// 🔒 Güvenlik Middleware'leri
+app.use(helmet());                    // HTTP güvenlik header'ları
+app.use(mongoSanitize());            // MongoDB injection koruması
+app.use(hpp());                       // HTTP Parameter Pollution koruması
+
+// CORS — sadece bilinen domain'ler
 app.use(cors({
   origin: [
-    'https://ciftlik-yonetim-q8bwcyd9m-melihhan-aktass-projects.vercel.app',
     'https://ciftlik-yonetim.vercel.app',
-    /\.vercel\.app$/,  // Tüm Vercel preview'lara izin ver
+    'https://ciftlik-yonetim-q8bwcyd9m-melihhan-aktass-projects.vercel.app',
+    /^https:\/\/ciftlik-yonetim-.*-melihhan-aktass-projects\.vercel\.app$/,
     'http://localhost:3000',
     'http://localhost:5000'
   ],
   credentials: true
 }));
-app.use(express.json());
+
+app.use(express.json({ limit: '10kb' }));  // Body boyutu sınırı
+
+// Rate limiting
+app.use('/api/', apiLimiter);          // Tüm API: 100 istek/15dk
 
 // Database bağlantısı
 connectDB();
@@ -35,7 +49,7 @@ app.get('/api/version', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/inekler', require('./routes/inekler'));
 app.use('/api/buzagilar', require('./routes/buzagilar'));
 app.use('/api/duveler', require('./routes/duveler'));
@@ -54,6 +68,9 @@ app.use('/api/alis-satis', require('./routes/alisSatis'));
 app.use('/api/bildirimler', require('./routes/bildirimler'));
 app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
 // app.use('/api/gruplar', require('./routes/gruplar')); // TODO: Animal model düzeltmesi gerekiyor
+
+// 🔒 Global Error Handler (en sonda olmalı)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

@@ -13,7 +13,7 @@ router.get('/', auth, async (req, res) => {
     const duveler = await Duve.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(duveler);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -52,7 +52,7 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json(duve);
 
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -70,15 +70,16 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Düve silindi', duve });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 // DÜVE GÜNCELLE
 router.put('/:id', auth, async (req, res) => {
   try {
+    const { userId, _id, ...safeBody } = req.body;
     const duve = await Duve.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      req.body,
+      safeBody,
       { new: true }
     );
 
@@ -88,7 +89,7 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json(duve);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -172,7 +173,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Düve doğum hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -203,7 +204,7 @@ router.post('/:id/tohumlama', auth, async (req, res) => {
 
     res.json({ message: 'Tohumlama kaydedildi', duve });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -214,18 +215,19 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
     if (!duve) return res.status(404).json({ message: 'Düve bulunamadı' });
 
     duve.tohumlamaTarihi = null;
-    duve.gebelikDurumu = 'Boş';
+    duve.gebelikDurumu = 'Gebe Değil';
     await duve.save();
 
-    // Timeline sil
-    await Timeline.findOneAndDelete({
+    // En son eklenen tohumlama timeline kaydını sil
+    const lastTimeline = await Timeline.findOne({
       hayvanId: duve._id.toString(),
       tip: 'tohumlama'
-    }, { sort: { createdAt: -1 } });
+    }).sort({ createdAt: -1 });
+    if (lastTimeline) await lastTimeline.deleteOne();
 
     res.json({ message: 'Tohumlama kaydı silindi', duve });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -238,7 +240,7 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.json(duve);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

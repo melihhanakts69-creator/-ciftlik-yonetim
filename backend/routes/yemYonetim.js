@@ -157,9 +157,10 @@ router.post('/kutuphane', auth, async (req, res) => {
             }
         }
 
+        const { userId: _u, _id, ...safeBody } = req.body;
         const yeniYem = new YemKutuphanesi({
+            ...safeBody,
             userId: req.userId,
-            ...req.body,
             yemStokId: stok._id // Bağlantıyı kur
         });
         await yeniYem.save();
@@ -172,9 +173,10 @@ router.post('/kutuphane', auth, async (req, res) => {
 // Yem güncelle
 router.put('/kutuphane/:id', auth, async (req, res) => {
     try {
+        const { userId, _id, ...safeBody } = req.body;
         const yem = await YemKutuphanesi.findOneAndUpdate(
             { _id: req.params.id, userId: req.userId },
-            req.body,
+            safeBody,
             { new: true }
         );
         res.json(yem);
@@ -278,7 +280,7 @@ router.post('/dagit', auth, async (req, res) => {
         if (rasyon.hedefGrup === 'sagmal') {
             hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Aktif' });
         } else if (rasyon.hedefGrup === 'kuru') {
-            hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Kuru' });
+            hayvanSayisi = await Inek.countDocuments({ userId, durum: 'Kuru Dönemde' });
         } else if (rasyon.hedefGrup === 'genc_duve') {
             hayvanSayisi = await Duve.countDocuments({ userId });
         } else if (rasyon.hedefGrup === 'buzagi') {
@@ -322,6 +324,11 @@ router.post('/dagit', auth, async (req, res) => {
             }
 
             if (stok) {
+                if (stok.miktar < harcananMiktar) {
+                    return res.status(400).json({
+                        message: `Yetersiz stok: ${stok.yemTipi} — Mevcut: ${stok.miktar.toFixed(1)} kg, Gerekli: ${harcananMiktar.toFixed(1)} kg`
+                    });
+                }
                 stok.miktar -= harcananMiktar;
                 await stok.save();
 

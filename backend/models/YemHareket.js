@@ -28,7 +28,7 @@ const yemHareketSchema = new mongoose.Schema({
     default: 0
   },
   tarih: {
-    type: String,
+    type: Date,
     required: true
   },
   aciklama: {

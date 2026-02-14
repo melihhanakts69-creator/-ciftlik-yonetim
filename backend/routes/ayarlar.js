@@ -19,7 +19,7 @@ router.get('/', auth, async (req, res) => {
 
     res.json(ayarlar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -46,7 +46,7 @@ router.put('/', auth, async (req, res) => {
 
     res.json(ayarlar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -129,7 +129,7 @@ router.post('/otomatik-tuketim', auth, async (req, res) => {
       tuketimler
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

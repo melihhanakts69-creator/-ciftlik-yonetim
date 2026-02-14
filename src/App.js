@@ -44,7 +44,10 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Sunucu tarafında refresh token'ı geçersiz kıl
+    import('./services/api').then(({ logout }) => logout()).catch(() => { });
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     setGirisYapildi(false);
     setKullanici(null);

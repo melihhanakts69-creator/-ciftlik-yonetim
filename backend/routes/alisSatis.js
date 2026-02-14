@@ -51,7 +51,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Alış-satış listesi error:', error);
-    res.status(500).json({ message: 'Alış-satış kayıtları listelenemedi', error: error.message });
+    res.status(500).json({ message: 'Alış-satış kayıtları listelenemedi' });
   }
 });
 
@@ -70,7 +70,7 @@ router.get('/:id', auth, async (req, res) => {
     res.json(kayit);
   } catch (error) {
     console.error('Kayıt getirme error:', error);
-    res.status(500).json({ message: 'Kayıt getirilemedi', error: error.message });
+    res.status(500).json({ message: 'Kayıt getirilemedi' });
   }
 });
 
@@ -157,7 +157,7 @@ router.post('/satis', auth, async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     console.error('Satış Error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: 'İşlem gerçekleştirilemedi' });
   } finally {
     session.endSession();
   }
@@ -256,7 +256,7 @@ router.post('/alis', auth, async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     console.error('Alış Error:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: 'İşlem gerçekleştirilemedi' });
   } finally {
     session.endSession();
   }
@@ -277,7 +277,7 @@ router.get('/ozet/alis', auth, async (req, res) => {
     res.json(ozet);
   } catch (error) {
     console.error('Alış özeti error:', error);
-    res.status(500).json({ message: 'Alış özeti alınamadı', error: error.message });
+    res.status(500).json({ message: 'Alış özeti alınamadı' });
   }
 });
 
@@ -296,7 +296,7 @@ router.get('/ozet/satis', auth, async (req, res) => {
     res.json(ozet);
   } catch (error) {
     console.error('Satış özeti error:', error);
-    res.status(500).json({ message: 'Satış özeti alınamadı', error: error.message });
+    res.status(500).json({ message: 'Satış özeti alınamadı' });
   }
 });
 
@@ -315,7 +315,7 @@ router.get('/ozet/kar-zarar', auth, async (req, res) => {
     res.json(karZarar);
   } catch (error) {
     console.error('Kar-zarar error:', error);
-    res.status(500).json({ message: 'Kar-zarar hesaplanamadı', error: error.message });
+    res.status(500).json({ message: 'Kar-zarar hesaplanamadı' });
   }
 });
 
@@ -341,7 +341,7 @@ router.get('/ozet/veresiye', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Veresiye listesi error:', error);
-    res.status(500).json({ message: 'Veresiye listesi alınamadı', error: error.message });
+    res.status(500).json({ message: 'Veresiye listesi alınamadı' });
   }
 });
 
@@ -378,7 +378,7 @@ router.post('/:id/odeme', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Ödeme kaydetme error:', error);
-    res.status(500).json({ message: 'Ödeme kaydedilemedi', error: error.message });
+    res.status(500).json({ message: 'Ödeme kaydedilemedi' });
   }
 });
 
@@ -393,7 +393,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
     res.json(kayitlar);
   } catch (error) {
     console.error('Hayvan geçmişi error:', error);
-    res.status(500).json({ message: 'Hayvan geçmişi alınamadı', error: error.message });
+    res.status(500).json({ message: 'Hayvan geçmişi alınamadı' });
   }
 });
 
@@ -416,7 +416,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
     const gunlukDetay = await AlisSatis.aggregate([
       {
         $match: {
-          userId: req.userId,
+          userId: new mongoose.Types.ObjectId(req.userId),
           tarih: { $gte: baslangic, $lte: bitis },
           durum: 'tamamlandi'
         }
@@ -442,7 +442,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Aylık rapor error:', error);
-    res.status(500).json({ message: 'Aylık rapor alınamadı', error: error.message });
+    res.status(500).json({ message: 'Aylık rapor alınamadı' });
   }
 });
 

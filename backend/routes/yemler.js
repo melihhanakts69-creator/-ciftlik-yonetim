@@ -10,7 +10,7 @@ router.get('/stok', auth, async (req, res) => {
     const stoklar = await YemStok.find({ userId: req.userId });
     res.json(stoklar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -44,7 +44,7 @@ router.post('/stok', auth, async (req, res) => {
 
     res.json(stok);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -54,7 +54,7 @@ router.get('/hareketler', auth, async (req, res) => {
     const hareketler = await YemHareket.find({ userId: req.userId }).sort({ tarih: -1 });
     res.json(hareketler);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -99,7 +99,7 @@ router.post('/hareket', auth, async (req, res) => {
 
     res.status(201).json({ hareket, stok });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

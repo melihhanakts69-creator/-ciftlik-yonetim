@@ -12,7 +12,7 @@ router.get('/', auth, async (req, res) => {
     const buzagilar = await Buzagi.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(buzagilar);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -43,7 +43,7 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json(buzagi);
   } catch (error) {
     console.error('❌ BUZAĞI KAYDI HATASI:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -61,7 +61,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Buzağı silindi', buzagi });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 // OTOMATİK DÜVE/TOSUN GEÇİŞİ KONTROL
@@ -94,9 +94,10 @@ router.get('/kontrol-gecis', auth, async (req, res) => {
 // BUZAĞI GÜNCELLEME
 router.put('/:id', auth, async (req, res) => {
   try {
+    const { userId, _id, ...safeBody } = req.body;
     const buzagi = await Buzagi.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      req.body,
+      safeBody,
       { new: true, runValidators: true }
     );
 
@@ -107,7 +108,7 @@ router.put('/:id', auth, async (req, res) => {
     res.json(buzagi);
   } catch (error) {
     console.error('Buzağı güncelleme hatası:', error);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -204,7 +205,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
     console.error('❌ Geçiş hatası:', error);
     console.error('Hata detayı:', error.message);
     console.error('Stack:', error.stack);
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 
@@ -217,7 +218,7 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.json(buzagi);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

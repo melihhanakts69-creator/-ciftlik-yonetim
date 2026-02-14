@@ -50,7 +50,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Maliyetler listesi error:', error);
-    res.status(500).json({ message: 'Maliyetler listelenemedi', error: error.message });
+    res.status(500).json({ message: 'Maliyetler listelenemedi' });
   }
 });
 
@@ -69,7 +69,7 @@ router.get('/:id', auth, async (req, res) => {
     res.json(maliyet);
   } catch (error) {
     console.error('Maliyet getirme error:', error);
-    res.status(500).json({ message: 'Maliyet kaydı getirilemedi', error: error.message });
+    res.status(500).json({ message: 'Maliyet kaydı getirilemedi' });
   }
 });
 
@@ -90,7 +90,7 @@ router.post('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Maliyet oluşturma error:', error);
-    res.status(400).json({ message: 'Maliyet kaydı oluşturulamadı', error: error.message });
+    res.status(400).json({ message: 'Maliyet kaydı oluşturulamadı' });
   }
 });
 
@@ -116,7 +116,7 @@ router.put('/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Maliyet güncelleme error:', error);
-    res.status(400).json({ message: 'Maliyet kaydı güncellenemedi', error: error.message });
+    res.status(400).json({ message: 'Maliyet kaydı güncellenemedi' });
   }
 });
 
@@ -135,7 +135,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Maliyet kaydı silindi' });
   } catch (error) {
     console.error('Maliyet silme error:', error);
-    res.status(500).json({ message: 'Maliyet kaydı silinemedi', error: error.message });
+    res.status(500).json({ message: 'Maliyet kaydı silinemedi' });
   }
 });
 
@@ -154,7 +154,7 @@ router.get('/ozet/toplam', auth, async (req, res) => {
     res.json({ toplam });
   } catch (error) {
     console.error('Toplam maliyet error:', error);
-    res.status(500).json({ message: 'Toplam maliyet hesaplanamadı', error: error.message });
+    res.status(500).json({ message: 'Toplam maliyet hesaplanamadı' });
   }
 });
 
@@ -173,7 +173,7 @@ router.get('/ozet/kategori', auth, async (req, res) => {
     res.json(kategoriler);
   } catch (error) {
     console.error('Kategori özeti error:', error);
-    res.status(500).json({ message: 'Kategori özeti alınamadı', error: error.message });
+    res.status(500).json({ message: 'Kategori özeti alınamadı' });
   }
 });
 
@@ -220,7 +220,7 @@ router.get('/rapor/aylik', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Aylık rapor error:', error);
-    res.status(500).json({ message: 'Aylık rapor alınamadı', error: error.message });
+    res.status(500).json({ message: 'Aylık rapor alınamadı' });
   }
 });
 
@@ -240,7 +240,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Hayvan maliyetleri error:', error);
-    res.status(500).json({ message: 'Hayvan maliyetleri alınamadı', error: error.message });
+    res.status(500).json({ message: 'Hayvan maliyetleri alınamadı' });
   }
 });
 

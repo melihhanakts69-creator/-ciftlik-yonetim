@@ -63,20 +63,20 @@ maliyetSchema.index({ userId: 1, kategori: 1 });
 maliyetSchema.index({ userId: 1, hayvanId: 1 });
 
 // Virtual field: Ay ve yıl
-maliyetSchema.virtual('ay').get(function() {
+maliyetSchema.virtual('ay').get(function () {
   return this.tarih.getMonth() + 1;
 });
 
-maliyetSchema.virtual('yil').get(function() {
+maliyetSchema.virtual('yil').get(function () {
   return this.tarih.getFullYear();
 });
 
 // Statik method: Toplam maliyet hesaplama
-maliyetSchema.statics.toplamMaliyet = async function(userId, baslangic, bitis) {
+maliyetSchema.statics.toplamMaliyet = async function (userId, baslangic, bitis) {
   const result = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         tarih: {
           $gte: new Date(baslangic),
           $lte: new Date(bitis)
@@ -95,11 +95,11 @@ maliyetSchema.statics.toplamMaliyet = async function(userId, baslangic, bitis) {
 };
 
 // Statik method: Kategoriye göre maliyet
-maliyetSchema.statics.kategoriyeGoreMaliyet = async function(userId, baslangic, bitis) {
+maliyetSchema.statics.kategoriyeGoreMaliyet = async function (userId, baslangic, bitis) {
   return await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: new mongoose.Types.ObjectId(userId),
         tarih: {
           $gte: new Date(baslangic),
           $lte: new Date(bitis)
