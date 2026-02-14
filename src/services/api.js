@@ -272,4 +272,7 @@ export const createAsiKaydi = (data) => api.post('/saglik/asi', data);
 export const updateAsiKaydi = (id, data) => api.put(`/saglik/asi/${id}`, data);
 export const deleteAsiKaydi = (id) => api.delete(`/saglik/asi/${id}`);
 
+// TAKVİM MODÜLÜ
+export const getTakvim = (ay, yil) => api.get(`/takvim?ay=${ay}&yil=${yil}`);
+
 export default api;

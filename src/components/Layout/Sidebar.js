@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import {
   FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
   FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
-  FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun, FaHeartbeat
+  FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun, FaHeartbeat, FaCalendar
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
 import logo from '../../logo.png';
@@ -192,6 +192,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
 
   const menuItems = [
     { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+    { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
     { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
     { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
     { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
