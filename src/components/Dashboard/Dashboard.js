@@ -9,6 +9,7 @@ import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaMoneyBillWave, FaSyringe, FaTint } from 'react-icons/fa';
+import SaglikUyariCard from './SaglikUyariCard';
 
 // --- Styled Components ---
 
@@ -361,7 +362,15 @@ const Dashboard = () => {
         </div>
       </Grid>
 
-      <AktivitelerCard aktiviteler={data.aktiviteler} />
+      {/* --- SAĞLIK + AKTİVİTELER ROW --- */}
+      <Grid>
+        <div style={{ gridColumn: 'span 4' }}>
+          <SaglikUyariCard />
+        </div>
+        <div style={{ gridColumn: 'span 8' }}>
+          <AktivitelerCard aktiviteler={data.aktiviteler} />
+        </div>
+      </Grid>
 
     </DashboardContainer>
   );

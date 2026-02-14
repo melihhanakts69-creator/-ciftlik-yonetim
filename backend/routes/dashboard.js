@@ -365,34 +365,66 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Hasta hayvanlar — Not: Mevcut modelde 'hasta' durumu tanımlı değil.
-    // İleride 'hasta' enum değeri eklenirse bu sorgu çalışacak.
-    const hastalar = [];
+    // SaglikKaydi ve AsiTakvimi modellerini dinamik yükle (deploy uyumlu)
+    let aktifTedaviler = [];
+    let yaklasanKontroller = [];
+    let gecikmiAsiler = [];
+    let aylikMaliyet = 0;
 
-    // Aşı zamanı gelen bildirimler
-    const asiZamani = await Bildirim.find({
-      userId,
-      tip: 'asi',
-      tamamlandi: false,
-      aktif: true
-    })
-      .sort({ hatirlatmaTarihi: 1 })
-      .limit(5);
+    try {
+      const SaglikKaydi = require('../models/SaglikKaydi');
 
-    // Muayene zamanı gelen bildirimler
-    const muayeneZamani = await Bildirim.find({
-      userId,
-      tip: 'muayene',
-      tamamlandi: false,
-      aktif: true
-    })
-      .sort({ hatirlatmaTarihi: 1 })
-      .limit(5);
+      // Aktif tedaviler (devam eden)
+      aktifTedaviler = await SaglikKaydi.find({
+        userId,
+        durum: 'devam_ediyor'
+      }).sort({ tarih: -1 }).limit(5).lean();
+
+      // Yaklaşan kontroller (7 gün içi)
+      const yediGunSonra = new Date();
+      yediGunSonra.setDate(yediGunSonra.getDate() + 7);
+      yaklasanKontroller = await SaglikKaydi.find({
+        userId,
+        sonrakiKontrol: { $lte: yediGunSonra, $gte: new Date() },
+        durum: 'devam_ediyor'
+      }).sort({ sonrakiKontrol: 1 }).limit(5).lean();
+
+      // Aylık sağlık maliyeti
+      const ayBaslangic = new Date();
+      ayBaslangic.setDate(1);
+      ayBaslangic.setHours(0, 0, 0, 0);
+      const maliyetSonuc = await SaglikKaydi.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId), tarih: { $gte: ayBaslangic }, maliyet: { $gt: 0 } } },
+        { $group: { _id: null, toplam: { $sum: '$maliyet' } } }
+      ]);
+      aylikMaliyet = maliyetSonuc.length > 0 ? maliyetSonuc[0].toplam : 0;
+    } catch (e) {
+      console.log('SaglikKaydi modeli henüz yüklenmemiş olabilir');
+    }
+
+    try {
+      const AsiTakvimi = require('../models/AsiTakvimi');
+
+      // Gecikmiş aşılar
+      gecikmiAsiler = await AsiTakvimi.find({
+        userId,
+        sonrakiTarih: { $lt: new Date() },
+        durum: { $ne: 'yapildi' }
+      }).sort({ sonrakiTarih: 1 }).limit(5).lean();
+    } catch (e) {
+      console.log('AsiTakvimi modeli henüz yüklenmemiş olabilir');
+    }
 
     res.json({
-      hastalar,
-      asiZamani,
-      muayeneZamani
+      aktifTedaviler,
+      yaklasanKontroller,
+      gecikmiAsiler,
+      aylikMaliyet,
+      toplam: {
+        aktif: aktifTedaviler.length,
+        yaklasan: yaklasanKontroller.length,
+        gecikmi: gecikmiAsiler.length
+      }
     });
   } catch (error) {
     console.error('Sağlık uyarıları error:', error);
