@@ -218,6 +218,7 @@ export const getYaklasanBildirimler = (gun = 7) => api.get(`/bildirimler/liste/y
 export const getBildirimIstatistikleri = () => api.get('/bildirimler/ozet/istatistik');
 export const bildirimOkunduIsaretle = (id) => api.patch(`/bildirimler/${id}/okundu`);
 export const tumunuOkunduIsaretle = () => api.patch('/bildirimler/toplu/okundu');
+export const silOkunmusBildirimler = () => api.delete('/bildirimler/toplu/okunmus');
 export const bildirimSil = (id) => api.delete(`/bildirimler/${id}`);
 export const bildirimTamamlandiIsaretle = (id) => api.patch(`/bildirimler/${id}/tamamlandi`);
 

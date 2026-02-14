@@ -188,28 +188,28 @@ router.patch('/:id/tamamlandi', auth, async (req, res) => {
   }
 });
 
-// Tüm bildirimleri okundu olarak işaretle
+// Toplu okundu işaretle
 router.patch('/toplu/okundu', auth, async (req, res) => {
   try {
     const result = await Bildirim.updateMany(
-      {
-        userId: req.userId,
-        okundu: false,
-        aktif: true
-      },
-      {
-        okundu: true,
-        okunmaTarihi: new Date()
-      }
+      { userId: req.userId, okundu: false, aktif: true },
+      { okundu: true, okunmaTarihi: new Date() }
     );
-
-    res.json({
-      message: 'Tüm bildirimler okundu olarak işaretlendi',
-      guncellenen: result.modifiedCount
-    });
+    res.json({ message: 'Tüm bildirimler okundu işaretlendi', guncellenen: result.modifiedCount });
   } catch (error) {
-    console.error('Toplu okundu işaretleme error:', error);
-    res.status(500).json({ message: 'Bildirimler işaretlenemedi' });
+    console.error(error);
+    res.status(500).json({ message: 'İşlem başarısız' });
+  }
+});
+
+// Okunmuş bildirimleri toplu sil
+router.delete('/toplu/okunmus', auth, async (req, res) => {
+  try {
+    const result = await Bildirim.deleteMany({ userId: req.userId, okundu: true });
+    res.json({ message: 'Okunmuş bildirimler silindi', silinen: result.deletedCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'İşlem başarısız' });
   }
 });
 
