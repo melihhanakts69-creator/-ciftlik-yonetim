@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { colors, spacing, borderRadius, shadows } from '../../styles/colors';
 import StatsCard from '../common/StatsCard';
 import PerformansChart from './PerformansChart';
 import YapilacaklarCard from './YapilacaklarCard';
 import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaPlus, FaMoneyBillWave, FaSyringe, FaTint } from 'react-icons/fa';
 import SaglikUyariCard from './SaglikUyariCard';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell } from 'react-icons/fa';
+
+// --- Animations ---
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const slideIn = keyframes`
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+`;
 
 // --- Styled Components ---
 
@@ -17,70 +33,153 @@ const DashboardContainer = styled.div`
   padding: ${spacing.lg};
   max-width: 1600px;
   margin: 0 auto;
+  min-height: 100vh;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: ${spacing.xl};
+  align-items: center;
+  margin-bottom: 28px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #1a5e1f 0%, #2e7d32 40%, #43a047 100%);
+  border-radius: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  animation: ${fadeInUp} 0.6s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60%;
+    left: 20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+  }
 `;
 
-const TitleSection = styled.div``;
+const TitleSection = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+const GreetingLine = styled.div`
+  font-size: 14px;
+  opacity: 0.85;
+  margin-bottom: 4px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+`;
 
 const Title = styled.h1`
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
-  color: ${colors.text.primary};
-  margin: 0 0 ${spacing.xs} 0;
+  color: white;
+  margin: 0 0 4px 0;
   letter-spacing: -0.5px;
 `;
 
 const Subtitle = styled.p`
-  font-size: 15px;
-  color: ${colors.text.secondary};
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
 `;
 
 const QuickActions = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
 `;
 
 const ActionButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 7px;
+  padding: 9px 16px;
   border-radius: 12px;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.25);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-  color: ${colors.text.primary};
-  box-shadow: ${shadows.sm};
-  font-size: 13px;
+  transition: all 0.25s ease;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: ${shadows.md};
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.22);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   }
-  
-  &.primary {
-    background: ${colors.primary};
-    color: white;
-    &:hover { background: #1b5e20; }
+
+  &.accent {
+    background: rgba(255,255,255,0.95);
+    color: #2e7d32;
+    border-color: transparent;
+    font-weight: 700;
+    &:hover { 
+      background: white;
+      box-shadow: 0 4px 20px rgba(255,255,255,0.3); 
+    }
+  }
+
+  svg { font-size: 13px; }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 11px;
+    span { display: none; }
+  }
+`;
+
+const SectionTitle = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${colors.text.secondary};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  padding-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: ${slideIn} 0.5s ease;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, ${colors.border.light}, transparent);
   }
 `;
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 20px;
+  margin-bottom: 28px;
 
   @media (max-width: 1200px) {
     grid-template-columns: repeat(6, 1fr);
@@ -88,21 +187,43 @@ const Grid = styled.div`
   @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
+    gap: 14px;
+  }
+`;
+
+const AnimatedGridItem = styled.div`
+  grid-column: ${props => props.span ? `span ${props.span}` : 'span 4'};
+  animation: ${fadeInUp} 0.5s ease;
+  animation-delay: ${props => props.delay || '0s'};
+  animation-fill-mode: both;
+
+  @media (max-width: 1200px) {
+    grid-column: ${props => props.spanMd ? `span ${props.spanMd}` : `span ${Math.min(props.span || 4, 6)}`};
+  }
+  @media (max-width: 768px) {
+    grid-column: span 1 !important;
   }
 `;
 
 const Widget = styled.div`
   background: white;
-  border-radius: ${borderRadius.lg};
-  padding: 24px;
-  box-shadow: ${shadows.md};
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   height: 100%;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.04);
+
+  &:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
 
   h3 {
-    margin: 0 0 20px 0;
-    font-size: 16px;
+    margin: 0 0 18px 0;
+    font-size: 15px;
     font-weight: 700;
     color: ${colors.text.primary};
     display: flex;
@@ -114,47 +235,82 @@ const Widget = styled.div`
 const TopCowList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  flex: 1;
 `;
 
 const TopCowItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  background: ${props => props.index === 0 ? '#FFFDE7' : props.index === 1 ? '#F5F5F5' : props.index === 2 ? '#FFF3E0' : '#FAFAFA'};
 
-  &:last-child { border-bottom: none; }
+  &:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
 
   .rank {
-    width: 24px; height: 24px;
-    background: #FFD700; color: white;
-    border-radius: 50%;
+    width: 28px; height: 28px;
+    border-radius: 9px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 12px;
+    font-weight: 800; font-size: 12px;
     margin-right: 12px;
+    color: white;
   }
   
   .info {
     flex: 1;
-    strong { display: block; font-size: 14px; color: #333; }
-    span { font-size: 12px; color: #888; }
+    strong { display: block; font-size: 13px; color: #333; font-weight: 700; }
+    span { font-size: 11px; color: #999; }
   }
 
   .value {
     font-weight: 800;
     color: ${colors.primary};
-    font-size: 15px;
+    font-size: 14px;
+    background: ${colors.bg.green};
+    padding: 4px 10px;
+    border-radius: 8px;
   }
 `;
 
 const LoadingContainer = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 400px;
   color: ${colors.text.secondary};
   font-size: 16px;
+  gap: 12px;
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e0e0e0;
+    border-top-color: ${colors.primary};
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const LiveDot = styled.span`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #66BB6A;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: ${pulse} 2s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
 `;
 
 
@@ -183,26 +339,22 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const [statsRes, perfRes, tasksRes, actsRes, topRes] = await Promise.all([
-        fetch(`${API_URL}/dashboard/stats`, { headers }),
-        fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }),
-        fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }),
-        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }),
-        fetch(`${API_URL}/dashboard/top-performers`, { headers })
+      const results = await Promise.allSettled([
+        fetch(`${API_URL}/dashboard/stats`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/dashboard/top-performers`, { headers }).then(r => r.json())
       ]);
 
-      const stats = await statsRes.json();
-      const performans = await perfRes.json();
-      const tasks = await tasksRes.json();
-      const aktiviteler = await actsRes.json();
-      const topCows = await topRes.json();
-
       setData({
-        stats,
-        performans,
-        yapilacaklar: [...(tasks.geciken || []), ...(tasks.bugun || [])],
-        aktiviteler,
-        topCows
+        stats: results[0].status === 'fulfilled' ? results[0].value : null,
+        performans: results[1].status === 'fulfilled' ? results[1].value : [],
+        yapilacaklar: results[2].status === 'fulfilled'
+          ? [...(results[2].value.geciken || []), ...(results[2].value.bugun || [])]
+          : [],
+        aktiviteler: results[3].status === 'fulfilled' ? results[3].value : [],
+        topCows: results[4].status === 'fulfilled' ? results[4].value : []
       });
     } catch (err) {
       console.error(err);
@@ -222,23 +374,61 @@ const Dashboard = () => {
     ].filter(d => d.value > 0);
   };
 
-  if (loading) return <DashboardContainer><LoadingContainer>Veriler yükleniyor...</LoadingContainer></DashboardContainer>;
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 6) return '🌙 İyi geceler';
+    if (hour < 12) return '☀️ Günaydın';
+    if (hour < 18) return '🌤️ İyi günler';
+    return '🌅 İyi akşamlar';
+  };
+
+  const getTotalHayvan = () => {
+    if (!data.stats?.toplamHayvan) return 0;
+    const t = data.stats.toplamHayvan;
+    return (t.inek || 0) + (t.duve || 0) + (t.buzagi || 0) + (t.tosun || 0);
+  };
+
+  if (loading) return (
+    <DashboardContainer>
+      <LoadingContainer>
+        <div className="spinner" />
+        Veriler yükleniyor...
+      </LoadingContainer>
+    </DashboardContainer>
+  );
+
+  const rankColors = ['#FFD700', '#A0A0A0', '#CD7F32', '#e0e0e0', '#e0e0e0'];
 
   return (
     <DashboardContainer>
+      {/* --- HEADER --- */}
       <Header>
         <TitleSection>
+          <GreetingLine>{getGreeting()}</GreetingLine>
           <Title>🌿 Agrolina Paneli</Title>
-          <Subtitle>{new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Subtitle>
+          <Subtitle>
+            {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {' · '}
+            <LiveDot />Toplam {getTotalHayvan()} hayvan
+          </Subtitle>
         </TitleSection>
-        <QuickActions>
-          <ActionButton className="primary" onClick={() => navigate('/sut-kaydi')}><FaPlus /> Süt Ekle</ActionButton>
-          <ActionButton onClick={() => navigate('/finansal')}><FaMoneyBillWave /> Gider Ekle</ActionButton>
-          <ActionButton onClick={() => navigate('/takvim')}><FaSyringe /> Aşı Gir</ActionButton>
-        </QuickActions>
+        <HeaderRight>
+          <QuickActions>
+            <ActionButton className="accent" onClick={() => navigate('/sut-kaydi')}>
+              <FaPlus /> <span>Süt Ekle</span>
+            </ActionButton>
+            <ActionButton onClick={() => navigate('/finansal')}>
+              <FaMoneyBillWave /> <span>Gider Ekle</span>
+            </ActionButton>
+            <ActionButton onClick={() => navigate('/saglik-merkezi')}>
+              <FaHeartbeat /> <span>Sağlık</span>
+            </ActionButton>
+          </QuickActions>
+        </HeaderRight>
       </Header>
 
-      {/* --- KPI CARDS ROW --- */}
+      {/* --- KPI CARDS --- */}
+      <SectionTitle>📊 Günlük Özet</SectionTitle>
       <Grid style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         <StatsCard
           title="Günlük Süt"
@@ -259,7 +449,7 @@ const Dashboard = () => {
           icon="🐄"
           color={colors.primary}
           bg={colors.bg.green}
-          description={`${data.stats?.toplamHayvan?.inek} Toplam İnek`}
+          description={`${data.stats?.toplamHayvan?.inek || 0} Toplam İnek`}
           clickable
           onClick={() => navigate('/inekler')}
         />
@@ -288,57 +478,69 @@ const Dashboard = () => {
       </Grid>
 
       {/* --- CHARTS ROW --- */}
+      <SectionTitle>📈 Performans</SectionTitle>
       <Grid>
-        {/* Süt Grafiği - Geniş */}
-        <div style={{ gridColumn: 'span 8' }}>
+        <AnimatedGridItem span={8} delay="0.1s">
           <PerformansChart
             data={data.performans}
             title="Süt Performans Eğrisi (30 Gün)"
             type="area"
             color={colors.primary}
           />
-        </div>
+        </AnimatedGridItem>
 
-        {/* Sürü Dağılımı - Dar */}
-        <div style={{ gridColumn: 'span 4' }}>
+        <AnimatedGridItem span={4} delay="0.2s">
           <Widget>
             <h3>📊 Sürü Dağılımı</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={getHerdData()}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {getHerdData().map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
+            {getHerdData().length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={getHerdData()}
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {getHerdData().map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '13px' }}>
+                Henüz hayvan verisi yok
+              </div>
+            )}
           </Widget>
-        </div>
+        </AnimatedGridItem>
       </Grid>
 
-      {/* --- WIDGETS ROW --- */}
+      {/* --- WIDGETS ROW 1 --- */}
+      <SectionTitle>🏆 Operasyon</SectionTitle>
       <Grid>
-        {/* Top Performers */}
-        <div style={{ gridColumn: 'span 4' }}>
+        {/* Şampiyonlar */}
+        <AnimatedGridItem span={4} delay="0.1s">
           <Widget>
-            <h3>🏆 Şampiyonlar (En Çok Süt)</h3>
+            <h3>🏆 Şampiyonlar <span style={{ fontSize: '11px', color: '#999', fontWeight: 500 }}>En Çok Süt</span></h3>
             <TopCowList>
-              {data.topCows.length === 0 && <p style={{ color: '#999' }}>Veri yok</p>}
+              {data.topCows.length === 0 && (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '13px', padding: '20px 0' }}>
+                  Henüz süt verisi yok
+                </div>
+              )}
               {data.topCows.map((cow, index) => (
-                <TopCowItem key={cow._id}>
+                <TopCowItem key={cow._id} index={index}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div className="rank" style={{ background: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#eee' }}>{index + 1}</div>
+                    <div className="rank" style={{ background: rankColors[index] || '#eee', color: index < 3 ? 'white' : '#999' }}>
+                      {index + 1}
+                    </div>
                     <div className="info">
                       <strong>{cow.isim || 'İsimsiz'}</strong>
-                      <span>Küpe: {cow.kupeNo}</span>
+                      <span>🏷️ {cow.kupeNo}</span>
                     </div>
                   </div>
                   <div className="value">{cow.ortalama.toFixed(1)} Lt</div>
@@ -346,30 +548,28 @@ const Dashboard = () => {
               ))}
             </TopCowList>
           </Widget>
-        </div>
+        </AnimatedGridItem>
 
         {/* Yapılacaklar */}
-        <div style={{ gridColumn: 'span 4' }}>
-          <YapilacaklarCard
-            bildirimler={data.yapilacaklar}
-          // onTaskComplete logic placeholder
-          />
-        </div>
+        <AnimatedGridItem span={4} delay="0.15s">
+          <YapilacaklarCard bildirimler={data.yapilacaklar} />
+        </AnimatedGridItem>
 
-        {/* Hızlı Yemleme (Eski Widget) */}
-        <div style={{ gridColumn: 'span 4' }}>
+        {/* Hızlı Yemleme */}
+        <AnimatedGridItem span={4} delay="0.2s">
           <HizliYemlemeWidget />
-        </div>
+        </AnimatedGridItem>
       </Grid>
 
-      {/* --- SAĞLIK + AKTİVİTELER ROW --- */}
+      {/* --- WIDGETS ROW 2 --- */}
+      <SectionTitle>🏥 Sağlık & Aktivite</SectionTitle>
       <Grid>
-        <div style={{ gridColumn: 'span 4' }}>
+        <AnimatedGridItem span={4} delay="0.1s">
           <SaglikUyariCard />
-        </div>
-        <div style={{ gridColumn: 'span 8' }}>
+        </AnimatedGridItem>
+        <AnimatedGridItem span={8} delay="0.15s">
           <AktivitelerCard aktiviteler={data.aktiviteler} />
-        </div>
+        </AnimatedGridItem>
       </Grid>
 
     </DashboardContainer>
