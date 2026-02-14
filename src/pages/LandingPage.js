@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../logo.png';
 import '../styles/LandingPage.css';
+import { FaCheck, FaStar, FaQuoteLeft } from 'react-icons/fa';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Scroll animasyonları için Intersection Observer
+    // Scroll animasyonları
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.animationPlayState = 'running';
+                    entry.target.classList.add('visible');
                     observer.unobserve(entry.target);
                 }
             });
@@ -27,13 +27,8 @@ const LandingPage = () => {
         };
     }, []);
 
-    const handleLoginClick = () => {
-        navigate('/login');
-    };
-
-    const toggleMobileMenu = () => {
-        setMobileMenuOpen(!mobileMenuOpen);
-    };
+    const handleLoginClick = () => navigate('/login');
+    const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
     return (
         <div className="landing-container">
@@ -44,182 +39,193 @@ const LandingPage = () => {
                     <span>Agrolina</span>
                 </div>
 
-                <button className="mobile-menu-btn" onClick={toggleMobileMenu}>
-                    {mobileMenuOpen ? '✕' : '☰'}
-                </button>
+                <button className="mobile-menu-btn" onClick={toggleMobileMenu}>{mobileMenuOpen ? '✕' : '☰'}</button>
 
                 <nav className={`nav-links ${mobileMenuOpen ? 'active' : ''}`}>
                     <a href="#home" onClick={() => setMobileMenuOpen(false)}>Ana Sayfa</a>
-                    <a href="#features" onClick={() => setMobileMenuOpen(false)}>Hizmetler</a>
-                    <a href="#blog" onClick={() => setMobileMenuOpen(false)}>Blog</a>
-                    <a href="#contact" onClick={() => setMobileMenuOpen(false)}>İletişim</a>
+                    <a href="#features" onClick={() => setMobileMenuOpen(false)}>Özellikler</a>
+                    <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>Fiyatlar</a>
+                    <a href="#testimonials" onClick={() => setMobileMenuOpen(false)}>Yorumlar</a>
                     <button className="btn-header-login" onClick={handleLoginClick}>Giriş Yap</button>
-                    <button className="btn-header-register" onClick={() => navigate('/login')}>Kayıt Ol</button>
+                    <button className="btn-header-register" onClick={() => navigate('/login')}>Ücretsiz Dene</button>
                 </nav>
             </header>
 
             {/* HERO SECTION */}
             <section className="hero-section" id="home">
                 <div className="hero-content fade-in-up">
-                    <h1 className="hero-title">Çiftliğinizi <br /> <span>Akıllı Yönetin</span></h1>
+                    <div className="hero-badge">🚀 Modern Çiftlik Yönetimi</div>
+                    <h1 className="hero-title">Çiftliğinizi Geleceğe <br /> <span>Taşıyın</span></h1>
                     <p className="hero-subtitle">
-                        Teknoloji ve tarımı birleştirerek verimliliğinizi maksimize edin.
-                        Hayvan takibi, finansal analizler ve daha fazlası tek platformda.
+                        Sürü takibi, süt verimi analizi, stok yönetimi ve finansal raporlamalar tek bir platformda.
+                        Verimliliğinizi %30 artırın.
                     </p>
                     <div className="hero-buttons">
-                        <button className="btn-hero-primary" onClick={handleLoginClick}>Hemen Başla</button>
+                        <button className="btn-hero-primary" onClick={handleLoginClick}>Hemen Başlayın</button>
                         <button className="btn-hero-secondary" onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
-                            Daha Fazla Bilgi
+                            Nasıl Çalışır?
                         </button>
                     </div>
                 </div>
+                {/* İsteğe bağlı hero image eklenebilir */}
             </section>
 
-            {/* FEATURES SECTION */}
+            {/* STATS SECTION */}
+            <section className="stats-section fade-in-up">
+                <div className="stat-item">
+                    <h3>500+</h3>
+                    <p>Aktif Çiftlik</p>
+                </div>
+                <div className="stat-item">
+                    <h3>100k+</h3>
+                    <p>Kayıtlı Hayvan</p>
+                </div>
+                <div className="stat-item">
+                    <h3>%35</h3>
+                    <p>Ortalama Verim Artışı</p>
+                </div>
+            </section>
+
+            {/* FEATURES */}
             <section className="features-section" id="features">
                 <div className="section-header fade-in-up">
-                    <h2>Hizmetlerimiz</h2>
-                    <p>Modern çiftçilik için ihtiyacınız olan her şey</p>
+                    <h2>Neden Agrolina?</h2>
+                    <p>Her ölçekteki çiftlik için en kapsamlı çözümler</p>
                 </div>
 
                 <div className="features-grid">
                     <div className="feature-card fade-in-up delay-100">
                         <div className="feature-icon">📊</div>
-                        <h3 className="feature-title">Detaylı Raporlama</h3>
-                        <p className="feature-desc">Verileri anlamlı grafiklere dönüştürerek karar verme sürecinizi hızlandırın.</p>
+                        <h3>Akıllı Raporlama</h3>
+                        <p>Karmaşık verileri anlaşılır grafiklere dönüştürün. Trendleri takip edin.</p>
                     </div>
                     <div className="feature-card fade-in-up delay-200">
-                        <div className="feature-icon">🐄</div>
-                        <h3 className="feature-title">Hayvan Karnesi</h3>
-                        <p className="feature-desc">Her hayvanın aşı, doğum ve sağlık geçmişini dijital ortamda saklayın.</p>
+                        <div className="feature-icon">🔔</div>
+                        <h3>Akıllı Bildirimler</h3>
+                        <p>Aşı, doğum ve stok uyarılarını zamanında alın. Hiçbir şeyi kaçırmayın.</p>
                     </div>
                     <div className="feature-card fade-in-up delay-300">
-                        <div className="feature-icon">💰</div>
-                        <h3 className="feature-title">Gelir/Gider Takibi</h3>
-                        <p className="feature-desc">Çiftliğinizin finansal durumunu anlık olarak takip edin ve yönetin.</p>
+                        <div className="feature-icon">🏥</div>
+                        <h3>Sağlık Takibi</h3>
+                        <p>Tedavi geçmişi, aşı takvimi ve hastalık kayıtları elinizin altında.</p>
                     </div>
-                    <div className="feature-card fade-in-up delay-100">
-                        <div className="feature-icon">📱</div>
-                        <h3 className="feature-title">Mobil Uyumlu</h3>
-                        <p className="feature-desc">İster tarlada ister evde, sistemimize her cihazdan erişim sağlayın.</p>
+                    <div className="feature-card fade-in-up delay-400">
+                        <div className="feature-icon">🥡</div>
+                        <h3>Stok & Yem</h3>
+                        <p>Yem ve ilaç stoklarını yönetin. Kritik seviyelerde otomatik uyarı alın.</p>
                     </div>
                 </div>
             </section>
 
-            {/* BLOG SECTION */}
-            <section className="blog-section" id="blog">
+            {/* TESTIMONIALS */}
+            <section className="testimonials-section" id="testimonials">
                 <div className="section-header fade-in-up">
-                    <h2>Blog & Haberler</h2>
-                    <p>Sektördeki son gelişmeler ve ipuçları</p>
+                    <h2>Çiftçilerimiz Ne Diyor?</h2>
+                    <p>Başarı hikayelerine göz atın</p>
                 </div>
 
-                <div className="blog-grid">
-                    <div className="blog-card fade-in-up delay-100">
-                        <div className="blog-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=2670&auto=format&fit=crop')" }}></div>
-                        <div className="blog-content">
-                            <span className="blog-date">10 Ocak 2026</span>
-                            <h3 className="blog-title">Sürdürülebilir Tarım Yöntemleri</h3>
-                            <p className="blog-excerpt">Geleceğin tarımı için toprağı koruyan ve verimi artıran modern teknikler.</p>
-                            <button className="btn-read-more">Devamını Oku &rarr;</button>
+                <div className="testimonials-grid">
+                    <div className="testimonial-card fade-in-up">
+                        <FaQuoteLeft className="quote-icon" />
+                        <p>"Agrolina sayesinde süt verimimizi %25 artırdık. Artık hangi ineğin ne kadar ürettiğini tam olarak biliyoruz."</p>
+                        <div className="user-info">
+                            <div className="avatar">AD</div>
+                            <div>
+                                <h4>Ahmet Demir</h4>
+                                <span>Demir Çiftliği (50 Baş)</span>
+                            </div>
                         </div>
+                        <div className="stars"><FaStar /><FaStar /><FaStar /><FaStar /><FaStar /></div>
                     </div>
-                    <div className="blog-card fade-in-up delay-200">
-                        <div className="blog-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1527153857715-3908f2bae5e8?q=80&w=2521&auto=format&fit=crop')" }}></div>
-                        <div className="blog-content">
-                            <span className="blog-date">5 Ocak 2026</span>
-                            <h3 className="blog-title">Hayvancılıkta Doğru Beslenme</h3>
-                            <p className="blog-excerpt">Süt ve et verimini artırmak için rasyon hazırlama teknikleri ve öneriler.</p>
-                            <button className="btn-read-more">Devamını Oku &rarr;</button>
+                    <div className="testimonial-card fade-in-up delay-100">
+                        <FaQuoteLeft className="quote-icon" />
+                        <p>"Aşı takibini sürekli kaçırıyorduk. Bildirim sistemi hayatımızı kurtardı. Stok takibi de cabası."</p>
+                        <div className="user-info">
+                            <div className="avatar">MY</div>
+                            <div>
+                                <h4>Mehmet Yılmaz</h4>
+                                <span>Yılmaz Besi (120 Baş)</span>
+                            </div>
                         </div>
-                    </div>
-                    <div className="blog-card fade-in-up delay-300">
-                        <div className="blog-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2670&auto=format&fit=crop')" }}></div>
-                        <div className="blog-content">
-                            <span className="blog-date">28 Aralık 2025</span>
-                            <h3 className="blog-title">Akıllı Çiftlik Teknolojileri</h3>
-                            <p className="blog-excerpt">Otomasyon sistemleri ve sensörler ile iş yükünüzü nasıl azaltabilirsiniz?</p>
-                            <button className="btn-read-more">Devamını Oku &rarr;</button>
-                        </div>
+                        <div className="stars"><FaStar /><FaStar /><FaStar /><FaStar /><FaStar /></div>
                     </div>
                 </div>
             </section>
 
-            {/* CTA REGISTER SECTION */}
-            <section className="cta-register-section fade-in-up">
-                <div className="mini-login-card">
-                    <h3>Ailemize Katılın</h3>
-                    <p style={{ marginBottom: '2rem', color: '#666', fontSize: '1rem', lineHeight: '1.6' }}>
-                        Binlerce çiftçi gibi siz de işinizi dijitalleştirin.
-                        Hemen ücretsiz deneyin.
-                    </p>
+            {/* PRICING */}
+            <section className="pricing-section" id="pricing">
+                <div className="section-header fade-in-up">
+                    <h2>Fiyatlandırma</h2>
+                    <p>İhtiyacınıza uygun paketi seçin</p>
+                </div>
 
-                    <button
-                        onClick={() => navigate('/login')}
-                        style={{
-                            width: '100%',
-                            padding: '16px',
-                            backgroundColor: '#2e7d32',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '50px',
-                            fontWeight: 'bold',
-                            fontSize: '1.1rem',
-                            cursor: 'pointer',
-                            boxShadow: '0 10px 20px rgba(46, 125, 50, 0.3)',
-                            transition: 'transform 0.2s'
-                        }}
-                        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-                        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-                    >
-                        Kayıt Ol & Başla &rarr;
-                    </button>
-                    <p style={{ marginTop: '20px', fontSize: '0.9rem', color: '#888' }}>
-                        Zaten üye misiniz? <span style={{ color: '#2e7d32', fontWeight: 'bold', cursor: 'pointer' }} onClick={handleLoginClick}>Giriş Yapın</span>
-                    </p>
+                <div className="pricing-grid">
+                    <div className="pricing-card fade-in-up">
+                        <h3>Başlangıç</h3>
+                        <div className="price">₺0<span>/ay</span></div>
+                        <ul className="features-list">
+                            <li><FaCheck /> 10 Hayvana Kadar</li>
+                            <li><FaCheck /> Temel Sürü Takibi</li>
+                            <li><FaCheck /> Süt Kaydı</li>
+                        </ul>
+                        <button className="btn-plan btn-outline" onClick={handleLoginClick}>Ücretsiz Başla</button>
+                    </div>
+                    <div className="pricing-card featured fade-in-up delay-100">
+                        <div className="best-value">En Popüler</div>
+                        <h3>Profesyonel</h3>
+                        <div className="price">₺499<span>/ay</span></div>
+                        <ul className="features-list">
+                            <li><FaCheck /> 100 Hayvana Kadar</li>
+                            <li><FaCheck /> Tüm Modüller Aktif</li>
+                            <li><FaCheck /> Gelişmiş Raporlar</li>
+                            <li><FaCheck /> Stok Yönetimi</li>
+                        </ul>
+                        <button className="btn-plan btn-primary" onClick={handleLoginClick}>Şimdi Yükselt</button>
+                    </div>
+                    <div className="pricing-card fade-in-up delay-200">
+                        <h3>Kurumsal</h3>
+                        <div className="price">₺999<span>/ay</span></div>
+                        <ul className="features-list">
+                            <li><FaCheck /> Sınırsız Hayvan</li>
+                            <li><FaCheck /> Çoklu Çiftlik</li>
+                            <li><FaCheck /> Özel API Erişimi</li>
+                            <li><FaCheck /> 7/24 Destek</li>
+                        </ul>
+                        <button className="btn-plan btn-outline" onClick={handleLoginClick}>İletişime Geç</button>
+                    </div>
                 </div>
             </section>
 
             {/* FOOTER */}
-            <footer className="landing-footer" id="contact">
+            <footer className="landing-footer">
                 <div className="footer-content">
                     <div className="footer-brand">
-                        <h2><img src={logo} alt="Agrolina Logo" style={{ height: '40px', marginRight: '10px' }} /> Agrolina</h2>
-                        <p style={{ lineHeight: '1.6', color: '#888' }}>
-                            Modern çiftçilik için geliştirilmiş, kullanımı kolay ve kapsamlı yönetim platformu.
-                        </p>
-                    </div>
-
-                    <div className="footer-section">
-                        <h4>Hızlı Erişim</h4>
-                        <a href="#home">Ana Sayfa</a>
-                        <a href="#features">Hizmetler</a>
-                        <a href="#blog">Blog</a>
-                        <a href="/login">Giriş Yap</a>
-                    </div>
-
-                    <div className="footer-section">
-                        <h4>Kurumsal</h4>
-                        <a href="#about">Hakkımızda</a>
-                        <a href="#contact">İletişim</a>
-                        <a href="#careers">Kariyer</a>
-                        <a href="#privacy">Gizlilik Politikası</a>
-                    </div>
-
-                    <div className="footer-section">
-                        <h4>İletişim</h4>
-                        <a href="mailto:info@ciftlikyonetim.com">📧 info@ciftlikyonetim.com</a>
-                        <a href="tel:+905555555555">📞 +90 555 555 55 55</a>
-                        <div className="social-icons" style={{ marginTop: '1rem' }}>
-                            <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>📷</span>
-                            <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>📘</span>
-                            <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>🐦</span>
+                        <h2>Agrolina</h2>
+                        <p>Modern teknoloji ile geleneksel tarımı buluşturuyoruz.</p>
+                        <div className="social-links">
+                            <span>📷</span> <span>📘</span> <span>💼</span>
                         </div>
                     </div>
+                    <div className="footer-links">
+                        <h4>Ürün</h4>
+                        <a href="#features">Özellikler</a>
+                        <a href="#pricing">Fiyatlar</a>
+                        <a href="/login">Giriş</a>
+                    </div>
+                    <div className="footer-links">
+                        <h4>Şirket</h4>
+                        <a href="#">Hakkımızda</a>
+                        <a href="#">Kariyer</a>
+                        <a href="#">İletişim</a>
+                    </div>
+                    <div className="footer-links">
+                        <h4>Yasal</h4>
+                        <a href="#">Gizlilik</a>
+                        <a href="#">Kullanım Şartları</a>
+                    </div>
                 </div>
-
                 <div className="footer-bottom">
-                    <div>© 2026 Çiftlik Yönetim Platformu. Tüm hakları saklıdır.</div>
-                    <div style={{ color: '#666' }}>Designed with ❤️ for Farmers</div>
+                    <p>© 2026 Agrolina Teknoloji A.Ş. Tüm hakları saklıdır.</p>
                 </div>
             </footer>
         </div>
