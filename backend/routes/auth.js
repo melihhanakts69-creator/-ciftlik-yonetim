@@ -8,6 +8,10 @@ const { registerValidation, loginValidation, updateValidation } = require('../va
 
 // Token oluşturma yardımcı fonksiyonu
 const generateAccessToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    console.error('CRITICAL ERROR: JWT_SECRET environment variable is not defined!');
+    throw new Error('JWT_SECRET missing');
+  }
   return jwt.sign(
     { userId },
     process.env.JWT_SECRET,
@@ -56,6 +60,7 @@ router.post('/register', registerValidation, async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Register Hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
@@ -93,6 +98,7 @@ router.post('/login', loginValidation, async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Login Hatası:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
