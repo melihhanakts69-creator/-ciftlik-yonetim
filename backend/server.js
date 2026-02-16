@@ -19,8 +19,7 @@ app.use(hpp());                       // HTTP Parameter Pollution koruması
 app.use(cors({
   origin: [
     'https://ciftlik-yonetim.vercel.app',
-    'https://ciftlik-yonetim-q8bwcyd9m-melihhan-aktass-projects.vercel.app',
-    /^https:\/\/ciftlik-yonetim-.*-melihhan-aktass-projects\.vercel\.app$/,
+    /^https:\/\/ciftlik-yonetim.*\.vercel\.app$/, // Tüm ciftlik-yonetim* vercel domainlerini kapsar
     'http://localhost:3000',
     'http://localhost:5000'
   ],
