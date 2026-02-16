@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
+// const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const connectDB = require('./config/database');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
@@ -26,7 +26,7 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));  // Body boyutu sınırı
 
 // 🔒 Güvenlik Middleware'leri (Body parser'dan SONRA gelmeli)
-app.use(mongoSanitize());            // MongoDB injection koruması
+// app.use(mongoSanitize());            // BUG: Express 5 ile uyumsuzluk yapiyor
 app.use(hpp());                       // HTTP Parameter Pollution koruması
 
 
