@@ -12,8 +12,6 @@ const app = express();
 
 // 🔒 Güvenlik Middleware'leri
 app.use(helmet());                    // HTTP güvenlik header'ları
-app.use(mongoSanitize());            // MongoDB injection koruması
-app.use(hpp());                       // HTTP Parameter Pollution koruması
 
 // CORS — sadece bilinen domain'ler
 app.use(cors({
@@ -25,8 +23,13 @@ app.use(cors({
   ],
   credentials: true
 }));
-
 app.use(express.json({ limit: '10kb' }));  // Body boyutu sınırı
+
+// 🔒 Güvenlik Middleware'leri (Body parser'dan SONRA gelmeli)
+app.use(mongoSanitize());            // MongoDB injection koruması
+app.use(hpp());                       // HTTP Parameter Pollution koruması
+
+
 
 // Rate limiting
 app.use('/api/', apiLimiter);          // Tüm API: 100 istek/15dk
