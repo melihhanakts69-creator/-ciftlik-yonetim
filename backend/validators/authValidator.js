@@ -24,7 +24,6 @@ const registerValidation = [
     body('email')
         .trim()
         .isEmail()
-        .normalizeEmail()
         .withMessage('Geçerli bir email adresi giriniz'),
     body('sifre')
         .isLength({ min: 6 })
@@ -41,7 +40,6 @@ const loginValidation = [
     body('email')
         .trim()
         .isEmail()
-        .normalizeEmail()
         .withMessage('Geçerli bir email adresi giriniz'),
     body('sifre')
         .notEmpty()
