@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout/Layout';
@@ -7,7 +7,7 @@ import Login from './components/Auth/Login';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 
-import IneklerPage from './pages/Inekler'; // Yeni Sayfa
+import IneklerPage from './pages/Inekler';
 import Buzagilar from './components/Buzagilar';
 import Duveler from './pages/Duveler';
 import Tosunlar from './components/Tosunlar';
@@ -21,16 +21,17 @@ import BuzagiDetay from './pages/BuzagiDetay';
 import Bildirimler from './pages/Bildirimler';
 import Aktiviteler from './pages/Aktiviteler';
 import Raporlar from './pages/Raporlar';
-import YemMerkezi from './pages/YemMerkezi'; // Yeni Modül
-import SaglikMerkezi from './pages/SaglikMerkezi'; // Sağlık Modülü
-import Takvim from './pages/Takvim'; // Takvim Modülü
-import StokYonetimi from './pages/StokYonetimi'; // Stok Modülü
+import YemMerkezi from './pages/YemMerkezi';
+import SaglikMerkezi from './pages/SaglikMerkezi';
+import Takvim from './pages/Takvim';
+import StokYonetimi from './pages/StokYonetimi';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
   const [kullanici, setKullanici] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -51,7 +52,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    // Sunucu tarafında refresh token'ı geçersiz kıl
     import('./services/api').then(({ logout }) => logout()).catch(() => { });
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -59,6 +59,11 @@ function App() {
     setGirisYapildi(false);
     setKullanici(null);
   };
+
+  // Admin panel her zaman Layout olmadan full-screen açılır
+  if (location.pathname === '/admin') {
+    return <AdminPanel />;
+  }
 
   if (!girisYapildi) {
     return (
@@ -87,8 +92,6 @@ function App() {
       <Layout onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<Home kullanici={kullanici} />} />
-
-          {/* Diğer modüller */}
           <Route path="/inekler" element={<IneklerPage />} />
           <Route path="/ayarlar" element={<Ayarlar />} />
           <Route path="/buzagilar" element={<Buzagilar />} />
@@ -107,12 +110,7 @@ function App() {
           <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
           <Route path="/takvim" element={<Takvim />} />
           <Route path="/stok-yonetimi" element={<StokYonetimi />} />
-          <Route path="/admin" element={<AdminPanel />} />
-
-          {/* Login/Landing yönlendirmeleri */}
           <Route path="/login" element={<Navigate to="/" replace />} />
-
-          {/* Bilinmeyen rotalar */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
