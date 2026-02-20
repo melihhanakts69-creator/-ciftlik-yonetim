@@ -25,10 +25,6 @@ router.get('/', auth, async (req, res) => {
         const startDate = new Date(year, month, 1);
         const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
-        // ISO string formatında da arama yapabilmek için (TopluSutGirisi string tarih kullanıyor)
-        const startStr = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        const endStr = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
-
         const events = [];
 
         // --- 1. AŞI TAKVİMİ ---
@@ -142,15 +138,22 @@ router.get('/', auth, async (req, res) => {
         });
 
         // --- 5. SÜT KAYITLARI ---
+        // TopluSutGirisi tarih alanı String ("2026-02-20" formatında)
+        // Regex ile ay bazlı eşleşme daha güvenilir
+        const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
         const sutKayitlari = await TopluSutGirisi.find({
             userId: req.userId,
-            tarih: { $gte: startStr, $lte: endStr }
+            tarih: { $regex: `^${monthPrefix}` }
         });
 
         sutKayitlari.forEach(kayit => {
+            // String tarihi Date'e çevirirken saat ekle ki timezone sorunu olmasın
+            const tarihParts = kayit.tarih.split('-');
+            const eventDate = new Date(parseInt(tarihParts[0]), parseInt(tarihParts[1]) - 1, parseInt(tarihParts[2]), 12, 0, 0);
+
             events.push({
                 id: `sut_${kayit._id}`,
-                date: kayit.tarih,
+                date: eventDate,
                 title: `${kayit.sagim === 'sabah' ? '🌅' : '🌙'} ${kayit.toplamSut} Lt`,
                 type: 'sut',
                 details: {
