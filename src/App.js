@@ -26,6 +26,7 @@ import SaglikMerkezi from './pages/SaglikMerkezi'; // Sağlık Modülü
 import Takvim from './pages/Takvim'; // Takvim Modülü
 import StokYonetimi from './pages/StokYonetimi'; // Stok Modülü
 import NotFound from './pages/NotFound';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -106,6 +107,7 @@ function App() {
           <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
           <Route path="/takvim" element={<Takvim />} />
           <Route path="/stok-yonetimi" element={<StokYonetimi />} />
+          <Route path="/admin" element={<AdminPanel />} />
 
           {/* Login/Landing yönlendirmeleri */}
           <Route path="/login" element={<Navigate to="/" replace />} />

@@ -76,6 +76,8 @@ app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
 app.use('/api/gruplar', require('./routes/gruplar'));
 app.use('/api/takvim', require('./routes/takvim')); // Takvim Modülü
 app.use('/api/stok', require('./routes/stok')); // Stok Modülü
+app.use('/api/admin', require('./routes/adminContent')); // Admin Panel
+app.use('/api/content', require('./routes/adminContent')); // Public Landing Content
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);
