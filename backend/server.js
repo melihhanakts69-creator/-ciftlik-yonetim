@@ -31,8 +31,11 @@ app.use(hpp());                       // HTTP Parameter Pollution koruması
 
 
 
+// 🔒 Trust proxy (Render / Heroku gibi reverse proxy arkasında çalışırken şart)
+app.set('trust proxy', 1);
+
 // Rate limiting
-app.use('/api/', apiLimiter);          // Tüm API: 100 istek/15dk
+app.use('/api/', apiLimiter);          // Tüm API: 500 istek/15dk
 
 // Database bağlantısı
 connectDB();
