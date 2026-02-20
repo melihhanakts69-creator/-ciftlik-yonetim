@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import axios from 'axios';
 
-const API = process.env.NODE_ENV === 'production'
-    ? 'https://ciftlik-yonetim.onrender.com'
-    : 'http://localhost:5000';
+// Her zaman Render backend'ini kullan (admin panel production icerigi yonetiyor)
+const API = 'https://ciftlik-yonetim.onrender.com';
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
 
@@ -203,6 +202,34 @@ const SECTIONS = [
     { key: 'pricing', label: 'Fiyatlar', icon: '💰' },
 ];
 
+const DEFAULTS = {
+    hero: {
+        badge: 'Yeni',
+        title: 'Agrolina ile Çiftliğinizi Dijitalleştirin',
+        subtitle: 'Agrolina, modern çiftçilik için kapsamlı bir yönetim platformu sunar. Verimliliği artırın, maliyetleri düşürün ve sürdürülebilir bir gelecek inşa edin.',
+        btnPrimary: 'Hemen Başla',
+        btnSecondary: 'Daha Fazla Bilgi',
+    },
+    stats: [
+        { value: '1000+', label: 'Mutlu Çiftçi' },
+        { value: '50K+', label: 'Yönetilen Hayvan' },
+        { value: '20%', label: 'Verimlilik Artışı' },
+    ],
+    features: [
+        { icon: '🌱', title: 'Akıllı Hayvan Takibi', desc: 'Hayvanlarınızın sağlığını ve verimliliğini anlık olarak izleyin.' },
+        { icon: '💰', title: 'Maliyet Yönetimi', desc: 'Giderlerinizi optimize edin ve kar marjınızı artırın.' },
+        { icon: '📈', title: 'Veri Analizi', desc: 'Detaylı raporlarla çiftliğinizin performansını anlayın.' },
+    ],
+    testimonials: [
+        { text: '"Agrolina sayesinde çiftliğimin tüm operasyonlarını tek bir yerden yönetebiliyorum. Gerçekten harika bir ürün!"', name: 'Ayşe Yılmaz', farm: 'Bereketli Topraklar Çiftliği', size: '120 Baş', initials: 'AY' },
+    ],
+    pricing: [
+        { name: 'Başlangıç', price: '₺199', period: '/ay', features: ['Hayvan Takibi', 'Temel Raporlama'], popular: false, btnText: 'Başla' },
+        { name: 'Profesyonel', price: '₺499', period: '/ay', features: ['Tüm Başlangıç Özellikleri', 'Gelişmiş Analiz', 'Maliyet Yönetimi'], popular: true, btnText: 'Başla' },
+        { name: 'Kurumsal', price: '₺999', period: '/ay', features: ['Tüm Profesyonel Özellikler', 'Özelleştirilebilir Modüller', 'Öncelikli Destek'], popular: false, btnText: 'Başla' },
+    ],
+};
+
 export default function AdminPanel() {
     const [active, setActive] = useState('hero');
     const [content, setContent] = useState(null);
@@ -211,8 +238,12 @@ export default function AdminPanel() {
 
     useEffect(() => {
         axios.get(`${API}/api/admin/content`)
-            .then(r => setContent(r.data))
-            .catch(() => showToast('İçerik yüklenemedi', true));
+            .then(r => setContent({ ...DEFAULTS, ...r.data }))
+            .catch(() => {
+                // API hatasi olsa bile DEFAULTS ile ac, kaydedince yazilir
+                setContent(DEFAULTS);
+                showToast('Kayitli icerik bulunamadi, varsayilan degerler yuklendi.', false);
+            });
     }, []);
 
     const showToast = (msg, error = false) => {
