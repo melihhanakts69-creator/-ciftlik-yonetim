@@ -292,9 +292,10 @@ const LoadingOverlay = styled.div`
 // ─── Event Type Config ──────────────────────────
 const EVENT_CONFIG = {
   asi: { bg: '#EBF5FB', color: '#1565C0', icon: '💉', label: 'Aşılar' },
+  asi_bekliyor: { bg: '#E3F2FD', color: '#1976D2', icon: '📅', label: 'Planlanmış Aşı' },
   dogum: { bg: '#E8F5E9', color: '#2E7D32', icon: '🤰', label: 'Beklenen Doğum' },
   saglik: { bg: '#FFF3E0', color: '#E65100', icon: '🩺', label: 'Sağlık' },
-  kontrol: { bg: '#FFF3E0', color: '#E65100', icon: '🔍', label: 'Kontrol' },
+  kontrol: { bg: '#FFF3E0', color: '#BF360C', icon: '🔍', label: 'Kontrol' },
   bildirim: { bg: '#F3E5F5', color: '#7B1FA2', icon: '🔔', label: 'Hatırlatma' },
   sut: { bg: '#E0F2F1', color: '#00695C', icon: '🥛', label: 'Süt Kaydı' },
   alis: { bg: '#FFEBEE', color: '#C62828', icon: '📥', label: 'Alış' },

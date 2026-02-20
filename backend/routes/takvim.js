@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
 
 const Inek = require('../models/Inek');
@@ -13,7 +12,7 @@ const TopluSutGirisi = require('../models/TopluSutGirisi');
 const AlisSatis = require('../models/AlisSatis');
 
 // @route   GET /api/takvim
-// @desc    Get all events for a specific month
+// @desc    Belirli bir ay için tüm etkinlikleri getir
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
@@ -27,53 +26,77 @@ router.get('/', auth, async (req, res) => {
 
         const events = [];
 
-        // --- 1. AŞI TAKVİMİ ---
+        // ─── 1. AŞI TAKVİMİ ───────────────────────────────────────────
+        // Model field: uygulamaTarihi (NOT tarih!)
+        // sonrakiTarih de bu ayda olabilir
         const asilar = await AsiTakvimi.find({
             userId: req.userId,
-            tarih: { $gte: startDate, $lte: endDate }
+            $or: [
+                { uygulamaTarihi: { $gte: startDate, $lte: endDate } },
+                { sonrakiTarih: { $gte: startDate, $lte: endDate } }
+            ]
         });
 
         asilar.forEach(asi => {
-            events.push({
-                id: asi._id,
-                date: asi.tarih,
-                title: `${asi.asiAdi} Aşısı`,
-                type: 'asi',
-                details: {
-                    notlar: asi.notlar,
-                    yapildi: asi.yapildi
-                }
-            });
+            // Uygulama tarihi bu aydaysa
+            if (asi.uygulamaTarihi && new Date(asi.uygulamaTarihi) >= startDate && new Date(asi.uygulamaTarihi) <= endDate) {
+                events.push({
+                    id: `asi_${asi._id}`,
+                    date: asi.uygulamaTarihi,
+                    title: `💉 ${asi.asiAdi}${asi.hayvanIsim ? ` — ${asi.hayvanIsim}` : ''}`,
+                    type: 'asi',
+                    details: {
+                        notlar: asi.notlar,
+                        durum: asi.durum,
+                        hayvanIsim: asi.hayvanIsim
+                    }
+                });
+            }
+            // Sonraki aşı tarihi bu aydaysa
+            if (asi.sonrakiTarih && new Date(asi.sonrakiTarih) >= startDate && new Date(asi.sonrakiTarih) <= endDate) {
+                events.push({
+                    id: `asi_sonraki_${asi._id}`,
+                    date: asi.sonrakiTarih,
+                    title: `📅 Sonraki: ${asi.asiAdi}${asi.hayvanIsim ? ` — ${asi.hayvanIsim}` : ''}`,
+                    type: 'asi_bekliyor',
+                    details: {
+                        notlar: asi.notlar,
+                        durum: asi.durum
+                    }
+                });
+            }
         });
 
-        // --- 2. SAĞLIK KAYITLARI (Tedavi/Kontrol) ---
+        // ─── 2. SAĞLIK KAYITLARI ──────────────────────────────────────
+        // Model fields: tarih ✅, sonrakiKontrol (NOT sonrakiKontrolTarihi!)
         const saglikIslemleri = await SaglikKaydi.find({
             userId: req.userId,
             $or: [
                 { tarih: { $gte: startDate, $lte: endDate } },
-                { sonrakiKontrolTarihi: { $gte: startDate, $lte: endDate } }
+                { sonrakiKontrol: { $gte: startDate, $lte: endDate } }
             ]
         });
 
         saglikIslemleri.forEach(kayit => {
             if (new Date(kayit.tarih) >= startDate && new Date(kayit.tarih) <= endDate) {
                 events.push({
-                    id: `${kayit._id}_islem`,
+                    id: `saglik_${kayit._id}`,
                     date: kayit.tarih,
-                    title: `${kayit.tip === 'tedavi' ? 'Tedavi' : 'Muayene'}: ${kayit.hayvanIsim || 'Hayvan'}`,
+                    title: `🩺 ${kayit.tip === 'tedavi' ? 'Tedavi' : kayit.tip === 'hastalik' ? 'Hastalık' : 'Muayene'}: ${kayit.hayvanIsim || kayit.hayvanKupeNo || 'Hayvan'}`,
                     type: 'saglik',
                     details: {
                         tani: kayit.tani,
-                        durum: kayit.durum
+                        durum: kayit.durum,
+                        veteriner: kayit.veteriner
                     }
                 });
             }
 
-            if (kayit.sonrakiKontrolTarihi && new Date(kayit.sonrakiKontrolTarihi) >= startDate && new Date(kayit.sonrakiKontrolTarihi) <= endDate) {
+            if (kayit.sonrakiKontrol && new Date(kayit.sonrakiKontrol) >= startDate && new Date(kayit.sonrakiKontrol) <= endDate) {
                 events.push({
-                    id: `${kayit._id}_kontrol`,
-                    date: kayit.sonrakiKontrolTarihi,
-                    title: `Kontrol: ${kayit.hayvanIsim || 'Hayvan'}`,
+                    id: `kontrol_${kayit._id}`,
+                    date: kayit.sonrakiKontrol,
+                    title: `🔍 Kontrol: ${kayit.hayvanIsim || kayit.hayvanKupeNo || 'Hayvan'}`,
                     type: 'kontrol',
                     details: {
                         tani: kayit.tani,
@@ -83,63 +106,67 @@ router.get('/', auth, async (req, res) => {
             }
         });
 
-        // --- 3. DOĞUM TAHMİNLERİ (Gebe İnek/Düveler) ---
+        // ─── 3. DOĞUM TAHMİNLERİ (Gebe İnek/Düveler) ────────────────
         // tohumlamaTarihi + 280 gün = tahmini doğum
+        // gebelikDurumu filtresi kaldırıldı — bazı kayıtlarda bu alan olmayabilir
         const gebeInekler = await Inek.find({
             userId: req.userId,
-            tohumlamaTarihi: { $ne: null },
-            gebelikDurumu: 'Gebe'
+            tohumlamaTarihi: { $exists: true, $ne: null }
         });
 
         const gebeDuveler = await Duve.find({
             userId: req.userId,
-            tohumlamaTarihi: { $ne: null },
-            gebelikDurumu: 'Gebe'
+            tohumlamaTarihi: { $exists: true, $ne: null }
         });
 
         [...gebeInekler, ...gebeDuveler].forEach(hayvan => {
             if (hayvan.tohumlamaTarihi) {
                 const tohumlamaTarihi = new Date(hayvan.tohumlamaTarihi);
+                if (isNaN(tohumlamaTarihi.getTime())) return;
+
                 const tahminiDogum = new Date(tohumlamaTarihi);
                 tahminiDogum.setDate(tahminiDogum.getDate() + 280);
 
                 if (tahminiDogum >= startDate && tahminiDogum <= endDate) {
                     events.push({
-                        id: `${hayvan._id}_dogum`,
+                        id: `dogum_${hayvan._id}`,
                         date: tahminiDogum,
-                        title: `Beklenen Doğum: ${hayvan.isim || hayvan.kupeNo}`,
+                        title: `🤰 Beklenen Doğum: ${hayvan.isim || hayvan.kupeNo}`,
                         type: 'dogum',
                         details: {
                             hayvanId: hayvan._id,
-                            kupeNo: hayvan.kupeNo
+                            kupeNo: hayvan.kupeNo,
+                            isim: hayvan.isim
                         }
                     });
                 }
             }
         });
 
-        // --- 4. BİLDİRİMLER (Genel Hatırlatmalar) ---
+        // ─── 4. BİLDİRİMLER ──────────────────────────────────────────
+        // hatirlatmaTarihi ✅ — aktif + tamamlanmamış filtresi ekle
         const bildirimler = await Bildirim.find({
             userId: req.userId,
-            hatirlatmaTarihi: { $gte: startDate, $lte: endDate }
+            hatirlatmaTarihi: { $gte: startDate, $lte: endDate },
+            aktif: true
         });
 
         bildirimler.forEach(bildirim => {
             events.push({
-                id: bildirim._id,
+                id: `bildirim_${bildirim._id}`,
                 date: bildirim.hatirlatmaTarihi,
-                title: bildirim.baslik,
+                title: `🔔 ${bildirim.baslik}`,
                 type: 'bildirim',
                 details: {
                     not: bildirim.mesaj,
-                    oncelik: bildirim.oncelik
+                    oncelik: bildirim.oncelik,
+                    tamamlandi: bildirim.tamamlandi
                 }
             });
         });
 
-        // --- 5. SÜT KAYITLARI ---
-        // TopluSutGirisi tarih alanı String ("2026-02-20" formatında)
-        // Regex ile ay bazlı eşleşme daha güvenilir
+        // ─── 5. SÜT KAYITLARI ────────────────────────────────────────
+        // TopluSutGirisi.tarih String formatında "2026-02-20"
         const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
         const sutKayitlari = await TopluSutGirisi.find({
             userId: req.userId,
@@ -147,14 +174,14 @@ router.get('/', auth, async (req, res) => {
         });
 
         sutKayitlari.forEach(kayit => {
-            // String tarihi Date'e çevirirken saat ekle ki timezone sorunu olmasın
-            const tarihParts = kayit.tarih.split('-');
-            const eventDate = new Date(parseInt(tarihParts[0]), parseInt(tarihParts[1]) - 1, parseInt(tarihParts[2]), 12, 0, 0);
+            // String "2026-02-20" → local Date (noon, timezone safe)
+            const parts = kayit.tarih.split('-');
+            const eventDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
 
             events.push({
                 id: `sut_${kayit._id}`,
                 date: eventDate,
-                title: `${kayit.sagim === 'sabah' ? '🌅' : '🌙'} ${kayit.toplamSut} Lt`,
+                title: `🥛 ${kayit.sagim === 'sabah' ? 'Sabah' : 'Akşam'}: ${kayit.toplamSut} Lt`,
                 type: 'sut',
                 details: {
                     sagim: kayit.sagim,
@@ -164,18 +191,17 @@ router.get('/', auth, async (req, res) => {
             });
         });
 
-        // --- 6. ALIŞ-SATIŞ ---
+        // ─── 6. ALIŞ-SATIŞ ───────────────────────────────────────────
         const alisSatislar = await AlisSatis.find({
             userId: req.userId,
-            tarih: { $gte: startDate, $lte: endDate },
-            durum: 'tamamlandi'
+            tarih: { $gte: startDate, $lte: endDate }
         });
 
         alisSatislar.forEach(islem => {
             events.push({
                 id: `as_${islem._id}`,
                 date: islem.tarih,
-                title: `${islem.tip === 'alis' ? 'Alış' : 'Satış'}: ${islem.hayvanTipi} — ₺${islem.fiyat.toLocaleString('tr-TR')}`,
+                title: `${islem.tip === 'alis' ? '📥 Alış' : '📦 Satış'}: ${islem.hayvanTipi} — ₺${Number(islem.fiyat).toLocaleString('tr-TR')}`,
                 type: islem.tip === 'alis' ? 'alis' : 'satis',
                 details: {
                     fiyat: islem.fiyat,
@@ -185,7 +211,7 @@ router.get('/', auth, async (req, res) => {
             });
         });
 
-        // --- 7. BUZAĞI DOĞUMLARI (Gerçekleşen) ---
+        // ─── 7. BUZAĞI DOĞUMLARI (Gerçekleşen) ───────────────────────
         const buzagilar = await Buzagi.find({
             userId: req.userId,
             dogumTarihi: { $gte: startDate, $lte: endDate }
@@ -195,7 +221,7 @@ router.get('/', auth, async (req, res) => {
             events.push({
                 id: `bd_${buzagi._id}`,
                 date: buzagi.dogumTarihi,
-                title: `Doğum: ${buzagi.isim || buzagi.kupeNo}`,
+                title: `🐄 Buzağı: ${buzagi.isim || buzagi.kupeNo}`,
                 type: 'buzagi_dogum',
                 details: {
                     cinsiyet: buzagi.cinsiyet,
@@ -212,7 +238,7 @@ router.get('/', auth, async (req, res) => {
 
     } catch (err) {
         console.error('Takvim hatası:', err);
-        res.status(500).json({ message: 'Takvim verileri alınamadı' });
+        res.status(500).json({ message: 'Takvim verileri alınamadı', hata: err.message });
     }
 });
 
