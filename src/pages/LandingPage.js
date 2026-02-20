@@ -5,7 +5,9 @@ import logo from '../logo.png';
 import '../styles/LandingPage.css';
 import { FaCheck, FaStar, FaQuoteLeft } from 'react-icons/fa';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API = process.env.NODE_ENV === 'production'
+    ? 'https://ciftlik-yonetim.onrender.com'
+    : 'http://localhost:5000';
 
 const DEFAULTS = {
     hero: {

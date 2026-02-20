@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API = process.env.NODE_ENV === 'production'
+    ? 'https://ciftlik-yonetim.onrender.com'
+    : 'http://localhost:5000';
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
 
