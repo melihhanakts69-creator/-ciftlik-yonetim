@@ -256,7 +256,7 @@ export default function AdminPanel() {
 
     // Hesap / Login
     const [user, setUser] = useState(null);
-    const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+    const [loginForm, setLoginForm] = useState({ email: '', sifre: '' });
     const [loginLoading, setLoginLoading] = useState(false);
     const [loginError, setLoginError] = useState('');
 
@@ -331,7 +331,7 @@ export default function AdminPanel() {
                 {/* Hesap alanı - her zaman sidebar üstünde görünür */}
                 {user ? (
                     <UserCard>
-                        <div className="name">{user.ad || user.name || 'Admin'}</div>
+                        <div className="name">{user.isim || user.ad || user.name || 'Admin'}</div>
                         <div className="email">{user.email}</div>
                         <div className="row">
                             <button className="app" onClick={() => window.location.href = '/'}>🏠 Uygulamaya Git</button>
@@ -350,8 +350,8 @@ export default function AdminPanel() {
                         />
                         <input
                             type="password" placeholder="Şifre"
-                            value={loginForm.password}
-                            onChange={e => setLoginForm(p => ({ ...p, password: e.target.value }))}
+                            value={loginForm.sifre}
+                            onChange={e => setLoginForm(p => ({ ...p, sifre: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && doLogin()}
                         />
                         <button onClick={doLogin} disabled={loginLoading}>
@@ -641,7 +641,7 @@ export default function AdminPanel() {
                                     <input type="email" value={loginForm.email} onChange={e => setLoginForm(p => ({ ...p, email: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="kullanici@email.com" />
                                 </Field>
                                 <Field><label>Şifre</label>
-                                    <input type="password" value={loginForm.password} onChange={e => setLoginForm(p => ({ ...p, password: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="••••••••" />
+                                    <input type="password" value={loginForm.sifre} onChange={e => setLoginForm(p => ({ ...p, sifre: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="••••••••" />
                                 </Field>
                             </Grid>
                             <SaveBtn onClick={doLogin} disabled={loginLoading}>{loginLoading ? <Loader /> : '🔐'} {loginLoading ? 'Giriş yapılıyor...' : 'Giriş Yap'}</SaveBtn>
