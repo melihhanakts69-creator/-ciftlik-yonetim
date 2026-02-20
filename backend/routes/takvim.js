@@ -9,6 +9,8 @@ const Buzagi = require('../models/Buzagi');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const AsiTakvimi = require('../models/AsiTakvimi');
 const Bildirim = require('../models/Bildirim');
+const TopluSutGirisi = require('../models/TopluSutGirisi');
+const AlisSatis = require('../models/AlisSatis');
 
 // @route   GET /api/takvim
 // @desc    Get all events for a specific month
@@ -17,12 +19,15 @@ router.get('/', auth, async (req, res) => {
     try {
         const { ay, yil } = req.query;
 
-        // Tarih aralığını belirle
         const year = parseInt(yil) || new Date().getFullYear();
-        const month = parseInt(ay) ? parseInt(ay) - 1 : new Date().getMonth(); // 0-indexed month
+        const month = parseInt(ay) ? parseInt(ay) - 1 : new Date().getMonth();
 
         const startDate = new Date(year, month, 1);
         const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+        // ISO string formatında da arama yapabilmek için (TopluSutGirisi string tarih kullanıyor)
+        const startStr = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const endStr = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
 
         const events = [];
 
@@ -55,7 +60,6 @@ router.get('/', auth, async (req, res) => {
         });
 
         saglikIslemleri.forEach(kayit => {
-            // İşlem tarihi bu aydaysa
             if (new Date(kayit.tarih) >= startDate && new Date(kayit.tarih) <= endDate) {
                 events.push({
                     id: `${kayit._id}_islem`,
@@ -69,7 +73,6 @@ router.get('/', auth, async (req, res) => {
                 });
             }
 
-            // Kontrol tarihi bu aydaysa
             if (kayit.sonrakiKontrolTarihi && new Date(kayit.sonrakiKontrolTarihi) >= startDate && new Date(kayit.sonrakiKontrolTarihi) <= endDate) {
                 events.push({
                     id: `${kayit._id}_kontrol`,
@@ -84,30 +87,35 @@ router.get('/', auth, async (req, res) => {
             }
         });
 
-        // --- 3. DOĞUMLAR (Tahmini ve Gerçekleşen) ---
-        // (İnek ve Düvelerde beklenen doğum tarihi varsa)
-        // Not: Mevcut modellerde "tahminiDogumTarihi" var mı kontrol edelim.
-        // Inek modelinde 'beklenenDogumTarihi' veya tohumlama tarihinden hesaplama gerekebilir.
-        // Şimdilik 'tohumlamaTarihi' varsa +280 gün ekleyerek tahmini doğum bulabiliriz.
+        // --- 3. DOĞUM TAHMİNLERİ (Gebe İnek/Düveler) ---
+        // tohumlamaTarihi + 280 gün = tahmini doğum
+        const gebeInekler = await Inek.find({
+            userId: req.userId,
+            tohumlamaTarihi: { $ne: null },
+            gebelikDurumu: 'Gebe'
+        });
 
-        const inekler = await Inek.find({ userId: req.userId, 'tohumlamaBilgisi.tarih': { $exists: true } });
-        const duveler = await Duve.find({ userId: req.userId, 'tohumlamaBilgisi.tarih': { $exists: true } });
+        const gebeDuveler = await Duve.find({
+            userId: req.userId,
+            tohumlamaTarihi: { $ne: null },
+            gebelikDurumu: 'Gebe'
+        });
 
-        [...inekler, ...duveler].forEach(hayvan => {
-            if (hayvan.tohumlamaBilgisi && hayvan.tohumlamaBilgisi.tarih) {
-                const tohumlamaTarihi = new Date(hayvan.tohumlamaBilgisi.tarih);
+        [...gebeInekler, ...gebeDuveler].forEach(hayvan => {
+            if (hayvan.tohumlamaTarihi) {
+                const tohumlamaTarihi = new Date(hayvan.tohumlamaTarihi);
                 const tahminiDogum = new Date(tohumlamaTarihi);
-                tahminiDogum.setDate(tahminiDogum.getDate() + 280); // Yaklaşık gebelik süresi
+                tahminiDogum.setDate(tahminiDogum.getDate() + 280);
 
                 if (tahminiDogum >= startDate && tahminiDogum <= endDate) {
                     events.push({
                         id: `${hayvan._id}_dogum`,
                         date: tahminiDogum,
-                        title: `Beklenen Doğum: ${hayvan.kupeNo}`,
+                        title: `Beklenen Doğum: ${hayvan.isim || hayvan.kupeNo}`,
                         type: 'dogum',
                         details: {
                             hayvanId: hayvan._id,
-                            cins: hayvan.cins || (hayvan.ozellikler ? hayvan.ozellikler.irk : '?')
+                            kupeNo: hayvan.kupeNo
                         }
                     });
                 }
@@ -133,14 +141,75 @@ router.get('/', auth, async (req, res) => {
             });
         });
 
+        // --- 5. SÜT KAYITLARI ---
+        const sutKayitlari = await TopluSutGirisi.find({
+            userId: req.userId,
+            tarih: { $gte: startStr, $lte: endStr }
+        });
+
+        sutKayitlari.forEach(kayit => {
+            events.push({
+                id: `sut_${kayit._id}`,
+                date: kayit.tarih,
+                title: `${kayit.sagim === 'sabah' ? '🌅' : '🌙'} ${kayit.toplamSut} Lt`,
+                type: 'sut',
+                details: {
+                    sagim: kayit.sagim,
+                    toplamSut: kayit.toplamSut,
+                    inekSayisi: kayit.detaylar?.length || 0
+                }
+            });
+        });
+
+        // --- 6. ALIŞ-SATIŞ ---
+        const alisSatislar = await AlisSatis.find({
+            userId: req.userId,
+            tarih: { $gte: startDate, $lte: endDate },
+            durum: 'tamamlandi'
+        });
+
+        alisSatislar.forEach(islem => {
+            events.push({
+                id: `as_${islem._id}`,
+                date: islem.tarih,
+                title: `${islem.tip === 'alis' ? 'Alış' : 'Satış'}: ${islem.hayvanTipi} — ₺${islem.fiyat.toLocaleString('tr-TR')}`,
+                type: islem.tip === 'alis' ? 'alis' : 'satis',
+                details: {
+                    fiyat: islem.fiyat,
+                    hayvanTipi: islem.hayvanTipi,
+                    kupe_no: islem.kupe_no
+                }
+            });
+        });
+
+        // --- 7. BUZAĞI DOĞUMLARI (Gerçekleşen) ---
+        const buzagilar = await Buzagi.find({
+            userId: req.userId,
+            dogumTarihi: { $gte: startDate, $lte: endDate }
+        });
+
+        buzagilar.forEach(buzagi => {
+            events.push({
+                id: `bd_${buzagi._id}`,
+                date: buzagi.dogumTarihi,
+                title: `Doğum: ${buzagi.isim || buzagi.kupeNo}`,
+                type: 'buzagi_dogum',
+                details: {
+                    cinsiyet: buzagi.cinsiyet,
+                    kupeNo: buzagi.kupeNo,
+                    anneKupeNo: buzagi.anneKupeNo
+                }
+            });
+        });
+
         // Tarihe göre sırala
         events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         res.json(events);
 
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Hatası');
+        console.error('Takvim hatası:', err);
+        res.status(500).json({ message: 'Takvim verileri alınamadı' });
     }
 });
 
