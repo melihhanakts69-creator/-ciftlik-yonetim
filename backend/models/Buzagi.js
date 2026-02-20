@@ -31,7 +31,7 @@ const buzagiSchema = new mongoose.Schema({
     trim: true
   },
   dogumTarihi: {
-    type: String,
+    type: Date,
     required: true
   },
   cinsiyet: {
@@ -48,7 +48,12 @@ const buzagiSchema = new mongoose.Schema({
     trim: true
   },
   eklemeTarihi: {
-    type: String
+    type: Date
+  },
+  durum: {
+    type: String,
+    default: 'Aktif',
+    enum: ['Aktif', 'Satıldı', 'Öldü', 'Düveye Geçti', 'Tosuna Geçti']
   }
 }, {
   timestamps: true

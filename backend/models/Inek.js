@@ -25,7 +25,7 @@ const inekSchema = new mongoose.Schema({
     trim: true
   },
   dogumTarihi: {
-    type: String
+    type: Date
   },
   buzagiSayisi: {
     type: Number,
@@ -41,11 +41,11 @@ const inekSchema = new mongoose.Schema({
     enum: ['Aktif', 'Satıldı', 'Öldü', 'Kuru Dönemde']
   },
   tohumlamaTarihi: {
-    type: String,
+    type: Date,
     default: null
   },
   sonBuzagilamaTarihi: {
-    type: String,
+    type: Date,
     default: null
   },
   laktasyonDonemi: {
@@ -53,7 +53,7 @@ const inekSchema = new mongoose.Schema({
     default: 1
   },
   kuruDonemiBaslangic: {
-    type: String,
+    type: Date,
     default: null
   },
   gebelikDurumu: {

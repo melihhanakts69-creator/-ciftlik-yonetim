@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
-import { FaPlus, FaBoxOpen, FaClipboardList, FaArrowDown, FaArrowUp, FaFire, FaHistory } from 'react-icons/fa';
+import { FaPlus, FaBoxOpen, FaClipboardList, FaArrowDown, FaArrowUp, FaFire, FaHistory, FaExclamationTriangle } from 'react-icons/fa';
 import * as api from '../services/api';
+import { showSuccess, showError, showWarning } from '../utils/toast';
 
 // --- Styled Components ---
 
@@ -81,103 +82,271 @@ const Grid = styled.div`
   }
 `;
 
-const StockCard = styled.div`
-  background: white;
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.03);
+// --- Premium Animations ---
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
 
+const pulseGlow = keyframes`
+  0%, 100% { box-shadow: 0 0 5px rgba(244,67,54,0.3); }
+  50% { box-shadow: 0 0 20px rgba(244,67,54,0.6); }
+`;
+
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const floatIcon = keyframes`
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+`;
+
+const StockCard = styled.div`
+  background: linear-gradient(145deg, #ffffff 0%, #f8fffe 50%, ${props => props.color}08 100%);
+  border-radius: 24px;
+  padding: 28px;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  border: 1px solid ${props => props.color}20;
+  animation: ${fadeInUp} 0.5s ease both;
+  animation-delay: ${props => props.index * 0.08}s;
+
+  /* Üst gradient şerit */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, ${props => props.color}, ${props => props.color}88, ${props => props.color});
+    background-size: 200% 100%;
+    animation: ${shimmer} 3s ease-in-out infinite;
+  }
+
+  /* Dekoratif arka plan elementi */
   &::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 6px; height: 100%;
-    background: ${props => props.color};
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: ${props => props.color}08;
+    transition: all 0.4s ease;
+    pointer-events: none;
   }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 20px 40px ${props => props.color}15,
+      0 8px 16px rgba(0,0,0,0.06);
+    border-color: ${props => props.color}40;
+
+    &::after {
+      transform: scale(1.5);
+      background: ${props => props.color}12;
+    }
+
+    .type-icon {
+      animation: ${floatIcon} 1s ease-in-out infinite;
+    }
   }
 
-  .header {
+  ${props => props.isCritical && `
+    animation: ${fadeInUp} 0.5s ease both;
+    border-color: #f4433640;
+    &:hover {
+      box-shadow: 0 20px 40px rgba(244,67,54,0.15), 0 8px 16px rgba(0,0,0,0.06);
+    }
+  `}
+
+  .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
 
+  .type-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .type-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: ${props => props.color}12;
+    border: 1px solid ${props => props.color}20;
+    transition: all 0.3s ease;
+  }
+
+  .type-name {
     h3 {
       margin: 0;
       color: #1a1a1a;
-      font-size: 19px;
+      font-size: 17px;
       font-weight: 700;
+      letter-spacing: -0.3px;
     }
+    .sub {
+      font-size: 12px;
+      color: #999;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+  }
 
-    .badge {
-      background: ${props => props.color}15; // 15% opacity
-      color: ${props => props.color};
-      padding: 6px 12px;
-      border-radius: 30px;
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: ${props => props.color}15;
+    color: ${props => props.color};
+    border: 1px solid ${props => props.color}25;
+    ${props => props.isCritical && `
+      animation: ${pulseGlow} 2s ease-in-out infinite;
+    `}
+  }
+
+  .amount-section {
+    position: relative;
+    z-index: 1;
+    margin: 16px 0 20px 0;
+  }
+
+  .amount-value {
+    font-size: 42px;
+    font-weight: 900;
+    color: #1a1a1a;
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    letter-spacing: -1px;
+  }
+
+  .amount-unit {
+    font-size: 16px;
+    color: #999;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid ${props => props.color}10;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .footer-label {
       font-size: 11px;
-      font-weight: 800;
+      color: #aaa;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .footer-value {
+      font-size: 14px;
+      color: #555;
+      font-weight: 700;
+    }
   }
 
-  .amount {
-    font-size: 36px;
-    font-weight: 800;
+  .price-tag {
+    background: linear-gradient(135deg, ${props => props.color}10, ${props => props.color}05);
     color: ${props => props.color};
-    margin: 15px 0;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid ${props => props.color}15;
   }
+`;
 
-  .unit {
-    color: #999;
-    font-size: 15px;
-    font-weight: 600;
-  }
+const ProgressSection = styled.div`
+  position: relative;
+  z-index: 1;
+  margin-top: 6px;
 
-  .footer {
+  .progress-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px dashed #f0f0f0;
-    
-    .price {
+    align-items: center;
+    margin-bottom: 8px;
+
+    .progress-label {
+      font-size: 11px;
+      color: #aaa;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .progress-percent {
       font-size: 13px;
-      color: #7f8c8d;
-      font-weight: 500;
-      background: #f8f9fa;
-      padding: 4px 10px;
-      border-radius: 8px;
+      font-weight: 800;
+      color: ${props => props.color};
     }
   }
 `;
 
 const ProgressBarContainer = styled.div`
-  background: #ecf0f1;
-  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f0f0, #e8e8e8);
+  border-radius: 12px;
   height: 10px;
   width: 100%;
-  margin-top: 15px;
   overflow: hidden;
+  position: relative;
 `;
 
 const ProgressBarFill = styled.div`
   height: 100%;
   width: ${props => Math.min(props.percent, 100)}%;
-  background: ${props => props.color};
-  border-radius: 10px;
-  transition: width 0.5s ease-in-out;
+  background: linear-gradient(90deg, ${props => props.color}cc, ${props => props.color});
+  border-radius: 12px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 6px ${props => props.color}40;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: ${shimmer} 2s ease-in-out infinite;
+    border-radius: 12px;
+  }
 `;
 
 const ChartCard = styled.div`
@@ -376,7 +545,7 @@ const YemDeposu = ({ isEmbedded = false }) => {
   };
 
   const hareketEkle = async () => {
-    if (!form.miktar || form.miktar <= 0) return alert('Geçerli miktar giriniz');
+    if (!form.miktar || form.miktar <= 0) return showWarning('Geçerli bir miktar giriniz');
 
     try {
       await api.createYemHareket({
@@ -386,30 +555,59 @@ const YemDeposu = ({ isEmbedded = false }) => {
       });
       setModalAcik(false);
       setForm({ ...form, miktar: '', birimFiyat: '', aciklama: '' });
+      showSuccess('Hareket başarıyla eklendi! 🎉');
       fetchData();
     } catch (error) {
-      alert('Kayıt eklenemedi');
+      showError('Kayıt eklenemedi');
     }
   };
 
   // Helper: Stok rengi ve durum belirleme
   const getStockStatus = (stok) => {
-    // Görsel amaçlı bir 'maksimum' kapasite varsayımı yapıyoruz (minStok * 4) veya mantıklı bir üst sınır
     const maxCapacity = stok.minimumStok * 5 || 1000;
     const percent = (stok.miktar / maxCapacity) * 100;
 
-    let color = '#4CAF50'; // Yeşil
+    let color = '#4CAF50';
     let status = 'İyi';
+    let statusIcon = '✅';
+    let isCritical = false;
 
     if (stok.miktar <= stok.minimumStok) {
-      color = '#f44336'; // Kırmızı
+      color = '#f44336';
       status = 'KRİTİK';
+      statusIcon = '🔴';
+      isCritical = true;
     } else if (stok.miktar <= stok.minimumStok * 2) {
-      color = '#FF9800'; // Turuncu
+      color = '#FF9800';
       status = 'AZALIYOR';
+      statusIcon = '🟡';
     }
 
-    return { color, status, percent };
+    return { color, status, percent, statusIcon, isCritical };
+  };
+
+  // Helper: Yem tipine göre ikon belirleme
+  const getYemIcon = (yemTipi) => {
+    const iconMap = {
+      'Süt Yemi': '🥛',
+      'Besi Yemi': '🐂',
+      'Düve Yemi': '🐮',
+      'Buzağı Başlangıç Yemi': '🍼',
+      'Buzağı Geliştirme Yemi': '🐄',
+      'Mısır Silajı': '🌽',
+      'Pancar Küspesi': '🥬',
+      'Yonca Balyası': '🌿',
+      'Yulaf Balyası': '🌾',
+      'Korunga Balyası': '🌱',
+      'Fiğ Balyası': '☘️',
+      'Çayır Balyası': '🌾',
+      'Saman Balyası': '🟨',
+      'Arpa': '🌾',
+      'Mısır (Dane)': '🌽',
+      'Kepek': '🫘',
+      'Karma Yem': '🧪'
+    };
+    return iconMap[yemTipi] || '📦';
   };
 
   // Helper: Hareket ikonu ve rengi
@@ -478,24 +676,51 @@ const YemDeposu = ({ isEmbedded = false }) => {
 
           {/* Stok Grid */}
           <Grid>
-            {stoklar.map(stok => {
-              const { color, status, percent } = getStockStatus(stok);
+            {stoklar.map((stok, index) => {
+              const { color, status, percent, statusIcon, isCritical } = getStockStatus(stok);
+              const yemIcon = getYemIcon(stok.yemTipi);
               return (
-                <StockCard key={stok._id} color={color}>
-                  <div className="header">
-                    <h3>{stok.yemTipi}</h3>
-                    <span className="badge">{status}</span>
+                <StockCard key={stok._id} color={color} isCritical={isCritical} index={index}>
+                  <div className="card-header">
+                    <div className="type-info">
+                      <div className="type-icon">{yemIcon}</div>
+                      <div className="type-name">
+                        <h3>{stok.yemTipi}</h3>
+                        <div className="sub">Minimum: {stok.minimumStok} {stok.birim}</div>
+                      </div>
+                    </div>
+                    <div className="status-badge">
+                      {isCritical && <FaExclamationTriangle size={10} />}
+                      {statusIcon} {status}
+                    </div>
                   </div>
-                  <div className="amount">
-                    {stok.miktar.toLocaleString()} <span className="unit">{stok.birim}</span>
+
+                  <div className="amount-section">
+                    <div className="amount-value">
+                      {stok.miktar.toLocaleString('tr-TR')}
+                      <span className="amount-unit">{stok.birim}</span>
+                    </div>
                   </div>
-                  <div className="footer">
-                    <div className="unit">Min: {stok.minimumStok}</div>
-                    <div className="price">{stok.birimFiyat ? `${stok.birimFiyat} ₺/kg` : '-'}</div>
+
+                  <ProgressSection color={color}>
+                    <div className="progress-header">
+                      <span className="progress-label">Doluluk</span>
+                      <span className="progress-percent">{Math.min(Math.round(percent), 100)}%</span>
+                    </div>
+                    <ProgressBarContainer>
+                      <ProgressBarFill percent={percent} color={color} />
+                    </ProgressBarContainer>
+                  </ProgressSection>
+
+                  <div className="card-footer">
+                    <div className="footer-item">
+                      <span className="footer-label">Birim Fiyat</span>
+                      <span className="footer-value">{stok.birimFiyat ? `${stok.birimFiyat.toLocaleString('tr-TR')} ₺/${stok.birim}` : '—'}</span>
+                    </div>
+                    <div className="price-tag">
+                      {stok.birimFiyat && stok.miktar ? `${(stok.birimFiyat * stok.miktar).toLocaleString('tr-TR')} ₺` : '—'}
+                    </div>
                   </div>
-                  <ProgressBarContainer>
-                    <ProgressBarFill percent={percent} color={color} />
-                  </ProgressBarContainer>
                 </StockCard>
               );
             })}

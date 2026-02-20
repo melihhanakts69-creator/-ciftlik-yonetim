@@ -14,3 +14,21 @@ dist/
 
 # OS
 .DS_Store
+
+# Debug & Test Scripts
+debug_*.js
+test_*.js
+
+# Screenshots & Captures
+ChatGPT Image*
+FireShot Capture*
+*.png
+!src/**/*.png
+!public/**/*.png
+
+# Backups
+*.backup
+
+# IDE
+.vscode/
+.idea/

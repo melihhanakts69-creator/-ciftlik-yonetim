@@ -25,7 +25,7 @@ const duveSchema = new mongoose.Schema({
     trim: true
   },
   dogumTarihi: {
-    type: String
+    type: Date
   },
   anneKupeNo: {
     type: String,
@@ -36,7 +36,7 @@ const duveSchema = new mongoose.Schema({
     trim: true
   },
   tohumlamaTarihi: {
-    type: String
+    type: Date
   },
   gebelikDurumu: {
     type: String,
@@ -48,10 +48,10 @@ const duveSchema = new mongoose.Schema({
     trim: true
   },
   eklemeTarihi: {
-    type: String
+    type: Date
   }
-  
-  
+
+
 }, {
   timestamps: true
 });

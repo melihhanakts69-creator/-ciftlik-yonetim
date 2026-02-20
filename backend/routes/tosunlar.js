@@ -16,9 +16,10 @@ router.get('/', auth, async (req, res) => {
 // YENİ TOSUN EKLE
 router.post('/', auth, async (req, res) => {
   try {
+    const { isim, kupeNo, dogumTarihi, anneKupeNo, babaKupeNo, kilo, satisTarihi, satisFiyati, not, durum } = req.body;
     const yeniTosun = new Tosun({
       userId: req.userId,
-      ...req.body
+      isim, kupeNo, dogumTarihi, anneKupeNo, babaKupeNo, kilo, satisTarihi, satisFiyati, not, durum
     });
     await yeniTosun.save();
     res.status(201).json(yeniTosun);
@@ -30,10 +31,11 @@ router.post('/', auth, async (req, res) => {
 // GÜNCELLE
 router.put('/:id', auth, async (req, res) => {
   try {
+    const { userId, _id, ...safeBody } = req.body;
     const tosun = await Tosun.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
-      req.body,
-      { new: true }
+      safeBody,
+      { new: true, runValidators: true }
     );
 
     if (!tosun) {

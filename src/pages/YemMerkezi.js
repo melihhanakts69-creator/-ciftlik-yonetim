@@ -313,6 +313,7 @@ const YemMerkezi = () => {
     const [activeTab, setActiveTab] = useState('stok'); // stok | rasyon | hesapla | kutuphane
     const [yemler, setYemler] = useState([]);
     const [rasyonlar, setRasyonlar] = useState([]);
+    const [kritikStokSayisi, setKritikStokSayisi] = useState(0);
     const [loading, setLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -324,12 +325,16 @@ const YemMerkezi = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [yemRes, rasyonRes] = await Promise.all([
+            const [yemRes, rasyonRes, stokRes] = await Promise.all([
                 api.getYemKutuphanesi(),
-                api.getRasyonlar()
+                api.getRasyonlar(),
+                api.getYemStok()
             ]);
             setYemler(yemRes.data);
             setRasyonlar(rasyonRes.data);
+            // Kritik stok sayısını hesapla
+            const kritikler = stokRes.data.filter(s => s.miktar <= s.minimumStok);
+            setKritikStokSayisi(kritikler.length);
         } catch (error) {
             console.error(error);
         } finally {
@@ -398,12 +403,12 @@ const YemMerkezi = () => {
                     </div>
                 </StatCard>
                 <StatCard>
-                    <div className="icon-box" style={{ background: '#fff3e0', color: '#ef6c00' }}>
+                    <div className="icon-box" style={{ background: kritikStokSayisi > 0 ? '#ffebee' : '#fff3e0', color: kritikStokSayisi > 0 ? '#f44336' : '#ef6c00' }}>
                         <FaExclamationTriangle />
                     </div>
                     <div className="content">
                         <span className="label">Kritik Stok</span>
-                        <span className="value">--</span>
+                        <span className="value" style={kritikStokSayisi > 0 ? { color: '#f44336' } : {}}>{kritikStokSayisi}</span>
                     </div>
                 </StatCard>
             </StatsGrid>

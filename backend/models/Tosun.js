@@ -15,7 +15,7 @@ const tosunSchema = new mongoose.Schema({
     required: true
   },
   dogumTarihi: {
-    type: String,
+    type: Date,
     required: true
   },
   anneKupeNo: String,
@@ -24,9 +24,14 @@ const tosunSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  satisTarihi: String,
+  satisTarihi: Date,
   satisFiyati: Number,
-  not: String
+  not: String,
+  durum: {
+    type: String,
+    default: 'Aktif',
+    enum: ['Aktif', 'Satıldı', 'Öldü']
+  }
 }, {
   timestamps: true
 });

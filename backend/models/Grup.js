@@ -78,119 +78,17 @@ const grupSchema = new mongoose.Schema({
 grupSchema.index({ userId: 1, aktif: 1 });
 grupSchema.index({ userId: 1, tip: 1 });
 
-// Virtual: Hayvanlar (populate için)
-grupSchema.virtual('hayvanlar', {
-  ref: 'Animal',
-  localField: '_id',
-  foreignField: 'grupId'
-});
-
-// Instance method: İstatistikleri güncelle
-grupSchema.methods.istatistikleriGuncelle = async function() {
-  const Animal = mongoose.model('Animal');
-
-  // Bu gruba ait hayvanları bul
-  const hayvanlar = await Animal.find({ grupId: this._id });
-
-  this.istatistikler.toplamHayvan = hayvanlar.length;
-
-  if (hayvanlar.length > 0) {
-    // Ortalama yaş hesapla
-    const toplamYas = hayvanlar.reduce((acc, h) => {
-      if (h.dogum_tarihi) {
-        const yas = (new Date() - new Date(h.dogum_tarihi)) / (365 * 24 * 60 * 60 * 1000);
-        return acc + yas;
-      }
-      return acc;
-    }, 0);
-    this.istatistikler.ortalamaYas = hayvanlar.length > 0 ? toplamYas / hayvanlar.length : 0;
-
-    // Ortalama süt verimi (sadece inekler için)
-    const inekler = hayvanlar.filter(h => h.tip === 'inek');
-    if (inekler.length > 0) {
-      const toplamSut = inekler.reduce((acc, h) => acc + (h.gunluk_sut || 0), 0);
-      this.istatistikler.ortalamaSut = toplamSut / inekler.length;
-    }
-  }
-
-  this.istatistikler.guncellemeTarihi = new Date();
-
-  return this.save();
-};
-
-// Statik method: Kullanıcının tüm grupları
-grupSchema.statics.kullaniciGruplari = async function(userId) {
+// Statik method: Kullanıcının tüm aktif grupları
+grupSchema.statics.kullaniciGruplari = async function (userId) {
   return await this.find({
-    userId: mongoose.Types.ObjectId(userId),
+    userId,
     aktif: true
   })
-  .sort({ ad: 1 });
-};
-
-// Statik method: Gruba hayvan ekle
-grupSchema.statics.hayvanEkle = async function(grupId, hayvanId) {
-  const Animal = mongoose.model('Animal');
-
-  await Animal.findByIdAndUpdate(hayvanId, {
-    grupId: mongoose.Types.ObjectId(grupId)
-  });
-
-  // İstatistikleri güncelle
-  const grup = await this.findById(grupId);
-  if (grup) {
-    await grup.istatistikleriGuncelle();
-  }
-
-  return grup;
-};
-
-// Statik method: Gruptan hayvan çıkar
-grupSchema.statics.hayvanCikar = async function(grupId, hayvanId) {
-  const Animal = mongoose.model('Animal');
-
-  await Animal.findByIdAndUpdate(hayvanId, {
-    $unset: { grupId: "" }
-  });
-
-  // İstatistikleri güncelle
-  const grup = await this.findById(grupId);
-  if (grup) {
-    await grup.istatistikleriGuncelle();
-  }
-
-  return grup;
-};
-
-// Statik method: Grup istatistikleri
-grupSchema.statics.grupIstatistikleri = async function(userId) {
-  const gruplar = await this.find({
-    userId: mongoose.Types.ObjectId(userId),
-    aktif: true
-  });
-
-  const Animal = mongoose.model('Animal');
-
-  const toplamHayvan = await Animal.countDocuments({
-    userId: mongoose.Types.ObjectId(userId)
-  });
-
-  const gruplaHayvan = await Animal.countDocuments({
-    userId: mongoose.Types.ObjectId(userId),
-    grupId: { $exists: true, $ne: null }
-  });
-
-  const gruplariHayvan = toplamHayvan - gruplaHayvan;
-
-  return {
-    toplamGrup: gruplar.length,
-    toplamHayvan,
-    gruplaHayvan,
-    gruplariHayvan
-  };
+    .sort({ ad: 1 });
 };
 
 // Pre-save hook: Renk varsayılanı
-grupSchema.pre('save', function(next) {
+grupSchema.pre('save', function (next) {
   if (!this.renk) {
     const renkler = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4'];
     this.renk = renkler[Math.floor(Math.random() * renkler.length)];
