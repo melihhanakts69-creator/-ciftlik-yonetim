@@ -1,4 +1,4 @@
-﻿ï»¿import { DashboardSection, UsersSection, BlogSection, SettingsSection } from './AdminSections';
+»¿Ã¯Â»Â¿import { DashboardSection, UsersSection, BlogSection, SettingsSection } from './AdminSections';
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import axios from 'axios';
@@ -281,67 +281,67 @@ const SearchBar = styled.div`
   }
 `;
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬ SECTIONS Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ SECTIONS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 const SECTIONS = [
     {
-        group: 'Ã„Â°Ãƒâ€¡ERÃ„Â°K', items: [
-            { key: 'hero', label: 'Hero BÃƒÂ¶lÃƒÂ¼mÃƒÂ¼', icon: 'Ã°Å¸Å½Â¯' },
-            { key: 'stats', label: 'Ã„Â°statistikler', icon: 'Ã°Å¸â€œÅ ' },
-            { key: 'features', label: 'Ãƒâ€“zellikler', icon: 'Ã¢Å“Â¨' },
-            { key: 'testimonials', label: 'Yorumlar', icon: 'Ã°Å¸â€™Â¬' },
-            { key: 'pricing', label: 'Fiyatlar', icon: 'Ã°Å¸â€™Â°' },
+        group: 'Ãƒâ€žÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¡ERÃƒâ€žÃ‚Â°K', items: [
+            { key: 'hero', label: 'Hero BÃƒÆ’Ã‚Â¶lÃƒÆ’Ã‚Â¼mÃƒÆ’Ã‚Â¼', icon: 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯' },
+            { key: 'stats', label: 'Ãƒâ€žÃ‚Â°statistikler', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â ' },
+            { key: 'features', label: 'ÃƒÆ’Ã¢â‚¬â€œzellikler', icon: 'ÃƒÂ¢Ã…â€œÃ‚Â¨' },
+            { key: 'testimonials', label: 'Yorumlar', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¬' },
+            { key: 'pricing', label: 'Fiyatlar', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â°' },
         ]
     },
     {
-        group: 'GÃƒâ€“RÃƒÅ“NÃƒÅ“M', items: [
-            { key: 'appearance', label: 'Renkler & Tema', icon: 'Ã°Å¸Å½Â¨' },
-            { key: 'images', label: 'GÃƒÂ¶rseller', icon: 'Ã°Å¸â€“Â¼Ã¯Â¸Â' },
+        group: 'GÃƒÆ’Ã¢â‚¬â€œRÃƒÆ’Ã…â€œNÃƒÆ’Ã…â€œM', items: [
+            { key: 'appearance', label: 'Renkler & Tema', icon: 'ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨' },
+            { key: 'images', label: 'GÃƒÆ’Ã‚Â¶rseller', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â€œÃ‚Â¼ÃƒÂ¯Ã‚Â¸Ã‚Â' },
         ]
     },
     {
-        group: 'SÃ„Â°TE', items: [
-            { key: 'seo', label: 'SEO & Meta', icon: 'Ã°Å¸â€Â' },
-            { key: 'footer', label: 'Footer & Ã„Â°letiÃ…Å¸im', icon: 'Ã°Å¸â€œÂ¬' },
-            { key: 'social', label: 'Sosyal Medya', icon: 'Ã°Å¸â€œÂ±' },
+        group: 'SÃƒâ€žÃ‚Â°TE', items: [
+            { key: 'seo', label: 'SEO & Meta', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â' },
+            { key: 'footer', label: 'Footer & Ãƒâ€žÃ‚Â°letiÃƒâ€¦Ã…Â¸im', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¬' },
+            { key: 'social', label: 'Sosyal Medya', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â±' },
         ]
     },
     {
         group: 'HESAP', items: [
-            { key: 'login', label: 'GiriÃ…Å¸ / Hesap', icon: 'Ã°Å¸â€Â' },
+            { key: 'login', label: 'GiriÃƒâ€¦Ã…Â¸ / Hesap', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â' },
         ]
     },
     {
-        group: 'YÃƒâ€“NETÃ„Â°M', items: [
-            { key: 'dashboard', label: 'Dashboard', icon: 'Ã°Å¸â€œÅ ' },
-            { key: 'users', label: 'KullanÃ„Â±cÃ„Â±lar', icon: 'Ã°Å¸â€˜Â¥' },
-            { key: 'blog', label: 'Blog / Duyurular', icon: 'Ã°Å¸â€œÂ' },
-            { key: 'settings', label: 'Uygulama AyarlarÃ„Â±', icon: 'Ã¢Å¡â„¢Ã¯Â¸Â' },
+        group: 'YÃƒÆ’Ã¢â‚¬â€œNETÃƒâ€žÃ‚Â°M', items: [
+            { key: 'dashboard', label: 'Dashboard', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â ' },
+            { key: 'users', label: 'KullanÃƒâ€žÃ‚Â±cÃƒâ€žÃ‚Â±lar', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¥' },
+            { key: 'blog', label: 'Blog / Duyurular', icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â' },
+            { key: 'settings', label: 'Uygulama AyarlarÃƒâ€žÃ‚Â±', icon: 'ÃƒÂ¢Ã…Â¡Ã¢â€žÂ¢ÃƒÂ¯Ã‚Â¸Ã‚Â' },
         ]
     },
 ];
 
 const DEFAULTS = {
-    hero: { badge: 'Ã°Å¸Å¡â‚¬ Modern Ãƒâ€¡iftlik YÃƒÂ¶netimi', title: 'Ãƒâ€¡iftliÃ„Å¸inizi GeleceÃ„Å¸e TaÃ…Å¸Ã„Â±yÃ„Â±n', subtitle: 'SÃƒÂ¼rÃƒÂ¼ takibi, sÃƒÂ¼t verimi analizi, stok yÃƒÂ¶netimi ve finansal raporlamalar tek bir platformda. VerimliliÃ„Å¸inizi %30 artÃ„Â±rÃ„Â±n.', btnPrimary: 'Hemen BaÃ…Å¸layÃ„Â±n', btnSecondary: 'NasÃ„Â±l Ãƒâ€¡alÃ„Â±Ã…Å¸Ã„Â±r?' },
-    stats: [{ value: '500+', label: 'Aktif Ãƒâ€¡iftlik' }, { value: '100k+', label: 'KayÃ„Â±tlÃ„Â± Hayvan' }, { value: '%35', label: 'Ortalama Verim ArtÃ„Â±Ã…Å¸Ã„Â±' }],
+    hero: { badge: 'ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Modern ÃƒÆ’Ã¢â‚¬Â¡iftlik YÃƒÆ’Ã‚Â¶netimi', title: 'ÃƒÆ’Ã¢â‚¬Â¡iftliÃƒâ€žÃ…Â¸inizi GeleceÃƒâ€žÃ…Â¸e TaÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±yÃƒâ€žÃ‚Â±n', subtitle: 'SÃƒÆ’Ã‚Â¼rÃƒÆ’Ã‚Â¼ takibi, sÃƒÆ’Ã‚Â¼t verimi analizi, stok yÃƒÆ’Ã‚Â¶netimi ve finansal raporlamalar tek bir platformda. VerimliliÃƒâ€žÃ…Â¸inizi %30 artÃƒâ€žÃ‚Â±rÃƒâ€žÃ‚Â±n.', btnPrimary: 'Hemen BaÃƒâ€¦Ã…Â¸layÃƒâ€žÃ‚Â±n', btnSecondary: 'NasÃƒâ€žÃ‚Â±l ÃƒÆ’Ã¢â‚¬Â¡alÃƒâ€žÃ‚Â±Ãƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±r?' },
+    stats: [{ value: '500+', label: 'Aktif ÃƒÆ’Ã¢â‚¬Â¡iftlik' }, { value: '100k+', label: 'KayÃƒâ€žÃ‚Â±tlÃƒâ€žÃ‚Â± Hayvan' }, { value: '%35', label: 'Ortalama Verim ArtÃƒâ€žÃ‚Â±Ãƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±' }],
     features: [
-        { icon: 'Ã°Å¸â€œÅ ', title: 'AkÃ„Â±llÃ„Â± Raporlama', desc: 'KarmaÃ…Å¸Ã„Â±k verileri anlaÃ…Å¸Ã„Â±lÃ„Â±r grafiklere dÃƒÂ¶nÃƒÂ¼Ã…Å¸tÃƒÂ¼rÃƒÂ¼n.' },
-        { icon: 'Ã°Å¸â€â€', title: 'AkÃ„Â±llÃ„Â± Bildirimler', desc: 'AÃ…Å¸Ã„Â±, doÃ„Å¸um ve stok uyarÃ„Â±larÃ„Â±nÃ„Â± zamanÃ„Â±nda alÃ„Â±n.' },
-        { icon: 'Ã°Å¸ÂÂ¥', title: 'SaÃ„Å¸lÃ„Â±k Takibi', desc: 'Tedavi geÃƒÂ§miÃ…Å¸i, aÃ…Å¸Ã„Â± takvimi ve hastalÃ„Â±k kayÃ„Â±tlarÃ„Â±.' },
-        { icon: 'Ã°Å¸Â¥Â¡', title: 'Stok & Yem', desc: 'Yem ve ilaÃƒÂ§ stoklarÃ„Â±nÃ„Â± yÃƒÂ¶netin.' },
+        { icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â ', title: 'AkÃƒâ€žÃ‚Â±llÃƒâ€žÃ‚Â± Raporlama', desc: 'KarmaÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±k verileri anlaÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±lÃƒâ€žÃ‚Â±r grafiklere dÃƒÆ’Ã‚Â¶nÃƒÆ’Ã‚Â¼Ãƒâ€¦Ã…Â¸tÃƒÆ’Ã‚Â¼rÃƒÆ’Ã‚Â¼n.' },
+        { icon: 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â', title: 'AkÃƒâ€žÃ‚Â±llÃƒâ€žÃ‚Â± Bildirimler', desc: 'AÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±, doÃƒâ€žÃ…Â¸um ve stok uyarÃƒâ€žÃ‚Â±larÃƒâ€žÃ‚Â±nÃƒâ€žÃ‚Â± zamanÃƒâ€žÃ‚Â±nda alÃƒâ€žÃ‚Â±n.' },
+        { icon: 'ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â¥', title: 'SaÃƒâ€žÃ…Â¸lÃƒâ€žÃ‚Â±k Takibi', desc: 'Tedavi geÃƒÆ’Ã‚Â§miÃƒâ€¦Ã…Â¸i, aÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â± takvimi ve hastalÃƒâ€žÃ‚Â±k kayÃƒâ€žÃ‚Â±tlarÃƒâ€žÃ‚Â±.' },
+        { icon: 'ÃƒÂ°Ã…Â¸Ã‚Â¥Ã‚Â¡', title: 'Stok & Yem', desc: 'Yem ve ilaÃƒÆ’Ã‚Â§ stoklarÃƒâ€žÃ‚Â±nÃƒâ€žÃ‚Â± yÃƒÆ’Ã‚Â¶netin.' },
     ],
     testimonials: [
-        { text: '"Agrolina sayesinde sÃƒÂ¼t verimimizi %25 artÃ„Â±rdÃ„Â±k."', name: 'Ahmet Demir', farm: 'Demir Ãƒâ€¡iftliÃ„Å¸i', size: '50 BaÃ…Å¸', initials: 'AD' },
-        { text: '"Bildirim sistemi hayatÃ„Â±mÃ„Â±zÃ„Â± kurtardÃ„Â±."', name: 'Mehmet YÃ„Â±lmaz', farm: 'YÃ„Â±lmaz Besi', size: '120 BaÃ…Å¸', initials: 'MY' },
+        { text: '"Agrolina sayesinde sÃƒÆ’Ã‚Â¼t verimimizi %25 artÃƒâ€žÃ‚Â±rdÃƒâ€žÃ‚Â±k."', name: 'Ahmet Demir', farm: 'Demir ÃƒÆ’Ã¢â‚¬Â¡iftliÃƒâ€žÃ…Â¸i', size: '50 BaÃƒâ€¦Ã…Â¸', initials: 'AD' },
+        { text: '"Bildirim sistemi hayatÃƒâ€žÃ‚Â±mÃƒâ€žÃ‚Â±zÃƒâ€žÃ‚Â± kurtardÃƒâ€žÃ‚Â±."', name: 'Mehmet YÃƒâ€žÃ‚Â±lmaz', farm: 'YÃƒâ€žÃ‚Â±lmaz Besi', size: '120 BaÃƒâ€¦Ã…Â¸', initials: 'MY' },
     ],
     pricing: [
-        { name: 'BaÃ…Å¸langÃ„Â±ÃƒÂ§', price: 'Ã¢â€šÂº0', period: '/ay', features: ['10 Hayvana Kadar', 'Temel SÃƒÂ¼rÃƒÂ¼ Takibi', 'SÃƒÂ¼t KaydÃ„Â±'], popular: false, btnText: 'ÃƒÅ“cretsiz BaÃ…Å¸la' },
-        { name: 'Profesyonel', price: 'Ã¢â€šÂº499', period: '/ay', features: ['100 Hayvana Kadar', 'TÃƒÂ¼m ModÃƒÂ¼ller Aktif', 'GeliÃ…Å¸miÃ…Å¸ Raporlar'], popular: true, btnText: 'Ã…Å¾imdi YÃƒÂ¼kselt' },
-        { name: 'Kurumsal', price: 'Ã¢â€šÂº999', period: '/ay', features: ['SÃ„Â±nÃ„Â±rsÃ„Â±z Hayvan', 'Ãƒâ€¡oklu Ãƒâ€¡iftlik', '7/24 Destek'], popular: false, btnText: 'Ã„Â°letiÃ…Å¸ime GeÃƒÂ§' },
+        { name: 'BaÃƒâ€¦Ã…Â¸langÃƒâ€žÃ‚Â±ÃƒÆ’Ã‚Â§', price: 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Âº0', period: '/ay', features: ['10 Hayvana Kadar', 'Temel SÃƒÆ’Ã‚Â¼rÃƒÆ’Ã‚Â¼ Takibi', 'SÃƒÆ’Ã‚Â¼t KaydÃƒâ€žÃ‚Â±'], popular: false, btnText: 'ÃƒÆ’Ã…â€œcretsiz BaÃƒâ€¦Ã…Â¸la' },
+        { name: 'Profesyonel', price: 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Âº499', period: '/ay', features: ['100 Hayvana Kadar', 'TÃƒÆ’Ã‚Â¼m ModÃƒÆ’Ã‚Â¼ller Aktif', 'GeliÃƒâ€¦Ã…Â¸miÃƒâ€¦Ã…Â¸ Raporlar'], popular: true, btnText: 'Ãƒâ€¦Ã…Â¾imdi YÃƒÆ’Ã‚Â¼kselt' },
+        { name: 'Kurumsal', price: 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Âº999', period: '/ay', features: ['SÃƒâ€žÃ‚Â±nÃƒâ€žÃ‚Â±rsÃƒâ€žÃ‚Â±z Hayvan', 'ÃƒÆ’Ã¢â‚¬Â¡oklu ÃƒÆ’Ã¢â‚¬Â¡iftlik', '7/24 Destek'], popular: false, btnText: 'Ãƒâ€žÃ‚Â°letiÃƒâ€¦Ã…Â¸ime GeÃƒÆ’Ã‚Â§' },
     ],
     appearance: { primaryColor: '#4CAF50', secondaryColor: '#2E7D32', heroBg: 'linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #0a1628 100%)', accentColor: '#81C784' },
     images: { heroImage: '', featuresImage: '', logoUrl: '', ogImage: '' },
-    seo: { siteTitle: 'Agrolina - Modern Ãƒâ€¡iftlik YÃƒÂ¶netim Platformu', metaDescription: 'SÃƒÂ¼rÃƒÂ¼ takibi, sÃƒÂ¼t verimi analizi, stok yÃƒÂ¶netimi ve finansal raporlamalar tek bir platformda.', keywords: 'ÃƒÂ§iftlik yÃƒÂ¶netimi, sÃƒÂ¼rÃƒÂ¼ takibi, sÃƒÂ¼t verimi, tarÃ„Â±m yazÃ„Â±lÃ„Â±mÃ„Â±' },
-    footer: { companyName: 'Agrolina Teknoloji A.Ã…Å¾.', slogan: 'Modern teknoloji ile geleneksel tarÃ„Â±mÃ„Â± buluÃ…Å¸turuyoruz.', email: 'info@agrolina.com', phone: '', address: '', copyright: 'Ã‚Â© 2026 Agrolina Teknoloji A.Ã…Å¾. TÃƒÂ¼m haklarÃ„Â± saklÃ„Â±dÃ„Â±r.' },
+    seo: { siteTitle: 'Agrolina - Modern ÃƒÆ’Ã¢â‚¬Â¡iftlik YÃƒÆ’Ã‚Â¶netim Platformu', metaDescription: 'SÃƒÆ’Ã‚Â¼rÃƒÆ’Ã‚Â¼ takibi, sÃƒÆ’Ã‚Â¼t verimi analizi, stok yÃƒÆ’Ã‚Â¶netimi ve finansal raporlamalar tek bir platformda.', keywords: 'ÃƒÆ’Ã‚Â§iftlik yÃƒÆ’Ã‚Â¶netimi, sÃƒÆ’Ã‚Â¼rÃƒÆ’Ã‚Â¼ takibi, sÃƒÆ’Ã‚Â¼t verimi, tarÃƒâ€žÃ‚Â±m yazÃƒâ€žÃ‚Â±lÃƒâ€žÃ‚Â±mÃƒâ€žÃ‚Â±' },
+    footer: { companyName: 'Agrolina Teknoloji A.Ãƒâ€¦Ã…Â¾.', slogan: 'Modern teknoloji ile geleneksel tarÃƒâ€žÃ‚Â±mÃƒâ€žÃ‚Â± buluÃƒâ€¦Ã…Â¸turuyoruz.', email: 'info@agrolina.com', phone: '', address: '', copyright: 'Ãƒâ€šÃ‚Â© 2026 Agrolina Teknoloji A.Ãƒâ€¦Ã…Â¾. TÃƒÆ’Ã‚Â¼m haklarÃƒâ€žÃ‚Â± saklÃƒâ€žÃ‚Â±dÃƒâ€žÃ‚Â±r.' },
     social: { instagram: '', facebook: '', linkedin: '', twitter: '', youtube: '' },
 };
 
@@ -363,7 +363,7 @@ export default function AdminPanel() {
         const token = localStorage.getItem('token');
         if (stored && token) setUser(JSON.parse(stored));
 
-        // Ã„Â°ÃƒÂ§erik yÃƒÂ¼kle
+        // Ãƒâ€žÃ‚Â°ÃƒÆ’Ã‚Â§erik yÃƒÆ’Ã‚Â¼kle
         axios.get(`${API}/api/admin/content`)
             .then(r => setContent({ ...DEFAULTS, ...r.data }))
             .catch(() => setContent(DEFAULTS));
@@ -380,9 +380,9 @@ export default function AdminPanel() {
             if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
             localStorage.setItem('user', JSON.stringify(u));
             setUser(u);
-            toast_('Ã¢Å“â€¦ GiriÃ…Å¸ yapÃ„Â±ldÃ„Â±!');
+            toast_('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ GiriÃƒâ€¦Ã…Â¸ yapÃƒâ€žÃ‚Â±ldÃƒâ€žÃ‚Â±!');
         } catch (e) {
-            setLoginError(e.response?.data?.message || 'E-posta veya Ã…Å¸ifre hatalÃ„Â±');
+            setLoginError(e.response?.data?.message || 'E-posta veya Ãƒâ€¦Ã…Â¸ifre hatalÃƒâ€žÃ‚Â±');
         } finally { setLoginLoading(false); }
     };
 
@@ -391,13 +391,13 @@ export default function AdminPanel() {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         setUser(null);
-        toast_('Ãƒâ€¡Ã„Â±kÃ„Â±Ã…Å¸ yapÃ„Â±ldÃ„Â±');
+        toast_('ÃƒÆ’Ã¢â‚¬Â¡Ãƒâ€žÃ‚Â±kÃƒâ€žÃ‚Â±Ãƒâ€¦Ã…Â¸ yapÃƒâ€žÃ‚Â±ldÃƒâ€žÃ‚Â±');
     };
 
     const save = async (key) => {
         setSaving(true);
-        try { await axios.put(`${API}/api/admin/content/${key}`, { data: content[key] }); toast_('Ã¢Å“â€¦ Kaydedildi!'); }
-        catch { toast_('Ã¢ÂÅ’ KayÃ„Â±t baÃ…Å¸arÃ„Â±sÃ„Â±z', true); }
+        try { await axios.put(`${API}/api/admin/content/${key}`, { data: content[key] }); toast_('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Kaydedildi!'); }
+        catch { toast_('ÃƒÂ¢Ã‚ÂÃ…â€™ KayÃƒâ€žÃ‚Â±t baÃƒâ€¦Ã…Â¸arÃƒâ€žÃ‚Â±sÃƒâ€žÃ‚Â±z', true); }
         finally { setSaving(false); }
     };
 
@@ -409,7 +409,7 @@ export default function AdminPanel() {
             <GlobalStyle />
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                 <Loader style={{ width: 30, height: 30, borderTopColor: '#4ade80' }} />
-                <div style={{ color: '#475569', fontSize: 14 }}>YÃƒÂ¼kleniyor...</div>
+                <div style={{ color: '#475569', fontSize: 14 }}>YÃƒÆ’Ã‚Â¼kleniyor...</div>
             </div>
         </Shell>
     );
@@ -421,23 +421,23 @@ export default function AdminPanel() {
             <GlobalStyle />
             <Sidebar>
                 <SidebarBrand>
-                    <div className="logo">Ã°Å¸Å’Â± Agro<span>lina</span></div>
+                    <div className="logo">ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â± Agro<span>lina</span></div>
                     <div className="sub">Admin Paneli</div>
                 </SidebarBrand>
 
-                {/* Hesap alanÃ„Â± - her zaman sidebar ÃƒÂ¼stÃƒÂ¼nde gÃƒÂ¶rÃƒÂ¼nÃƒÂ¼r */}
+                {/* Hesap alanÃƒâ€žÃ‚Â± - her zaman sidebar ÃƒÆ’Ã‚Â¼stÃƒÆ’Ã‚Â¼nde gÃƒÆ’Ã‚Â¶rÃƒÆ’Ã‚Â¼nÃƒÆ’Ã‚Â¼r */}
                 {user ? (
                     <UserCard>
                         <div className="name">{user.isim || user.ad || user.name || 'Admin'}</div>
                         <div className="email">{user.email}</div>
                         <div className="row">
-                            <button className="app" onClick={() => window.location.href = '/'}>Ã°Å¸ÂÂ  Uygulamaya Git</button>
-                            <button className="out" onClick={doLogout}>Ãƒâ€¡Ã„Â±kÃ„Â±Ã…Å¸</button>
+                            <button className="app" onClick={() => window.location.href = '/'}>ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â  Uygulamaya Git</button>
+                            <button className="out" onClick={doLogout}>ÃƒÆ’Ã¢â‚¬Â¡Ãƒâ€žÃ‚Â±kÃƒâ€žÃ‚Â±Ãƒâ€¦Ã…Â¸</button>
                         </div>
                     </UserCard>
                 ) : (
                     <LoginBox>
-                        <h4>Ã°Å¸â€Â GiriÃ…Å¸ Yap</h4>
+                        <h4>ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â GiriÃƒâ€¦Ã…Â¸ Yap</h4>
                         {loginError && <div className="err">{loginError}</div>}
                         <input
                             type="email" placeholder="E-posta"
@@ -446,18 +446,18 @@ export default function AdminPanel() {
                             onKeyDown={e => e.key === 'Enter' && doLogin()}
                         />
                         <input
-                            type="password" placeholder="Ã…Å¾ifre"
+                            type="password" placeholder="Ãƒâ€¦Ã…Â¾ifre"
                             value={loginForm.sifre}
                             onChange={e => setLoginForm(p => ({ ...p, sifre: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && doLogin()}
                         />
                         <button onClick={doLogin} disabled={loginLoading}>
-                            {loginLoading ? 'GiriÃ…Å¸ yapÃ„Â±lÃ„Â±yor...' : 'GiriÃ…Å¸ Yap'}
+                            {loginLoading ? 'GiriÃƒâ€¦Ã…Â¸ yapÃƒâ€žÃ‚Â±lÃƒâ€žÃ‚Â±yor...' : 'GiriÃƒâ€¦Ã…Â¸ Yap'}
                         </button>
                     </LoginBox>
                 )}
 
-                {/* MenÃƒÂ¼ */}
+                {/* MenÃƒÆ’Ã‚Â¼ */}
                 {SECTIONS.map(g => (
                     <SidebarSection key={g.group}>
                         <div className="lbl">{g.group}</div>
@@ -469,123 +469,123 @@ export default function AdminPanel() {
                     </SidebarSection>
                 ))}
 
-                <SidebarFooter>v2.1 Ã‚Â· Agrolina Admin</SidebarFooter>
+                <SidebarFooter>v2.1 Ãƒâ€šÃ‚Â· Agrolina Admin</SidebarFooter>
             </Sidebar>
 
             <Main key={active}>
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â HERO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â HERO ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'hero' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸Å½Â¯</span><div><h1>Hero BÃƒÂ¶lÃƒÂ¼mÃƒÂ¼</h1><p>ZiyaretÃƒÂ§inin ilk gÃƒÂ¶rdÃƒÂ¼Ã„Å¸ÃƒÂ¼ ana ekran</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯</span><div><h1>Hero BÃƒÆ’Ã‚Â¶lÃƒÆ’Ã‚Â¼mÃƒÆ’Ã‚Â¼</h1><p>ZiyaretÃƒÆ’Ã‚Â§inin ilk gÃƒÆ’Ã‚Â¶rdÃƒÆ’Ã‚Â¼Ãƒâ€žÃ…Â¸ÃƒÆ’Ã‚Â¼ ana ekran</p></div></PageHeader>
                     <Card>
-                        <h3>BaÃ…Å¸lÃ„Â±k & Metin</h3>
+                        <h3>BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±k & Metin</h3>
                         <Grid $cols="1fr 1fr">
                             <Field><label>Badge Metni</label><input value={sel('hero').badge} onChange={e => upd('hero', { ...sel('hero'), badge: e.target.value })} /></Field>
-                            <Field><label>Ana BaÃ…Å¸lÃ„Â±k</label><input value={sel('hero').title} onChange={e => upd('hero', { ...sel('hero'), title: e.target.value })} /></Field>
+                            <Field><label>Ana BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±k</label><input value={sel('hero').title} onChange={e => upd('hero', { ...sel('hero'), title: e.target.value })} /></Field>
                         </Grid>
                         <Grid $mt={11}>
-                            <Field><label>Alt BaÃ…Å¸lÃ„Â±k / AÃƒÂ§Ã„Â±klama</label><textarea value={sel('hero').subtitle} onChange={e => upd('hero', { ...sel('hero'), subtitle: e.target.value })} /></Field>
+                            <Field><label>Alt BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±k / AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama</label><textarea value={sel('hero').subtitle} onChange={e => upd('hero', { ...sel('hero'), subtitle: e.target.value })} /></Field>
                         </Grid>
                     </Card>
                     <Card>
                         <h3>Butonlar</h3>
                         <Grid $cols="1fr 1fr">
                             <Field><label>Birincil Buton</label><input value={sel('hero').btnPrimary} onChange={e => upd('hero', { ...sel('hero'), btnPrimary: e.target.value })} /></Field>
-                            <Field><label>Ã„Â°kincil Buton</label><input value={sel('hero').btnSecondary} onChange={e => upd('hero', { ...sel('hero'), btnSecondary: e.target.value })} /></Field>
+                            <Field><label>Ãƒâ€žÃ‚Â°kincil Buton</label><input value={sel('hero').btnSecondary} onChange={e => upd('hero', { ...sel('hero'), btnSecondary: e.target.value })} /></Field>
                         </Grid>
                     </Card>
-                    <SaveBtn onClick={() => save('hero')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('hero')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â STATS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â STATS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'stats' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€œÅ </span><div><h1>Ã„Â°statistikler</h1><p>Hero altÃ„Â±ndaki sayÃ„Â±sal kartlar</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â </span><div><h1>Ãƒâ€žÃ‚Â°statistikler</h1><p>Hero altÃƒâ€žÃ‚Â±ndaki sayÃƒâ€žÃ‚Â±sal kartlar</p></div></PageHeader>
                     {sel('stats').map((s, i) => (
                         <Card key={i}>
-                            <h3>Ã„Â°statistik {i + 1}</h3>
+                            <h3>Ãƒâ€žÃ‚Â°statistik {i + 1}</h3>
                             <Grid $cols="1fr 1fr">
-                                <Field><label>DeÃ„Å¸er (ÃƒÂ¶r: 500+)</label><input value={s.value} onChange={e => updArr('stats', i, { value: e.target.value })} /></Field>
-                                <Field><label>AÃƒÂ§Ã„Â±klama</label><input value={s.label} onChange={e => updArr('stats', i, { label: e.target.value })} /></Field>
+                                <Field><label>DeÃƒâ€žÃ…Â¸er (ÃƒÆ’Ã‚Â¶r: 500+)</label><input value={s.value} onChange={e => updArr('stats', i, { value: e.target.value })} /></Field>
+                                <Field><label>AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama</label><input value={s.label} onChange={e => updArr('stats', i, { label: e.target.value })} /></Field>
                             </Grid>
                         </Card>
                     ))}
-                    <SaveBtn onClick={() => save('stats')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('stats')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FEATURES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â FEATURES ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'features' && <>
-                    <PageHeader><span className="emoji">Ã¢Å“Â¨</span><div><h1>Ãƒâ€“zellikler</h1><p>"Neden Agrolina?" kartlarÃ„Â±</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ¢Ã…â€œÃ‚Â¨</span><div><h1>ÃƒÆ’Ã¢â‚¬â€œzellikler</h1><p>"Neden Agrolina?" kartlarÃƒâ€žÃ‚Â±</p></div></PageHeader>
                     {sel('features').map((f, i) => (
                         <ItemCard key={i}>
-                            <DelBtn onClick={() => upd('features', sel('features').filter((_, j) => j !== i))}>Ã°Å¸â€”â€˜ Sil</DelBtn>
+                            <DelBtn onClick={() => upd('features', sel('features').filter((_, j) => j !== i))}>ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬Ëœ Sil</DelBtn>
                             <Grid $cols="55px 1fr 2fr">
                                 <Field><label>Emoji</label><input value={f.icon} onChange={e => updArr('features', i, { icon: e.target.value })} /></Field>
-                                <Field><label>BaÃ…Å¸lÃ„Â±k</label><input value={f.title} onChange={e => updArr('features', i, { title: e.target.value })} /></Field>
-                                <Field><label>AÃƒÂ§Ã„Â±klama</label><input value={f.desc} onChange={e => updArr('features', i, { desc: e.target.value })} /></Field>
+                                <Field><label>BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±k</label><input value={f.title} onChange={e => updArr('features', i, { title: e.target.value })} /></Field>
+                                <Field><label>AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama</label><input value={f.desc} onChange={e => updArr('features', i, { desc: e.target.value })} /></Field>
                             </Grid>
                         </ItemCard>
                     ))}
-                    <AddBtn onClick={() => upd('features', [...sel('features'), { icon: 'Ã¢Â­Â', title: 'Yeni Ãƒâ€“zellik', desc: 'AÃƒÂ§Ã„Â±klama' }])}>+ Kart Ekle</AddBtn>
-                    <SaveBtn onClick={() => save('features')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <AddBtn onClick={() => upd('features', [...sel('features'), { icon: 'ÃƒÂ¢Ã‚Â­Ã‚Â', title: 'Yeni ÃƒÆ’Ã¢â‚¬â€œzellik', desc: 'AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama' }])}>+ Kart Ekle</AddBtn>
+                    <SaveBtn onClick={() => save('features')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â TESTIMONIALS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â TESTIMONIALS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'testimonials' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€™Â¬</span><div><h1>MÃƒÂ¼Ã…Å¸teri YorumlarÃ„Â±</h1><p>Referans ve baÃ…Å¸arÃ„Â± hikayeleri</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¬</span><div><h1>MÃƒÆ’Ã‚Â¼Ãƒâ€¦Ã…Â¸teri YorumlarÃƒâ€žÃ‚Â±</h1><p>Referans ve baÃƒâ€¦Ã…Â¸arÃƒâ€žÃ‚Â± hikayeleri</p></div></PageHeader>
                     {sel('testimonials').map((t, i) => (
                         <ItemCard key={i}>
-                            <DelBtn onClick={() => upd('testimonials', sel('testimonials').filter((_, j) => j !== i))}>Ã°Å¸â€”â€˜ Sil</DelBtn>
+                            <DelBtn onClick={() => upd('testimonials', sel('testimonials').filter((_, j) => j !== i))}>ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬Ëœ Sil</DelBtn>
                             <Grid $cols="1fr 1fr">
                                 <Field><label>Ad Soyad</label><input value={t.name} onChange={e => updArr('testimonials', i, { name: e.target.value, initials: e.target.value.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) })} /></Field>
-                                <Field><label>Ãƒâ€¡iftlik AdÃ„Â±</label><input value={t.farm} onChange={e => updArr('testimonials', i, { farm: e.target.value })} /></Field>
+                                <Field><label>ÃƒÆ’Ã¢â‚¬Â¡iftlik AdÃƒâ€žÃ‚Â±</label><input value={t.farm} onChange={e => updArr('testimonials', i, { farm: e.target.value })} /></Field>
                             </Grid>
                             <Grid $mt={10}>
                                 <Field><label>Yorum Metni</label><textarea value={t.text} onChange={e => updArr('testimonials', i, { text: e.target.value })} /></Field>
                             </Grid>
                             <Grid $cols="1fr 1fr" $mt={10}>
-                                <Field><label>Hayvan SayÃ„Â±sÃ„Â± (ÃƒÂ¶r: 80 BaÃ…Å¸)</label><input value={t.size} onChange={e => updArr('testimonials', i, { size: e.target.value })} /></Field>
+                                <Field><label>Hayvan SayÃƒâ€žÃ‚Â±sÃƒâ€žÃ‚Â± (ÃƒÆ’Ã‚Â¶r: 80 BaÃƒâ€¦Ã…Â¸)</label><input value={t.size} onChange={e => updArr('testimonials', i, { size: e.target.value })} /></Field>
                             </Grid>
                         </ItemCard>
                     ))}
-                    <AddBtn onClick={() => upd('testimonials', [...sel('testimonials'), { text: '"Yorum buraya..."', name: 'Ad Soyad', farm: 'Ãƒâ€¡iftlik AdÃ„Â±', size: '50 BaÃ…Å¸', initials: 'AS' }])}>+ Yorum Ekle</AddBtn>
-                    <SaveBtn onClick={() => save('testimonials')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <AddBtn onClick={() => upd('testimonials', [...sel('testimonials'), { text: '"Yorum buraya..."', name: 'Ad Soyad', farm: 'ÃƒÆ’Ã¢â‚¬Â¡iftlik AdÃƒâ€žÃ‚Â±', size: '50 BaÃƒâ€¦Ã…Â¸', initials: 'AS' }])}>+ Yorum Ekle</AddBtn>
+                    <SaveBtn onClick={() => save('testimonials')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PRICING Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â PRICING ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'pricing' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€™Â°</span><div><h1>FiyatlandÃ„Â±rma</h1><p>Abonelik paketleri</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â°</span><div><h1>FiyatlandÃƒâ€žÃ‚Â±rma</h1><p>Abonelik paketleri</p></div></PageHeader>
                     {sel('pricing').map((p, i) => (
                         <ItemCard key={i}>
-                            <DelBtn onClick={() => upd('pricing', sel('pricing').filter((_, j) => j !== i))}>Ã°Å¸â€”â€˜ Sil</DelBtn>
+                            <DelBtn onClick={() => upd('pricing', sel('pricing').filter((_, j) => j !== i))}>ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬Ëœ Sil</DelBtn>
                             <Grid $cols="1fr 1fr 1fr">
-                                <Field><label>Paket AdÃ„Â±</label><input value={p.name} onChange={e => updArr('pricing', i, { name: e.target.value })} /></Field>
-                                <Field><label>Fiyat (ÃƒÂ¶r: Ã¢â€šÂº499)</label><input value={p.price} onChange={e => updArr('pricing', i, { price: e.target.value })} /></Field>
-                                <Field><label>DÃƒÂ¶nem (ÃƒÂ¶r: /ay)</label><input value={p.period} onChange={e => updArr('pricing', i, { period: e.target.value })} /></Field>
+                                <Field><label>Paket AdÃƒâ€žÃ‚Â±</label><input value={p.name} onChange={e => updArr('pricing', i, { name: e.target.value })} /></Field>
+                                <Field><label>Fiyat (ÃƒÆ’Ã‚Â¶r: ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Âº499)</label><input value={p.price} onChange={e => updArr('pricing', i, { price: e.target.value })} /></Field>
+                                <Field><label>DÃƒÆ’Ã‚Â¶nem (ÃƒÆ’Ã‚Â¶r: /ay)</label><input value={p.period} onChange={e => updArr('pricing', i, { period: e.target.value })} /></Field>
                             </Grid>
                             <Grid $mt={10}>
-                                <Field><label>Ãƒâ€“zellikler Ã¢â‚¬â€ her satÃ„Â±r bir ÃƒÂ¶zellik</label>
+                                <Field><label>ÃƒÆ’Ã¢â‚¬â€œzellikler ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â her satÃƒâ€žÃ‚Â±r bir ÃƒÆ’Ã‚Â¶zellik</label>
                                     <textarea value={(p.features || []).join('\n')} onChange={e => updArr('pricing', i, { features: e.target.value.split('\n') })} style={{ minHeight: 85 }} />
                                 </Field>
                             </Grid>
                             <Grid $cols="1fr 1fr" $mt={10}>
-                                <Field><label>Buton YazÃ„Â±sÃ„Â±</label><input value={p.btnText} onChange={e => updArr('pricing', i, { btnText: e.target.value })} /></Field>
-                                <Field><label>En PopÃƒÂ¼ler Badge</label>
+                                <Field><label>Buton YazÃƒâ€žÃ‚Â±sÃƒâ€žÃ‚Â±</label><input value={p.btnText} onChange={e => updArr('pricing', i, { btnText: e.target.value })} /></Field>
+                                <Field><label>En PopÃƒÆ’Ã‚Â¼ler Badge</label>
                                     <select value={p.popular ? 'evet' : 'hayir'} onChange={e => updArr('pricing', i, { popular: e.target.value === 'evet' })}>
-                                        <option value="hayir">HayÃ„Â±r</option>
-                                        <option value="evet">Ã¢Å“â€¦ Evet Ã¢â‚¬â€ "En PopÃƒÂ¼ler"</option>
+                                        <option value="hayir">HayÃƒâ€žÃ‚Â±r</option>
+                                        <option value="evet">ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Evet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â "En PopÃƒÆ’Ã‚Â¼ler"</option>
                                     </select>
                                 </Field>
                             </Grid>
                         </ItemCard>
                     ))}
-                    <AddBtn onClick={() => upd('pricing', [...sel('pricing'), { name: 'Yeni Paket', price: 'Ã¢â€šÂº0', period: '/ay', features: ['Ãƒâ€“zellik 1'], popular: false, btnText: 'BaÃ…Å¸la' }])}>+ Paket Ekle</AddBtn>
-                    <SaveBtn onClick={() => save('pricing')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <AddBtn onClick={() => upd('pricing', [...sel('pricing'), { name: 'Yeni Paket', price: 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Âº0', period: '/ay', features: ['ÃƒÆ’Ã¢â‚¬â€œzellik 1'], popular: false, btnText: 'BaÃƒâ€¦Ã…Â¸la' }])}>+ Paket Ekle</AddBtn>
+                    <SaveBtn onClick={() => save('pricing')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â APPEARANCE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â APPEARANCE ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'appearance' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸Å½Â¨</span><div><h1>Renkler & Tema</h1><p>Site renk paleti ve gÃƒÂ¶rsel tema</p></div></PageHeader>
-                    <Tip>Ã°Å¸â€™Â¡ Renkleri deÃ„Å¸iÃ…Å¸tirdikten sonra kaydet Ã¢â‚¬â€ landing page gÃƒÂ¼ncel renkleri kullanÃ„Â±r.</Tip>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨</span><div><h1>Renkler & Tema</h1><p>Site renk paleti ve gÃƒÆ’Ã‚Â¶rsel tema</p></div></PageHeader>
+                    <Tip>ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¡ Renkleri deÃƒâ€žÃ…Â¸iÃƒâ€¦Ã…Â¸tirdikten sonra kaydet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â landing page gÃƒÆ’Ã‚Â¼ncel renkleri kullanÃƒâ€žÃ‚Â±r.</Tip>
                     <Card>
                         <h3>Ana Renkler</h3>
                         <Grid $cols="1fr 1fr">
@@ -597,7 +597,7 @@ export default function AdminPanel() {
                                 </div>
                             </ColorField>
                             <ColorField>
-                                <label>Ã„Â°kincil Renk</label>
+                                <label>Ãƒâ€žÃ‚Â°kincil Renk</label>
                                 <div className="row">
                                     <input type="color" value={sel('appearance').secondaryColor} onChange={e => upd('appearance', { ...sel('appearance'), secondaryColor: e.target.value })} />
                                     <input type="text" value={sel('appearance').secondaryColor} onChange={e => upd('appearance', { ...sel('appearance'), secondaryColor: e.target.value })} />
@@ -606,22 +606,22 @@ export default function AdminPanel() {
                         </Grid>
                     </Card>
                     <Card>
-                        <h3>Hero Arka PlanÃ„Â± (CSS background deÃ„Å¸eri)</h3>
+                        <h3>Hero Arka PlanÃƒâ€žÃ‚Â± (CSS background deÃƒâ€žÃ…Â¸eri)</h3>
                         <Field>
                             <label>Gradient veya renk kodu</label>
                             <textarea value={sel('appearance').heroBg} onChange={e => upd('appearance', { ...sel('appearance'), heroBg: e.target.value })} style={{ minHeight: 50, fontFamily: 'monospace', fontSize: 12 }} />
                         </Field>
                         <div style={{ marginTop: 10, height: 56, borderRadius: 8, background: sel('appearance').heroBg }} />
                     </Card>
-                    <SaveBtn onClick={() => save('appearance')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('appearance')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â IMAGES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â IMAGES ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'images' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€“Â¼Ã¯Â¸Â</span><div><h1>GÃƒÂ¶rseller</h1><p>Resim URL'leri Ã¢â‚¬â€ herhangi bir CDN ya da Unsplash linki</p></div></PageHeader>
-                    <Tip>Ã°Å¸â€™Â¡ Resim URL olarak Unsplash, ImgBB veya Cloudinary linki kullanabilirsin.</Tip>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬â€œÃ‚Â¼ÃƒÂ¯Ã‚Â¸Ã‚Â</span><div><h1>GÃƒÆ’Ã‚Â¶rseller</h1><p>Resim URL'leri ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â herhangi bir CDN ya da Unsplash linki</p></div></PageHeader>
+                    <Tip>ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¡ Resim URL olarak Unsplash, ImgBB veya Cloudinary linki kullanabilirsin.</Tip>
                     <Card>
-                        <h3>Hero GÃƒÂ¶rseli</h3>
+                        <h3>Hero GÃƒÆ’Ã‚Â¶rseli</h3>
                         <Field><label>Hero Arkaplan Resmi URL</label><input value={sel('images').heroImage} onChange={e => upd('images', { ...sel('images'), heroImage: e.target.value })} placeholder="https://images.unsplash.com/..." /></Field>
                         <ImagePreview>
                             {sel('images').heroImage ? <img src={sel('images').heroImage} alt="Hero" /> : <div className="placeholder">Resim URLsi girilmedi</div>}
@@ -629,47 +629,47 @@ export default function AdminPanel() {
                     </Card>
                     <Card>
                         <h3>Logo</h3>
-                        <Field><label>Logo URL (boÃ…Å¸ Ã¢â€ â€™ varsayÃ„Â±lan)</label><input value={sel('images').logoUrl} onChange={e => upd('images', { ...sel('images'), logoUrl: e.target.value })} placeholder="https://..." /></Field>
+                        <Field><label>Logo URL (boÃƒâ€¦Ã…Â¸ ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ varsayÃƒâ€žÃ‚Â±lan)</label><input value={sel('images').logoUrl} onChange={e => upd('images', { ...sel('images'), logoUrl: e.target.value })} placeholder="https://..." /></Field>
                     </Card>
                     <Card>
-                        <h3>OG Image (Sosyal medya paylaÃ…Å¸Ã„Â±m gÃƒÂ¶rseli)</h3>
-                        <Field><label>OG Image URL (1200Ãƒâ€”630 ÃƒÂ¶nerilir)</label><input value={sel('images').ogImage} onChange={e => upd('images', { ...sel('images'), ogImage: e.target.value })} placeholder="https://..." /></Field>
+                        <h3>OG Image (Sosyal medya paylaÃƒâ€¦Ã…Â¸Ãƒâ€žÃ‚Â±m gÃƒÆ’Ã‚Â¶rseli)</h3>
+                        <Field><label>OG Image URL (1200ÃƒÆ’Ã¢â‚¬â€630 ÃƒÆ’Ã‚Â¶nerilir)</label><input value={sel('images').ogImage} onChange={e => upd('images', { ...sel('images'), ogImage: e.target.value })} placeholder="https://..." /></Field>
                         <ImagePreview>
-                            {sel('images').ogImage ? <img src={sel('images').ogImage} alt="OG" /> : <div className="placeholder">Sosyal medya gÃƒÂ¶rseli</div>}
+                            {sel('images').ogImage ? <img src={sel('images').ogImage} alt="OG" /> : <div className="placeholder">Sosyal medya gÃƒÆ’Ã‚Â¶rseli</div>}
                         </ImagePreview>
                     </Card>
-                    <SaveBtn onClick={() => save('images')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('images')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SEO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â SEO ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'seo' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€Â</span><div><h1>SEO & Meta Etiketler</h1><p>Google arama sonuÃƒÂ§larÃ„Â± ve ÃƒÂ¶nizleme</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â</span><div><h1>SEO & Meta Etiketler</h1><p>Google arama sonuÃƒÆ’Ã‚Â§larÃƒâ€žÃ‚Â± ve ÃƒÆ’Ã‚Â¶nizleme</p></div></PageHeader>
                     <Card>
-                        <h3>Sayfa BaÃ…Å¸lÃ„Â±Ã„Å¸Ã„Â±</h3>
-                        <Field><label>Site BaÃ…Å¸lÃ„Â±Ã„Å¸Ã„Â±</label><input value={sel('seo').siteTitle} onChange={e => upd('seo', { ...sel('seo'), siteTitle: e.target.value })} /></Field>
-                        <div style={{ fontSize: 11, color: '#475569', marginTop: 5 }}>{sel('seo').siteTitle?.length || 0} karakter (ÃƒÂ¶nerilen: 50-60)</div>
+                        <h3>Sayfa BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±Ãƒâ€žÃ…Â¸Ãƒâ€žÃ‚Â±</h3>
+                        <Field><label>Site BaÃƒâ€¦Ã…Â¸lÃƒâ€žÃ‚Â±Ãƒâ€žÃ…Â¸Ãƒâ€žÃ‚Â±</label><input value={sel('seo').siteTitle} onChange={e => upd('seo', { ...sel('seo'), siteTitle: e.target.value })} /></Field>
+                        <div style={{ fontSize: 11, color: '#475569', marginTop: 5 }}>{sel('seo').siteTitle?.length || 0} karakter (ÃƒÆ’Ã‚Â¶nerilen: 50-60)</div>
                     </Card>
                     <Card>
-                        <h3>Meta AÃƒÂ§Ã„Â±klama</h3>
-                        <Field><label>AÃƒÂ§Ã„Â±klama (Google'da gÃƒÂ¶rÃƒÂ¼nÃƒÂ¼r)</label>
+                        <h3>Meta AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama</h3>
+                        <Field><label>AÃƒÆ’Ã‚Â§Ãƒâ€žÃ‚Â±klama (Google'da gÃƒÆ’Ã‚Â¶rÃƒÆ’Ã‚Â¼nÃƒÆ’Ã‚Â¼r)</label>
                             <textarea value={sel('seo').metaDescription} onChange={e => upd('seo', { ...sel('seo'), metaDescription: e.target.value })} />
                         </Field>
                         <div style={{ fontSize: 11, color: '#475569', marginTop: 5 }}>{sel('seo').metaDescription?.length || 0} karakter</div>
                     </Card>
                     <Card>
                         <h3>Anahtar Kelimeler</h3>
-                        <Field><label>VirgÃƒÂ¼lle ayÃ„Â±r</label><input value={sel('seo').keywords} onChange={e => upd('seo', { ...sel('seo'), keywords: e.target.value })} /></Field>
+                        <Field><label>VirgÃƒÆ’Ã‚Â¼lle ayÃƒâ€žÃ‚Â±r</label><input value={sel('seo').keywords} onChange={e => upd('seo', { ...sel('seo'), keywords: e.target.value })} /></Field>
                     </Card>
-                    <SaveBtn onClick={() => save('seo')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('seo')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FOOTER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â FOOTER ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'footer' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€œÂ¬</span><div><h1>Footer & Ã„Â°letiÃ…Å¸im</h1><p>SayfanÃ„Â±n alt kÃ„Â±smÃ„Â±</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¬</span><div><h1>Footer & Ãƒâ€žÃ‚Â°letiÃƒâ€¦Ã…Â¸im</h1><p>SayfanÃƒâ€žÃ‚Â±n alt kÃƒâ€žÃ‚Â±smÃƒâ€žÃ‚Â±</p></div></PageHeader>
                     <Card>
-                        <h3>Ã…Å¾irket Bilgileri</h3>
+                        <h3>Ãƒâ€¦Ã…Â¾irket Bilgileri</h3>
                         <Grid $cols="1fr 1fr">
-                            <Field><label>Ã…Å¾irket AdÃ„Â±</label><input value={sel('footer').companyName} onChange={e => upd('footer', { ...sel('footer'), companyName: e.target.value })} /></Field>
+                            <Field><label>Ãƒâ€¦Ã…Â¾irket AdÃƒâ€žÃ‚Â±</label><input value={sel('footer').companyName} onChange={e => upd('footer', { ...sel('footer'), companyName: e.target.value })} /></Field>
                             <Field><label>Copyright Metni</label><input value={sel('footer').copyright} onChange={e => upd('footer', { ...sel('footer'), copyright: e.target.value })} /></Field>
                         </Grid>
                         <Grid $mt={11}>
@@ -677,7 +677,7 @@ export default function AdminPanel() {
                         </Grid>
                     </Card>
                     <Card>
-                        <h3>Ã„Â°letiÃ…Å¸im</h3>
+                        <h3>Ãƒâ€žÃ‚Â°letiÃƒâ€¦Ã…Â¸im</h3>
                         <Grid $cols="1fr 1fr">
                             <Field><label>E-posta</label><input type="email" value={sel('footer').email} onChange={e => upd('footer', { ...sel('footer'), email: e.target.value })} /></Field>
                             <Field><label>Telefon</label><input value={sel('footer').phone} onChange={e => upd('footer', { ...sel('footer'), phone: e.target.value })} /></Field>
@@ -686,28 +686,28 @@ export default function AdminPanel() {
                             <Field><label>Adres</label><textarea value={sel('footer').address} onChange={e => upd('footer', { ...sel('footer'), address: e.target.value })} style={{ minHeight: 52 }} /></Field>
                         </Grid>
                     </Card>
-                    <SaveBtn onClick={() => save('footer')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('footer')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SOCIAL Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â SOCIAL ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'social' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€œÂ±</span><div><h1>Sosyal Medya</h1><p>Footer'da ikon olarak gÃƒÂ¶rÃƒÂ¼nÃƒÂ¼r</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â±</span><div><h1>Sosyal Medya</h1><p>Footer'da ikon olarak gÃƒÆ’Ã‚Â¶rÃƒÆ’Ã‚Â¼nÃƒÆ’Ã‚Â¼r</p></div></PageHeader>
                     <Card>
                         <h3>Profil Linkleri</h3>
                         <Grid $cols="1fr 1fr">
-                            <Field><label>Ã°Å¸â€œÂ· Instagram</label><input value={sel('social').instagram} onChange={e => upd('social', { ...sel('social'), instagram: e.target.value })} placeholder="https://instagram.com/..." /></Field>
-                            <Field><label>Ã°Å¸â€œËœ Facebook</label><input value={sel('social').facebook} onChange={e => upd('social', { ...sel('social'), facebook: e.target.value })} placeholder="https://facebook.com/..." /></Field>
-                            <Field><label>Ã°Å¸â€™Â¼ LinkedIn</label><input value={sel('social').linkedin} onChange={e => upd('social', { ...sel('social'), linkedin: e.target.value })} placeholder="https://linkedin.com/..." /></Field>
-                            <Field><label>Ã°Å¸ÂÂ¦ Twitter / X</label><input value={sel('social').twitter} onChange={e => upd('social', { ...sel('social'), twitter: e.target.value })} placeholder="https://twitter.com/..." /></Field>
-                            <Field><label>Ã¢â€“Â¶Ã¯Â¸Â YouTube</label><input value={sel('social').youtube} onChange={e => upd('social', { ...sel('social'), youtube: e.target.value })} placeholder="https://youtube.com/..." /></Field>
+                            <Field><label>ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â· Instagram</label><input value={sel('social').instagram} onChange={e => upd('social', { ...sel('social'), instagram: e.target.value })} placeholder="https://instagram.com/..." /></Field>
+                            <Field><label>ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‹Å“ Facebook</label><input value={sel('social').facebook} onChange={e => upd('social', { ...sel('social'), facebook: e.target.value })} placeholder="https://facebook.com/..." /></Field>
+                            <Field><label>ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¼ LinkedIn</label><input value={sel('social').linkedin} onChange={e => upd('social', { ...sel('social'), linkedin: e.target.value })} placeholder="https://linkedin.com/..." /></Field>
+                            <Field><label>ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â¦ Twitter / X</label><input value={sel('social').twitter} onChange={e => upd('social', { ...sel('social'), twitter: e.target.value })} placeholder="https://twitter.com/..." /></Field>
+                            <Field><label>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶ÃƒÂ¯Ã‚Â¸Ã‚Â YouTube</label><input value={sel('social').youtube} onChange={e => upd('social', { ...sel('social'), youtube: e.target.value })} placeholder="https://youtube.com/..." /></Field>
                         </Grid>
                     </Card>
-                    <SaveBtn onClick={() => save('social')} disabled={saving}>{saving ? <Loader /> : 'Ã°Å¸â€™Â¾'} Kaydet</SaveBtn>
+                    <SaveBtn onClick={() => save('social')} disabled={saving}>{saving ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾'} Kaydet</SaveBtn>
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â LOGIN Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â LOGIN ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'login' && <>
-                    <PageHeader><span className="emoji">Ã°Å¸â€Â</span><div><h1>GiriÃ…Å¸ / Hesap</h1><p>Uygulamaya giriÃ…Å¸ yapÃ„Â±n</p></div></PageHeader>
+                    <PageHeader><span className="emoji">ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â</span><div><h1>GiriÃƒâ€¦Ã…Â¸ / Hesap</h1><p>Uygulamaya giriÃƒâ€¦Ã…Â¸ yapÃƒâ€žÃ‚Â±n</p></div></PageHeader>
                     {user ? (
                         <Card>
                             <h3>Aktif Hesap</h3>
@@ -722,40 +722,40 @@ export default function AdminPanel() {
                             </div>
                             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
                                 <SaveBtn onClick={() => window.location.href = '/'} style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', boxShadow: '0 4px 18px rgba(59,130,246,0.22)' }}>
-                                    Ã°Å¸ÂÂ  Uygulamaya Git
+                                    ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â  Uygulamaya Git
                                 </SaveBtn>
                                 <SaveBtn onClick={doLogout} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 18px rgba(239,68,68,0.22)', marginTop: 18 }}>
-                                    Ãƒâ€¡Ã„Â±kÃ„Â±Ã…Å¸ Yap
+                                    ÃƒÆ’Ã¢â‚¬Â¡Ãƒâ€žÃ‚Â±kÃƒâ€žÃ‚Â±Ãƒâ€¦Ã…Â¸ Yap
                                 </SaveBtn>
                             </div>
                         </Card>
                     ) : (
                         <Card>
-                            <h3>GiriÃ…Å¸ Yap</h3>
+                            <h3>GiriÃƒâ€¦Ã…Â¸ Yap</h3>
                             {loginError && <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '10px 14px', color: '#f87171', fontSize: 13, marginBottom: 14 }}>{loginError}</div>}
                             <Grid>
                                 <Field><label>E-posta</label>
                                     <input type="email" value={loginForm.email} onChange={e => setLoginForm(p => ({ ...p, email: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="kullanici@email.com" />
                                 </Field>
-                                <Field><label>Ã…Å¾ifre</label>
-                                    <input type="password" value={loginForm.sifre} onChange={e => setLoginForm(p => ({ ...p, sifre: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢" />
+                                <Field><label>Ãƒâ€¦Ã…Â¾ifre</label>
+                                    <input type="password" value={loginForm.sifre} onChange={e => setLoginForm(p => ({ ...p, sifre: e.target.value }))} onKeyDown={e => e.key === 'Enter' && doLogin()} placeholder="ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢" />
                                 </Field>
                             </Grid>
-                            <SaveBtn onClick={doLogin} disabled={loginLoading}>{loginLoading ? <Loader /> : 'Ã°Å¸â€Â'} {loginLoading ? 'GiriÃ…Å¸ yapÃ„Â±lÃ„Â±yor...' : 'GiriÃ…Å¸ Yap'}</SaveBtn>
+                            <SaveBtn onClick={doLogin} disabled={loginLoading}>{loginLoading ? <Loader /> : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â'} {loginLoading ? 'GiriÃƒâ€¦Ã…Â¸ yapÃƒâ€žÃ‚Â±lÃƒâ€žÃ‚Â±yor...' : 'GiriÃƒâ€¦Ã…Â¸ Yap'}</SaveBtn>
                         </Card>
                     )}
                 </>}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â DASHBOARD Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â DASHBOARD ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'dashboard' && <DashboardSection API={API} toast_={toast_} />}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â USERS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â USERS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'users' && <UsersSection API={API} toast_={toast_} />}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â BLOG Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â BLOG ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'blog' && <BlogSection API={API} toast_={toast_} />}
 
-                {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SETTINGS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
+                {/* ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â SETTINGS ÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚ÂÃƒÂ¢Ã¢â‚¬Â¢Ã‚Â */}
                 {active === 'settings' && <SettingsSection API={API} toast_={toast_} />}
 
             </Main>
