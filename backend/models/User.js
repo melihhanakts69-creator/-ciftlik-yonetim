@@ -26,6 +26,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  aktif: {
+    type: Boolean,
+    default: true
+  },
+  sonGiris: {
+    type: Date
+  },
   kayitTarihi: {
     type: Date,
     default: Date.now
