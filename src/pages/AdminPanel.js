@@ -1,4 +1,4 @@
-import { DashboardSection, UsersSection, BlogSection, SettingsSection } from './AdminSections';
+import { DashboardSection, UsersSection, BlogSection, SettingsSection, MediaSection } from './AdminSections';
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import axios from 'axios';
@@ -203,7 +203,7 @@ const SECTIONS = [
   ]},
   { group: 'GORUNUM', items: [
     { key: 'appearance', label: 'Renkler Tema', icon: '\uD83C\uDFA8' },
-    { key: 'images', label: 'Gorseller', icon: '\uD83D\uDDBC\uFE0F' },
+    { key: 'media', label: 'Gorsel Yonetimi', icon: '\uD83D\uDDBC\uFE0F' },
   ]},
   { group: 'SITE', items: [
     { key: 'seo', label: 'SEO Meta', icon: '\uD83D\uDD0D' },
@@ -473,7 +473,8 @@ export default function AdminPanel() {
           <SaveBtn onClick={() => save('appearance')} disabled={saving}>{saving ? <Loader /> : '\uD83D\uDCBE'} Kaydet</SaveBtn>
         </>}
 
-        {active === 'images' && <>
+        {active === 'media' && <MediaSection API={API} toast_={toast_} />}
+        {active === 'images_DISABLED' && <>
           <PageHeader><span className="emoji">\uD83D\uDDBC\uFE0F</span><div><h1>Gorseller</h1><p>Resim URL leri</p></div></PageHeader>
           <Tip>Unsplash, ImgBB veya Cloudinary linki kullanabilirsin.</Tip>
           <Card><h3>Hero Gorseli</h3>
