@@ -42,14 +42,14 @@ connectDB();
 
 // Test route
 app.get('/', (req, res) => {
-  res.json({ message: '🐄 Çiftlik API çalışıyor!', version: '1.0.1-fix-enum' });
+  res.json({ message: '🐄 Çiftlik API çalışıyor!', version: '2.0.0-admin-panel' });
 });
 
 app.get('/api/version', (req, res) => {
   res.json({
-    version: '1.0.1-fix-enum',
+    version: '2.0.0-admin-panel',
     timestamp: new Date().toISOString(),
-    fix: 'YemHareket enum relaxed'
+    features: ['admin-dashboard', 'user-management', 'blog', 'site-content', 'media-manager']
   });
 });
 
