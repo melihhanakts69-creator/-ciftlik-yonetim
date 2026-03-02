@@ -1,44 +1,39 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  isim: {
+  // ── Temel alanlar (tüm roller) ──────────────────
+  isim: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  sifre: { type: String, required: true },
+  telefon: { type: String, trim: true },
+  aktif: { type: Boolean, default: true },
+  sonGiris: { type: Date },
+  kayitTarihi: { type: Date, default: Date.now },
+
+  // ── Rol sistemi ─────────────────────────────────
+  rol: {
     type: String,
-    required: true,
-    trim: true
+    enum: ['ciftci', 'veteriner', 'sutcu'],
+    default: 'ciftci'
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-  sifre: {
-    type: String,
-    required: true
-  },
-  isletmeAdi: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  telefon: {
-    type: String,
-    trim: true
-  },
-  aktif: {
-    type: Boolean,
-    default: true
-  },
-  sonGiris: {
-    type: Date
-  },
-  kayitTarihi: {
-    type: Date,
-    default: Date.now
-  }
-}, {
-  timestamps: true
-});
+
+  // ── Çiftçi alanları ─────────────────────────────
+  isletmeAdi: { type: String, trim: true },  // çiftçi için işletme adı
+  sehir: { type: String, trim: true },
+
+  // ── Veteriner alanları ───────────────────────────
+  lisansNo: { type: String, trim: true },
+  uzmanlik: { type: String, trim: true },    // örn: "Büyükbaş Hayvanlar"
+  klinikAdi: { type: String, trim: true },
+  onaylandi: { type: Boolean, default: false }, // admin onayı
+
+  // ── Süt Toplayıcı alanları ───────────────────────
+  firmaAdi: { type: String, trim: true },
+  bolge: { type: String, trim: true },
+
+  // ── Profil ───────────────────────────────────────
+  profilFoto: { type: String },  // URL
+
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

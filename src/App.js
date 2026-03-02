@@ -27,6 +27,8 @@ import Takvim from './pages/Takvim';
 import StokYonetimi from './pages/StokYonetimi';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
+import VeterinerDashboard from './pages/VeterinerDashboard';
+import SutcuDashboard from './pages/SutcuDashboard';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -48,7 +50,11 @@ function App() {
     setGirisYapildi(true);
     setKullanici(user);
     localStorage.setItem('user', JSON.stringify(user));
-    navigate('/', { replace: true });
+    // Role-based redirect
+    const rol = user.rol || 'ciftci';
+    if (rol === 'veteriner') navigate('/veteriner', { replace: true });
+    else if (rol === 'sutcu') navigate('/sutcu', { replace: true });
+    else navigate('/', { replace: true });
   };
 
   const handleLogout = () => {
@@ -60,9 +66,33 @@ function App() {
     setKullanici(null);
   };
 
-  // Admin panel her zaman Layout olmadan full-screen açılır
-  if (location.pathname === '/admin') {
-    return <AdminPanel />;
+  // Admin panel — her zaman Layout olmadan full-screen
+  if (location.pathname === '/admin') return <AdminPanel />;
+
+  // Veteriner dashboard — kendi layout'u
+  if (girisYapildi && kullanici?.rol === 'veteriner') {
+    return (
+      <>
+        <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+        <Routes>
+          <Route path="/veteriner" element={<VeterinerDashboard kullanici={kullanici} onLogout={handleLogout} />} />
+          <Route path="*" element={<Navigate to="/veteriner" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
+  // Sütçü dashboard — kendi layout'u
+  if (girisYapildi && kullanici?.rol === 'sutcu') {
+    return (
+      <>
+        <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+        <Routes>
+          <Route path="/sutcu" element={<SutcuDashboard kullanici={kullanici} onLogout={handleLogout} />} />
+          <Route path="*" element={<Navigate to="/sutcu" replace />} />
+        </Routes>
+      </>
+    );
   }
 
   if (!girisYapildi) {
@@ -74,6 +104,7 @@ function App() {
       </Routes>
     );
   }
+
 
   return (
     <>

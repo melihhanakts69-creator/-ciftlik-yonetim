@@ -3,388 +3,240 @@ import styled, { keyframes } from 'styled-components';
 import { login, register } from '../../services/api';
 import logo from '../../logo.png';
 
-// Animations
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
+const fadeIn = keyframes`from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); }`;
+const float = keyframes`0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); }`;
 
-const float = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-`;
-
-// Styled Components
-const LoginContainer = styled.div`
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #4CAF50 100%);
-  position: relative;
-  overflow: hidden;
-
+// ── Styled ───────────────────────────────────────────────────
+const Page = styled.div`
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0a0f1e 0%, #0d1a2e 50%, #0f2d1a 100%);
+  position: relative; overflow: hidden; padding: 20px;
   &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: ${float} 6s ease-in-out infinite;
+    content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(74,222,128,0.07) 0%, transparent 70%);
+    top: -100px; left: -100px; animation: ${float} 8s ease-in-out infinite;
+  }
+  &::after {
+    content: ''; position: absolute; width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(96,165,250,0.05) 0%, transparent 70%);
+    bottom: -80px; right: -80px; animation: ${float} 10s ease-in-out infinite reverse;
   }
 `;
 
-const LoginCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  padding: 48px 40px;
-  border-radius: 24px;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
-  max-width: 420px;
-  width: 90%;
-  animation: ${fadeIn} 0.6s ease-out;
-  position: relative;
-  z-index: 1;
+const Card = styled.div`
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 24px;
+  padding: 40px 36px; max-width: 460px; width: 100%;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.4); animation: ${fadeIn} 0.5s ease;
+  position: relative; z-index: 1;
+  @media (max-width: 480px) { padding: 28px 20px; }
 `;
 
-const LogoContainer = styled.div`
-  text-align: center;
-  margin-bottom: 32px;
+const LogoWrap = styled.div`text-align: center; margin-bottom: 28px;`;
+const LogoImg = styled.img`width: 140px; height: auto; filter: drop-shadow(0 4px 20px rgba(74,222,128,0.3));`;
+const Tagline = styled.p`color: #475569; font-size: 13px; margin: 8px 0 0; font-weight: 500;`;
+
+// Role selector
+const RoleGrid = styled.div`display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;`;
+const RoleCard = styled.button`
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 16px 8px; border-radius: 14px; cursor: pointer; transition: all 0.2s;
+  border: 2px solid ${p => p.$active ? p.$color || '#4ade80' : 'rgba(255,255,255,0.07)'};
+  background: ${p => p.$active ? `${p.$bg || 'rgba(74,222,128,0.1)'}` : 'rgba(255,255,255,0.02)'};
+  .emoji { font-size: 24px; }
+  .lbl { font-size: 11px; font-weight: 700; color: ${p => p.$active ? '#e2e8f0' : '#475569'}; text-align: center; }
+  &:hover { border-color: ${p => p.$color || '#4ade80'}; background: ${p => p.$bg || 'rgba(74,222,128,0.07)'}; }
 `;
 
-const Logo = styled.img`
-  width: 180px;
-  height: auto;
-  margin-bottom: 12px;
-  background: white;
-  padding: 8px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-`;
-
-const Tagline = styled.p`
-  color: #666;
-  font-size: 14px;
-  margin: 0;
-  font-weight: 500;
-`;
-
-const TabContainer = styled.div`
-  display: flex;
-  margin-bottom: 28px;
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 4px;
-`;
-
+// Tab bar (Giriş / Kayıt)
+const Tabs = styled.div`display: flex; gap: 0; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 4px; margin-bottom: 22px;`;
 const Tab = styled.button`
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: ${props => props.active ? 'white' : 'transparent'};
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: ${props => props.active ? '#4CAF50' : '#888'};
-  box-shadow: ${props => props.active ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'};
-
-  &:hover {
-    color: #4CAF50;
-  }
+  flex: 1; padding: 10px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  background: ${p => p.$active ? 'rgba(74,222,128,0.15)' : 'transparent'};
+  color: ${p => p.$active ? '#4ade80' : '#475569'};
 `;
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-`;
-
-const InputGroup = styled.div`
-  position: relative;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #444;
-`;
-
+// Form
+const Form = styled.form`display: flex; flex-direction: column; gap: 14px;`;
+const Label = styled.label`font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; display: block;`;
 const Input = styled.input`
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 15px;
-  border: 2px solid #e8e8e8;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  background: #fafafa;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: #4CAF50;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
-  }
-
-  &::placeholder {
-    color: #aaa;
-  }
+  width: 100%; padding: 12px 14px; font-size: 14px; border-radius: 10px; box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #e2e8f0; outline: none; font-family: inherit;
+  &:focus { border-color: #4ade80; background: rgba(74,222,128,0.04); }
+  &::placeholder { color: #334155; }
+`;
+const SubmitBtn = styled.button`
+  width: 100%; padding: 14px; font-size: 15px; font-weight: 800; color: #fff; border: none; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(135deg, #4ade80, #16a34a); margin-top: 6px;
+  box-shadow: 0 4px 20px rgba(74,222,128,0.3); transition: all 0.2s;
+  &:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(74,222,128,0.4); }
+  &:disabled { background: #1e293b; cursor: not-allowed; transform: none; box-shadow: none; color: #475569; }
+`;
+const AlertBox = styled.div`
+  padding: 11px 14px; border-radius: 10px; font-size: 13px; animation: ${fadeIn} 0.3s;
+  background: ${p => p.$err ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)'};
+  border: 1px solid ${p => p.$err ? 'rgba(239,68,68,0.2)' : 'rgba(74,222,128,0.2)'};
+  color: ${p => p.$err ? '#f87171' : '#4ade80'};
+`;
+const Footer = styled.div`text-align: center; margin-top: 20px; font-size: 11px; color: #1e293b;`;
+const SectionLabel = styled.div`
+  font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1px;
+  border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px; margin-top: 4px; margin-bottom: 2px;
 `;
 
-const SubmitButton = styled.button`
-  width: 100%;
-  padding: 16px;
-  font-size: 16px;
-  font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 8px;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+const ROLES = [
+  { key: 'ciftci', emoji: '🐄', label: 'Çiftçi', color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+  { key: 'veteriner', emoji: '🩺', label: 'Veteriner', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
+  { key: 'sutcu', emoji: '🥛', label: 'Süt Toplayıcı', color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
+];
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  margin-bottom: 8px;
-  animation: ${fadeIn} 0.3s ease;
-`;
-
-const SuccessMessage = styled.div`
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  margin-bottom: 8px;
-  animation: ${fadeIn} 0.3s ease;
-`;
-
-const Divider = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 16px 0;
-  color: #aaa;
-  font-size: 12px;
-
-  &::before, &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e0e0e0;
-  }
-
-  span {
-    padding: 0 12px;
-  }
-`;
-
-function Login({ onLoginSuccess }) {
+export default function Login({ onLoginSuccess }) {
   const [kayitModu, setKayitModu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [seciliRol, setSeciliRol] = useState('ciftci');
 
-  // Login state
+  // Login
   const [loginEmail, setLoginEmail] = useState('');
   const [loginSifre, setLoginSifre] = useState('');
 
-  // Register state
-  const [registerIsim, setRegisterIsim] = useState('');
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerSifre, setRegisterSifre] = useState('');
-  const [registerIsletme, setRegisterIsletme] = useState('');
-  const [registerTelefon, setRegisterTelefon] = useState('');
+  // Register — ortak
+  const [form, setForm] = useState({
+    isim: '', email: '', sifre: '', telefon: '',
+    // ciftci
+    isletmeAdi: '', sehir: '',
+    // veteriner
+    lisansNo: '', uzmanlik: '', klinikAdi: '',
+    // sutcu
+    firmaAdi: '', bolge: '',
+  });
+  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const inp = (k, ph, label, type = 'text', req = false) => (
+    <div key={k}>
+      <Label>{label}{req && ' *'}</Label>
+      <Input type={type} value={form[k]} onChange={e => upd(k, e.target.value)} placeholder={ph} required={req} />
+    </div>
+  );
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault(); setLoading(true); setError('');
     try {
-      const response = await login({ email: loginEmail, sifre: loginSifre });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const r = await login({ email: loginEmail, sifre: loginSifre });
+      localStorage.setItem('token', r.data.token);
+      if (r.data.refreshToken) localStorage.setItem('refreshToken', r.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(r.data.user));
       setSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
-      setTimeout(() => onLoginSuccess(response.data.user), 1000);
-    } catch (error) {
-      setError(error.response?.data?.message || 'Giriş başarısız! Lütfen bilgilerinizi kontrol edin.');
-    } finally {
-      setLoading(false);
-    }
+      setTimeout(() => onLoginSuccess(r.data.user), 900);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Giriş başarısız! Bilgilerinizi kontrol edin.');
+    } finally { setLoading(false); }
   };
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault(); setLoading(true); setError('');
     try {
-      const response = await register({
-        isim: registerIsim,
-        email: registerEmail,
-        sifre: registerSifre,
-        isletmeAdi: registerIsletme,
-        telefon: registerTelefon
-      });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const payload = { ...form, rol: seciliRol };
+      const r = await register(payload);
+      localStorage.setItem('token', r.data.token);
+      if (r.data.refreshToken) localStorage.setItem('refreshToken', r.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(r.data.user));
       setSuccess('Kayıt başarılı! Hoş geldiniz...');
-      setTimeout(() => onLoginSuccess(response.data.user), 1000);
-    } catch (error) {
-      setError(error.response?.data?.message || 'Kayıt başarısız! Lütfen bilgilerinizi kontrol edin.');
-    } finally {
-      setLoading(false);
-    }
+      setTimeout(() => onLoginSuccess(r.data.user), 900);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Kayıt başarısız! Lütfen tekrar deneyin.');
+    } finally { setLoading(false); }
   };
 
+  const roleInfo = ROLES.find(r => r.key === seciliRol);
+
   return (
-    <LoginContainer>
-      <LoginCard>
-        <LogoContainer>
-          <Logo src={logo} alt="Agrolina Logo" />
+    <Page>
+      <Card>
+        <LogoWrap>
+          <LogoImg src={logo} alt="Agrolina" />
           <Tagline>Akıllı Çiftlik Yönetim Sistemi</Tagline>
-        </LogoContainer>
+        </LogoWrap>
 
-        <TabContainer>
-          <Tab active={!kayitModu} onClick={() => { setKayitModu(false); setError(''); }}>
-            Giriş Yap
-          </Tab>
-          <Tab active={kayitModu} onClick={() => { setKayitModu(true); setError(''); }}>
-            Kayıt Ol
-          </Tab>
-        </TabContainer>
+        {/* ROL SEÇİCİ */}
+        <RoleGrid>
+          {ROLES.map(r => (
+            <RoleCard key={r.key} $active={seciliRol === r.key} $color={r.color} $bg={r.bg}
+              onClick={() => { setSeciliRol(r.key); setError(''); }} type="button">
+              <span className="emoji">{r.emoji}</span>
+              <span className="lbl">{r.label}</span>
+            </RoleCard>
+          ))}
+        </RoleGrid>
 
-        {error && <ErrorMessage>❌ {error}</ErrorMessage>}
-        {success && <SuccessMessage>✅ {success}</SuccessMessage>}
+        {/* GİRİŞ / KAYIT TAB */}
+        <Tabs>
+          <Tab $active={!kayitModu} onClick={() => { setKayitModu(false); setError(''); }}>Giriş Yap</Tab>
+          <Tab $active={kayitModu} onClick={() => { setKayitModu(true); setError(''); }}>Kayıt Ol</Tab>
+        </Tabs>
 
-        {/* GİRİŞ YAP FORMU */}
+        {error && <AlertBox $err style={{ marginBottom: 12 }}>❌ {error}</AlertBox>}
+        {success && <AlertBox style={{ marginBottom: 12 }}>✅ {success}</AlertBox>}
+
+        {/* GİRİŞ FORMU */}
         {!kayitModu && (
           <Form onSubmit={handleLogin}>
-            <InputGroup>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="ornek@email.com"
-                required
-              />
-            </InputGroup>
-
-            <InputGroup>
-              <Label>Şifre</Label>
-              <Input
-                type="password"
-                value={loginSifre}
-                onChange={(e) => setLoginSifre(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </InputGroup>
-
-            <SubmitButton type="submit" disabled={loading}>
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
-            </SubmitButton>
+            <div>
+              <Label>Email *</Label>
+              <Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="ornek@email.com" required autoComplete="email" />
+            </div>
+            <div>
+              <Label>Şifre *</Label>
+              <Input type="password" value={loginSifre} onChange={e => setLoginSifre(e.target.value)} placeholder="••••••••" required />
+            </div>
+            <SubmitBtn type="submit" disabled={loading}>
+              {loading ? 'Giriş yapılıyor...' : `${roleInfo.emoji} ${roleInfo.label} Olarak Giriş Yap`}
+            </SubmitBtn>
           </Form>
         )}
 
-        {/* KAYIT OL FORMU */}
+        {/* KAYIT FORMU */}
         {kayitModu && (
           <Form onSubmit={handleRegister}>
-            <InputGroup>
-              <Label>İsim Soyisim *</Label>
-              <Input
-                type="text"
-                value={registerIsim}
-                onChange={(e) => setRegisterIsim(e.target.value)}
-                placeholder="Adınız Soyadınız"
-                required
-              />
-            </InputGroup>
+            {inp('isim', 'Adınız Soyadınız', 'İsim Soyisim', 'text', true)}
+            {inp('email', 'ornek@email.com', 'Email', 'email', true)}
+            {inp('sifre', 'En az 6 karakter', 'Şifre', 'password', true)}
+            {inp('telefon', '05XX XXX XX XX', 'Telefon', 'tel')}
 
-            <InputGroup>
-              <Label>Email *</Label>
-              <Input
-                type="email"
-                value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}
-                placeholder="ornek@email.com"
-                required
-              />
-            </InputGroup>
+            {/* Çiftçi özel alanları */}
+            {seciliRol === 'ciftci' && (<>
+              <SectionLabel>🐄 Çiftlik Bilgileri</SectionLabel>
+              {inp('isletmeAdi', 'Çiftliğinizin adı', 'İşletme Adı', 'text', true)}
+              {inp('sehir', 'Şehir / İlçe', 'Şehir')}
+            </>)}
 
-            <InputGroup>
-              <Label>Şifre *</Label>
-              <Input
-                type="password"
-                value={registerSifre}
-                onChange={(e) => setRegisterSifre(e.target.value)}
-                placeholder="En az 6 karakter"
-                required
-                minLength="6"
-              />
-            </InputGroup>
+            {/* Veteriner özel alanları */}
+            {seciliRol === 'veteriner' && (<>
+              <SectionLabel>🩺 Veteriner Bilgileri</SectionLabel>
+              {inp('lisansNo', 'Lisans / diploma numaranız', 'Lisans No', 'text', true)}
+              {inp('uzmanlik', 'örn: Büyükbaş Hayvanlar', 'Uzmanlık Alanı')}
+              {inp('klinikAdi', 'Klinik veya çalıştığınız yer', 'Klinik / Hastane Adı')}
+              {inp('sehir', 'Şehir / İlçe', 'Hizmet Verdiğiniz Şehir')}
+              <AlertBox style={{ fontSize: 12 }}>
+                ℹ️ Kaydınız admin onayından sonra aktif olacak.
+              </AlertBox>
+            </>)}
 
-            <InputGroup>
-              <Label>İşletme Adı *</Label>
-              <Input
-                type="text"
-                value={registerIsletme}
-                onChange={(e) => setRegisterIsletme(e.target.value)}
-                placeholder="Çiftliğinizin adı"
-                required
-              />
-            </InputGroup>
+            {/* Süt Toplayıcı özel alanları */}
+            {seciliRol === 'sutcu' && (<>
+              <SectionLabel>🥛 Toplayıcı Bilgileri</SectionLabel>
+              {inp('firmaAdi', 'Süt kooperatifi veya firma adı', 'Firma Adı', 'text', true)}
+              {inp('bolge', 'örn: Konya Ereğli', 'Hizmet Bölgesi')}
+            </>)}
 
-            <InputGroup>
-              <Label>Telefon</Label>
-              <Input
-                type="tel"
-                value={registerTelefon}
-                onChange={(e) => setRegisterTelefon(e.target.value)}
-                placeholder="05XX XXX XX XX"
-              />
-            </InputGroup>
-
-            <SubmitButton type="submit" disabled={loading}>
-              {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
-            </SubmitButton>
+            <SubmitBtn type="submit" disabled={loading}>
+              {loading ? 'Kayıt yapılıyor...' : `${roleInfo.emoji} ${roleInfo.label} Olarak Kayıt Ol`}
+            </SubmitBtn>
           </Form>
         )}
 
-        <Divider><span>Agrolina © 2026</span></Divider>
-      </LoginCard>
-    </LoginContainer>
+        <Footer>Agrolina © 2026 — v2.0</Footer>
+      </Card>
+    </Page>
   );
 }
-
-export default Login;

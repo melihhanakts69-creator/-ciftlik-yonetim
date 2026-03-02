@@ -20,44 +20,50 @@ const generateAccessToken = (userId) => {
 };
 
 // KAYIT OL
-router.post('/register', registerValidation, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { isim, email, sifre, isletmeAdi, telefon } = req.body;
+    const { isim, email, sifre, telefon, rol = 'ciftci',
+      // Çiftçi
+      isletmeAdi, sehir,
+      // Veteriner
+      lisansNo, uzmanlik, klinikAdi,
+      // Sütçü
+      firmaAdi, bolge
+    } = req.body;
 
-    // Email kontrolü
+    if (!isim || !email || !sifre) {
+      return res.status(400).json({ message: 'İsim, email ve şifre zorunludur.' });
+    }
+    if (!['ciftci', 'veteriner', 'sutcu'].includes(rol)) {
+      return res.status(400).json({ message: 'Geçersiz rol.' });
+    }
+
     const mevcutUser = await User.findOne({ email });
     if (mevcutUser) {
       return res.status(400).json({ message: 'Bu email zaten kayıtlı!' });
     }
 
-    // Şifreyi hashle
     const hashedPassword = await bcrypt.hash(sifre, 10);
 
-    // Yeni user oluştur
     const user = new User({
-      isim,
-      email,
-      sifre: hashedPassword,
-      isletmeAdi,
-      telefon
+      isim, email, sifre: hashedPassword, telefon, rol,
+      // Çiftçi
+      isletmeAdi, sehir,
+      // Veteriner
+      lisansNo, uzmanlik, klinikAdi,
+      // Sütçü
+      firmaAdi, bolge,
     });
 
     await user.save();
 
-    // Token'lar oluştur
     const token = generateAccessToken(user._id);
     const refreshToken = await RefreshToken.createToken(user._id);
 
     res.status(201).json({
       message: 'Kayıt başarılı!',
-      token,
-      refreshToken,
-      user: {
-        id: user._id,
-        isim: user.isim,
-        email: user.email,
-        isletmeAdi: user.isletmeAdi
-      }
+      token, refreshToken,
+      user: { id: user._id, isim: user.isim, email: user.email, rol: user.rol, isletmeAdi: user.isletmeAdi, firmaAdi: user.firmaAdi, klinikAdi: user.klinikAdi }
     });
   } catch (error) {
     console.error('Register Hatası:', error);
@@ -70,32 +76,24 @@ router.post('/login', loginValidation, async (req, res) => {
   try {
     const { email, sifre } = req.body;
 
-    // User bul
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Email veya şifre hatalı!' });
-    }
+    if (!user) return res.status(400).json({ message: 'Email veya şifre hatalı!' });
 
-    // Şifreyi kontrol et
     const sifreDogrumu = await bcrypt.compare(sifre, user.sifre);
-    if (!sifreDogrumu) {
-      return res.status(400).json({ message: 'Email veya şifre hatalı!' });
-    }
+    if (!sifreDogrumu) return res.status(400).json({ message: 'Email veya şifre hatalı!' });
 
-    // Token'lar oluştur
+    if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış. Destek ile iletişime geçin.' });
+
+    user.sonGiris = new Date();
+    await user.save();
+
     const token = generateAccessToken(user._id);
     const refreshToken = await RefreshToken.createToken(user._id);
 
     res.json({
       message: 'Giriş başarılı!',
-      token,
-      refreshToken,
-      user: {
-        id: user._id,
-        isim: user.isim,
-        email: user.email,
-        isletmeAdi: user.isletmeAdi
-      }
+      token, refreshToken,
+      user: { id: user._id, isim: user.isim, email: user.email, rol: user.rol || 'ciftci', isletmeAdi: user.isletmeAdi, firmaAdi: user.firmaAdi, klinikAdi: user.klinikAdi, onaylandi: user.onaylandi }
     });
   } catch (error) {
     console.error('Login Hatası:', error);
@@ -156,6 +154,7 @@ router.post('/logout', async (req, res) => {
 router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-sifre');
+    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     res.json({ user });
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
