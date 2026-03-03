@@ -80,7 +80,23 @@ router.post('/login', loginValidation, async (req, res) => {
     // Email + Rol kombinasyonu ile doğru hesabı bul
     // Aynı email farklı rollerde farklı hesap olabilir
     const rolLabel = rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü';
-    const user = await User.findOne({ email: email.toLowerCase(), rol });
+
+    // Önce email + rol kombinasyonu ile ara
+    let user = await User.findOne({ email: email.toLowerCase(), rol });
+
+    // Bulunamazsa ve ciftci ise: eski hesabı kontrol et (rol alanı null/undefined olabilir)
+    if (!user && rol === 'ciftci') {
+      user = await User.findOne({
+        email: email.toLowerCase(),
+        $or: [{ rol: null }, { rol: { $exists: false } }, { rol: 'ciftci' }]
+      });
+      // Eski hesabı bulduk, rolünü güncelle
+      if (user && (!user.rol || user.rol !== 'ciftci')) {
+        user.rol = 'ciftci';
+        await user.save();
+      }
+    }
+
     if (!user) {
       // Aynı email'in başka rolde kaydı var mı kontrol et
       const digerRoller = ['ciftci', 'veteriner', 'sutcu'].filter(r => r !== rol);
@@ -120,6 +136,7 @@ router.post('/login', loginValidation, async (req, res) => {
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
+
 
 // TOKEN YENİLE
 router.post('/refresh', async (req, res) => {
