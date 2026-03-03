@@ -81,6 +81,7 @@ app.use('/api/takvim', require('./routes/takvim')); // Takvim Modülü
 app.use('/api/stok', require('./routes/stok')); // Stok Modülü
 app.use('/api/admin', require('./routes/adminContent')); // Admin Panel
 app.use('/api/content', require('./routes/adminContent')); // Public Landing Content
+app.use('/api/ai', require('./routes/ai')); // 🤖 Gemini AI Danışman
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);

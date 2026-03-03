@@ -1,23 +1,27 @@
 $file = "src\pages\AdminPanel.js"
-$enc1252 = [System.Text.Encoding]::GetEncoding(1252)
-$utf8 = [System.Text.Encoding]::UTF8
 
-# Read with Windows-1252
+# Read raw bytes
 $bytes = [System.IO.File]::ReadAllBytes($file)
-$content = $enc1252.GetString($bytes)
 
-$importLine = "import { DashboardSection, UsersSection, BlogSection, SettingsSection } from './AdminSections';" + [Environment]::NewLine
+Write-Host "Total bytes:" $bytes.Length
+Write-Host "First 10 bytes:" ($bytes[0..9] -join ' ')
 
-if ($content -notlike "*AdminSections*") {
-    $content = $importLine + $content
-    Write-Host "Import added"
-} else {
-    Write-Host "Import already exists"
+# Strip ALL leading BOM occurrences (EF BB BF) - loop until none left
+$start = 0
+while ($start + 2 -lt $bytes.Length -and $bytes[$start] -eq 0xEF -and $bytes[$start + 1] -eq 0xBB -and $bytes[$start + 2] -eq 0xBF) {
+    $start += 3
+    Write-Host "Stripped one BOM at offset" ($start - 3)
 }
 
-# Remove placeholder if it exists
-$content = $content -replace "// PLACEHOLDER_FOR_SECTIONS`r`n", ""
-$content = $content -replace "// PLACEHOLDER_FOR_SECTIONS`n", ""
+Write-Host "Final start offset:" $start
 
+# Decode actual content from that offset as UTF-8
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+$content = $utf8.GetString($bytes, $start, $bytes.Length - $start)
+
+# Sanity check: first char should be 'i' for 'import'
+Write-Host "First 30 chars:" $content.Substring(0, [Math]::Min(30, $content.Length))
+
+# Write back as UTF-8 without BOM
 [System.IO.File]::WriteAllText($file, $content, $utf8)
-Write-Host "Done! Length:" $content.Length
+Write-Host "Done. Length:" $content.Length

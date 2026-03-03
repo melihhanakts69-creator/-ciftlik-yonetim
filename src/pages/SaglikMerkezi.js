@@ -4,11 +4,12 @@ import {
     FaHeartbeat, FaSyringe, FaStethoscope, FaPills, FaPlus,
     FaFilter, FaTrash, FaEdit, FaTimes, FaExclamationTriangle,
     FaCheckCircle, FaCalendarAlt, FaClock, FaMoneyBillWave,
-    FaCut, FaBaby, FaSearch
+    FaCut, FaBaby, FaSearch, FaRobot
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import SaglikDanismani from '../components/Saglik/SaglikDanismani';
 
 // --- Animations ---
 const fadeIn = keyframes`
@@ -669,6 +670,13 @@ function SaglikMerkezi() {
                 <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
                     ⏰ Yaklaşan İşlemler
                 </Tab>
+                <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
+                    style={{
+                        background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
+                        borderColor: aktifTab === 'ai' ? 'transparent' : undefined
+                    }}>
+                    <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
+                </Tab>
             </TabBar>
 
             {/* SAĞLIK KAYITLARI TAB */}
@@ -862,6 +870,11 @@ function SaglikMerkezi() {
                         });
                     })()}
                 </CardList>
+            )}
+
+            {/* 🤖 AI DANIŞMAN TAB */}
+            {aktifTab === 'ai' && (
+                <SaglikDanismani />
             )}
 
             {/* MODAL */}
