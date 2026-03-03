@@ -172,26 +172,25 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 // PROFİL GÜNCELLE
 router.put('/update', require('../middleware/auth'), updateValidation, async (req, res) => {
   try {
-    const { isim, email, isletmeAdi, mevcutSifre, yeniSifre } = req.body;
+    const { isim, email, isletmeAdi, sehir, telefon, profilFoto, mevcutSifre, yeniSifre } = req.body;
     const user = await User.findById(req.userId);
 
-    if (!user) {
-      return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
-    }
+    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
 
-    // Şifre değişikliği isteniyorsa
+    // Şifre değişikliği
     if (mevcutSifre && yeniSifre) {
       const sifreDogru = await bcrypt.compare(mevcutSifre, user.sifre);
-      if (!sifreDogru) {
-        return res.status(400).json({ message: 'Mevcut şifre hatalı!' });
-      }
+      if (!sifreDogru) return res.status(400).json({ message: 'Mevcut şifre hatalı!' });
       user.sifre = await bcrypt.hash(yeniSifre, 10);
     }
 
-    // Bilgileri güncelle
+    // Profil alanları
     if (isim) user.isim = isim;
     if (email) user.email = email;
-    if (isletmeAdi) user.isletmeAdi = isletmeAdi;
+    if (isletmeAdi !== undefined) user.isletmeAdi = isletmeAdi;
+    if (sehir !== undefined) user.sehir = sehir;
+    if (telefon !== undefined) user.telefon = telefon;
+    if (profilFoto !== undefined) user.profilFoto = profilFoto;
 
     await user.save();
 
@@ -201,7 +200,11 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
         id: user._id,
         isim: user.isim,
         email: user.email,
-        isletmeAdi: user.isletmeAdi
+        rol: user.rol,
+        isletmeAdi: user.isletmeAdi,
+        sehir: user.sehir,
+        telefon: user.telefon,
+        profilFoto: user.profilFoto
       }
     });
   } catch (error) {
