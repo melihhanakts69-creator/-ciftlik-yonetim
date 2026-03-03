@@ -97,6 +97,18 @@ export default function Login({ onLoginSuccess }) {
   const [success, setSuccess] = useState('');
   const [seciliRol, setSeciliRol] = useState('ciftci');
 
+  // Mevcut oturum varsa uyar
+  const mevcutKullanici = (() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
+  })();
+
+  const handleCikis = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    window.location.reload();
+  };
+
   // Login
   const [loginEmail, setLoginEmail] = useState('');
   const [loginSifre, setLoginSifre] = useState('');
@@ -157,6 +169,23 @@ export default function Login({ onLoginSuccess }) {
           <LogoImg src={logo} alt="Agrolina" />
           <Tagline>Akıllı Çiftlik Yönetim Sistemi</Tagline>
         </LogoWrap>
+
+        {/* MEVCUT OTURUM UYARISI */}
+        {mevcutKullanici && (
+          <div style={{
+            background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)',
+            borderRadius: 12, padding: '11px 14px', marginBottom: 16, display: 'flex',
+            alignItems: 'center', justifyContent: 'space-between', gap: 10
+          }}>
+            <span style={{ fontSize: 12, color: '#fb923c', fontWeight: 600 }}>
+              {mevcutKullanici.rol === 'veteriner' ? '🩺' : mevcutKullanici.rol === 'sutcu' ? '🥛' : '🐄'} {mevcutKullanici.isim} olarak giriş yapılı
+            </span>
+            <button onClick={handleCikis} style={{
+              background: 'rgba(251,146,60,0.2)', border: 'none', borderRadius: 7,
+              color: '#fb923c', padding: '5px 12px', fontSize: 11, fontWeight: 800, cursor: 'pointer'
+            }}>Çıkış / Değiştir</button>
+          </div>
+        )}
 
         {/* ROL SEÇİCİ */}
         <RoleGrid>
