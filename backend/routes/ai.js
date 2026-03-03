@@ -3,14 +3,15 @@ const router = express.Router();
 const https = require('https');
 const auth = require('../middleware/auth');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = 'gemini-2.0-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 /**
  * Gemini API'yi çağıran yardımcı fonksiyon
  */
 async function callGemini(systemPrompt, userMessage) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
     return new Promise((resolve, reject) => {
         const body = JSON.stringify({
             system_instruction: {
@@ -36,7 +37,7 @@ async function callGemini(systemPrompt, userMessage) {
             }
         };
 
-        const req = https.request(GEMINI_URL, options, (res) => {
+        const req = https.request(geminiUrl, options, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -83,8 +84,8 @@ router.post('/yem', auth, async (req, res) => {
             return res.status(400).json({ message: 'Soru çok kısa' });
         }
 
-        if (!GEMINI_API_KEY) {
-            return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ message: 'AI servisi yapılandırılmamış. Render ortam değişkenlerini kontrol edin.' });
         }
 
         // Ek context varsa (hayvan grubu, mevcut yemler vb.) soruya ekle
@@ -121,8 +122,8 @@ router.post('/saglik', auth, async (req, res) => {
             return res.status(400).json({ message: 'Soru çok kısa' });
         }
 
-        if (!GEMINI_API_KEY) {
-            return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ message: 'AI servisi yapılandırılmamış. Render ortam değişkenlerini kontrol edin.' });
         }
 
         const fullQuestion = context
