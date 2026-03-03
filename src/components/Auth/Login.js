@@ -142,7 +142,12 @@ export default function Login({ onLoginSuccess }) {
       setSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
       setTimeout(() => onLoginSuccess(r.data.user), 900);
     } catch (err) {
-      setError(err.response?.data?.message || 'Giriş başarısız! Bilgilerinizi kontrol edin.');
+      const data = err.response?.data;
+      // Backend doğru rolü döndürdüyse otomatik seç
+      if (data?.digerRol) {
+        setSeciliRol(data.digerRol);
+      }
+      setError(data?.message || 'Giriş başarısız! Bilgilerinizi kontrol edin.');
     } finally { setLoading(false); }
   };
 

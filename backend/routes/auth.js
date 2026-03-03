@@ -82,6 +82,18 @@ router.post('/login', loginValidation, async (req, res) => {
     const rolLabel = rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü';
     const user = await User.findOne({ email: email.toLowerCase(), rol });
     if (!user) {
+      // Aynı email'in başka rolde kaydı var mı kontrol et
+      const digerRoller = ['ciftci', 'veteriner', 'sutcu'].filter(r => r !== rol);
+      const digerHesap = await User.findOne({ email: email.toLowerCase(), rol: { $in: digerRoller } });
+
+      if (digerHesap) {
+        const digerRolLabel = digerHesap.rol === 'ciftci' ? 'Çiftçi 🐄' : digerHesap.rol === 'veteriner' ? 'Veteriner 🩺' : 'Süt Toplayıcı 🥛';
+        return res.status(400).json({
+          message: `Bu email, ${digerRolLabel} olarak kayıtlı! Lütfen giriş sayfasında doğru profili seçin.`,
+          digerRol: digerHesap.rol
+        });
+      }
+
       return res.status(400).json({
         message: `Bu email ile kayıtlı ${rolLabel} hesabı bulunamadı! Farklı bir profil seçtin mi?`
       });
