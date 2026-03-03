@@ -190,7 +190,8 @@ const SaglikDanismani = () => {
             });
             setMessages(prev => [...prev, { role: 'ai', text: res.data.yanit, alert: true }]);
         } catch (e) {
-            setMessages(prev => [...prev, { role: 'ai', text: '❌ Bağlantı hatası. Lütfen tekrar deneyin.', alert: true }]);
+            const errMsg = e.response?.data?.message || e.message || 'Bilinmeyen hata';
+            setMessages(prev => [...prev, { role: 'ai', text: `❌ Hata: ${errMsg}`, alert: true }]);
         } finally {
             setLoading(false);
         }

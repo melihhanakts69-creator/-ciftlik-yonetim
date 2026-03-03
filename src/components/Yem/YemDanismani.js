@@ -239,7 +239,8 @@ const YemDanismani = () => {
             });
             setMessages(prev => [...prev, { role: 'ai', text: res.data.yanit }]);
         } catch (e) {
-            setMessages(prev => [...prev, { role: 'ai', text: '❌ Bağlantı hatası. Lütfen tekrar deneyin.' }]);
+            const errMsg = e.response?.data?.message || e.message || 'Bilinmeyen hata';
+            setMessages(prev => [...prev, { role: 'ai', text: `❌ Hata: ${errMsg}` }]);
         } finally {
             setLoading(false);
         }
