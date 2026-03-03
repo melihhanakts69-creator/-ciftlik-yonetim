@@ -25,157 +25,115 @@ const pulse = keyframes`
 // --- Styled Components ---
 const PageContainer = styled.div`
   padding: 0 0 80px;
-  background: linear-gradient(160deg, #0f0c1a 0%, #1a0d1a 40%, #0a1628 100%);
+  background: #f1f5f9;
   min-height: 100vh;
   font-family: 'Inter', system-ui, sans-serif;
+  animation: ${fadeIn} .35s ease;
 `;
 
-// ── Hero Banner ──────────────────────────────────────────────
-const HeroBanner = styled.div`
+// ── Page Header ───────────────────────────────────────────────
+const PageHeader = styled.div`
+  background: linear-gradient(135deg, #881337 0%, #be123c 50%, #e11d48 100%);
+  padding: 28px 32px 0;
   position: relative; overflow: hidden;
-  background: linear-gradient(135deg, #1a0d1e 0%, #2d0f2d 50%, #1a1035 100%);
-  border-bottom: 1px solid rgba(233,30,99,0.15);
-  padding: 28px 28px 0;
+  &::after {
+    content: ''; position: absolute; right: -60px; top: -60px;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); pointer-events: none;
+  }
 `;
-const HeroBg = styled.div`
-  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
-  &::before { content:''; position:absolute; width:400px; height:400px;
-    background: radial-gradient(circle, rgba(233,30,99,0.18) 0%, transparent 70%);
-    top:-100px; right:-60px; border-radius:50%; }
-  &::after { content:''; position:absolute; width:300px; height:300px;
-    background: radial-gradient(circle, rgba(156,39,176,0.12) 0%, transparent 70%);
-    bottom:-80px; left:10%; border-radius:50%; }
-`;
-const HeroTop = styled.div`
-  position: relative; z-index: 1;
-  display: flex; align-items: flex-start; justify-content: space-between;
+const HeaderTop = styled.div`
+  display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
 `;
-const HeroLeft = styled.div`display: flex; align-items: center; gap: 16px;`;
-const HeroIconWrap = styled.div`
-  width: 56px; height: 56px; border-radius: 18px;
-  background: linear-gradient(135deg, #e91e63, #9c27b0);
+const HeaderLeft = styled.div`display: flex; align-items: center; gap: 14px;`;
+const HeaderIcon = styled.div`
+  width: 52px; height: 52px; border-radius: 16px;
+  background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; color: #fff;
-  box-shadow: 0 8px 24px rgba(233,30,99,0.4);
+  font-size: 24px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.25);
 `;
-const HeroTitle = styled.h1`
-  margin: 0; font-size: 26px; font-weight: 900;
-  background: linear-gradient(135deg, #fff 40%, #f48fb1);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
+const HeaderTitle = styled.h1`
+  margin: 0; font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.3px;
 `;
-const HeroSub = styled.p`
-  margin: 4px 0 0; font-size: 13px;
-  color: rgba(255,255,255,0.45); font-weight: 500;
-`;
+const HeaderSub = styled.p`margin: 3px 0 0; font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 400;`;
 const BtnGroup = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`;
 const AddButton = styled.button`
-  display: flex; align-items: center; gap: 8px;
-  padding: 11px 20px;
-  background: ${p => p.$secondary
-        ? 'rgba(156,39,176,0.15)'
-        : 'linear-gradient(135deg, #e91e63, #c2185b)'};
-  color: ${p => p.$secondary ? '#ce93d8' : '#fff'};
-  border: ${p => p.$secondary ? '1px solid rgba(156,39,176,0.3)' : 'none'};
-  border-radius: 12px; font-weight: 700; font-size: 13px;
-  cursor: pointer; transition: all 0.25s; white-space: nowrap;
-  box-shadow: ${p => p.$secondary ? 'none' : '0 4px 16px rgba(233,30,99,0.35)'};
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  border-radius: 10px; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: ${p => p.$secondary ? 'rgba(255,255,255,0.15)' : '#fff'};
+  color: ${p => p.$secondary ? '#fff' : '#be123c'};
+  border: ${p => p.$secondary ? '1px solid rgba(255,255,255,0.3)' : 'none'};
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${p => p.$secondary
-        ? '0 4px 12px rgba(156,39,176,0.2)'
-        : '0 6px 22px rgba(233,30,99,0.5)'};
-    background: ${p => p.$secondary
-        ? 'rgba(156,39,176,0.25)'
-        : 'linear-gradient(135deg, #f50057, #d81b60)'};
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    background: ${p => p.$secondary ? 'rgba(255,255,255,0.25)' : '#fff1f2'};
   }
 `;
 
-// ── Stat Cards ────────────────────────────────────────────────
+// ── Stat Strip ────────────────────────────────────────────────
 const StatGrid = styled.div`
-  position: relative; z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1px;
-  background: rgba(233,30,99,0.08);
-  border-top: 1px solid rgba(233,30,99,0.1);
-  animation: ${fadeIn} 0.5s ease;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0;
+  background: rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.12);
 `;
 const StatCard = styled.div`
-  background: rgba(255,255,255,0.03);
-  padding: 20px 24px;
-  display: flex; align-items: center; gap: 14px;
-  transition: background 0.2s;
-  &:hover { background: rgba(233,30,99,0.06); }
+  padding: 18px 24px; display: flex; align-items: center; gap: 14px;
+  border-right: 1px solid rgba(255,255,255,0.12);
+  &:last-child { border-right: none; }
+  transition: background .2s;
+  &:hover { background: rgba(255,255,255,0.07); }
 `;
 const StatIcon = styled.div`
-  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
-  background: ${props => props.bg};
-  color: ${props => props.color};
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
 `;
 const StatInfo = styled.div`
-  .value {
-    font-size: 26px; font-weight: 900; color: #fff; line-height: 1;
-  }
-  .label {
-    font-size: 11px; color: rgba(255,255,255,0.4);
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
-    margin-top: 3px;
-  }
+  .value { font-size: 24px; font-weight: 900; color: #fff; line-height: 1; }
+  .label { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
 `;
 
-// ── Body Wrapper ─────────────────────────────────────────────
+// ── Body ─────────────────────────────────────────────────────
 const BodyWrap = styled.div`padding: 24px;`;
 
 
 
 
 const TabBar = styled.div`
-  display: flex; gap: 6px; margin-bottom: 22px;
-  background: rgba(255,255,255,0.04); padding: 5px;
-  border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);
-  overflow-x: auto; animation: ${fadeIn} 0.6s ease;
+  display: flex; gap: 4px; background: #fff; padding: 5px;
+  border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  margin-bottom: 22px; overflow-x: auto;
+  border: 1px solid #e2e8f0;
   &::-webkit-scrollbar { display: none; }
 `;
 const Tab = styled.button`
-  padding: 10px 18px; border: none; border-radius: 11px;
+  padding: 9px 18px; border: none; border-radius: 10px;
   cursor: pointer; font-weight: 700; font-size: 13px;
   white-space: nowrap; transition: all 0.2s;
   display: flex; align-items: center; gap: 7px;
-  background: ${p => p.active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : 'transparent'};
-  color: ${p => p.active ? '#fff' : 'rgba(255,255,255,0.45)'};
-  box-shadow: ${p => p.active ? '0 4px 14px rgba(233,30,99,0.4)' : 'none'};
+  background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : 'transparent'};
+  color: ${p => p.active ? '#fff' : '#64748b'};
+  box-shadow: ${p => p.active ? '0 2px 8px rgba(190,18,60,.35)' : 'none'};
   &:hover {
-    background: ${p => p.active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : 'rgba(233,30,99,0.1)'};
-    color: ${p => p.active ? '#fff' : 'rgba(255,255,255,0.7)'};
+    background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : '#fef2f2'};
+    color: ${p => p.active ? '#fff' : '#be123c'};
   }
 `;
 
 const FilterRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  align-items: center;
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
 `;
-
 const FilterSelect = styled.select`
-  padding: 8px 14px;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 13px;
-  background: white;
-  color: #555;
-  cursor: pointer;
-  font-weight: 500;
-
-  &:focus {
-    outline: none;
-    border-color: #e91e63;
-  }
+  padding: 8px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 13px; background: #f8fafc; color: #475569; cursor: pointer; font-weight: 500;
+  &:focus { outline: none; border-color: #be123c; background: #fff; }
 `;
 
 const CardList = styled.div`
@@ -617,17 +575,15 @@ function SaglikMerkezi() {
     // =====================
     return (
         <PageContainer>
-            {/* ── HERO BANNER ── */}
-            <HeroBanner>
-                <HeroBg />
-                <HeroTop>
-                    <HeroLeft>
-                        <HeroIconWrap><FaHeartbeat /></HeroIconWrap>
+            <PageHeader>
+                <HeaderTop>
+                    <HeaderLeft>
+                        <HeaderIcon>🏥</HeaderIcon>
                         <div>
-                            <HeroTitle>Sağlık Merkezi</HeroTitle>
-                            <HeroSub>Hayvan sağlık kayıtları · Aşı takvimi · Yaklaşan kontroller</HeroSub>
+                            <HeaderTitle>Sağlık Merkezi</HeaderTitle>
+                            <HeaderSub>Sağlık kayıtları · Aşı takvimi · Yaklaşan kontroller</HeaderSub>
                         </div>
-                    </HeroLeft>
+                    </HeaderLeft>
                     <BtnGroup>
                         <AddButton $secondary onClick={() => openModal('asi')}>
                             <FaSyringe /> Aşı Ekle
@@ -636,42 +592,41 @@ function SaglikMerkezi() {
                             <FaPlus /> Sağlık Kaydı
                         </AddButton>
                     </BtnGroup>
-                </HeroTop>
-
-                {/* İSTATİSTİK KARTLARI */}
+                </HeaderTop>
                 <StatGrid>
                     <StatCard>
-                        <StatIcon bg="rgba(255,152,0,0.15)" color="#FF9800"><FaHeartbeat /></StatIcon>
+                        <StatIcon><FaHeartbeat /></StatIcon>
                         <StatInfo>
                             <div className="value">{istatistikler?.aktifTedavi || 0}</div>
                             <div className="label">Aktif Tedavi</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon bg="rgba(156,39,176,0.15)" color="#ce93d8"><FaSyringe /></StatIcon>
+                        <StatIcon><FaSyringe /></StatIcon>
                         <StatInfo>
                             <div className="value">{istatistikler?.buAyAsi || 0}</div>
                             <div className="label">Bu Ay Aşı</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon bg="rgba(33,150,243,0.15)" color="#64b5f6"><FaClock /></StatIcon>
+                        <StatIcon><FaClock /></StatIcon>
                         <StatInfo>
                             <div className="value">{istatistikler?.yaklasanKontrol || 0}</div>
                             <div className="label">Yaklaşan Kontrol</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon bg="rgba(244,67,54,0.15)" color="#ef9a9a"><FaMoneyBillWave /></StatIcon>
+                        <StatIcon><FaMoneyBillWave /></StatIcon>
                         <StatInfo>
                             <div className="value">₺{(istatistikler?.aylikMaliyet || 0).toLocaleString('tr-TR')}</div>
                             <div className="label">Aylık Sağlık Gideri</div>
                         </StatInfo>
                     </StatCard>
                 </StatGrid>
-            </HeroBanner>
+            </PageHeader>
 
             <BodyWrap>
+
                 {/* TAB BAR */}
                 <TabBar>
                     <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
