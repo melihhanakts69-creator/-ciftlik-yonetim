@@ -5,6 +5,17 @@ const auth = require('../middleware/auth');
 
 const GEMINI_MODEL = 'gemini-2.0-flash';
 
+// Sağlık kontrolü — tarayıcıdan test et: /api/ai/test
+router.get('/test', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'AI route calisıyor ✅',
+        geminiKey: process.env.GEMINI_API_KEY ? '✅ Kayıtlı' : '❌ EKSİK - Render Environment\'e GEMINI_API_KEY ekle',
+        model: GEMINI_MODEL
+    });
+});
+
+
 /**
  * Gemini API'yi çağıran yardımcı fonksiyon
  */
