@@ -23,7 +23,10 @@ app.use(cors({
   ],
   credentials: true
 }));
-app.use(express.json({ limit: '10kb' }));  // Body boyutu sınırı
+app.use(express.json({ limit: '10kb' }));  // Genel body sınırı
+// Profil fotoğrafı (Base64) için /api/auth/update endpoint'i daha yüksek limitle:
+app.use('/api/auth/update', express.json({ limit: '2mb' }));
+
 
 // 🔒 Güvenlik Middleware'leri (Body parser'dan SONRA gelmeli)
 app.use(mongoSanitize);               // NoSQL injection koruması (custom Express 5 uyumlu)
