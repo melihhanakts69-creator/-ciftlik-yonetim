@@ -20,7 +20,7 @@ const generateAccessToken = (userId) => {
 };
 
 // KAYIT OL
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidation, async (req, res) => {
   try {
     const { isim, email, sifre, telefon, rol = 'ciftci',
       // Çiftçi
