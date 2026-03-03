@@ -24,128 +24,133 @@ const pulse = keyframes`
 
 // --- Styled Components ---
 const PageContainer = styled.div`
-  padding: 24px;
-  background: #f4f7f6;
+  padding: 0 0 80px;
+  background: linear-gradient(160deg, #0f0c1a 0%, #1a0d1a 40%, #0a1628 100%);
   min-height: 100vh;
-  padding-bottom: 80px;
+  font-family: 'Inter', system-ui, sans-serif;
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  animation: ${fadeIn} 0.4s ease;
-
-  h1 {
-    font-size: 28px;
-    font-weight: 800;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0;
-
-    svg { color: #e91e63; }
-  }
+// ── Hero Banner ──────────────────────────────────────────────
+const HeroBanner = styled.div`
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #1a0d1e 0%, #2d0f2d 50%, #1a1035 100%);
+  border-bottom: 1px solid rgba(233,30,99,0.15);
+  padding: 28px 28px 0;
 `;
-
+const HeroBg = styled.div`
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  &::before { content:''; position:absolute; width:400px; height:400px;
+    background: radial-gradient(circle, rgba(233,30,99,0.18) 0%, transparent 70%);
+    top:-100px; right:-60px; border-radius:50%; }
+  &::after { content:''; position:absolute; width:300px; height:300px;
+    background: radial-gradient(circle, rgba(156,39,176,0.12) 0%, transparent 70%);
+    bottom:-80px; left:10%; border-radius:50%; }
+`;
+const HeroTop = styled.div`
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+`;
+const HeroLeft = styled.div`display: flex; align-items: center; gap: 16px;`;
+const HeroIconWrap = styled.div`
+  width: 56px; height: 56px; border-radius: 18px;
+  background: linear-gradient(135deg, #e91e63, #9c27b0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: #fff;
+  box-shadow: 0 8px 24px rgba(233,30,99,0.4);
+`;
+const HeroTitle = styled.h1`
+  margin: 0; font-size: 26px; font-weight: 900;
+  background: linear-gradient(135deg, #fff 40%, #f48fb1);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+`;
+const HeroSub = styled.p`
+  margin: 4px 0 0; font-size: 13px;
+  color: rgba(255,255,255,0.45); font-weight: 500;
+`;
+const BtnGroup = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`;
 const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #e91e63, #c2185b);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
-
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 20px;
+  background: ${p => p.$secondary
+        ? 'rgba(156,39,176,0.15)'
+        : 'linear-gradient(135deg, #e91e63, #c2185b)'};
+  color: ${p => p.$secondary ? '#ce93d8' : '#fff'};
+  border: ${p => p.$secondary ? '1px solid rgba(156,39,176,0.3)' : 'none'};
+  border-radius: 12px; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all 0.25s; white-space: nowrap;
+  box-shadow: ${p => p.$secondary ? 'none' : '0 4px 16px rgba(233,30,99,0.35)'};
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+    box-shadow: ${p => p.$secondary
+        ? '0 4px 12px rgba(156,39,176,0.2)'
+        : '0 6px 22px rgba(233,30,99,0.5)'};
+    background: ${p => p.$secondary
+        ? 'rgba(156,39,176,0.25)'
+        : 'linear-gradient(135deg, #f50057, #d81b60)'};
   }
 `;
 
+// ── Stat Cards ────────────────────────────────────────────────
 const StatGrid = styled.div`
+  position: relative; z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: rgba(233,30,99,0.08);
+  border-top: 1px solid rgba(233,30,99,0.1);
   animation: ${fadeIn} 0.5s ease;
 `;
-
 const StatCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: transform 0.2s;
-  border-bottom: 3px solid ${props => props.color};
-
-  &:hover { transform: translateY(-3px); }
+  background: rgba(255,255,255,0.03);
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 14px;
+  transition: background 0.2s;
+  &:hover { background: rgba(233,30,99,0.06); }
 `;
-
 const StatIcon = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
   background: ${props => props.bg};
   color: ${props => props.color};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
 `;
-
 const StatInfo = styled.div`
   .value {
-    font-size: 28px;
-    font-weight: 800;
-    color: #2c3e50;
+    font-size: 26px; font-weight: 900; color: #fff; line-height: 1;
   }
   .label {
-    font-size: 13px;
-    color: #7f8c8d;
-    font-weight: 500;
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+    margin-top: 3px;
   }
 `;
 
-const TabBar = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  animation: ${fadeIn} 0.6s ease;
+// ── Body Wrapper ─────────────────────────────────────────────
+const BodyWrap = styled.div`padding: 24px;`;
 
+
+
+
+const TabBar = styled.div`
+  display: flex; gap: 6px; margin-bottom: 22px;
+  background: rgba(255,255,255,0.04); padding: 5px;
+  border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);
+  overflow-x: auto; animation: ${fadeIn} 0.6s ease;
   &::-webkit-scrollbar { display: none; }
 `;
-
 const Tab = styled.button`
-  padding: 10px 20px;
-  background: ${props => props.active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : 'white'};
-  color: ${props => props.active ? 'white' : '#666'};
-  border: 1px solid ${props => props.active ? 'transparent' : '#e0e0e0'};
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  white-space: nowrap;
-  transition: all 0.3s;
-  box-shadow: ${props => props.active ? '0 4px 12px rgba(233,30,99,0.3)' : 'none'};
-
+  padding: 10px 18px; border: none; border-radius: 11px;
+  cursor: pointer; font-weight: 700; font-size: 13px;
+  white-space: nowrap; transition: all 0.2s;
+  display: flex; align-items: center; gap: 7px;
+  background: ${p => p.active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : 'transparent'};
+  color: ${p => p.active ? '#fff' : 'rgba(255,255,255,0.45)'};
+  box-shadow: ${p => p.active ? '0 4px 14px rgba(233,30,99,0.4)' : 'none'};
   &:hover {
-    background: ${props => props.active ? 'linear-gradient(135deg, #c2185b, #ad1457)' : '#fce4ec'};
-    color: ${props => props.active ? 'white' : '#e91e63'};
+    background: ${p => p.active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : 'rgba(233,30,99,0.1)'};
+    color: ${p => p.active ? '#fff' : 'rgba(255,255,255,0.7)'};
   }
 `;
 
@@ -612,468 +617,478 @@ function SaglikMerkezi() {
     // =====================
     return (
         <PageContainer>
-            <Header>
-                <h1><FaHeartbeat /> Sağlık Merkezi</h1>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <AddButton onClick={() => openModal('asi')} style={{ background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)' }}>
-                        <FaSyringe /> Aşı Ekle
-                    </AddButton>
-                    <AddButton onClick={() => openModal('saglik')}>
-                        <FaPlus /> Sağlık Kaydı
-                    </AddButton>
-                </div>
-            </Header>
+            {/* ── HERO BANNER ── */}
+            <HeroBanner>
+                <HeroBg />
+                <HeroTop>
+                    <HeroLeft>
+                        <HeroIconWrap><FaHeartbeat /></HeroIconWrap>
+                        <div>
+                            <HeroTitle>Sağlık Merkezi</HeroTitle>
+                            <HeroSub>Hayvan sağlık kayıtları · Aşı takvimi · Yaklaşan kontroller</HeroSub>
+                        </div>
+                    </HeroLeft>
+                    <BtnGroup>
+                        <AddButton $secondary onClick={() => openModal('asi')}>
+                            <FaSyringe /> Aşı Ekle
+                        </AddButton>
+                        <AddButton onClick={() => openModal('saglik')}>
+                            <FaPlus /> Sağlık Kaydı
+                        </AddButton>
+                    </BtnGroup>
+                </HeroTop>
 
-            {/* İSTATİSTİK KARTLARI */}
-            <StatGrid>
-                <StatCard color="#FF9800">
-                    <StatIcon bg="#FFF3E0" color="#FF9800"><FaHeartbeat /></StatIcon>
-                    <StatInfo>
-                        <div className="value">{istatistikler?.aktifTedavi || 0}</div>
-                        <div className="label">Aktif Tedavi</div>
-                    </StatInfo>
-                </StatCard>
+                {/* İSTATİSTİK KARTLARI */}
+                <StatGrid>
+                    <StatCard>
+                        <StatIcon bg="rgba(255,152,0,0.15)" color="#FF9800"><FaHeartbeat /></StatIcon>
+                        <StatInfo>
+                            <div className="value">{istatistikler?.aktifTedavi || 0}</div>
+                            <div className="label">Aktif Tedavi</div>
+                        </StatInfo>
+                    </StatCard>
+                    <StatCard>
+                        <StatIcon bg="rgba(156,39,176,0.15)" color="#ce93d8"><FaSyringe /></StatIcon>
+                        <StatInfo>
+                            <div className="value">{istatistikler?.buAyAsi || 0}</div>
+                            <div className="label">Bu Ay Aşı</div>
+                        </StatInfo>
+                    </StatCard>
+                    <StatCard>
+                        <StatIcon bg="rgba(33,150,243,0.15)" color="#64b5f6"><FaClock /></StatIcon>
+                        <StatInfo>
+                            <div className="value">{istatistikler?.yaklasanKontrol || 0}</div>
+                            <div className="label">Yaklaşan Kontrol</div>
+                        </StatInfo>
+                    </StatCard>
+                    <StatCard>
+                        <StatIcon bg="rgba(244,67,54,0.15)" color="#ef9a9a"><FaMoneyBillWave /></StatIcon>
+                        <StatInfo>
+                            <div className="value">₺{(istatistikler?.aylikMaliyet || 0).toLocaleString('tr-TR')}</div>
+                            <div className="label">Aylık Sağlık Gideri</div>
+                        </StatInfo>
+                    </StatCard>
+                </StatGrid>
+            </HeroBanner>
 
-                <StatCard color="#9C27B0">
-                    <StatIcon bg="#F3E5F5" color="#9C27B0"><FaSyringe /></StatIcon>
-                    <StatInfo>
-                        <div className="value">{istatistikler?.buAyAsi || 0}</div>
-                        <div className="label">Bu Ay Aşı</div>
-                    </StatInfo>
-                </StatCard>
+            <BodyWrap>
+                {/* TAB BAR */}
+                <TabBar>
+                    <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
+                        🏥 Sağlık Kayıtları
+                    </Tab>
+                    <Tab active={aktifTab === 'asilar'} onClick={() => setAktifTab('asilar')}>
+                        💉 Aşı Takvimi
+                    </Tab>
+                    <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
+                        ⏰ Yaklaşan İşlemler
+                    </Tab>
 
-                <StatCard color="#2196F3">
-                    <StatIcon bg="#E3F2FD" color="#2196F3"><FaClock /></StatIcon>
-                    <StatInfo>
-                        <div className="value">{istatistikler?.yaklasanKontrol || 0}</div>
-                        <div className="label">Yaklaşan Kontrol</div>
-                    </StatInfo>
-                </StatCard>
+                    <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
+                        style={{
+                            background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
+                            borderColor: aktifTab === 'ai' ? 'transparent' : undefined
+                        }}>
+                        <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
+                    </Tab>
+                </TabBar>
 
-                <StatCard color="#f44336">
-                    <StatIcon bg="#FFEBEE" color="#f44336"><FaMoneyBillWave /></StatIcon>
-                    <StatInfo>
-                        <div className="value">₺{(istatistikler?.aylikMaliyet || 0).toLocaleString('tr-TR')}</div>
-                        <div className="label">Aylık Sağlık Gideri</div>
-                    </StatInfo>
-                </StatCard>
-            </StatGrid>
+                {/* SAĞLIK KAYITLARI TAB */}
+                {aktifTab === 'kayitlar' && (
+                    <>
+                        <FilterRow>
+                            <FaFilter style={{ color: '#999' }} />
+                            <FilterSelect value={filtreTip} onChange={e => setFiltreTip(e.target.value)}>
+                                <option value="">Tüm Tipler</option>
+                                <option value="hastalik">Hastalık</option>
+                                <option value="tedavi">Tedavi</option>
+                                <option value="asi">Aşı</option>
+                                <option value="muayene">Muayene</option>
+                                <option value="ameliyat">Ameliyat</option>
+                            </FilterSelect>
+                            <FilterSelect value={filtreDurum} onChange={e => setFiltreDurum(e.target.value)}>
+                                <option value="">Tüm Durumlar</option>
+                                <option value="devam_ediyor">Devam Ediyor</option>
+                                <option value="iyilesti">İyileşti</option>
+                                <option value="kronik">Kronik</option>
+                            </FilterSelect>
+                        </FilterRow>
 
-            {/* TAB BAR */}
-            <TabBar>
-                <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
-                    🏥 Sağlık Kayıtları
-                </Tab>
-                <Tab active={aktifTab === 'asilar'} onClick={() => setAktifTab('asilar')}>
-                    💉 Aşı Takvimi
-                </Tab>
-                <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
-                    ⏰ Yaklaşan İşlemler
-                </Tab>
-                <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
-                    style={{
-                        background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
-                        borderColor: aktifTab === 'ai' ? 'transparent' : undefined
-                    }}>
-                    <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
-                </Tab>
-            </TabBar>
+                        <CardList>
+                            {yukleniyor ? (
+                                <EmptyState><p>Yükleniyor...</p></EmptyState>
+                            ) : kayitlar.length === 0 ? (
+                                <EmptyState>
+                                    <FaHeartbeat />
+                                    <p>Henüz sağlık kaydı yok</p>
+                                    <p style={{ fontSize: '13px', marginTop: '8px' }}>İlk kaydı eklemek için yukarıdaki butona tıklayın</p>
+                                </EmptyState>
+                            ) : (
+                                kayitlar.map(k => {
+                                    const style = getTipStyle(k.tip);
+                                    const durumBadge = getDurumBadge(k.durum);
+                                    return (
+                                        <RecordCard key={k._id} color={style.color}>
+                                            <RecordIcon bg={style.bg} color={style.color}>
+                                                {style.icon}
+                                            </RecordIcon>
+                                            <RecordContent>
+                                                <div className="top-row">
+                                                    <div>
+                                                        <h3>{k.tani}</h3>
+                                                        <div className="hayvan-info">
+                                                            {hayvanTipiLabel[k.hayvanTipi] || k.hayvanTipi}
+                                                            {k.hayvanIsim && ` • ${k.hayvanIsim}`}
+                                                            {k.hayvanKupeNo && ` (${k.hayvanKupeNo})`}
+                                                        </div>
+                                                    </div>
+                                                    <Badge bg={durumBadge.bg} color={durumBadge.color}>
+                                                        {durumBadge.label}
+                                                    </Badge>
+                                                </div>
+                                                {k.tedavi && <div style={{ fontSize: '13px', color: '#555', marginBottom: '4px' }}>💊 {k.tedavi}</div>}
+                                                <div className="detail-row">
+                                                    <span className="detail"><FaCalendarAlt /> {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
+                                                    {k.veteriner && <span className="detail"><FaStethoscope /> {k.veteriner}</span>}
+                                                    {k.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{k.maliyet.toLocaleString('tr-TR')}</span>}
+                                                    {k.sonrakiKontrol && <span className="detail"><FaClock /> Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}</span>}
+                                                </div>
+                                            </RecordContent>
+                                            <ActionBtns>
+                                                <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
+                                            </ActionBtns>
+                                        </RecordCard>
+                                    );
+                                })
+                            )}
+                        </CardList>
+                    </>
+                )}
 
-            {/* SAĞLIK KAYITLARI TAB */}
-            {aktifTab === 'kayitlar' && (
-                <>
-                    <FilterRow>
-                        <FaFilter style={{ color: '#999' }} />
-                        <FilterSelect value={filtreTip} onChange={e => setFiltreTip(e.target.value)}>
-                            <option value="">Tüm Tipler</option>
-                            <option value="hastalik">Hastalık</option>
-                            <option value="tedavi">Tedavi</option>
-                            <option value="asi">Aşı</option>
-                            <option value="muayene">Muayene</option>
-                            <option value="ameliyat">Ameliyat</option>
-                        </FilterSelect>
-                        <FilterSelect value={filtreDurum} onChange={e => setFiltreDurum(e.target.value)}>
-                            <option value="">Tüm Durumlar</option>
-                            <option value="devam_ediyor">Devam Ediyor</option>
-                            <option value="iyilesti">İyileşti</option>
-                            <option value="kronik">Kronik</option>
-                        </FilterSelect>
-                    </FilterRow>
-
+                {/* AŞI TAKVİMİ TAB */}
+                {aktifTab === 'asilar' && (
                     <CardList>
-                        {yukleniyor ? (
-                            <EmptyState><p>Yükleniyor...</p></EmptyState>
-                        ) : kayitlar.length === 0 ? (
+                        {asilar.length === 0 ? (
                             <EmptyState>
-                                <FaHeartbeat />
-                                <p>Henüz sağlık kaydı yok</p>
-                                <p style={{ fontSize: '13px', marginTop: '8px' }}>İlk kaydı eklemek için yukarıdaki butona tıklayın</p>
+                                <FaSyringe />
+                                <p>Henüz aşı kaydı yok</p>
                             </EmptyState>
                         ) : (
-                            kayitlar.map(k => {
-                                const style = getTipStyle(k.tip);
-                                const durumBadge = getDurumBadge(k.durum);
+                            asilar.map(a => {
+                                const gecikti = a.sonrakiTarih && new Date(a.sonrakiTarih) < new Date() && a.durum === 'bekliyor';
                                 return (
-                                    <RecordCard key={k._id} color={style.color}>
-                                        <RecordIcon bg={style.bg} color={style.color}>
-                                            {style.icon}
+                                    <RecordCard key={a._id} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                        <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                            <FaSyringe />
                                         </RecordIcon>
                                         <RecordContent>
                                             <div className="top-row">
                                                 <div>
-                                                    <h3>{k.tani}</h3>
+                                                    <h3>{a.asiAdi}</h3>
                                                     <div className="hayvan-info">
-                                                        {hayvanTipiLabel[k.hayvanTipi] || k.hayvanTipi}
-                                                        {k.hayvanIsim && ` • ${k.hayvanIsim}`}
-                                                        {k.hayvanKupeNo && ` (${k.hayvanKupeNo})`}
+                                                        {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' :
+                                                            (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
+                                                        {a.hayvanIsim && ` • ${a.hayvanIsim}`}
+                                                        {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
                                                     </div>
                                                 </div>
-                                                <Badge bg={durumBadge.bg} color={durumBadge.color}>
-                                                    {durumBadge.label}
+                                                <Badge
+                                                    bg={gecikti ? '#FFEBEE' : a.durum === 'yapildi' ? '#E8F5E9' : '#FFF3E0'}
+                                                    color={gecikti ? '#C62828' : a.durum === 'yapildi' ? '#2E7D32' : '#E65100'}
+                                                >
+                                                    {gecikti ? '⚠️ GECİKTİ' : a.durum === 'yapildi' ? '✅ Yapıldı' : '⏳ Bekliyor'}
                                                 </Badge>
                                             </div>
-                                            {k.tedavi && <div style={{ fontSize: '13px', color: '#555', marginBottom: '4px' }}>💊 {k.tedavi}</div>}
                                             <div className="detail-row">
-                                                <span className="detail"><FaCalendarAlt /> {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
-                                                {k.veteriner && <span className="detail"><FaStethoscope /> {k.veteriner}</span>}
-                                                {k.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{k.maliyet.toLocaleString('tr-TR')}</span>}
-                                                {k.sonrakiKontrol && <span className="detail"><FaClock /> Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}</span>}
+                                                <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
+                                                {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
+                                                {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
+                                                {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
                                             </div>
                                         </RecordContent>
                                         <ActionBtns>
-                                            <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
+                                            <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
                                         </ActionBtns>
                                     </RecordCard>
                                 );
                             })
                         )}
                     </CardList>
-                </>
-            )}
+                )}
 
-            {/* AŞI TAKVİMİ TAB */}
-            {aktifTab === 'asilar' && (
-                <CardList>
-                    {asilar.length === 0 ? (
-                        <EmptyState>
-                            <FaSyringe />
-                            <p>Henüz aşı kaydı yok</p>
-                        </EmptyState>
-                    ) : (
-                        asilar.map(a => {
-                            const gecikti = a.sonrakiTarih && new Date(a.sonrakiTarih) < new Date() && a.durum === 'bekliyor';
-                            return (
-                                <RecordCard key={a._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                    <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                        <FaSyringe />
-                                    </RecordIcon>
-                                    <RecordContent>
-                                        <div className="top-row">
-                                            <div>
-                                                <h3>{a.asiAdi}</h3>
-                                                <div className="hayvan-info">
-                                                    {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' :
-                                                        (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
-                                                    {a.hayvanIsim && ` • ${a.hayvanIsim}`}
-                                                    {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
-                                                </div>
-                                            </div>
-                                            <Badge
-                                                bg={gecikti ? '#FFEBEE' : a.durum === 'yapildi' ? '#E8F5E9' : '#FFF3E0'}
-                                                color={gecikti ? '#C62828' : a.durum === 'yapildi' ? '#2E7D32' : '#E65100'}
-                                            >
-                                                {gecikti ? '⚠️ GECİKTİ' : a.durum === 'yapildi' ? '✅ Yapıldı' : '⏳ Bekliyor'}
-                                            </Badge>
-                                        </div>
-                                        <div className="detail-row">
-                                            <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
-                                            {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
-                                            {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
-                                            {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
-                                            {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
-                                        </div>
-                                    </RecordContent>
-                                    <ActionBtns>
-                                        <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
-                                    </ActionBtns>
-                                </RecordCard>
-                            );
-                        })
-                    )}
-                </CardList>
-            )}
+                {/* YAKLAŞAN İŞLEMLER TAB */}
+                {aktifTab === 'yaklasan' && (
+                    <CardList>
+                        {(() => {
+                            const yaklasanItems = [
+                                ...kayitlar
+                                    .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
+                                    .map(k => ({ ...k, _itemType: 'kontrol', _sortDate: k.sonrakiKontrol })),
+                                ...asilar
+                                    .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
+                                    .map(a => ({ ...a, _itemType: 'asi', _sortDate: a.sonrakiTarih }))
+                            ].sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate));
 
-            {/* YAKLAŞAN İŞLEMLER TAB */}
-            {aktifTab === 'yaklasan' && (
-                <CardList>
-                    {(() => {
-                        const yaklasanItems = [
-                            ...kayitlar
-                                .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
-                                .map(k => ({ ...k, _itemType: 'kontrol', _sortDate: k.sonrakiKontrol })),
-                            ...asilar
-                                .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
-                                .map(a => ({ ...a, _itemType: 'asi', _sortDate: a.sonrakiTarih }))
-                        ].sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate));
-
-                        if (yaklasanItems.length === 0) {
-                            return (
-                                <EmptyState>
-                                    <FaCheckCircle />
-                                    <p>Yaklaşan işlem yok — her şey yolunda! 🎉</p>
-                                </EmptyState>
-                            );
-                        }
-
-                        return yaklasanItems.map(item => {
-                            const gecikti = new Date(item._sortDate) < new Date();
-                            if (item._itemType === 'kontrol') {
+                            if (yaklasanItems.length === 0) {
                                 return (
-                                    <RecordCard key={item._id} color={gecikti ? '#f44336' : '#2196F3'}>
-                                        <RecordIcon bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#f44336' : '#2196F3'}>
-                                            <FaStethoscope />
-                                        </RecordIcon>
-                                        <RecordContent>
-                                            <div className="top-row">
-                                                <h3>Kontrol: {item.tani}</h3>
-                                                <Badge bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#C62828' : '#1565C0'}>
-                                                    {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiKontrol).toLocaleDateString('tr-TR')}`}
-                                                </Badge>
-                                            </div>
-                                            <div className="hayvan-info">
-                                                {hayvanTipiLabel[item.hayvanTipi]} {item.hayvanIsim && `• ${item.hayvanIsim}`}
-                                            </div>
-                                        </RecordContent>
-                                    </RecordCard>
-                                );
-                            } else {
-                                return (
-                                    <RecordCard key={item._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                        <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                            <FaSyringe />
-                                        </RecordIcon>
-                                        <RecordContent>
-                                            <div className="top-row">
-                                                <h3>Aşı: {item.asiAdi}</h3>
-                                                <Badge bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#C62828' : '#7B1FA2'}>
-                                                    {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiTarih).toLocaleDateString('tr-TR')}`}
-                                                </Badge>
-                                            </div>
-                                            <div className="hayvan-info">
-                                                {item.hayvanTipi === 'hepsi' ? '🐄 Toplu' : hayvanTipiLabel[item.hayvanTipi]}
-                                                {item.hayvanIsim && ` • ${item.hayvanIsim}`}
-                                            </div>
-                                        </RecordContent>
-                                    </RecordCard>
+                                    <EmptyState>
+                                        <FaCheckCircle />
+                                        <p>Yaklaşan işlem yok — her şey yolunda! 🎉</p>
+                                    </EmptyState>
                                 );
                             }
-                        });
-                    })()}
-                </CardList>
-            )}
 
-            {/* 🤖 AI DANIŞMAN TAB */}
-            {aktifTab === 'ai' && (
-                <SaglikDanismani />
-            )}
+                            return yaklasanItems.map(item => {
+                                const gecikti = new Date(item._sortDate) < new Date();
+                                if (item._itemType === 'kontrol') {
+                                    return (
+                                        <RecordCard key={item._id} color={gecikti ? '#f44336' : '#2196F3'}>
+                                            <RecordIcon bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#f44336' : '#2196F3'}>
+                                                <FaStethoscope />
+                                            </RecordIcon>
+                                            <RecordContent>
+                                                <div className="top-row">
+                                                    <h3>Kontrol: {item.tani}</h3>
+                                                    <Badge bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#C62828' : '#1565C0'}>
+                                                        {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiKontrol).toLocaleDateString('tr-TR')}`}
+                                                    </Badge>
+                                                </div>
+                                                <div className="hayvan-info">
+                                                    {hayvanTipiLabel[item.hayvanTipi]} {item.hayvanIsim && `• ${item.hayvanIsim}`}
+                                                </div>
+                                            </RecordContent>
+                                        </RecordCard>
+                                    );
+                                } else {
+                                    return (
+                                        <RecordCard key={item._id} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                            <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                                <FaSyringe />
+                                            </RecordIcon>
+                                            <RecordContent>
+                                                <div className="top-row">
+                                                    <h3>Aşı: {item.asiAdi}</h3>
+                                                    <Badge bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#C62828' : '#7B1FA2'}>
+                                                        {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiTarih).toLocaleDateString('tr-TR')}`}
+                                                    </Badge>
+                                                </div>
+                                                <div className="hayvan-info">
+                                                    {item.hayvanTipi === 'hepsi' ? '🐄 Toplu' : hayvanTipiLabel[item.hayvanTipi]}
+                                                    {item.hayvanIsim && ` • ${item.hayvanIsim}`}
+                                                </div>
+                                            </RecordContent>
+                                        </RecordCard>
+                                    );
+                                }
+                            });
+                        })()}
+                    </CardList>
+                )}
 
-            {/* MODAL */}
-            {modalAcik && (
-                <Overlay onClick={() => setModalAcik(false)}>
-                    <ModalBox onClick={e => e.stopPropagation()}>
-                        {modalTip === 'saglik' ? (
-                            <>
-                                <ModalHeader>
-                                    <h2><FaHeartbeat style={{ color: '#e91e63' }} /> Yeni Sağlık Kaydı</h2>
-                                    <button onClick={() => setModalAcik(false)}><FaTimes /></button>
-                                </ModalHeader>
+                {/* 🤖 AI DANIŞMAN TAB */}
+                {aktifTab === 'ai' && (
+                    <SaglikDanismani />
+                )}
 
-                                <form onSubmit={handleSaglikSubmit}>
-                                    <FormGroup>
-                                        <label>Hayvan *</label>
-                                        <select value={form.hayvanId} onChange={e => setForm({ ...form, hayvanId: e.target.value })} required>
-                                            <option value="">Hayvan Seçin...</option>
-                                            {hayvanlar.map(h => (
-                                                <option key={h._id} value={h._id}>
-                                                    {h.isim} ({h.kupeNo}) — {hayvanTipiLabel[h.tip]}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </FormGroup>
+                {/* MODAL */}
+                {modalAcik && (
+                    <Overlay onClick={() => setModalAcik(false)}>
+                        <ModalBox onClick={e => e.stopPropagation()}>
+                            {modalTip === 'saglik' ? (
+                                <>
+                                    <ModalHeader>
+                                        <h2><FaHeartbeat style={{ color: '#e91e63' }} /> Yeni Sağlık Kaydı</h2>
+                                        <button onClick={() => setModalAcik(false)}><FaTimes /></button>
+                                    </ModalHeader>
 
-                                    <FormRow>
+                                    <form onSubmit={handleSaglikSubmit}>
                                         <FormGroup>
-                                            <label>İşlem Tipi *</label>
-                                            <select value={form.tip} onChange={e => setForm({ ...form, tip: e.target.value })}>
-                                                <option value="hastalik">🤒 Hastalık</option>
-                                                <option value="tedavi">💊 Tedavi</option>
-                                                <option value="muayene">🩺 Muayene</option>
-                                                <option value="ameliyat">🔪 Ameliyat</option>
-                                                <option value="dogum_komplikasyonu">⚠️ Doğum Komplikasyonu</option>
+                                            <label>Hayvan *</label>
+                                            <select value={form.hayvanId} onChange={e => setForm({ ...form, hayvanId: e.target.value })} required>
+                                                <option value="">Hayvan Seçin...</option>
+                                                {hayvanlar.map(h => (
+                                                    <option key={h._id} value={h._id}>
+                                                        {h.isim} ({h.kupeNo}) — {hayvanTipiLabel[h.tip]}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </FormGroup>
+
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>İşlem Tipi *</label>
+                                                <select value={form.tip} onChange={e => setForm({ ...form, tip: e.target.value })}>
+                                                    <option value="hastalik">🤒 Hastalık</option>
+                                                    <option value="tedavi">💊 Tedavi</option>
+                                                    <option value="muayene">🩺 Muayene</option>
+                                                    <option value="ameliyat">🔪 Ameliyat</option>
+                                                    <option value="dogum_komplikasyonu">⚠️ Doğum Komplikasyonu</option>
+                                                </select>
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Tarih *</label>
+                                                <input type="date" value={form.tarih} onChange={e => setForm({ ...form, tarih: e.target.value })} required />
+                                            </FormGroup>
+                                        </FormRow>
+
                                         <FormGroup>
-                                            <label>Tarih *</label>
-                                            <input type="date" value={form.tarih} onChange={e => setForm({ ...form, tarih: e.target.value })} required />
+                                            <label>Tanı / Hastalık Adı *</label>
+                                            <input
+                                                type="text"
+                                                value={form.tani}
+                                                onChange={e => setForm({ ...form, tani: e.target.value })}
+                                                placeholder="Ör: Mastitis, Şap Hastalığı, Topallık..."
+                                                required
+                                            />
                                         </FormGroup>
-                                    </FormRow>
 
-                                    <FormGroup>
-                                        <label>Tanı / Hastalık Adı *</label>
-                                        <input
-                                            type="text"
-                                            value={form.tani}
-                                            onChange={e => setForm({ ...form, tani: e.target.value })}
-                                            placeholder="Ör: Mastitis, Şap Hastalığı, Topallık..."
-                                            required
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <label>Belirtiler (virgülle ayırın)</label>
-                                        <input
-                                            type="text"
-                                            value={form.belirtiler}
-                                            onChange={e => setForm({ ...form, belirtiler: e.target.value })}
-                                            placeholder="Ör: Ateş, İştahsızlık, Topallık"
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <label>Tedavi / Uygulama</label>
-                                        <textarea
-                                            value={form.tedavi}
-                                            onChange={e => setForm({ ...form, tedavi: e.target.value })}
-                                            placeholder="Uygulanan tedaviyi yazın..."
-                                        />
-                                    </FormGroup>
-
-                                    <FormRow>
                                         <FormGroup>
-                                            <label>Veteriner</label>
-                                            <input type="text" value={form.veteriner} onChange={e => setForm({ ...form, veteriner: e.target.value })} placeholder="Vet. adı" />
+                                            <label>Belirtiler (virgülle ayırın)</label>
+                                            <input
+                                                type="text"
+                                                value={form.belirtiler}
+                                                onChange={e => setForm({ ...form, belirtiler: e.target.value })}
+                                                placeholder="Ör: Ateş, İştahsızlık, Topallık"
+                                            />
                                         </FormGroup>
-                                        <FormGroup>
-                                            <label>Maliyet (₺)</label>
-                                            <input type="number" value={form.maliyet} onChange={e => setForm({ ...form, maliyet: e.target.value })} placeholder="0" min="0" />
-                                        </FormGroup>
-                                    </FormRow>
 
-                                    <FormRow>
                                         <FormGroup>
-                                            <label>Durum</label>
-                                            <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })}>
-                                                <option value="devam_ediyor">⏳ Devam Ediyor</option>
-                                                <option value="iyilesti">✅ İyileşti</option>
-                                                <option value="kronik">🔄 Kronik</option>
-                                                <option value="oldu">❌ Öldü</option>
-                                            </select>
+                                            <label>Tedavi / Uygulama</label>
+                                            <textarea
+                                                value={form.tedavi}
+                                                onChange={e => setForm({ ...form, tedavi: e.target.value })}
+                                                placeholder="Uygulanan tedaviyi yazın..."
+                                            />
                                         </FormGroup>
-                                        <FormGroup>
-                                            <label>Sonraki Kontrol</label>
-                                            <input type="date" value={form.sonrakiKontrol} onChange={e => setForm({ ...form, sonrakiKontrol: e.target.value })} />
-                                        </FormGroup>
-                                    </FormRow>
 
-                                    <FormGroup>
-                                        <label>Notlar</label>
-                                        <textarea value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })} placeholder="Ek notlar..." />
-                                    </FormGroup>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Veteriner</label>
+                                                <input type="text" value={form.veteriner} onChange={e => setForm({ ...form, veteriner: e.target.value })} placeholder="Vet. adı" />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Maliyet (₺)</label>
+                                                <input type="number" value={form.maliyet} onChange={e => setForm({ ...form, maliyet: e.target.value })} placeholder="0" min="0" />
+                                            </FormGroup>
+                                        </FormRow>
 
-                                    <SubmitBtn type="submit">Kaydet</SubmitBtn>
-                                </form>
-                            </>
-                        ) : (
-                            <>
-                                <ModalHeader>
-                                    <h2><FaSyringe style={{ color: '#9C27B0' }} /> Yeni Aşı Kaydı</h2>
-                                    <button onClick={() => setModalAcik(false)}><FaTimes /></button>
-                                </ModalHeader>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Durum</label>
+                                                <select value={form.durum} onChange={e => setForm({ ...form, durum: e.target.value })}>
+                                                    <option value="devam_ediyor">⏳ Devam Ediyor</option>
+                                                    <option value="iyilesti">✅ İyileşti</option>
+                                                    <option value="kronik">🔄 Kronik</option>
+                                                    <option value="oldu">❌ Öldü</option>
+                                                </select>
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Sonraki Kontrol</label>
+                                                <input type="date" value={form.sonrakiKontrol} onChange={e => setForm({ ...form, sonrakiKontrol: e.target.value })} />
+                                            </FormGroup>
+                                        </FormRow>
 
-                                <form onSubmit={handleAsiSubmit}>
-                                    <FormGroup>
-                                        <label>Aşı Adı *</label>
-                                        <input
-                                            type="text"
-                                            value={asiForm.asiAdi}
-                                            onChange={e => setAsiForm({ ...asiForm, asiAdi: e.target.value })}
-                                            placeholder="Ör: Şap Aşısı, Brusella, IBR..."
-                                            required
-                                        />
-                                    </FormGroup>
+                                        <FormGroup>
+                                            <label>Notlar</label>
+                                            <textarea value={form.notlar} onChange={e => setForm({ ...form, notlar: e.target.value })} placeholder="Ek notlar..." />
+                                        </FormGroup>
 
-                                    <FormRow>
-                                        <FormGroup>
-                                            <label>Hayvan Tipi</label>
-                                            <select value={asiForm.hayvanTipi} onChange={e => setAsiForm({ ...asiForm, hayvanTipi: e.target.value, hayvanId: '' })}>
-                                                <option value="hepsi">Tüm Sürü (Toplu)</option>
-                                                <option value="inek">İnekler</option>
-                                                <option value="duve">Düveler</option>
-                                                <option value="buzagi">Buzağılar</option>
-                                                <option value="tosun">Tosunlar</option>
-                                            </select>
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <label>Belirli Hayvan (opsiyonel)</label>
-                                            <select value={asiForm.hayvanId} onChange={e => setAsiForm({ ...asiForm, hayvanId: e.target.value })}>
-                                                <option value="">Toplu Aşı</option>
-                                                {hayvanlar
-                                                    .filter(h => asiForm.hayvanTipi === 'hepsi' || h.tip === asiForm.hayvanTipi)
-                                                    .map(h => (
-                                                        <option key={h._id} value={h._id}>{h.isim} ({h.kupeNo})</option>
-                                                    ))
-                                                }
-                                            </select>
-                                        </FormGroup>
-                                    </FormRow>
+                                        <SubmitBtn type="submit">Kaydet</SubmitBtn>
+                                    </form>
+                                </>
+                            ) : (
+                                <>
+                                    <ModalHeader>
+                                        <h2><FaSyringe style={{ color: '#9C27B0' }} /> Yeni Aşı Kaydı</h2>
+                                        <button onClick={() => setModalAcik(false)}><FaTimes /></button>
+                                    </ModalHeader>
 
-                                    <FormRow>
+                                    <form onSubmit={handleAsiSubmit}>
                                         <FormGroup>
-                                            <label>Uygulama Tarihi *</label>
-                                            <input type="date" value={asiForm.uygulamaTarihi} onChange={e => setAsiForm({ ...asiForm, uygulamaTarihi: e.target.value })} required />
+                                            <label>Aşı Adı *</label>
+                                            <input
+                                                type="text"
+                                                value={asiForm.asiAdi}
+                                                onChange={e => setAsiForm({ ...asiForm, asiAdi: e.target.value })}
+                                                placeholder="Ör: Şap Aşısı, Brusella, IBR..."
+                                                required
+                                            />
                                         </FormGroup>
-                                        <FormGroup>
-                                            <label>Sonraki Aşı Tarihi</label>
-                                            <input type="date" value={asiForm.sonrakiTarih} onChange={e => setAsiForm({ ...asiForm, sonrakiTarih: e.target.value })} />
-                                        </FormGroup>
-                                    </FormRow>
 
-                                    <FormRow>
-                                        <FormGroup>
-                                            <label>Tekrar Periyodu (gün)</label>
-                                            <input type="number" value={asiForm.tekrarPeriyodu} onChange={e => setAsiForm({ ...asiForm, tekrarPeriyodu: e.target.value })} placeholder="Ör: 180" min="0" />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <label>Doz</label>
-                                            <input type="text" value={asiForm.doz} onChange={e => setAsiForm({ ...asiForm, doz: e.target.value })} placeholder="Ör: 2 ml" />
-                                        </FormGroup>
-                                    </FormRow>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Hayvan Tipi</label>
+                                                <select value={asiForm.hayvanTipi} onChange={e => setAsiForm({ ...asiForm, hayvanTipi: e.target.value, hayvanId: '' })}>
+                                                    <option value="hepsi">Tüm Sürü (Toplu)</option>
+                                                    <option value="inek">İnekler</option>
+                                                    <option value="duve">Düveler</option>
+                                                    <option value="buzagi">Buzağılar</option>
+                                                    <option value="tosun">Tosunlar</option>
+                                                </select>
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Belirli Hayvan (opsiyonel)</label>
+                                                <select value={asiForm.hayvanId} onChange={e => setAsiForm({ ...asiForm, hayvanId: e.target.value })}>
+                                                    <option value="">Toplu Aşı</option>
+                                                    {hayvanlar
+                                                        .filter(h => asiForm.hayvanTipi === 'hepsi' || h.tip === asiForm.hayvanTipi)
+                                                        .map(h => (
+                                                            <option key={h._id} value={h._id}>{h.isim} ({h.kupeNo})</option>
+                                                        ))
+                                                    }
+                                                </select>
+                                            </FormGroup>
+                                        </FormRow>
 
-                                    <FormRow>
-                                        <FormGroup>
-                                            <label>Uygulayan</label>
-                                            <input type="text" value={asiForm.uygulayan} onChange={e => setAsiForm({ ...asiForm, uygulayan: e.target.value })} placeholder="Veteriner adı" />
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <label>Maliyet (₺)</label>
-                                            <input type="number" value={asiForm.maliyet} onChange={e => setAsiForm({ ...asiForm, maliyet: e.target.value })} placeholder="0" min="0" />
-                                        </FormGroup>
-                                    </FormRow>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Uygulama Tarihi *</label>
+                                                <input type="date" value={asiForm.uygulamaTarihi} onChange={e => setAsiForm({ ...asiForm, uygulamaTarihi: e.target.value })} required />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Sonraki Aşı Tarihi</label>
+                                                <input type="date" value={asiForm.sonrakiTarih} onChange={e => setAsiForm({ ...asiForm, sonrakiTarih: e.target.value })} />
+                                            </FormGroup>
+                                        </FormRow>
 
-                                    <FormGroup>
-                                        <label>Notlar</label>
-                                        <textarea value={asiForm.notlar} onChange={e => setAsiForm({ ...asiForm, notlar: e.target.value })} placeholder="Ek notlar..." />
-                                    </FormGroup>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Tekrar Periyodu (gün)</label>
+                                                <input type="number" value={asiForm.tekrarPeriyodu} onChange={e => setAsiForm({ ...asiForm, tekrarPeriyodu: e.target.value })} placeholder="Ör: 180" min="0" />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Doz</label>
+                                                <input type="text" value={asiForm.doz} onChange={e => setAsiForm({ ...asiForm, doz: e.target.value })} placeholder="Ör: 2 ml" />
+                                            </FormGroup>
+                                        </FormRow>
 
-                                    <SubmitBtn type="submit" style={{ background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)' }}>
-                                        Kaydet
-                                    </SubmitBtn>
-                                </form>
-                            </>
-                        )}
-                    </ModalBox>
-                </Overlay>
-            )}
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Uygulayan</label>
+                                                <input type="text" value={asiForm.uygulayan} onChange={e => setAsiForm({ ...asiForm, uygulayan: e.target.value })} placeholder="Veteriner adı" />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Maliyet (₺)</label>
+                                                <input type="number" value={asiForm.maliyet} onChange={e => setAsiForm({ ...asiForm, maliyet: e.target.value })} placeholder="0" min="0" />
+                                            </FormGroup>
+                                        </FormRow>
+
+                                        <FormGroup>
+                                            <label>Notlar</label>
+                                            <textarea value={asiForm.notlar} onChange={e => setAsiForm({ ...asiForm, notlar: e.target.value })} placeholder="Ek notlar..." />
+                                        </FormGroup>
+
+                                        <SubmitBtn type="submit" style={{ background: 'linear-gradient(135deg, #9C27B0, #7B1FA2)' }}>
+                                            Kaydet
+                                        </SubmitBtn>
+                                    </form>
+                                </>
+                            )}
+                        </ModalBox>
+                    </Overlay>
+                )}
+            </BodyWrap>
         </PageContainer>
     );
 }
