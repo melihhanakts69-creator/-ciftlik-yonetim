@@ -134,7 +134,8 @@ export default function Login({ onLoginSuccess }) {
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true); setError('');
     try {
-      const r = await login({ email: loginEmail, sifre: loginSifre });
+      // rol da gönderiliyor — seçilen kart hangi hesabı açacağını belirler
+      const r = await login({ email: loginEmail, sifre: loginSifre, rol: seciliRol });
       localStorage.setItem('token', r.data.token);
       if (r.data.refreshToken) localStorage.setItem('refreshToken', r.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(r.data.user));

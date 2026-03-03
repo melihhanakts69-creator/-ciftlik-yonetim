@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   // ── Temel alanlar (tüm roller) ──────────────────
   isim: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  email: { type: String, required: true, lowercase: true, trim: true }, // unique: email+rol compound index
   sifre: { type: String, required: true },
   telefon: { type: String, trim: true },
   aktif: { type: Boolean, default: true },
@@ -35,5 +35,9 @@ const userSchema = new mongoose.Schema({
   profilFoto: { type: String },  // URL
 
 }, { timestamps: true });
+
+// Aynı email farklı rollerle kayıt olabilir
+// Email + Rol kombinasyonu unique olmalı
+userSchema.index({ email: 1, rol: 1 }, { unique: true });
 
 module.exports = mongoose.model('User', userSchema);

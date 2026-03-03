@@ -38,9 +38,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Geçersiz rol.' });
     }
 
-    const mevcutUser = await User.findOne({ email });
+    // Aynı email + aynı rol zaten kayıtlı ise hata dön
+    const mevcutUser = await User.findOne({ email: email.toLowerCase(), rol });
     if (mevcutUser) {
-      return res.status(400).json({ message: 'Bu email zaten kayıtlı!' });
+      return res.status(400).json({ message: `Bu email ile zaten bir ${rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü'} hesabı mevcut!` });
     }
 
     const hashedPassword = await bcrypt.hash(sifre, 10);
@@ -74,15 +75,22 @@ router.post('/register', async (req, res) => {
 // GİRİŞ YAP
 router.post('/login', loginValidation, async (req, res) => {
   try {
-    const { email, sifre } = req.body;
+    const { email, sifre, rol = 'ciftci' } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Email veya şifre hatalı!' });
+    // Email + Rol kombinasyonu ile doğru hesabı bul
+    // Aynı email farklı rollerde farklı hesap olabilir
+    const rolLabel = rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü';
+    const user = await User.findOne({ email: email.toLowerCase(), rol });
+    if (!user) {
+      return res.status(400).json({
+        message: `Bu email ile kayıtlı ${rolLabel} hesabı bulunamadı! Farklı bir profil seçtin mi?`
+      });
+    }
 
     const sifreDogrumu = await bcrypt.compare(sifre, user.sifre);
-    if (!sifreDogrumu) return res.status(400).json({ message: 'Email veya şifre hatalı!' });
+    if (!sifreDogrumu) return res.status(400).json({ message: 'Şifre hatalı!' });
 
-    if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış. Destek ile iletişime geçin.' });
+    if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış.' });
 
     user.sonGiris = new Date();
     await user.save();
@@ -93,7 +101,7 @@ router.post('/login', loginValidation, async (req, res) => {
     res.json({
       message: 'Giriş başarılı!',
       token, refreshToken,
-      user: { id: user._id, isim: user.isim, email: user.email, rol: user.rol || 'ciftci', isletmeAdi: user.isletmeAdi, firmaAdi: user.firmaAdi, klinikAdi: user.klinikAdi, onaylandi: user.onaylandi }
+      user: { id: user._id, isim: user.isim, email: user.email, rol: user.rol, isletmeAdi: user.isletmeAdi, firmaAdi: user.firmaAdi, klinikAdi: user.klinikAdi, onaylandi: user.onaylandi }
     });
   } catch (error) {
     console.error('Login Hatası:', error);
