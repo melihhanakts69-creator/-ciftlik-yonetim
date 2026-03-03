@@ -1,521 +1,359 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { FaBox, FaPlus, FaMinus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle, FaFilter } from 'react-icons/fa';
+import styled, { keyframes, css } from 'styled-components';
+import { FaBox, FaPlus, FaMinus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import * as api from '../services/api';
 import { toast } from 'react-toastify';
-import {
-    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-    PieChart, Pie, Legend
-} from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const PageContainer = styled.div`
-  padding: 24px;
-  background: #f8f9fa;
-  min-height: 100vh;
+const fadeIn = keyframes`from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}`;
+const pulse = keyframes`0%,100%{opacity:1}50%{opacity:.6}`;
+
+// ─── Styled ────────────────────────────────────────────────────────────────
+const Page = styled.div`
+  padding: 24px; min-height: 100vh; background: #f0f4f8;
+  font-family: 'Inter', system-ui, sans-serif;
+  animation: ${fadeIn} .4s ease;
 `;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const TopRow = styled.div`
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 12px;
-
-  h1 {
-    font-size: 24px;
-    font-weight: 800;
-    color: #2c3e50;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+`;
+const PageTitle = styled.h1`
+  font-size: 22px; font-weight: 900; color: #0f172a; margin: 0;
+  display: flex; align-items: center; gap: 10px;
+`;
+const AddBtn = styled.button`
+  background: linear-gradient(135deg,#4ade80,#16a34a); color:#fff; border:none;
+  padding: 11px 22px; border-radius: 12px; font-size: 14px; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 14px rgba(74,222,128,.35); transition: all .2s;
+  &:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,222,128,.45);}
 `;
 
-const ActionButton = styled.button`
-  background: ${props => props.danger ? '#ef5350' : '#4CAF50'};
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
+// Stat bar
+const StatRow = styled.div`
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px;
+  @media(max-width:700px){grid-template-columns:1fr 1fr;}
+`;
+const Stat = styled.div`
+  background: #fff; border-radius: 16px; padding: 18px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.06);
+  border-left: 4px solid ${p => p.$color || '#4ade80'};
+  .val{font-size:26px;font-weight:900;color:${p => p.$color || '#4ade80'};}
+  .lbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-top:2px;}
 `;
 
-const SearchFilterBar = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-
-  input {
-    flex: 1;
-    min-width: 200px;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 14px;
-  }
-
-  select {
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 14px;
-    background: white;
-    min-width: 150px;
-  }
+// Filters
+const FilterBar = styled.div`
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+`;
+const SearchWrap = styled.div`
+  position: relative; flex: 1; min-width: 200px;
+  svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;}
+`;
+const SearchInput = styled.input`
+  width: 100%; padding: 10px 12px 10px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 14px; background: #fff; outline: none; box-sizing: border-box;
+  &:focus{border-color:#4ade80;}
+`;
+const CatBtn = styled.button`
+  padding: 9px 16px; border-radius: 10px; border: 1.5px solid ${p => p.$active ? '#4ade80' : '#e2e8f0'};
+  background: ${p => p.$active ? 'rgba(74,222,128,.1)' : '#fff'};
+  color: ${p => p.$active ? '#16a34a' : '#64748b'}; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all .15s;
+  &:hover{border-color:#4ade80;}
 `;
 
+// Stok grid
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 16px;
 `;
-
-const StokCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  border-left: 5px solid ${props => props.kritik ? '#ef5350' : '#4CAF50'};
-  position: relative;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  }
+const Card = styled.div`
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: all .2s;
+  border-top: 4px solid ${p => p.$kritik ? '#ef4444' : '#4ade80'};
+  &:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
 `;
-
-const HeaderRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-
-  h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-    color: #2c3e50;
-  }
-  
-  .badge {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    background: #f0f2f5;
-    color: #666;
-    font-weight: 600;
+const CardBody = styled.div`padding:18px;`;
+const CardHead = styled.div`
+  display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;
+`;
+const UrunAdi = styled.div`font-size:16px;font-weight:800;color:#0f172a;`;
+const KatBadge = styled.span`
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;
+  background:${p => ({
+        'Yem': 'rgba(74,222,128,.1)', 'İlaç': 'rgba(239,68,68,.1)',
+        'Vitamin': 'rgba(251,146,60,.1)', 'Ekipman': 'rgba(96,165,250,.1)'
+    }[p.$kat] || 'rgba(100,116,139,.1)')};
+  color:${p => ({
+        'Yem': '#16a34a', 'İlaç': '#ef4444',
+        'Vitamin': '#ea580c', 'Ekipman': '#2563eb'
+    }[p.$kat] || '#475569')};
+`;
+const MiktarWrap = styled.div`
+  display: flex; align-items: baseline; gap: 5px; margin-bottom: 10px;
+`;
+const MiktarVal = styled.span`
+  font-size: 32px; font-weight: 900; color: ${p => p.$kritik ? '#ef4444' : '#0f172a'};
+  ${p => p.$kritik && css`animation:${pulse} 2s ease infinite;`}
+`;
+const Birim = styled.span`font-size:14px;color:#94a3b8;font-weight:600;`;
+const ProgressBar = styled.div`
+  height: 5px; background: #f1f5f9; border-radius: 999px; margin-bottom: 14px; overflow: hidden;
+  div{
+    height:100%;border-radius:999px;transition:width .4s;
+    background:${p => p.$pct < 30 ? '#ef4444' : p.$pct < 70 ? '#f59e0b' : '#4ade80'};
+    width:${p => Math.min(100, p.$pct)}%;
   }
 `;
-
-const MiktarRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-
-  .value {
-    font-size: 24px;
-    font-weight: 800;
-    color: ${props => props.kritik ? '#ef5350' : '#2c3e50'};
-  }
-  .unit {
-    font-size: 14px;
-    color: #999;
-    margin-left: 4px;
-  }
+const KrtikLabel = styled.div`font-size:11px;color:#94a3b8;margin-bottom:12px;margin-top:-10px;`;
+const ActionBtns = styled.div`
+  display: flex; gap: 8px; padding-top: 14px; border-top: 1px solid #f1f5f9;
+`;
+const AB = styled.button`
+  flex: ${p => p.$flex || 1}; padding: 8px; border-radius: 9px; border: none;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s;
+  background:${p => ({ add: '#dcfce7', sub: '#fee2e2', edit: '#dbeafe', del: 'transparent' }[p.$t] || '#f1f5f9')};
+  color:${p => ({ add: '#16a34a', sub: '#dc2626', edit: '#1d4ed8', del: '#cbd5e1' }[p.$t] || '#475569')};
+  &:hover{filter:brightness(.93);}
 `;
 
-const ActionsRow = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #f0f0f0;
-
-  button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: background 0.2s;
-  }
-
-  .btn-add { background: #E8F5E9; color: #2E7D32; &:hover { background: #C8E6C9; } }
-  .btn-sub { background: #FFEBEE; color: #C62828; &:hover { background: #FFCDD2; } }
-  .btn-edit { background: #E3F2FD; color: #1565C0; &:hover { background: #BBDEFB; } }
+// Kritik uyarı banner
+const CritBanner = styled.div`
+  background: linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.04));
+  border: 1px solid rgba(239,68,68,.2); border-radius: 14px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+  color: #dc2626; font-size: 14px; font-weight: 700;
+  svg{font-size:18px;flex-shrink:0;}
 `;
 
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+// Chart card
+const ChartCard = styled.div`
+  background:#fff; border-radius:18px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.05);
+  margin-bottom:22px;
+  h3{font-size:14px;font-weight:800;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin:0 0 16px;}
 `;
 
-const ModalContent = styled.div`
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-
-  h2 { margin-top: 0; color: #2c3e50; }
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #555;
-    font-size: 14px;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 14px;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: none;
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-    }
-  }
-
-  .btn-group {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-    justify-content: flex-end;
-  }
+// Modal
+const Overlay = styled.div`
+  position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;
 `;
-
-const ChartContainer = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  height: 300px;
+const Modal = styled.div`
+  background:#fff;border-radius:24px;padding:32px;width:100%;max-width:520px;
+  box-shadow:0 24px 60px rgba(0,0,0,.25);animation:${fadeIn} .25s ease;
 `;
+const ModalTitle = styled.div`font-size:18px;font-weight:900;color:#0f172a;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;`;
+const CloseBtn = styled.button`background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;&:hover{color:#ef4444;}`;
+const FGrid = styled.div`display:grid;grid-template-columns:${p => p.$cols || '1fr 1fr'};gap:14px;margin-bottom:14px;`;
+const FG = styled.div``;
+const Lbl = styled.label`font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;display:block;margin-bottom:5px;`;
+const Inp = styled.input`
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;
+  outline:none;box-sizing:border-box;
+  &:focus{border-color:#4ade80;}
+`;
+const Sel = styled.select`
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;
+  outline:none;background:#fff;box-sizing:border-box;
+  &:focus{border-color:#4ade80;}
+`;
+const TextA = styled.textarea`
+  width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;
+  outline:none;resize:vertical;box-sizing:border-box;font-family:inherit;
+  &:focus{border-color:#4ade80;}
+`;
+const ModalBtns = styled.div`display:flex;gap:10px;justify-content:flex-end;margin-top:20px;`;
+const CancelBtn = styled.button`padding:10px 22px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;color:#64748b;font-weight:700;cursor:pointer;`;
+const SaveBtn = styled.button`padding:10px 22px;border:none;border-radius:10px;background:linear-gradient(135deg,#4ade80,#16a34a);color:#fff;font-weight:800;cursor:pointer;`;
 
-const StokYonetimi = () => {
+const CATS = ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'];
+const PIE_COLORS = ['#4ade80', '#60a5fa', '#fb923c', '#a78bfa', '#94a3b8'];
+
+const EMPTY = { urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '' };
+
+export default function StokYonetimi() {
     const [stoklar, setStoklar] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('Tümü');
+    const [catFilter, setCatFilter] = useState('Tümü');
     const [showModal, setShowModal] = useState(false);
-    const [editingItem, setEditingItem] = useState(null);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState(EMPTY);
+    const upd = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
 
-    // Form State
-    const [formData, setFormData] = useState({
-        urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: ''
-    });
+    useEffect(() => { load(); }, []);
 
-    useEffect(() => {
-        fetchStoklar();
-    }, []);
-
-    const fetchStoklar = async () => {
-        try {
-            setLoading(true);
-            const res = await api.getStoklar();
-            setStoklar(res.data);
-        } catch (err) {
-            toast.error('Stok verileri yüklenemedi');
-        } finally {
-            setLoading(false);
-        }
+    const load = async () => {
+        try { setLoading(true); const r = await api.getStoklar(); setStoklar(r.data); }
+        catch { toast.error('Stok verileri yüklenemedi'); }
+        finally { setLoading(false); }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
         try {
-            if (editingItem) {
-                await api.updateStok(editingItem._id, { ...formData, islem: 'guncelle' });
-                toast.success('Stok güncellendi');
-            } else {
-                await api.createStok(formData);
-                toast.success('Yeni stok eklendi');
-            }
-            setShowModal(false);
-            setEditingItem(null);
-            setFormData({ urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '' });
-            fetchStoklar();
-        } catch (err) {
-            toast.error('İşlem başarısız');
-        }
+            if (editing) await api.updateStok(editing._id, { ...form, islem: 'guncelle' });
+            else await api.createStok(form);
+            toast.success(editing ? 'Stok güncellendi' : 'Yeni stok eklendi');
+            setShowModal(false); setEditing(null); setForm(EMPTY); load();
+        } catch { toast.error('İşlem başarısız'); }
     };
 
-    const handleQuickUpdate = async (id, type, amount) => {
-        try {
-            await api.updateStok(id, { miktar: amount, islem: type });
-            toast.success(type === 'ekle' ? 'Miktar artırıldı' : 'Miktar azaltıldı');
-            fetchStoklar();
-        } catch (err) {
-            toast.error('Güncelleme hatası');
-        }
+    const quickUpdate = async (id, type, amt) => {
+        try { await api.updateStok(id, { miktar: amt, islem: type }); load(); }
+        catch { toast.error('Güncelleme hatası'); }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async id => {
         if (!window.confirm('Bu stoğu silmek istediğinize emin misiniz?')) return;
-        try {
-            await api.deleteStok(id);
-            toast.success('Stok silindi');
-            fetchStoklar();
-        } catch (err) {
-            toast.error('Silme hatası');
-        }
+        try { await api.deleteStok(id); toast.success('Silindi'); load(); }
+        catch { toast.error('Silme hatası'); }
     };
 
-    const openEdit = (item) => {
-        setEditingItem(item);
-        setFormData({
-            urunAdi: item.urunAdi,
-            kategori: item.kategori,
-            miktar: item.miktar,
-            birim: item.birim,
-            kritikSeviye: item.kritikSeviye,
-            notlar: item.notlar || ''
-        });
-        setShowModal(true);
-    };
+    const openEdit = item => { setEditing(item); setForm({ urunAdi: item.urunAdi, kategori: item.kategori, miktar: item.miktar, birim: item.birim, kritikSeviye: item.kritikSeviye, notlar: item.notlar || '' }); setShowModal(true); };
+    const openNew = () => { setEditing(null); setForm(EMPTY); setShowModal(true); };
 
-    const openNew = () => {
-        setEditingItem(null);
-        setFormData({ urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '' });
-        setShowModal(true);
-    };
+    const filtered = stoklar.filter(s =>
+        s.urunAdi.toLowerCase().includes(filter.toLowerCase()) &&
+        (catFilter === 'Tümü' || s.kategori === catFilter)
+    );
 
-    const filteredStoklar = stoklar.filter(item => {
-        const matchesSearch = item.urunAdi.toLowerCase().includes(filter.toLowerCase());
-        const matchesCategory = categoryFilter === 'Tümü' || item.kategori === categoryFilter;
-        return matchesSearch && matchesCategory;
-    });
-
-    // Chart Data
-    const categories = ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'];
-    const chartData = categories.map(cat => ({
-        name: cat,
-        value: stoklar.filter(s => s.kategori === cat).length
-    })).filter(d => d.value > 0);
-
-    const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#607D8B'];
+    const kritikler = stoklar.filter(s => s.miktar <= s.kritikSeviye);
+    const pieData = CATS.map((c, i) => ({ name: c, value: stoklar.filter(s => s.kategori === c).length, fill: PIE_COLORS[i] })).filter(d => d.value > 0);
 
     return (
-        <PageContainer>
-            <Header>
-                <h1><FaBox color="#FF9800" /> Stok Yönetimi</h1>
-                <ActionButton onClick={openNew}>
-                    <FaPlus /> Yeni Stok Ekle
-                </ActionButton>
-            </Header>
+        <Page>
+            <TopRow>
+                <PageTitle>📦 Stok Yönetimi</PageTitle>
+                <AddBtn onClick={openNew}><FaPlus /> Yeni Stok Ekle</AddBtn>
+            </TopRow>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 30 }}>
-                {/* Stok Özeti Chart */}
-                <ChartContainer>
-                    <h3 style={{ margin: '0 0 15px 0', fontSize: 16 }}>📦 Kategori Dağılımı</h3>
-                    <ResponsiveContainer width="100%" height="100%">
+            {/* İstatistikler */}
+            <StatRow>
+                <Stat $color="#4ade80"><div className="val">{stoklar.length}</div><div className="lbl">Toplam Ürün</div></Stat>
+                <Stat $color="#ef4444"><div className="val">{kritikler.length}</div><div className="lbl">Kritik Stok</div></Stat>
+                <Stat $color="#fb923c"><div className="val">{CATS.filter(c => stoklar.some(s => s.kategori === c)).length}</div><div className="lbl">Kategori</div></Stat>
+                <Stat $color="#60a5fa"><div className="val">{stoklar.filter(s => s.miktar > s.kritikSeviye).length}</div><div className="lbl">Yeterli Stok</div></Stat>
+            </StatRow>
+
+            {/* Kritik uyarı */}
+            {kritikler.length > 0 && (
+                <CritBanner>
+                    <FaExclamationTriangle />
+                    <div>{kritikler.length} ürün kritik seviyenin altında: {kritikler.map(k => k.urunAdi).join(', ')}</div>
+                </CritBanner>
+            )}
+
+            {/* Kategori pie chart */}
+            {pieData.length > 0 && (
+                <ChartCard>
+                    <h3>📊 Kategori Dağılımı</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                         <PieChart>
-                            <Pie
-                                data={chartData}
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
+                            <Pie data={pieData} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={4}>
+                                {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                             </Pie>
-                            <Tooltip />
-                            <Legend verticalAlign="middle" align="right" layout="vertical" />
+                            <Tooltip formatter={(v, n) => [`${v} ürün`, n]} />
+                            <Legend iconType="circle" iconSize={10} />
                         </PieChart>
                     </ResponsiveContainer>
-                </ChartContainer>
+                </ChartCard>
+            )}
 
-                {/* Kritik Stok Uyarısı */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                    {stoklar.filter(s => s.miktar <= s.kritikSeviye).length > 0 ? (
-                        <div style={{ background: '#FFEBEE', padding: 20, borderRadius: 16, borderLeft: '5px solid #ef5350' }}>
-                            <h3 style={{ margin: '0 0 10px 0', color: '#c62828', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <FaExclamationTriangle /> Kritik Stoklar!
-                            </h3>
-                            <p style={{ margin: 0, color: '#b71c1c' }}>
-                                {stoklar.filter(s => s.miktar <= s.kritikSeviye).length} ürün kritik seviyenin altında. Lütfen tedarik sağlayın.
-                            </p>
-                        </div>
-                    ) : (
-                        <div style={{ background: '#E8F5E9', padding: 20, borderRadius: 16, borderLeft: '5px solid #2e7d32' }}>
-                            <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                ✅ Stok Durumu İyi
-                            </h3>
-                            <p style={{ margin: 0, color: '#1b5e20' }}>
-                                Tüm ürünler yeterli seviyede.
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
+            {/* Filtreler */}
+            <FilterBar>
+                <SearchWrap>
+                    <FaSearch />
+                    <SearchInput value={filter} onChange={e => setFilter(e.target.value)} placeholder="Ürün ara..." />
+                </SearchWrap>
+                {['Tümü', ...CATS].map(c => (
+                    <CatBtn key={c} $active={catFilter === c} onClick={() => setCatFilter(c)}>{c}</CatBtn>
+                ))}
+            </FilterBar>
 
-            <SearchFilterBar>
-                <div style={{ position: 'relative', flex: 1 }}>
-                    <FaSearch style={{ position: 'absolute', left: 15, top: 15, color: '#999' }} />
-                    <input
-                        type="text"
-                        placeholder="Ürün adı ara..."
-                        value={filter}
-                        onChange={e => setFilter(e.target.value)}
-                        style={{ paddingLeft: 40 }}
-                    />
-                </div>
-                <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
-                    <option value="Tümü">Tüm Kategoriler</option>
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-            </SearchFilterBar>
-
+            {/* Kart grid */}
             {loading ? (
-                <div>Yükleniyor...</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Yükleniyor...</div>
+            ) : filtered.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Ürün bulunamadı</div>
             ) : (
                 <Grid>
-                    {filteredStoklar.map(item => (
-                        <StokCard key={item._id} kritik={item.miktar <= item.kritikSeviye}>
-                            {item.miktar <= item.kritikSeviye && (
-                                <div style={{ position: 'absolute', top: 10, right: 10, color: '#ef5350' }} title="Kritik Seviye">
-                                    <FaExclamationTriangle />
-                                </div>
-                            )}
-                            <HeaderRow>
-                                <div>
-                                    <h3>{item.urunAdi}</h3>
-                                    <span className="badge">{item.kategori}</span>
-                                </div>
-                            </HeaderRow>
+                    {filtered.map(item => {
+                        const pct = item.kritikSeviye > 0 ? (item.miktar / item.kritikSeviye) * 100 : 100;
+                        const kritik = item.miktar <= item.kritikSeviye;
+                        return (
+                            <Card key={item._id} $kritik={kritik}>
+                                <CardBody>
+                                    <CardHead>
+                                        <div>
+                                            <UrunAdi>{item.urunAdi}</UrunAdi>
+                                            <KatBadge $kat={item.kategori}>{item.kategori}</KatBadge>
+                                        </div>
+                                        {kritik && <FaExclamationTriangle style={{ color: '#ef4444', marginTop: 2 }} />}
+                                    </CardHead>
 
-                            <MiktarRow kritik={item.miktar <= item.kritikSeviye}>
-                                <div>
-                                    <span className="value">{item.miktar}</span>
-                                    <span className="unit">{item.birim}</span>
-                                </div>
-                                <div style={{ fontSize: 12, color: '#999', textAlign: 'right' }}>
-                                    Kritik: {item.kritikSeviye} {item.birim}
-                                    <br />
-                                    Son: {new Date(item.sonGuncelleme).toLocaleDateString()}
-                                </div>
-                            </MiktarRow>
+                                    <MiktarWrap>
+                                        <MiktarVal $kritik={kritik}>{item.miktar}</MiktarVal>
+                                        <Birim>{item.birim}</Birim>
+                                    </MiktarWrap>
 
-                            {item.notlar && <p style={{ fontSize: 12, color: '#666', margin: '0 0 10px 0' }}>{item.notlar}</p>}
+                                    <ProgressBar $pct={pct}><div /></ProgressBar>
+                                    <KrtikLabel>Kritik seviye: {item.kritikSeviye} {item.birim} · {new Date(item.sonGuncelleme || item.updatedAt).toLocaleDateString('tr-TR')}</KrtikLabel>
 
-                            <ActionsRow>
-                                <button className="btn-sub" onClick={() => handleQuickUpdate(item._id, 'cikar', 1)}><FaMinus /></button>
-                                <button className="btn-add" onClick={() => handleQuickUpdate(item._id, 'ekle', 1)}><FaPlus /></button>
-                                <button className="btn-edit" onClick={() => openEdit(item)} style={{ flex: 2 }}><FaEdit /> Düzenle</button>
-                                <button onClick={() => handleDelete(item._id)} style={{ background: 'none', color: '#ccc', flex: 0.5 }}><FaTrash /></button>
-                            </ActionsRow>
-                        </StokCard>
-                    ))}
+                                    {item.notlar && <div style={{ fontSize: 12, color: '#64748b', marginBottom: 10, fontStyle: 'italic' }}>"{item.notlar}"</div>}
+
+                                    <ActionBtns>
+                                        <AB $t="sub" onClick={() => quickUpdate(item._id, 'cikar', 1)}><FaMinus /></AB>
+                                        <AB $t="add" onClick={() => quickUpdate(item._id, 'ekle', 1)}><FaPlus /></AB>
+                                        <AB $t="edit" $flex={2} onClick={() => openEdit(item)}><FaEdit /> Düzenle</AB>
+                                        <AB $t="del" $flex={.6} onClick={() => handleDelete(item._id)}><FaTrash /></AB>
+                                    </ActionBtns>
+                                </CardBody>
+                            </Card>
+                        );
+                    })}
                 </Grid>
             )}
 
+            {/* Modal */}
             {showModal && (
-                <ModalOverlay onClick={() => setShowModal(false)}>
-                    <ModalContent onClick={e => e.stopPropagation()}>
-                        <h2>{editingItem ? 'Stok Düzenle' : 'Yeni Stok Ekle'}</h2>
+                <Overlay onClick={() => setShowModal(false)}>
+                    <Modal onClick={e => e.stopPropagation()}>
+                        <ModalTitle>
+                            {editing ? '📝 Stok Düzenle' : '📦 Yeni Stok Ekle'}
+                            <CloseBtn onClick={() => setShowModal(false)}><FaTimes /></CloseBtn>
+                        </ModalTitle>
                         <form onSubmit={handleSubmit}>
-                            <label>Ürün Adı</label>
-                            <input
-                                required
-                                value={formData.urunAdi}
-                                onChange={e => setFormData({ ...formData, urunAdi: e.target.value })}
-                                placeholder="Örn: Penisilin"
-                            />
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-                                <div>
-                                    <label>Kategori</label>
-                                    <select value={formData.kategori} onChange={e => setFormData({ ...formData, kategori: e.target.value })}>
-                                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label>Birim</label>
-                                    <select value={formData.birim} onChange={e => setFormData({ ...formData, birim: e.target.value })}>
-                                        <option value="adet">Adet</option>
-                                        <option value="kg">Kg</option>
-                                        <option value="lt">Litre</option>
-                                        <option value="kutu">Kutu</option>
-                                        <option value="doz">Doz</option>
-                                        <option value="torba">Torba</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-                                <div>
-                                    <label>Miktar</label>
-                                    <input
-                                        type="number" required min="0" step="0.1"
-                                        value={formData.miktar}
-                                        onChange={e => setFormData({ ...formData, miktar: Number(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <label>Kritik Seviye</label>
-                                    <input
-                                        type="number" required min="0"
-                                        value={formData.kritikSeviye}
-                                        onChange={e => setFormData({ ...formData, kritikSeviye: Number(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-
-                            <label>Notlar</label>
-                            <textarea
-                                rows="3"
-                                value={formData.notlar}
-                                onChange={e => setFormData({ ...formData, notlar: e.target.value })}
-                                placeholder="Ek bilgiler..."
-                            />
-
-                            <div className="btn-group">
-                                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '10px 20px', border: 'none', background: '#eee', borderRadius: 8, cursor: 'pointer' }}>İptal</button>
-                                <button type="submit" style={{ padding: '10px 20px', border: 'none', background: '#4CAF50', color: 'white', borderRadius: 8, cursor: 'pointer', fontWeight: 'bold' }}>Kaydet</button>
-                            </div>
+                            <FGrid $cols="1fr">
+                                <FG><Lbl>Ürün Adı *</Lbl><Inp required value={form.urunAdi} onChange={upd('urunAdi')} placeholder="örn: Penisilin Şurup" /></FG>
+                            </FGrid>
+                            <FGrid>
+                                <FG><Lbl>Kategori</Lbl>
+                                    <Sel value={form.kategori} onChange={upd('kategori')}>
+                                        {CATS.map(c => <option key={c}>{c}</option>)}
+                                    </Sel>
+                                </FG>
+                                <FG><Lbl>Birim</Lbl>
+                                    <Sel value={form.birim} onChange={upd('birim')}>
+                                        {['adet', 'kg', 'lt', 'kutu', 'doz', 'torba'].map(b => <option key={b}>{b}</option>)}
+                                    </Sel>
+                                </FG>
+                            </FGrid>
+                            <FGrid>
+                                <FG><Lbl>Mevcut Miktar *</Lbl><Inp type="number" required min="0" step=".1" value={form.miktar} onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))} /></FG>
+                                <FG><Lbl>Kritik Seviye</Lbl><Inp type="number" required min="0" value={form.kritikSeviye} onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))} /></FG>
+                            </FGrid>
+                            <FG><Lbl>Notlar</Lbl><TextA rows={3} value={form.notlar} onChange={upd('notlar')} placeholder="Ek açıklamalar..." /></FG>
+                            <ModalBtns>
+                                <CancelBtn type="button" onClick={() => setShowModal(false)}>İptal</CancelBtn>
+                                <SaveBtn type="submit">💾 Kaydet</SaveBtn>
+                            </ModalBtns>
                         </form>
-                    </ModalContent>
-                </ModalOverlay>
+                    </Modal>
+                </Overlay>
             )}
-        </PageContainer>
+        </Page>
     );
-};
-
-export default StokYonetimi;
+}

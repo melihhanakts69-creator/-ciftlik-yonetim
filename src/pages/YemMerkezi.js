@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import {
     FaLeaf, FaClipboardList, FaCheckCircle, FaTrash, FaCalculator,
-    FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd
+    FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd, FaPlus
 } from 'react-icons/fa';
 import * as api from '../services/api';
 import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
@@ -11,565 +11,276 @@ import YemDeposu from '../components/YemDeposu';
 import YemDanismani from '../components/Yem/YemDanismani';
 import { showSuccess, showError } from '../utils/toast';
 
-// --- STYLED COMPONENTS ---
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
 
-const PageContainer = styled.div`
-  padding: 24px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+// ─── Styled ────────────────────────────────────────────────────────
+const Page = styled.div`
+  padding: 24px; background: #f0f4f8; min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif; animation: ${fadeIn} .35s ease;
+`;
+const TopRow = styled.div`display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px;`;
+const PageTitle = styled.h1`font-size:22px;font-weight:900;color:#0f172a;margin:0;display:flex;align-items:center;gap:10px;`;
+const SubText = styled.p`font-size:14px;color:#64748b;margin:4px 0 0;`;
+
+// Stat cards
+const StatRow = styled.div`display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;@media(max-width:600px){grid-template-columns:1fr;}`;
+const Stat = styled.div`
+  background:#fff;border-radius:16px;padding:16px 20px;box-shadow:0 1px 8px rgba(0,0,0,.06);
+  display:flex;align-items:center;gap:14px;
+  .ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:${p => p.$bg || '#dcfce7'};color:${p => p.$col || '#16a34a'};}
+  .lbl{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;}
+  .val{font-size:22px;font-weight:900;color:#0f172a;}
 `;
 
-const Header = styled.div`
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
+// Tab bar
+const TabBar = styled.div`
+  display:flex;gap:6px;background:#fff;padding:6px;border-radius:16px;
+  box-shadow:0 1px 8px rgba(0,0,0,.06);margin-bottom:22px;flex-wrap:wrap;
+`;
+const TabBtn = styled.button`
+  padding: 10px 18px; border:none; border-radius:11px; font-size:13px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; gap:7px; transition:all .2s;
+  background:${p => p.$active ? 'linear-gradient(135deg,#4ade80,#16a34a)' : 'transparent'};
+  color:${p => p.$active ? '#fff' : '#64748b'};
+  box-shadow:${p => p.$active ? '0 4px 12px rgba(74,222,128,.3)' : 'none'};
+  &:hover{background:${p => p.$active ? 'linear-gradient(135deg,#4ade80,#16a34a)' : '#f1f5f9'};color:${p => p.$active ? '#fff' : '#0f172a'};}
+`;
+const NewBadge = styled.span`
+  background:rgba(96,165,250,.15);color:#2563eb;font-size:9px;padding:2px 6px;
+  border-radius:999px;font-weight:800;letter-spacing:.3px;
 `;
 
-const TitleSection = styled.div`
-  h1 {
-    font-size: 28px;
-    font-weight: 800;
-    color: #1a1a1a;
-    margin: 0 0 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  p {
-    color: #666;
-    margin: 0;
-    font-size: 15px;
+// ─── Rasyon Kart (premium) ─────────────────────────────────────
+const RGrid = styled.div`display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;`;
+const RCard = styled.div`
+  background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);
+  transition:all .25s;border-top:4px solid #4ade80;
+  &:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.1);}
+`;
+const RCardBody = styled.div`padding:20px;`;
+const RHead = styled.div`display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;`;
+const RAd = styled.div`font-size:16px;font-weight:800;color:#0f172a;`;
+const RBadge = styled.span`
+  background:rgba(74,222,128,.1);color:#16a34a;padding:3px 10px;border-radius:999px;
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;border:1px solid rgba(74,222,128,.2);
+`;
+const RMaliyet = styled.div`font-size:28px;font-weight:900;color:#0f172a;margin-bottom:14px;
+  span{font-size:13px;color:#94a3b8;font-weight:500;margin-left:4px;}`;
+const RIngredients = styled.div`
+  background:#f8fafc;border-radius:12px;padding:12px 14px;margin-bottom:14px;
+  div{display:flex;justify-content:space-between;align-items:center;padding:5px 0;
+    border-bottom:1px solid #f1f5f9;&:last-child{border:none;}
+    .iname{display:flex;align-items:center;gap:6px;font-size:13px;color:#475569;font-weight:600;}
+    .iamt{font-size:13px;font-weight:800;color:#0f172a;}
   }
 `;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+const RActions = styled.div`display:flex;gap:8px;`;
+const RBtn = styled.button`
+  flex:${p => p.$flex || 1};padding:10px;border-radius:10px;border:none;font-weight:700;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;
+  background:${p => p.$danger ? 'rgba(239,68,68,.08)' : p.$primary ? 'linear-gradient(135deg,#4ade80,#16a34a)' : '#f1f5f9'};
+  color:${p => p.$danger ? '#ef4444' : p.$primary ? '#fff' : '#475569'};
+  &:hover{filter:brightness(.93);}
+`;
+const EmptyMsg = styled.div`
+  text-align:center;padding:48px;color:#94a3b8;grid-column:1/-1;
+  background:#fff;border-radius:18px;box-shadow:0 1px 8px rgba(0,0,0,.05);
+  .icon{font-size:40px;margin-bottom:12px;}
+  p{margin:0;font-size:14px;}
 `;
 
-const StatCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.05);
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-  }
-
-  .icon-box {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
-
-  .content {
-    display: flex;
-    flex-direction: column;
-    
-    .label { font-size: 13px; color: #666; font-weight: 600; }
-    .value { font-size: 20px; color: #1a1a1a; font-weight: 800; }
-  }
+// ─── Kütüphane tablosu ──────────────────────────────────────────
+const LibCard = styled.div`background:#fff;border-radius:18px;padding:22px;box-shadow:0 1px 8px rgba(0,0,0,.06);`;
+const LibTop = styled.div`display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;`;
+const SearchBox = styled.div`position:relative;width:260px;svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;}`;
+const SInp = styled.input`
+  width:100%;padding:9px 12px 9px 34px;border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:13px;outline:none;box-sizing:border-box;
+  &:focus{border-color:#4ade80;}
 `;
-
-const TabContainer = styled.div`
-  background: white;
-  padding: 6px;
-  border-radius: 16px;
-  display: inline-flex;
-  gap: 5px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-
-  @media (max-width: 600px) {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
+const BtnGroup = styled.div`display:flex;gap:8px;`;
+const Btn = styled.button`
+  padding:9px 16px;border:none;border-radius:10px;font-size:13px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;color:#fff;
+  background:${p => p.$blue ? 'linear-gradient(135deg,#60a5fa,#2563eb)' : 'linear-gradient(135deg,#4ade80,#16a34a)'};
+  &:hover{opacity:.9;}
 `;
+const Table = styled.table`width:100%;border-collapse:collapse;font-size:13px;`;
+const TH = styled.th`text-align:left;padding:10px 14px;color:#64748b;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #f1f5f9;`;
+const TD = styled.td`padding:11px 14px;border-bottom:1px solid #f8fafc;color:#1e293b;font-weight:500;`;
+const PriceBadge = styled.span`background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:800;`;
 
-const TabButton = styled.button`
-  padding: 10px 24px;
-  border: none;
-  background: ${props => props.active ? '#2e7d32' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#555'};
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-
-  &:hover {
-    background: ${props => props.active ? '#2e7d32' : '#f1f3f4'};
-    color: ${props => props.active ? 'white' : '#1a1a1a'};
-  }
-`;
-
-
-const Card = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-  border: 1px solid rgba(0,0,0,0.04);
-  margin-bottom: 24px;
-
-  h2 {
-    font-size: 20px;
-    color: #1a1a1a;
-    margin: 0 0 20px 0;
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-`;
-
-const RationGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 24px;
-`;
-
-const RationCard = styled.div`
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  border: 1px solid rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-  display: flex;
-  flex-direction: column;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 6px;
-    background: linear-gradient(90deg, #2e7d32, #81c784);
-    opacity: 0.8;
-  }
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
-    border-color: transparent;
-    
-    .actions {
-        opacity: 1;
-        transform: translateY(0);
-    }
-  }
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-
-    h3 { 
-        margin: 0; 
-        font-size: 19px; 
-        color: #1a1a1a; 
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-  }
-
-  .badge {
-    background: #e8f5e9; color: #2e7d32;
-    padding: 6px 14px; border-radius: 30px;
-    font-size: 11px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border: 1px solid #c8e6c9;
-  }
-
-  .cost {
-    font-size: 28px;
-    font-weight: 800;
-    color: #1a1a1a;
-    margin: 10px 0 20px 0;
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-    
-    span { font-size: 14px; color: #888; font-weight: 500; }
-  }
-
-  .ingredients {
-    flex: 1;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #fafafa;
-    border-radius: 16px;
-    font-size: 13px;
-    color: #555;
-    border: 1px solid #f5f5f5;
-    
-    div { 
-        margin-bottom: 8px; 
-        display: flex; 
-        justify-content: space-between;
-        align-items: center;
-        &:last-child { margin-bottom: 0; }
-        
-        span { display: flex; align-items: center; gap: 6px; }
-    }
-  }
-
-  .actions {
-    display: flex;
-    gap: 12px;
-    margin-top: auto;
-    background: white;
-  }
-`;
-
-const ActionButton = styled.button`
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-  font-size: 14px;
-  
-  ${props => props.variant === 'primary' && `
-    background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%); 
-    color: white;
-    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
-    
-    &:hover { 
-        filter: brightness(1.1);
-        transform: scale(1.02);
-        box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3);
-    }
-  `}
-
-  ${props => props.variant === 'danger' && `
-    background: #ffebee; color: #d32f2f;
-    border: 1px solid #ffcdd2;
-    &:hover { background: #ffcdd2; transform: scale(1.02); }
-  `}
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  
-  th {
-    text-align: left;
-    padding: 15px;
-    color: #666;
-    font-weight: 600;
-    border-bottom: 2px solid #f0f0f0;
-    font-size: 13px;
-    text-transform: uppercase;
-  }
-  
-  td {
-    padding: 15px;
-    border-bottom: 1px solid #f8f9fa;
-    color: #1a1a1a;
-    font-weight: 500;
-  }
-
-  tr:hover td { background: #fafafa; }
-`;
-
-// --- COMPONENT ---
-
-const YemMerkezi = () => {
-    const [activeTab, setActiveTab] = useState('stok'); // stok | rasyon | hesapla | kutuphane
+// ─── Component ──────────────────────────────────────────────────
+export default function YemMerkezi() {
+    const [tab, setTab] = useState('stok');
     const [yemler, setYemler] = useState([]);
     const [rasyonlar, setRasyonlar] = useState([]);
-    const [kritikStokSayisi, setKritikStokSayisi] = useState(0);
+    const [kritikSayisi, setKritikSayisi] = useState(0);
     const [loading, setLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [search, setSearch] = useState('');
 
-    useEffect(() => {
-        loadData();
-    }, [activeTab]); // Tab değişince veriyi tazele
+    useEffect(() => { loadData(); }, [tab]);
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const [yemRes, rasyonRes, stokRes] = await Promise.all([
-                api.getYemKutuphanesi(),
-                api.getRasyonlar(),
-                api.getYemStok()
-            ]);
-            setYemler(yemRes.data);
-            setRasyonlar(rasyonRes.data);
-            // Kritik stok sayısını hesapla
-            const kritikler = stokRes.data.filter(s => s.miktar <= s.minimumStok);
-            setKritikStokSayisi(kritikler.length);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+            const [yr, rr, sr] = await Promise.all([api.getYemKutuphanesi(), api.getRasyonlar(), api.getYemStok()]);
+            setYemler(yr.data);
+            setRasyonlar(rr.data);
+            setKritikSayisi(sr.data.filter(s => s.miktar <= s.minimumStok).length);
+        } catch (e) { console.error(e); }
+        finally { setLoading(false); }
     };
 
     const handleCreateRasyon = async (data) => {
-        try {
-            await api.createRasyon(data);
-            showSuccess('Rasyon başarıyla oluşturuldu! 🎉');
-            setActiveTab('rasyon');
-            loadData();
-        } catch (error) {
-            showError('Hata oluştu');
-        }
+        try { await api.createRasyon(data); showSuccess('Rasyon oluşturuldu! 🎉'); setTab('rasyon'); loadData(); }
+        catch { showError('Hata oluştu'); }
     };
 
-    const handleYemle = async (rasyonId) => {
-        if (!window.confirm('Bu rasyon grubundaki tüm hayvanlar için stoktan düşülecek ve maliyet yazılacak. Onaylıyor musun?')) return;
-
+    const handleYemle = async (id) => {
+        if (!window.confirm('Bu rasyon için stoktan düşülecek ve maliyet yazılacak. Onaylıyor musun?')) return;
         try {
-            const res = await api.rasyonDagit({ rasyonId });
-            showSuccess(`İşlem Başarılı! ${res.data.hayvanSayisi} hayvan yemlendi. Toplam Maliyet: ${res.data.toplamMaliyet.toFixed(2)} TL`);
-        } catch (error) {
-            showError('Yemleme başarısız: ' + (error.response?.data?.message || 'Hata'));
-        }
+            const res = await api.rasyonDagit({ rasyonId: id });
+            showSuccess(`${res.data.hayvanSayisi} hayvan yemlendi — ${res.data.toplamMaliyet.toFixed(2)} TL`);
+        } catch (e) { showError('Yemleme başarısız: ' + (e.response?.data?.message || 'Hata')); }
     };
 
     const handleDeleteRasyon = async (id) => {
-        if (window.confirm('Bu rasyonu silmek istediğine emin misin?')) {
-            await api.deleteRasyon(id);
-            loadData();
-        }
+        if (!window.confirm('Bu rasyonu silmek istiyor musun?')) return;
+        await api.deleteRasyon(id);
+        loadData();
     };
 
-    // --- RENDER HELPERS ---
-    const filteredYemler = yemler.filter(y => y.ad.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredYemler = yemler.filter(y => y.ad.toLowerCase().includes(search.toLowerCase()));
+
+    const TABS = [
+        { key: 'stok', label: 'Stok & Depo', icon: <FaBoxOpen /> },
+        { key: 'rasyon', label: 'Rasyonlarım', icon: <FaChartPie />, badge: rasyonlar.length || null },
+        { key: 'hesapla', label: 'Hesaplayıcı', icon: <FaCalculator /> },
+        { key: 'danisman', label: 'Yem Danışmanı', icon: <FaUserMd />, isNew: true },
+        { key: 'kutuphane', label: 'Yem Kütüphanesi', icon: <FaLeaf /> },
+    ];
 
     return (
-        <PageContainer>
-            <Header>
-                <TitleSection>
-                    <h1><FaLeaf color="#2e7d32" /> Yem Yönetim Merkezi</h1>
-                    <p>Yem stoklarını yönet, rasyon hazırla ve günlük yemleme yap.</p>
-                </TitleSection>
-            </Header>
+        <Page>
+            <TopRow>
+                <div>
+                    <PageTitle><FaLeaf color="#16a34a" /> Yem Yönetim Merkezi</PageTitle>
+                    <SubText>Yem stoklarını yönet, rasyon hazırla ve günlük yemleme yap.</SubText>
+                </div>
+            </TopRow>
 
-            <StatsGrid>
-                <StatCard>
-                    <div className="icon-box" style={{ background: '#e3f2fd', color: '#1565c0' }}>
-                        <FaClipboardList />
-                    </div>
-                    <div className="content">
-                        <span className="label">Aktif Rasyonlar</span>
-                        <span className="value">{rasyonlar.length}</span>
-                    </div>
-                </StatCard>
-                <StatCard>
-                    <div className="icon-box" style={{ background: '#e8f5e9', color: '#2e7d32' }}>
-                        <FaBoxOpen />
-                    </div>
-                    <div className="content">
-                        <span className="label">Tanımlı Yemler</span>
-                        <span className="value">{yemler.length}</span>
-                    </div>
-                </StatCard>
-                <StatCard>
-                    <div className="icon-box" style={{ background: kritikStokSayisi > 0 ? '#ffebee' : '#fff3e0', color: kritikStokSayisi > 0 ? '#f44336' : '#ef6c00' }}>
-                        <FaExclamationTriangle />
-                    </div>
-                    <div className="content">
-                        <span className="label">Kritik Stok</span>
-                        <span className="value" style={kritikStokSayisi > 0 ? { color: '#f44336' } : {}}>{kritikStokSayisi}</span>
-                    </div>
-                </StatCard>
-            </StatsGrid>
+            {/* İstatistikler */}
+            <StatRow>
+                <Stat $bg="rgba(96,165,250,.1)" $col="#2563eb">
+                    <div className="ico"><FaClipboardList /></div>
+                    <div><div className="lbl">Aktif Rasyonlar</div><div className="val">{rasyonlar.length}</div></div>
+                </Stat>
+                <Stat $bg="rgba(74,222,128,.1)" $col="#16a34a">
+                    <div className="ico"><FaBoxOpen /></div>
+                    <div><div className="lbl">Tanımlı Yemler</div><div className="val">{yemler.length}</div></div>
+                </Stat>
+                <Stat $bg={kritikSayisi > 0 ? "rgba(239,68,68,.1)" : "rgba(251,146,60,.1)"} $col={kritikSayisi > 0 ? "#ef4444" : "#ea580c"}>
+                    <div className="ico"><FaExclamationTriangle /></div>
+                    <div><div className="lbl">Kritik Stok</div><div className="val">{kritikSayisi}</div></div>
+                </Stat>
+            </StatRow>
 
-            <TabContainer>
-                <TabButton active={activeTab === 'stok'} onClick={() => setActiveTab('stok')}>
-                    <FaBoxOpen /> Stok & Depo
-                </TabButton>
-                <TabButton active={activeTab === 'rasyon'} onClick={() => setActiveTab('rasyon')}>
-                    <FaChartPie /> Rasyonlarım
-                </TabButton>
-                <TabButton active={activeTab === 'hesapla'} onClick={() => setActiveTab('hesapla')}>
-                    <FaCalculator /> Hesaplayıcı
-                </TabButton>
-                <TabButton active={activeTab === 'danisman'} onClick={() => setActiveTab('danisman')}>
-                    <FaUserMd /> Yem Danışmanı
-                    <span style={{ background: '#e3f2fd', color: '#1565c0', fontSize: 10, padding: '2px 6px', borderRadius: 10, marginLeft: -2 }}>YENİ</span>
-                </TabButton>
-                <TabButton active={activeTab === 'kutuphane'} onClick={() => setActiveTab('kutuphane')}>
-                    <FaLeaf /> Yem Kütüphanesi
-                </TabButton>
-            </TabContainer>
+            {/* Tab bar */}
+            <TabBar>
+                {TABS.map(t => (
+                    <TabBtn key={t.key} $active={tab === t.key} onClick={() => setTab(t.key)}>
+                        {t.icon} {t.label}
+                        {t.isNew && <NewBadge>YENİ</NewBadge>}
+                        {t.badge && <span style={{ background: 'rgba(255,255,255,.2)', borderRadius: 999, padding: '1px 7px', fontSize: 11, fontWeight: 900 }}>{t.badge}</span>}
+                    </TabBtn>
+                ))}
+            </TabBar>
 
-            {/* --- TAB CONTENT --- */}
+            {/* ── Tab içerikleri ── */}
 
-            {activeTab === 'danisman' && (
-                <YemDanismani />
-            )}
+            {tab === 'danisman' && <YemDanismani />}
+            {tab === 'stok' && <YemDeposu isEmbedded={true} />}
+            {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
 
-            {activeTab === 'stok' && (
-                // YemDeposu bileşenini direkt kullanıyoruz, bu bileşen kendi içinde API çağrılarını yapıyor
-                <YemDeposu isEmbedded={true} />
-            )}
-
-            {activeTab === 'rasyon' && (
-                <RationGrid>
-                    {rasyonlar.length === 0 && (
-                        <div style={{ padding: 40, textAlign: 'center', gridColumn: '1 / -1', color: '#888' }}>
-                            Henüz rasyon tanımlamadınız. "Hesaplayıcı" sekmesinden yeni bir rasyon oluşturun.
-                        </div>
-                    )}
-                    {rasyonlar.map(rasyon => (
-                        <RationCard key={rasyon._id} color="#2e7d32">
-                            <div className="header">
-                                <div>
-                                    <h3 style={{ marginBottom: 6 }}>{rasyon.ad}</h3>
-                                    <div className="badge">{rasyon.hedefGrup.toUpperCase()}</div>
-                                </div>
-                            </div>
-
-                            <div className="cost">
-                                {rasyon.toplamMaliyet.toFixed(2)} TL
-                                <span> / Baş</span>
-                            </div>
-
-                            <div className="ingredients">
-                                {rasyon.icerik.map((item, i) => (
-                                    <div key={i}>
-                                        <span><FaLeaf size={10} color="#81c784" /> {item.yemId?.ad || 'Silinmiş Yem'}</span>
-                                        <strong>{item.miktar} Kg</strong>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="actions">
-                                <ActionButton variant="primary" onClick={() => handleYemle(rasyon._id)}>
-                                    <FaCheckCircle /> Yemle
-                                </ActionButton>
-                                <ActionButton variant="danger" style={{ flex: '0 0 50px' }} onClick={() => handleDeleteRasyon(rasyon._id)}>
-                                    <FaTrash />
-                                </ActionButton>
-                            </div>
-                        </RationCard>
+            {tab === 'rasyon' && (
+                <RGrid>
+                    {rasyonlar.length === 0 ? (
+                        <EmptyMsg>
+                            <div className="icon">🌿</div>
+                            <p>Henüz rasyon tanımlamadınız.<br />
+                                <strong style={{ color: '#4ade80' }}>Hesaplayıcı</strong> sekmesinden yeni bir rasyon oluşturun.</p>
+                        </EmptyMsg>
+                    ) : rasyonlar.map(r => (
+                        <RCard key={r._id}>
+                            <RCardBody>
+                                <RHead>
+                                    <RAd>{r.ad}</RAd>
+                                    <RBadge>{r.hedefGrup?.toUpperCase()}</RBadge>
+                                </RHead>
+                                <RMaliyet>{r.toplamMaliyet.toFixed(2)} TL<span>/ Baş</span></RMaliyet>
+                                <RIngredients>
+                                    {r.icerik.map((item, i) => (
+                                        <div key={i}>
+                                            <span className="iname"><FaLeaf size={9} color="#4ade80" />{item.yemId?.ad || 'Silinmiş Yem'}</span>
+                                            <span className="iamt">{item.miktar} kg</span>
+                                        </div>
+                                    ))}
+                                </RIngredients>
+                                <RActions>
+                                    <RBtn $primary onClick={() => handleYemle(r._id)}><FaCheckCircle /> Yemle</RBtn>
+                                    <RBtn $danger $flex={.5} onClick={() => handleDeleteRasyon(r._id)}><FaTrash /></RBtn>
+                                </RActions>
+                            </RCardBody>
+                        </RCard>
                     ))}
-                </RationGrid>
+                </RGrid>
             )}
 
-            {activeTab === 'hesapla' && (
-                <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />
-            )}
-
-            {activeTab === 'kutuphane' && (
-                <Card>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <div style={{ position: 'relative', width: '300px' }}>
-                            <FaSearch style={{ position: 'absolute', left: 15, top: 12, color: '#999' }} />
-                            <input
-                                placeholder="Yem ara..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                style={{
-                                    padding: '10px 10px 10px 40px', width: '100%',
-                                    borderRadius: '20px', border: '1px solid #eee', outline: 'none'
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <button
-                                onClick={async () => {
-                                    if (window.confirm('Depodaki yemler kütüphaneye aktarılacak ve besin değerleri otomatik doldurulacak. Onaylıyor musun?')) {
-                                        setLoading(true);
-                                        try {
-                                            const res = await api.syncStokToLibrary();
-                                            showSuccess(`İşlem Tamam! ${res.data.added} yem eklendi, ${res.data.matched} tanesi otomatik tanımlandı.`);
-                                            loadData();
-                                        } catch (e) { showError('Hata oluştu'); } finally { setLoading(false); }
-                                    }
-                                }}
-                                style={{ background: '#0288d1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', marginRight: 10 }}
-                            >
-                                <FaClipboardList /> Akıllı Eşitle
-                            </button>
-                            <button
-                                onClick={() => setShowAddModal(true)}
-                                style={{ background: '#2e7d32', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}
-                            >
-                                <FaLeaf /> Yeni Yem
-                            </button>
-                        </div>
-                    </div>
-
+            {tab === 'kutuphane' && (
+                <LibCard>
+                    <LibTop>
+                        <SearchBox>
+                            <FaSearch />
+                            <SInp value={search} onChange={e => setSearch(e.target.value)} placeholder="Yem ara..." />
+                        </SearchBox>
+                        <BtnGroup>
+                            <Btn $blue onClick={async () => {
+                                if (!window.confirm('Depodaki yemler kütüphaneye aktarılacak. Onaylıyor musun?')) return;
+                                setLoading(true);
+                                try { const r = await api.syncStokToLibrary(); showSuccess(`${r.data.added} yem eklendi, ${r.data.matched} tanımlandı.`); loadData(); }
+                                catch { showError('Hata oluştu'); }
+                                finally { setLoading(false); }
+                            }}><FaClipboardList /> Akıllı Eşitle</Btn>
+                            <Btn onClick={() => setShowAddModal(true)}><FaPlus /> Yeni Yem</Btn>
+                        </BtnGroup>
+                    </LibTop>
                     <Table>
                         <thead>
                             <tr>
-                                <th>Yem Adı</th>
-                                <th>KM (%)</th>
-                                <th>Protein (%)</th>
-                                <th>Enerji (Mcal)</th>
-                                <th>Birim Fiyat</th>
+                                <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredYemler.map(yem => (
-                                <tr key={yem._id}>
-                                    <td style={{ fontWeight: 'bold' }}>{yem.ad}</td>
-                                    <td>{yem.kuruMadde}</td>
-                                    <td>{yem.protein}</td>
-                                    <td>{yem.enerji}</td>
-                                    <td>
-                                        <span style={{ background: '#e0f2f1', color: '#00695c', padding: '4px 8px', borderRadius: 4, fontSize: '13px' }}>
-                                            {yem.birimFiyat} TL/Kg
-                                        </span>
-                                    </td>
+                            {filteredYemler.map(y => (
+                                <tr key={y._id}>
+                                    <TD style={{ fontWeight: 800, color: '#0f172a' }}>{y.ad}</TD>
+                                    <TD>{y.kuruMadde}</TD>
+                                    <TD>{y.protein}</TD>
+                                    <TD>{y.enerji}</TD>
+                                    <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
                                 </tr>
                             ))}
+                            {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
                         </tbody>
                     </Table>
-                </Card>
+                </LibCard>
             )}
 
             {showAddModal && (
-                <YemEkleModal
-                    onClose={() => setShowAddModal(false)}
-                    onSave={() => {
-                        loadData();
-                        setShowAddModal(false);
-                    }}
-                />
+                <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
             )}
-        </PageContainer>
+        </Page>
     );
-};
-
-export default YemMerkezi;
+}
