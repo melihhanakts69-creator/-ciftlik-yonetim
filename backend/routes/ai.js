@@ -7,10 +7,12 @@ const GEMINI_MODEL = 'gemini-2.0-flash';
 
 // Sağlık kontrolü — tarayıcıdan test et: /api/ai/test
 router.get('/test', (req, res) => {
+    const key = process.env.GEMINI_API_KEY;
     res.json({
         status: 'ok',
         message: 'AI route calisıyor ✅',
-        geminiKey: process.env.GEMINI_API_KEY ? '✅ Kayıtlı' : '❌ EKSİK - Render Environment\'e GEMINI_API_KEY ekle',
+        geminiKey: key ? `✅ Kayıtlı (${key.substring(0, 8)}...)` : '❌ EKSİK',
+        allEnvKeys: Object.keys(process.env).filter(k => !k.startsWith('npm_') && !k.startsWith('NVM_')),
         model: GEMINI_MODEL
     });
 });
