@@ -9,7 +9,7 @@ import {
 import axios from 'axios';
 
 const API = process.env.NODE_ENV === 'production'
-    ? 'https://ciftlik-backend.onrender.com'
+    ? 'https://ciftlik-yonetim.onrender.com'
     : (process.env.REACT_APP_API_URL || 'http://localhost:5000');
 
 // --- ANIMATIONS ---
