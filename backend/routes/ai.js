@@ -3,6 +3,7 @@ const router = express.Router();
 const https = require('https');
 const crypto = require('crypto');
 const auth = require('../middleware/auth');
+const AiSohbet = require('../models/AiSohbet'); // Yeni Sohbet Modeli eklendi
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
@@ -100,14 +101,23 @@ router.get('/ping', async (req, res) => {
 
 // ─── GEMİNİ ÇAĞRI FONKSİYONLARI ──────────────────────────────────────────────
 
-// Tek bir key ile deneme yapar
-async function callGeminiSingle(systemPrompt, userMessage, apiKey) {
+// Tek bir key ile ve geçmiş mesajlarla (history) deneme yapar
+async function callGeminiSingle(systemPrompt, userMessage, apiKey, history = []) {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
     return new Promise((resolve, reject) => {
+        // Geçmişi Gemini formatına uygun hale getiriyoruz
+        const contents = history.map(msg => ({
+            role: msg.role === 'model' ? 'model' : 'user',
+            parts: [{ text: msg.text }]
+        }));
+
+        // Yeni mesajı ekle
+        contents.push({ role: 'user', parts: [{ text: userMessage }] });
+
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+            contents: contents,
             generationConfig: { temperature: 0.7, maxOutputTokens: 1500 } // Yarım kesilmemesi için limit artırıldı
         });
 
@@ -154,8 +164,8 @@ async function callGeminiSingle(systemPrompt, userMessage, apiKey) {
     });
 }
 
-// Tüm keyleri sırayla deneyen asıl fonksiyon
-async function callGeminiWithRetry(systemPrompt, userMessage) {
+// Tüm keyleri sırayla deneyen asıl fonksiyon (geçmiş desteği ile)
+async function callGeminiWithRetry(systemPrompt, userMessage, history = []) {
     let attempts = 0;
     const maxAttempts = API_KEYS.length; // En fazla key sayısı kadar deneme yap
 
@@ -163,7 +173,7 @@ async function callGeminiWithRetry(systemPrompt, userMessage) {
         const apiKey = API_KEYS[currentKeyIndex];
         try {
             // Bir key ile bağlanmayı dene
-            const yanit = await callGeminiSingle(systemPrompt, userMessage, apiKey);
+            const yanit = await callGeminiSingle(systemPrompt, userMessage, apiKey, history);
             return yanit; // Başarılıysa fonksiyonu sonlandır ve yanıtı dön!
         } catch (err) {
             console.warn(`[AI] Key indeks ${currentKeyIndex} hata verdi: ${err.message}`);
@@ -184,9 +194,9 @@ async function callGeminiWithRetry(systemPrompt, userMessage) {
     throw new Error('KOTA_BITTI: Tüm yedek API anahtarlarının kotası dolu! Sisteme yeni API Key eklenmeli.');
 }
 
-// ─── ORTAK AI HANDLER ─────────────────────────────────────────────────────────
+// ─── ORTAK AI HANDLER (DİNAMİK GEÇMİŞ İLE EKLENDİ) ────────────────────────
 async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
-    const { soru, context } = req.body;
+    const { soru, context, chatId } = req.body;
     if (!soru || soru.trim().length < 3) {
         return res.status(400).json({ message: 'Soru çok kısa' });
     }
@@ -206,40 +216,93 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
 
     const fullQuestion = context ? `${contextPrefix}: ${context}\n\nSoru: ${soru}` : soru;
 
-    const cacheKey = getCacheKey(type, fullQuestion);
-    const cached = getFromCache(cacheKey);
-    if (cached) {
-        return res.json({ yanit: cached, model: GEMINI_MODEL, cached: true, remaining: limitCheck.remaining });
-    }
-
-    if (pendingRequests.has(cacheKey)) {
+    // Veritabanından geçmişi çek 
+    let chatHistory = [];
+    let chatDoc = null;
+    if (chatId && userId !== 'anonim') {
         try {
-            const yanit = await pendingRequests.get(cacheKey);
-            setCache(cacheKey, yanit);
-            return res.json({ yanit, model: GEMINI_MODEL, cached: true, remaining: limitCheck.remaining });
-        } catch (err) {
-            return res.status(500).json({ message: 'AI servisi hatası: ' + err.message });
+            chatDoc = await AiSohbet.findOne({ _id: chatId, user: userId });
+            if (chatDoc) {
+                // Geçmişteki son 10 mesajı al (Token tasarrufu için tüm geçmiş yerine en yakın bağlam)
+                const limitHistory = chatDoc.messages.slice(-10);
+                chatHistory = limitHistory.map(m => ({ role: m.role, text: m.text }));
+            }
+        } catch (e) {
+            console.error('Sohbet geçmişi çekme hatası:', e);
         }
     }
 
-    // Gerçek API Çağrısı Başlar (Rotasyonlu)
-    const geminiPromise = callGeminiWithRetry(systemPrompt, fullQuestion);
-    pendingRequests.set(cacheKey, geminiPromise);
+    // Gerçek API Çağrısı Başlar (Rotasyonlu ve Geçmişli)
+    const geminiPromise = callGeminiWithRetry(systemPrompt, fullQuestion, chatHistory);
 
     try {
         const yanit = await geminiPromise;
-        setCache(cacheKey, yanit);
-        return res.json({ yanit, model: GEMINI_MODEL, cached: false, remaining: limitCheck.remaining });
+
+        // --- Veritabanı Kayıt İşlemi ---
+        if (userId !== 'anonim') {
+            try {
+                if (!chatDoc) {
+                    // Yeni Sohbet oluştur (Başlık olarak ilk sorunun başı)
+                    let title = soru.substring(0, 30);
+                    if (soru.length > 30) title += '...';
+
+                    chatDoc = new AiSohbet({
+                        user: userId,
+                        title: title,
+                        type: type,
+                        messages: []
+                    });
+                }
+
+                // Mesajları dökümana ekle
+                chatDoc.messages.push({ role: 'user', text: soru });
+                chatDoc.messages.push({ role: 'model', text: yanit });
+                await chatDoc.save();
+            } catch (dbErr) {
+                console.error("Sohbet DB'ye kaydedilemedi:", dbErr);
+            }
+        }
+
+        return res.json({
+            yanit,
+            model: GEMINI_MODEL,
+            cached: false,
+            remaining: limitCheck.remaining,
+            chatId: chatDoc ? chatDoc._id : null
+        });
     } catch (err) {
         console.error(`${type} AI Hata:`, err.message);
         if (err.message.startsWith('KOTA_BITTI')) {
             return res.status(429).json({ message: 'Mevcut tüm AI sistemlerinin kotası anlık olarak dolu, birkaç dakika bekleyip tekrar deneyin.' });
         }
         return res.status(500).json({ message: 'AI servisi hatası: ' + err.message });
-    } finally {
-        pendingRequests.delete(cacheKey);
     }
 }
+
+// ─── GEÇMİŞ MESAJLARI VE SOHBETLERİ GETİRME ENDPOINTLERİ ───────────────────
+router.get('/history', auth, async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const chats = await AiSohbet.find({ user: userId })
+            .select('_id title type updatedAt')
+            .sort({ updatedAt: -1 });
+        res.json(chats);
+    } catch (e) {
+        res.status(500).json({ message: 'Geçmiş alınırken hata' });
+    }
+});
+
+router.get('/history/:id', auth, async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const chat = await AiSohbet.findOne({ _id: req.params.id, user: userId });
+        if (!chat) return res.status(404).json({ message: 'Sohbet bulunamadı' });
+        res.json(chat);
+    } catch (e) {
+        res.status(500).json({ message: 'Sohbet detayları alınırken hata' });
+    }
+});
+
 
 // ─── YEM DANIŞMANI ────────────────────────────────────────────────────────────
 const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootekni uzmanısın. Türk çiftçilerine yem ve besleme konusunda pratik, bilimsel ve anlaşılır tavsiye ver.
