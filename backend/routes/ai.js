@@ -3,11 +3,10 @@ const router = express.Router();
 const https = require('https');
 const auth = require('../middleware/auth');
 
-const GEMINI_MODEL = 'gemini-1.5-flash-latest';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 // Render env var fallback — bolunmus string GitHub scanner'i atlatir
 const _kp = ['AIzaS', 'yDyjm', 'IbVJD', 'vDbtv', 'DHCU', 'u3zHd', 'BHiYL', 'Ndidw'];
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _kp.join('');
-
 
 // Sağlık kontrolü
 router.get('/test', (req, res) => {
@@ -15,18 +14,22 @@ router.get('/test', (req, res) => {
         status: 'ok',
         serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
         geminiKey: GEMINI_API_KEY ? `✅ Kayıtlı (${GEMINI_API_KEY.substring(0, 8)}...)` : '❌ EKSİK',
-        model: GEMINI_MODEL
+        model: GEMINI_MODEL,
+        apiVersion: 'v1'
     });
 });
 
-// ─── Gemini çağrı fonksiyonu ────────────────────────────────────────────────
+// ─── Gemini çağrı fonksiyonu (v1 API, sistem promptu user mesajına dahil) ─────
 async function callGemini(systemPrompt, userMessage) {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    // v1 API kullan — v1beta'dan daha stabil
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     return new Promise((resolve, reject) => {
+        // Sistem promptunu kullanıcı mesajının başına ekle (v1 system_instruction desteklemiyor)
+        const combinedMessage = `${systemPrompt}\n\n---\n\n${userMessage}`;
+
         const body = JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+            contents: [{ role: 'user', parts: [{ text: combinedMessage }] }],
             generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
         });
 
@@ -64,14 +67,13 @@ async function callGemini(systemPrompt, userMessage) {
 }
 
 // ─── YEM DANIŞMANI ──────────────────────────────────────────────────────────
-const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootekni uzmanısın. Görevin, Türk çiftçilerine yem ve besleme konusunda pratik, bilimsel ve anlaşılır tavsiyet vermektir.
+const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootekni uzmanısın. Türk çiftçilerine yem ve besleme konusunda pratik, bilimsel ve anlaşılır tavsiyet ver.
 
 Kurallar:
 - Her zaman Türkçe yanıt ver.
-- Yanıtlarında somut değerler kullan (kg, %, Mcal/kg gibi birimlerle).
-- Cevapların kısa ve net olsun (maksimum 300 kelime).
-- Gerektiğinde madde madde listele.
-- Türkiye'deki yaygın yem çeşitleri (mısır silajı, yonca, saman, arpa, soya küspesi vb.) hakkında bilgi ver.`;
+- Somut değerler kullan (kg, %, Mcal/kg).
+- Kısa ve net ol (maks 300 kelime).
+- Türkiye'deki yaygın yemler hakkında bilgi ver (mısır silajı, yonca, saman, arpa, soya küspesi).`;
 
 router.post('/yem', auth, async (req, res) => {
     try {
@@ -89,14 +91,14 @@ router.post('/yem', auth, async (req, res) => {
 });
 
 // ─── SAĞLIK DANIŞMANI ────────────────────────────────────────────────────────
-const SAGLIK_SYSTEM_PROMPT = `Sen büyükbaş hayvan sağlığı konusunda bilgi veren bir yapay zeka asistanısın.
+const SAGLIK_SYSTEM_PROMPT = `Sen büyükbaş hayvan sağlığı konusunda bilgi veren bir yapay zeka asistanısın. Türk çiftçilerine semptomlar ve genel sağlık önlemleri hakkında genel bilgi ver.
 
 KRİTİK KURALLAR:
 1. ASLA kesin teşhis koyma.
 2. ASLA ilaç dozu önerme.
-3. Her yanıtının SONUNA mutlaka şu uyarıyı ekle: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
+3. Her yanıtının sonuna ekle: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
 4. Her zaman Türkçe yanıt ver.
-5. Cevapların kısa ve net olsun (maksimum 300 kelime).
+5. Kısa ve net ol (maks 300 kelime).
 6. Acil belirtiler için "ACİL: Hemen veterinerinizi arayın" uyarısı ver.`;
 
 router.post('/saglik', auth, async (req, res) => {
