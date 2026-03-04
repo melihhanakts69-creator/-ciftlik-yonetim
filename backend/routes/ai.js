@@ -10,9 +10,9 @@ router.get('/test', (req, res) => {
     const key = process.env.GEMINI_API_KEY;
     res.json({
         status: 'ok',
-        message: 'AI route calisıyor ✅',
-        geminiKey: key ? `✅ Kayıtlı (${key.substring(0, 8)}...)` : '❌ EKSİK',
-        allEnvKeys: Object.keys(process.env).filter(k => !k.startsWith('npm_') && !k.startsWith('NVM_')),
+        serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
+        serviceSlug: process.env.RENDER_SERVICE_SLUG || 'bilinmiyor',
+        geminiKey: key ? `✅ Kayıtlı (${key.substring(0, 8)}...)` : '❌ EKSİK - YANLIS SERVISE EKLEDIN',
         model: GEMINI_MODEL
     });
 });
