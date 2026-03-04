@@ -282,6 +282,7 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
 // ─── GEÇMİŞ MESAJLARI VE SOHBETLERİ GETİRME ENDPOINTLERİ ───────────────────
 router.get('/history', auth, async (req, res) => {
     try {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         const userId = req.userId;
         const chats = await AiSohbet.find({ user: userId })
             .select('_id title type updatedAt')

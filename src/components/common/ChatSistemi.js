@@ -285,9 +285,9 @@ export default function ChatSistemi({ type = 'genel', title = 'AI Danışman', i
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
 
-    // İlk yüklemede geçmiş sohbetleri getir
+    // İlk yüklemede geçmiş sohbetleri getir ve son sohbeti ekranda aç
     useEffect(() => {
-        loadHistory();
+        loadHistory(true);
     }, [type]);
 
     useEffect(() => {
@@ -298,12 +298,17 @@ export default function ChatSistemi({ type = 'genel', title = 'AI Danışman', i
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const loadHistory = async () => {
+    const loadHistory = async (autoSelectLatest = false) => {
         try {
             const res = await api.getAiHistory();
             // Sadece bu tipe ait olanları veya hepsini filtrele
             const filtered = res.data.filter(c => c.type === type);
             setHistory(filtered);
+
+            // Uygulamaya ilk girişinde (veya sekme geçişinde) en son sohbete odaklan
+            if (autoSelectLatest && filtered.length > 0) {
+                loadChat(filtered[0]._id);
+            }
         } catch (error) {
             console.error('Geçmiş yüklenemedi:', error);
         }
