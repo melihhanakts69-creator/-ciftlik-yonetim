@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Production'da kesinlikle Render URL'ini kullan
 const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://ciftlik-yonetim.onrender.com/api'
+  ? 'https://ciftlik-backend.onrender.com/api'
   : (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
 
 const api = axios.create({

@@ -8,7 +8,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_API_URL || 'https://ciftlik-yonetim.onrender.com';
+const API = process.env.REACT_APP_API_URL || 'https://ciftlik-backend.onrender.com';
 
 // --- ANIMATIONS ---
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
