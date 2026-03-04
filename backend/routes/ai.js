@@ -77,7 +77,7 @@ router.post('/yem', auth, async (req, res) => {
     try {
         const { soru, context } = req.body;
         if (!soru || soru.trim().length < 3) return res.status(400).json({ message: 'Soru çok kısa' });
-        if (!process.env.GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
+        if (!GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
 
         const fullQuestion = context ? `Çiftlik Bağlamı: ${context}\n\nSoru: ${soru}` : soru;
         const yanit = await callGemini(YEM_SYSTEM_PROMPT, fullQuestion);
@@ -103,7 +103,7 @@ router.post('/saglik', auth, async (req, res) => {
     try {
         const { soru, context } = req.body;
         if (!soru || soru.trim().length < 3) return res.status(400).json({ message: 'Soru çok kısa' });
-        if (!process.env.GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
+        if (!GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
 
         const fullQuestion = context ? `Hayvan Bilgileri: ${context}\n\nBelirtiler/Soru: ${soru}` : soru;
         const yanit = await callGemini(SAGLIK_SYSTEM_PROMPT, fullQuestion);
