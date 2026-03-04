@@ -108,7 +108,7 @@ async function callGeminiSingle(systemPrompt, userMessage, apiKey) {
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
         });
 
         const options = {
