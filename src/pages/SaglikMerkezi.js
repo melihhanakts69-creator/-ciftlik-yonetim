@@ -107,22 +107,21 @@ const BodyWrap = styled.div`padding: 24px;`;
 
 
 const TabBar = styled.div`
-  display: flex; gap: 4px; background: #fff; padding: 5px;
-  border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.07);
-  margin-bottom: 22px; overflow-x: auto;
-  border: 1px solid #e2e8f0;
-  &::-webkit-scrollbar { display: none; }
+  display: flex; flex-direction: column; gap: 8px; background: transparent;
+  margin-bottom: 22px; width: 100%; max-width: 300px;
 `;
 const Tab = styled.button`
-  padding: 9px 18px; border: none; border-radius: 10px;
-  cursor: pointer; font-weight: 700; font-size: 13px;
+  padding: 12px 18px; border: none; border-radius: 12px;
+  cursor: pointer; font-weight: 700; font-size: 14px;
   white-space: nowrap; transition: all 0.2s;
-  display: flex; align-items: center; gap: 7px;
-  background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : 'transparent'};
-  color: ${p => p.active ? '#fff' : '#64748b'};
-  box-shadow: ${p => p.active ? '0 2px 8px rgba(190,18,60,.35)' : 'none'};
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : '#fff'};
+  color: ${p => p.active ? '#fff' : '#475569'};
+  box-shadow: ${p => p.active ? '0 4px 12px rgba(190,18,60,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
+  border: 1px solid ${p => p.active ? 'transparent' : '#e2e8f0'};
   &:hover {
-    background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : '#fef2f2'};
+    transform: translateX(4px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.1);
     color: ${p => p.active ? '#fff' : '#be123c'};
   }
 `;
@@ -626,225 +625,230 @@ function SaglikMerkezi() {
             </PageHeader>
 
             <BodyWrap>
+                <div style={{ display: 'flex', gap: '24px', flexDirection: window.innerWidth < 768 ? 'column' : 'row', alignItems: 'flex-start' }}>
+                    {/* TAB BAR (Y Ekseninde Menü) */}
+                    <TabBar>
+                        <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
+                            🏥 Sağlık Kayıtları
+                        </Tab>
+                        <Tab active={aktifTab === 'asilar'} onClick={() => setAktifTab('asilar')}>
+                            💉 Aşı Takvimi
+                        </Tab>
+                        <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
+                            ⏰ Yaklaşan İşlemler
+                        </Tab>
 
-                {/* TAB BAR */}
-                <TabBar>
-                    <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
-                        🏥 Sağlık Kayıtları
-                    </Tab>
-                    <Tab active={aktifTab === 'asilar'} onClick={() => setAktifTab('asilar')}>
-                        💉 Aşı Takvimi
-                    </Tab>
-                    <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
-                        ⏰ Yaklaşan İşlemler
-                    </Tab>
+                        <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
+                            style={{
+                                background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
+                                color: aktifTab === 'ai' ? '#fff' : undefined,
+                                borderColor: aktifTab === 'ai' ? 'transparent' : undefined
+                            }}>
+                            <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
+                        </Tab>
+                    </TabBar>
 
-                    <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
-                        style={{
-                            background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
-                            borderColor: aktifTab === 'ai' ? 'transparent' : undefined
-                        }}>
-                        <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
-                    </Tab>
-                </TabBar>
+                    <div style={{ flex: 1, width: '100%' }}>
 
-                {/* SAĞLIK KAYITLARI TAB */}
-                {aktifTab === 'kayitlar' && (
-                    <>
-                        <FilterRow>
-                            <FaFilter style={{ color: '#999' }} />
-                            <FilterSelect value={filtreTip} onChange={e => setFiltreTip(e.target.value)}>
-                                <option value="">Tüm Tipler</option>
-                                <option value="hastalik">Hastalık</option>
-                                <option value="tedavi">Tedavi</option>
-                                <option value="asi">Aşı</option>
-                                <option value="muayene">Muayene</option>
-                                <option value="ameliyat">Ameliyat</option>
-                            </FilterSelect>
-                            <FilterSelect value={filtreDurum} onChange={e => setFiltreDurum(e.target.value)}>
-                                <option value="">Tüm Durumlar</option>
-                                <option value="devam_ediyor">Devam Ediyor</option>
-                                <option value="iyilesti">İyileşti</option>
-                                <option value="kronik">Kronik</option>
-                            </FilterSelect>
-                        </FilterRow>
+                        {/* SAĞLIK KAYITLARI TAB */}
+                        {aktifTab === 'kayitlar' && (
+                            <>
+                                <FilterRow>
+                                    <FaFilter style={{ color: '#999' }} />
+                                    <FilterSelect value={filtreTip} onChange={e => setFiltreTip(e.target.value)}>
+                                        <option value="">Tüm Tipler</option>
+                                        <option value="hastalik">Hastalık</option>
+                                        <option value="tedavi">Tedavi</option>
+                                        <option value="asi">Aşı</option>
+                                        <option value="muayene">Muayene</option>
+                                        <option value="ameliyat">Ameliyat</option>
+                                    </FilterSelect>
+                                    <FilterSelect value={filtreDurum} onChange={e => setFiltreDurum(e.target.value)}>
+                                        <option value="">Tüm Durumlar</option>
+                                        <option value="devam_ediyor">Devam Ediyor</option>
+                                        <option value="iyilesti">İyileşti</option>
+                                        <option value="kronik">Kronik</option>
+                                    </FilterSelect>
+                                </FilterRow>
 
-                        <CardList>
-                            {yukleniyor ? (
-                                <EmptyState><p>Yükleniyor...</p></EmptyState>
-                            ) : kayitlar.length === 0 ? (
-                                <EmptyState>
-                                    <FaHeartbeat />
-                                    <p>Henüz sağlık kaydı yok</p>
-                                    <p style={{ fontSize: '13px', marginTop: '8px' }}>İlk kaydı eklemek için yukarıdaki butona tıklayın</p>
-                                </EmptyState>
-                            ) : (
-                                kayitlar.map(k => {
-                                    const style = getTipStyle(k.tip);
-                                    const durumBadge = getDurumBadge(k.durum);
-                                    return (
-                                        <RecordCard key={k._id} color={style.color}>
-                                            <RecordIcon bg={style.bg} color={style.color}>
-                                                {style.icon}
-                                            </RecordIcon>
-                                            <RecordContent>
-                                                <div className="top-row">
-                                                    <div>
-                                                        <h3>{k.tani}</h3>
-                                                        <div className="hayvan-info">
-                                                            {hayvanTipiLabel[k.hayvanTipi] || k.hayvanTipi}
-                                                            {k.hayvanIsim && ` • ${k.hayvanIsim}`}
-                                                            {k.hayvanKupeNo && ` (${k.hayvanKupeNo})`}
+                                <CardList>
+                                    {yukleniyor ? (
+                                        <EmptyState><p>Yükleniyor...</p></EmptyState>
+                                    ) : kayitlar.length === 0 ? (
+                                        <EmptyState>
+                                            <FaHeartbeat />
+                                            <p>Henüz sağlık kaydı yok</p>
+                                            <p style={{ fontSize: '13px', marginTop: '8px' }}>İlk kaydı eklemek için yukarıdaki butona tıklayın</p>
+                                        </EmptyState>
+                                    ) : (
+                                        kayitlar.map(k => {
+                                            const style = getTipStyle(k.tip);
+                                            const durumBadge = getDurumBadge(k.durum);
+                                            return (
+                                                <RecordCard key={k._id} color={style.color}>
+                                                    <RecordIcon bg={style.bg} color={style.color}>
+                                                        {style.icon}
+                                                    </RecordIcon>
+                                                    <RecordContent>
+                                                        <div className="top-row">
+                                                            <div>
+                                                                <h3>{k.tani}</h3>
+                                                                <div className="hayvan-info">
+                                                                    {hayvanTipiLabel[k.hayvanTipi] || k.hayvanTipi}
+                                                                    {k.hayvanIsim && ` • ${k.hayvanIsim}`}
+                                                                    {k.hayvanKupeNo && ` (${k.hayvanKupeNo})`}
+                                                                </div>
+                                                            </div>
+                                                            <Badge bg={durumBadge.bg} color={durumBadge.color}>
+                                                                {durumBadge.label}
+                                                            </Badge>
                                                         </div>
-                                                    </div>
-                                                    <Badge bg={durumBadge.bg} color={durumBadge.color}>
-                                                        {durumBadge.label}
-                                                    </Badge>
-                                                </div>
-                                                {k.tedavi && <div style={{ fontSize: '13px', color: '#555', marginBottom: '4px' }}>💊 {k.tedavi}</div>}
-                                                <div className="detail-row">
-                                                    <span className="detail"><FaCalendarAlt /> {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
-                                                    {k.veteriner && <span className="detail"><FaStethoscope /> {k.veteriner}</span>}
-                                                    {k.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{k.maliyet.toLocaleString('tr-TR')}</span>}
-                                                    {k.sonrakiKontrol && <span className="detail"><FaClock /> Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}</span>}
-                                                </div>
-                                            </RecordContent>
-                                            <ActionBtns>
-                                                <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
-                                            </ActionBtns>
-                                        </RecordCard>
-                                    );
-                                })
-                            )}
-                        </CardList>
-                    </>
-                )}
-
-                {/* AŞI TAKVİMİ TAB */}
-                {aktifTab === 'asilar' && (
-                    <CardList>
-                        {asilar.length === 0 ? (
-                            <EmptyState>
-                                <FaSyringe />
-                                <p>Henüz aşı kaydı yok</p>
-                            </EmptyState>
-                        ) : (
-                            asilar.map(a => {
-                                const gecikti = a.sonrakiTarih && new Date(a.sonrakiTarih) < new Date() && a.durum === 'bekliyor';
-                                return (
-                                    <RecordCard key={a._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                        <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                            <FaSyringe />
-                                        </RecordIcon>
-                                        <RecordContent>
-                                            <div className="top-row">
-                                                <div>
-                                                    <h3>{a.asiAdi}</h3>
-                                                    <div className="hayvan-info">
-                                                        {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' :
-                                                            (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
-                                                        {a.hayvanIsim && ` • ${a.hayvanIsim}`}
-                                                        {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
-                                                    </div>
-                                                </div>
-                                                <Badge
-                                                    bg={gecikti ? '#FFEBEE' : a.durum === 'yapildi' ? '#E8F5E9' : '#FFF3E0'}
-                                                    color={gecikti ? '#C62828' : a.durum === 'yapildi' ? '#2E7D32' : '#E65100'}
-                                                >
-                                                    {gecikti ? '⚠️ GECİKTİ' : a.durum === 'yapildi' ? '✅ Yapıldı' : '⏳ Bekliyor'}
-                                                </Badge>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
-                                                {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
-                                                {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
-                                                {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
-                                                {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
-                                            </div>
-                                        </RecordContent>
-                                        <ActionBtns>
-                                            <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
-                                        </ActionBtns>
-                                    </RecordCard>
-                                );
-                            })
+                                                        {k.tedavi && <div style={{ fontSize: '13px', color: '#555', marginBottom: '4px' }}>💊 {k.tedavi}</div>}
+                                                        <div className="detail-row">
+                                                            <span className="detail"><FaCalendarAlt /> {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
+                                                            {k.veteriner && <span className="detail"><FaStethoscope /> {k.veteriner}</span>}
+                                                            {k.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{k.maliyet.toLocaleString('tr-TR')}</span>}
+                                                            {k.sonrakiKontrol && <span className="detail"><FaClock /> Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}</span>}
+                                                        </div>
+                                                    </RecordContent>
+                                                    <ActionBtns>
+                                                        <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
+                                                    </ActionBtns>
+                                                </RecordCard>
+                                            );
+                                        })
+                                    )}
+                                </CardList>
+                            </>
                         )}
-                    </CardList>
-                )}
 
-                {/* YAKLAŞAN İŞLEMLER TAB */}
-                {aktifTab === 'yaklasan' && (
-                    <CardList>
-                        {(() => {
-                            const yaklasanItems = [
-                                ...kayitlar
-                                    .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
-                                    .map(k => ({ ...k, _itemType: 'kontrol', _sortDate: k.sonrakiKontrol })),
-                                ...asilar
-                                    .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
-                                    .map(a => ({ ...a, _itemType: 'asi', _sortDate: a.sonrakiTarih }))
-                            ].sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate));
-
-                            if (yaklasanItems.length === 0) {
-                                return (
+                        {/* AŞI TAKVİMİ TAB */}
+                        {aktifTab === 'asilar' && (
+                            <CardList>
+                                {asilar.length === 0 ? (
                                     <EmptyState>
-                                        <FaCheckCircle />
-                                        <p>Yaklaşan işlem yok — her şey yolunda! 🎉</p>
+                                        <FaSyringe />
+                                        <p>Henüz aşı kaydı yok</p>
                                     </EmptyState>
-                                );
-                            }
+                                ) : (
+                                    asilar.map(a => {
+                                        const gecikti = a.sonrakiTarih && new Date(a.sonrakiTarih) < new Date() && a.durum === 'bekliyor';
+                                        return (
+                                            <RecordCard key={a._id} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                                <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                                    <FaSyringe />
+                                                </RecordIcon>
+                                                <RecordContent>
+                                                    <div className="top-row">
+                                                        <div>
+                                                            <h3>{a.asiAdi}</h3>
+                                                            <div className="hayvan-info">
+                                                                {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' :
+                                                                    (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
+                                                                {a.hayvanIsim && ` • ${a.hayvanIsim}`}
+                                                                {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
+                                                            </div>
+                                                        </div>
+                                                        <Badge
+                                                            bg={gecikti ? '#FFEBEE' : a.durum === 'yapildi' ? '#E8F5E9' : '#FFF3E0'}
+                                                            color={gecikti ? '#C62828' : a.durum === 'yapildi' ? '#2E7D32' : '#E65100'}
+                                                        >
+                                                            {gecikti ? '⚠️ GECİKTİ' : a.durum === 'yapildi' ? '✅ Yapıldı' : '⏳ Bekliyor'}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="detail-row">
+                                                        <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                        {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
+                                                        {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
+                                                        {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
+                                                        {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
+                                                    </div>
+                                                </RecordContent>
+                                                <ActionBtns>
+                                                    <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
+                                                </ActionBtns>
+                                            </RecordCard>
+                                        );
+                                    })
+                                )}
+                            </CardList>
+                        )}
 
-                            return yaklasanItems.map(item => {
-                                const gecikti = new Date(item._sortDate) < new Date();
-                                if (item._itemType === 'kontrol') {
-                                    return (
-                                        <RecordCard key={item._id} color={gecikti ? '#f44336' : '#2196F3'}>
-                                            <RecordIcon bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#f44336' : '#2196F3'}>
-                                                <FaStethoscope />
-                                            </RecordIcon>
-                                            <RecordContent>
-                                                <div className="top-row">
-                                                    <h3>Kontrol: {item.tani}</h3>
-                                                    <Badge bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#C62828' : '#1565C0'}>
-                                                        {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiKontrol).toLocaleDateString('tr-TR')}`}
-                                                    </Badge>
-                                                </div>
-                                                <div className="hayvan-info">
-                                                    {hayvanTipiLabel[item.hayvanTipi]} {item.hayvanIsim && `• ${item.hayvanIsim}`}
-                                                </div>
-                                            </RecordContent>
-                                        </RecordCard>
-                                    );
-                                } else {
-                                    return (
-                                        <RecordCard key={item._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                            <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                                <FaSyringe />
-                                            </RecordIcon>
-                                            <RecordContent>
-                                                <div className="top-row">
-                                                    <h3>Aşı: {item.asiAdi}</h3>
-                                                    <Badge bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#C62828' : '#7B1FA2'}>
-                                                        {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiTarih).toLocaleDateString('tr-TR')}`}
-                                                    </Badge>
-                                                </div>
-                                                <div className="hayvan-info">
-                                                    {item.hayvanTipi === 'hepsi' ? '🐄 Toplu' : hayvanTipiLabel[item.hayvanTipi]}
-                                                    {item.hayvanIsim && ` • ${item.hayvanIsim}`}
-                                                </div>
-                                            </RecordContent>
-                                        </RecordCard>
-                                    );
-                                }
-                            });
-                        })()}
-                    </CardList>
-                )}
+                        {/* YAKLAŞAN İŞLEMLER TAB */}
+                        {aktifTab === 'yaklasan' && (
+                            <CardList>
+                                {(() => {
+                                    const yaklasanItems = [
+                                        ...kayitlar
+                                            .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
+                                            .map(k => ({ ...k, _itemType: 'kontrol', _sortDate: k.sonrakiKontrol })),
+                                        ...asilar
+                                            .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
+                                            .map(a => ({ ...a, _itemType: 'asi', _sortDate: a.sonrakiTarih }))
+                                    ].sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate));
 
-                {/* 🤖 AI DANIŞMAN TAB */}
-                {aktifTab === 'ai' && (
-                    <SaglikDanismani />
-                )}
+                                    if (yaklasanItems.length === 0) {
+                                        return (
+                                            <EmptyState>
+                                                <FaCheckCircle />
+                                                <p>Yaklaşan işlem yok — her şey yolunda! 🎉</p>
+                                            </EmptyState>
+                                        );
+                                    }
+
+                                    return yaklasanItems.map(item => {
+                                        const gecikti = new Date(item._sortDate) < new Date();
+                                        if (item._itemType === 'kontrol') {
+                                            return (
+                                                <RecordCard key={item._id} color={gecikti ? '#f44336' : '#2196F3'}>
+                                                    <RecordIcon bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#f44336' : '#2196F3'}>
+                                                        <FaStethoscope />
+                                                    </RecordIcon>
+                                                    <RecordContent>
+                                                        <div className="top-row">
+                                                            <h3>Kontrol: {item.tani}</h3>
+                                                            <Badge bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#C62828' : '#1565C0'}>
+                                                                {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiKontrol).toLocaleDateString('tr-TR')}`}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="hayvan-info">
+                                                            {hayvanTipiLabel[item.hayvanTipi]} {item.hayvanIsim && `• ${item.hayvanIsim}`}
+                                                        </div>
+                                                    </RecordContent>
+                                                </RecordCard>
+                                            );
+                                        } else {
+                                            return (
+                                                <RecordCard key={item._id} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                                    <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
+                                                        <FaSyringe />
+                                                    </RecordIcon>
+                                                    <RecordContent>
+                                                        <div className="top-row">
+                                                            <h3>Aşı: {item.asiAdi}</h3>
+                                                            <Badge bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#C62828' : '#7B1FA2'}>
+                                                                {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiTarih).toLocaleDateString('tr-TR')}`}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="hayvan-info">
+                                                            {item.hayvanTipi === 'hepsi' ? '🐄 Toplu' : hayvanTipiLabel[item.hayvanTipi]}
+                                                            {item.hayvanIsim && ` • ${item.hayvanIsim}`}
+                                                        </div>
+                                                    </RecordContent>
+                                                </RecordCard>
+                                            );
+                                        }
+                                    });
+                                })()}
+                            </CardList>
+                        )}
+
+                        {/* 🤖 AI DANIŞMAN TAB */}
+                        {aktifTab === 'ai' && (
+                            <SaglikDanismani />
+                        )}
+                    </div>
+                </div>
 
                 {/* MODAL */}
                 {modalAcik && (

@@ -282,4 +282,9 @@ export const createStok = (data) => api.post('/stok', data);
 export const updateStok = (id, data) => api.put(`/stok/${id}`, data);
 export const deleteStok = (id) => api.delete(`/stok/${id}`);
 
+// AI SOHBET
+export const askAi = (type, data) => api.post(`/ai/${type}`, data);
+export const getAiHistory = () => api.get('/ai/history');
+export const getAiChat = (id) => api.get(`/ai/history/${id}`);
+
 export default api;

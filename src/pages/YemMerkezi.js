@@ -72,17 +72,18 @@ const BodyWrap = styled.div`padding:24px;`;
 
 // ── Tab Bar ────────────────────────────────────────────────────────
 const TabBar = styled.div`
-  display:flex;gap:4px;background:#fff;padding:5px;border-radius:14px;
-  box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:22px;flex-wrap:wrap;
-  border:1px solid #e2e8f0;
+  display:flex;flex-direction:column;gap:8px;background:transparent;
+  margin-bottom:22px; width: 100%; max-width: 300px;
 `;
 const TabBtn = styled.button`
-  padding:9px 18px;border:none;border-radius:10px;font-size:13px;font-weight:700;
-  cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;
-  background:${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : 'transparent'};
-  color:${p => p.$active ? '#fff' : '#64748b'};
-  box-shadow:${p => p.$active ? '0 2px 8px rgba(6,95,70,.35)' : 'none'};
-  &:hover{background:${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : '#f1f5f9'};color:${p => p.$active ? '#fff' : '#1e293b'};}
+  padding:12px 18px;border:none;border-radius:12px;font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .2s;
+  background:${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : '#fff'};
+  color:${p => p.$active ? '#fff' : '#475569'};
+  box-shadow:${p => p.$active ? '0 4px 12px rgba(6,95,70,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
+  border: 1px solid ${p => p.$active ? 'transparent' : '#e2e8f0'};
+  &:hover{transform:translateX(4px); box-shadow:0 4px 14px rgba(0,0,0,.1);}
+  .icon-left { display: flex; align-items: center; gap: 10px; }
 `;
 const NewBadge = styled.span`
   background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
@@ -252,97 +253,105 @@ export default function YemMerkezi() {
       </PageHeader>
 
       <BodyWrap>
-        <TabBar>
-          {TABS.map(t => (
-            <TabBtn key={t.key} $active={tab === t.key} onClick={() => setTab(t.key)}>
-              {t.icon} {t.label}
-              {t.isNew && <NewBadge>YENİ</NewBadge>}
-              {t.badge && <span style={{ background: '#ecfdf5', color: '#065f46', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>{t.badge}</span>}
-            </TabBtn>
-          ))}
-        </TabBar>
-
-        {tab === 'danisman' && <YemDanismani />}
-        {tab === 'stok' && <YemDeposu isEmbedded={true} />}
-        {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
-
-        {tab === 'rasyon' && (
-          <RGrid>
-            {rasyonlar.length === 0 ? (
-              <EmptyMsg>
-                <div className="icon">🌿</div>
-                <p>Henüz rasyon tanımlamadınız.<br />
-                  <strong style={{ color: '#10b981' }}>Hesaplayıcı</strong> sekmesinden yeni bir rasyon oluşturun.</p>
-              </EmptyMsg>
-            ) : rasyonlar.map(r => (
-              <RCard key={r._id}>
-                <RCardBody>
-                  <RHead>
-                    <RAd>{r.ad}</RAd>
-                    <RBadge>{r.hedefGrup?.toUpperCase()}</RBadge>
-                  </RHead>
-                  <RMaliyet>{r.toplamMaliyet.toFixed(2)} TL<span>/ Baş</span></RMaliyet>
-                  <RIngredients>
-                    {r.icerik.map((item, i) => (
-                      <div key={i}>
-                        <span className="iname"><FaLeaf size={9} color="#10b981" />{item.yemId?.ad || 'Silinmiş Yem'}</span>
-                        <span className="iamt">{item.miktar} kg</span>
-                      </div>
-                    ))}
-                  </RIngredients>
-                  <RActions>
-                    <RBtn $primary onClick={() => handleYemle(r._id)}><FaCheckCircle /> Yemle</RBtn>
-                    <RBtn $danger $flex={.5} onClick={() => handleDeleteRasyon(r._id)}><FaTrash /></RBtn>
-                  </RActions>
-                </RCardBody>
-              </RCard>
+        <div style={{ display: 'flex', gap: '24px', flexDirection: window.innerWidth < 768 ? 'column' : 'row', alignItems: 'flex-start' }}>
+          <TabBar>
+            {TABS.map(t => (
+              <TabBtn key={t.key} $active={tab === t.key} onClick={() => setTab(t.key)}>
+                <div className="icon-left">
+                  {t.icon} {t.label}
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {t.isNew && <NewBadge>YENİ</NewBadge>}
+                  {t.badge && <span style={{ background: '#ecfdf5', color: '#065f46', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>{t.badge}</span>}
+                </div>
+              </TabBtn>
             ))}
-          </RGrid>
-        )}
+          </TabBar>
 
-        {tab === 'kutuphane' && (
-          <LibCard>
-            <LibTop>
-              <SearchBox>
-                <FaSearch />
-                <SInp value={search} onChange={e => setSearch(e.target.value)} placeholder="Yem ara..." />
-              </SearchBox>
-              <LibBtnGroup>
-                <Btn $blue onClick={async () => {
-                  if (!window.confirm('Depodaki yemler kütüphaneye aktarılacak. Onaylıyor musun?')) return;
-                  setLoading(true);
-                  try { const r = await api.syncStokToLibrary(); showSuccess(`${r.data.added} yem eklendi, ${r.data.matched} tanımlandı.`); loadData(); }
-                  catch { showError('Hata oluştu'); }
-                  finally { setLoading(false); }
-                }}><FaClipboardList /> Akıllı Eşitle</Btn>
-                <Btn onClick={() => setShowAddModal(true)}><FaPlus /> Yeni Yem</Btn>
-              </LibBtnGroup>
-            </LibTop>
-            <Table>
-              <thead>
-                <tr>
-                  <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredYemler.map(y => (
-                  <tr key={y._id}>
-                    <TD>{y.ad}</TD>
-                    <TD>{y.kuruMadde}</TD>
-                    <TD>{y.protein}</TD>
-                    <TD>{y.enerji}</TD>
-                    <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
-                  </tr>
+          <div style={{ flex: 1, width: '100%' }}>
+            {tab === 'danisman' && <YemDanismani />}
+            {tab === 'stok' && <YemDeposu isEmbedded={true} />}
+            {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
+
+            {tab === 'rasyon' && (
+              <RGrid>
+                {rasyonlar.length === 0 ? (
+                  <EmptyMsg>
+                    <div className="icon">🌿</div>
+                    <p>Henüz rasyon tanımlamadınız.<br />
+                      <strong style={{ color: '#10b981' }}>Hesaplayıcı</strong> sekmesinden yeni bir rasyon oluşturun.</p>
+                  </EmptyMsg>
+                ) : rasyonlar.map(r => (
+                  <RCard key={r._id}>
+                    <RCardBody>
+                      <RHead>
+                        <RAd>{r.ad}</RAd>
+                        <RBadge>{r.hedefGrup?.toUpperCase()}</RBadge>
+                      </RHead>
+                      <RMaliyet>{r.toplamMaliyet.toFixed(2)} TL<span>/ Baş</span></RMaliyet>
+                      <RIngredients>
+                        {r.icerik.map((item, i) => (
+                          <div key={i}>
+                            <span className="iname"><FaLeaf size={9} color="#10b981" />{item.yemId?.ad || 'Silinmiş Yem'}</span>
+                            <span className="iamt">{item.miktar} kg</span>
+                          </div>
+                        ))}
+                      </RIngredients>
+                      <RActions>
+                        <RBtn $primary onClick={() => handleYemle(r._id)}><FaCheckCircle /> Yemle</RBtn>
+                        <RBtn $danger $flex={.5} onClick={() => handleDeleteRasyon(r._id)}><FaTrash /></RBtn>
+                      </RActions>
+                    </RCardBody>
+                  </RCard>
                 ))}
-                {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
-              </tbody>
-            </Table>
-          </LibCard>
-        )}
+              </RGrid>
+            )}
 
-        {showAddModal && (
-          <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
-        )}
+            {tab === 'kutuphane' && (
+              <LibCard>
+                <LibTop>
+                  <SearchBox>
+                    <FaSearch />
+                    <SInp value={search} onChange={e => setSearch(e.target.value)} placeholder="Yem ara..." />
+                  </SearchBox>
+                  <LibBtnGroup>
+                    <Btn $blue onClick={async () => {
+                      if (!window.confirm('Depodaki yemler kütüphaneye aktarılacak. Onaylıyor musun?')) return;
+                      setLoading(true);
+                      try { const r = await api.syncStokToLibrary(); showSuccess(`${r.data.added} yem eklendi, ${r.data.matched} tanımlandı.`); loadData(); }
+                      catch { showError('Hata oluştu'); }
+                      finally { setLoading(false); }
+                    }}><FaClipboardList /> Akıllı Eşitle</Btn>
+                    <Btn onClick={() => setShowAddModal(true)}><FaPlus /> Yeni Yem</Btn>
+                  </LibBtnGroup>
+                </LibTop>
+                <Table>
+                  <thead>
+                    <tr>
+                      <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredYemler.map(y => (
+                      <tr key={y._id}>
+                        <TD>{y.ad}</TD>
+                        <TD>{y.kuruMadde}</TD>
+                        <TD>{y.protein}</TD>
+                        <TD>{y.enerji}</TD>
+                        <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
+                      </tr>
+                    ))}
+                    {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
+                  </tbody>
+                </Table>
+              </LibCard>
+            )}
+
+            {showAddModal && (
+              <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
+            )}
+          </div>
+        </div>
       </BodyWrap>
     </Page>
   );
