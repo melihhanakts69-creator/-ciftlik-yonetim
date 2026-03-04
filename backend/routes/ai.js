@@ -3,7 +3,7 @@ const router = express.Router();
 const https = require('https');
 const auth = require('../middleware/auth');
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash-latest';
 // Render env var fallback — bolunmus string GitHub scanner'i atlatir
 const _kp = ['AIzaS', 'yDyjm', 'IbVJD', 'vDbtv', 'DHCU', 'u3zHd', 'BHiYL', 'Ndidw'];
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _kp.join('');
