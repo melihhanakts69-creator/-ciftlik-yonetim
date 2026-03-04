@@ -4,22 +4,22 @@ const https = require('https');
 const auth = require('../middleware/auth');
 
 const GEMINI_MODEL = 'gemini-2.0-flash';
-// Render env var calismiyor — fallback ile hardcode
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBy6OLjnnLESoCp2Vucq38hBmzEfmGe3nk';
 
 // Sağlık kontrolü
 router.get('/test', (req, res) => {
+    const key = process.env.GEMINI_API_KEY;
     res.json({
         status: 'ok',
         serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
-        geminiKey: GEMINI_API_KEY ? `✅ Kayıtlı (${GEMINI_API_KEY.substring(0, 8)}...)` : '❌ EKSİK',
+        geminiKey: key ? `✅ Kayıtlı (${key.substring(0, 8)}...)` : '❌ EKSİK',
         model: GEMINI_MODEL
     });
 });
 
-// ─── Gemini çağrı fonksiyonu ──────────────────────────────────────────────────
+// ─── Gemini çağrı fonksiyonu ────────────────────────────────────────────────
 async function callGemini(systemPrompt, userMessage) {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const apiKey = process.env.GEMINI_API_KEY;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
     return new Promise((resolve, reject) => {
         const body = JSON.stringify({
@@ -50,7 +50,7 @@ async function callGemini(systemPrompt, userMessage) {
                     if (!text) { reject(new Error('Gemini boş yanıt döndürdü')); return; }
                     resolve(text);
                 } catch (e) {
-                    reject(new Error('Gemini yanıtı parse edilemedi: ' + data.substring(0, 200)));
+                    reject(new Error('Gemini yanıtı parse edilemedi'));
                 }
             });
         });
@@ -61,7 +61,7 @@ async function callGemini(systemPrompt, userMessage) {
     });
 }
 
-// ─── YEM DANIŞMANI ────────────────────────────────────────────────────────────
+// ─── YEM DANIŞMANI ──────────────────────────────────────────────────────────
 const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootekni uzmanısın. Görevin, Türk çiftçilerine yem ve besleme konusunda pratik, bilimsel ve anlaşılır tavsiyet vermektir.
 
 Kurallar:
@@ -69,13 +69,13 @@ Kurallar:
 - Yanıtlarında somut değerler kullan (kg, %, Mcal/kg gibi birimlerle).
 - Cevapların kısa ve net olsun (maksimum 300 kelime).
 - Gerektiğinde madde madde listele.
-- Mevcut yem stoku ve rasyon hesaplaması gibi pratik konularda yardımcı ol.
 - Türkiye'deki yaygın yem çeşitleri (mısır silajı, yonca, saman, arpa, soya küspesi vb.) hakkında bilgi ver.`;
 
 router.post('/yem', auth, async (req, res) => {
     try {
         const { soru, context } = req.body;
         if (!soru || soru.trim().length < 3) return res.status(400).json({ message: 'Soru çok kısa' });
+        if (!process.env.GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
 
         const fullQuestion = context ? `Çiftlik Bağlamı: ${context}\n\nSoru: ${soru}` : soru;
         const yanit = await callGemini(YEM_SYSTEM_PROMPT, fullQuestion);
@@ -86,22 +86,22 @@ router.post('/yem', auth, async (req, res) => {
     }
 });
 
-// ─── SAĞLIK DANIŞMANI ─────────────────────────────────────────────────────────
-const SAGLIK_SYSTEM_PROMPT = `Sen büyükbaş hayvan sağlığı konusunda bilgi veren bir yapay zeka asistanısın. Türk çiftçilerine semptomlar, hastalıklar ve genel sağlık önlemleri hakkında genel bilgi veriyorsun.
+// ─── SAĞLIK DANIŞMANI ────────────────────────────────────────────────────────
+const SAGLIK_SYSTEM_PROMPT = `Sen büyükbaş hayvan sağlığı konusunda bilgi veren bir yapay zeka asistanısın.
 
 KRİTİK KURALLAR:
 1. ASLA kesin teşhis koyma.
 2. ASLA ilaç dozu önerme.
-3. Her yanıtının SONUNA mutlaka şu uyarıyı ekle: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Hayvanınızın sağlığı için mutlaka bir veteriner hekime başvurun."
+3. Her yanıtının SONUNA mutlaka şu uyarıyı ekle: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
 4. Her zaman Türkçe yanıt ver.
 5. Cevapların kısa ve net olsun (maksimum 300 kelime).
-6. Acil belirtiler için "ACİL: Hemen veterinerinizi arayın" uyarısı ver.
-7. Genel koruyucu önlemler ve aşı takvimleri hakkında bilgi verebilirsin.`;
+6. Acil belirtiler için "ACİL: Hemen veterinerinizi arayın" uyarısı ver.`;
 
 router.post('/saglik', auth, async (req, res) => {
     try {
         const { soru, context } = req.body;
         if (!soru || soru.trim().length < 3) return res.status(400).json({ message: 'Soru çok kısa' });
+        if (!process.env.GEMINI_API_KEY) return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
 
         const fullQuestion = context ? `Hayvan Bilgileri: ${context}\n\nBelirtiler/Soru: ${soru}` : soru;
         const yanit = await callGemini(SAGLIK_SYSTEM_PROMPT, fullQuestion);
