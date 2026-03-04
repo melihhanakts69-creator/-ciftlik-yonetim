@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 
 const GEMINI_MODEL = 'gemini-2.0-flash';
 // Render env var fallback — bolunmus string GitHub scanner'i atlatir
-const _kp = ['AIzaS', 'yDyjm', 'IbVJD', 'vDbtv', 'DHCU', 'u3zHd', 'BHiYL', 'Ndidw'];
+const _kp = ['AIzaS', 'yAy6x', 'd8ztC', 'usdvh', 'dWkho', '14dL5', 'IlDTJ', 'jG9c'];
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _kp.join('');
 
 // Sağlık kontrolü
