@@ -118,7 +118,7 @@ async function callGeminiSingle(systemPrompt, userMessage, apiKey, history = [])
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1500 } // Yarım kesilmemesi için limit artırıldı
+            generationConfig: { temperature: 0.7 } // Limit tamamen kaldırıldı, modelin kendi limitleri geçerli
         });
 
         const options = {
@@ -310,8 +310,8 @@ const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootek
 Kurallar:
 - Her zaman Türkçe yanıt ver.
 - Somut değerler kullan (kg, %, Mcal/kg).
-- Cümlelerini asla yarım bırakma. Net ve tamamlanmış cümleler kur.
-- Çok uzun anlatımdan kaçın, hedef odaklı ve öz (maks 250 kelime) bilgi ver.
+- Cümlelerini asla yarım bırakma. Net, tamamlanmış ve akıcı cümleler kur.
+- Çok uzun laf kalabalığından kaçın ama asla bir fikri veya cümleyi yarım bırakma. 
 - Türkiye'deki yaygın yemler hakkında bilgi ver (mısır silajı, yonca, saman, vb.).`;
 
 router.post('/yem', auth, (req, res) => {
@@ -326,7 +326,7 @@ KRİTİK KURALLAR:
 2. ASLA ilaç dozu önerme.
 3. Her yanıtının sonuna tam olarak şu cümleyi ekle ve cümleni asla yarım bırakma: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
 4. Her zaman Türkçe yanıt ver.
-5. Cümlelerini asla yarım bırakma, paragrafları tam kapat. Öz ol (maks 250 kelime).
+5. Cümlelerini asla yarım bırakma, paragrafları tam kapat. Öz ama açıklayıcı ol.
 6. Acil belirtiler için "ACİL: Hemen veterinerinizi arayın" uyarısı ver.`;
 
 router.post('/saglik', auth, (req, res) => {
