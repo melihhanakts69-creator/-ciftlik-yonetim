@@ -4,7 +4,7 @@ const https = require('https');
 const crypto = require('crypto');
 const auth = require('../middleware/auth');
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 // ─── API KEY ROTATION SISTEMI ─────────────────────────────────────────────────
 // Bu sistem birden fazla API anahtarını destekler. Biri bitince diğerine atlar.
