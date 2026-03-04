@@ -204,7 +204,7 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
         return res.status(500).json({ message: 'AI servisi yapılandırılmamış, key eksik' });
     }
 
-    const userId = req.user?.id || req.user?._id || 'anonim';
+    const userId = req.userId || 'anonim';
 
     const limitCheck = checkUserLimit(userId.toString());
     if (!limitCheck.allowed) {
@@ -282,7 +282,7 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
 // ─── GEÇMİŞ MESAJLARI VE SOHBETLERİ GETİRME ENDPOINTLERİ ───────────────────
 router.get('/history', auth, async (req, res) => {
     try {
-        const userId = req.user.id || req.user._id;
+        const userId = req.userId;
         const chats = await AiSohbet.find({ user: userId })
             .select('_id title type updatedAt')
             .sort({ updatedAt: -1 });
@@ -294,7 +294,7 @@ router.get('/history', auth, async (req, res) => {
 
 router.get('/history/:id', auth, async (req, res) => {
     try {
-        const userId = req.user.id || req.user._id;
+        const userId = req.userId;
         const chat = await AiSohbet.findOne({ _id: req.params.id, user: userId });
         if (!chat) return res.status(404).json({ message: 'Sohbet bulunamadı' });
         res.json(chat);
