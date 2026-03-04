@@ -108,7 +108,7 @@ async function callGeminiSingle(systemPrompt, userMessage, apiKey) {
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1500 } // Yarım kesilmemesi için limit artırıldı
         });
 
         const options = {
@@ -247,8 +247,9 @@ const YEM_SYSTEM_PROMPT = `Sen deneyimli bir büyükbaş hayvancılık ve zootek
 Kurallar:
 - Her zaman Türkçe yanıt ver.
 - Somut değerler kullan (kg, %, Mcal/kg).
-- Kısa ve net ol (maks 200 kelime).
-- Türkiye'deki yaygın yemler hakkında bilgi ver (mısır silajı, yonca, saman, arpa, soya küspesi).`;
+- Cümlelerini asla yarım bırakma. Net ve tamamlanmış cümleler kur.
+- Çok uzun anlatımdan kaçın, hedef odaklı ve öz (maks 250 kelime) bilgi ver.
+- Türkiye'deki yaygın yemler hakkında bilgi ver (mısır silajı, yonca, saman, vb.).`;
 
 router.post('/yem', auth, (req, res) => {
     handleAiRequest(req, res, 'yem', YEM_SYSTEM_PROMPT, 'Çiftlik Bağlamı');
@@ -260,9 +261,9 @@ const SAGLIK_SYSTEM_PROMPT = `Sen büyükbaş hayvan sağlığı konusunda bilgi
 KRİTİK KURALLAR:
 1. ASLA kesin teşhis koyma.
 2. ASLA ilaç dozu önerme.
-3. Her yanıtının sonuna ekle: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
+3. Her yanıtının sonuna tam olarak şu cümleyi ekle ve cümleni asla yarım bırakma: "⚠️ Bu bilgiler yalnızca genel amaçlıdır. Mutlaka bir veteriner hekime başvurun."
 4. Her zaman Türkçe yanıt ver.
-5. Kısa ve net ol (maks 200 kelime).
+5. Cümlelerini asla yarım bırakma, paragrafları tam kapat. Öz ol (maks 250 kelime).
 6. Acil belirtiler için "ACİL: Hemen veterinerinizi arayın" uyarısı ver.`;
 
 router.post('/saglik', auth, (req, res) => {
