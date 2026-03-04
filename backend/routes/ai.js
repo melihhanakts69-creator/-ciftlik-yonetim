@@ -5,16 +5,25 @@ const crypto = require('crypto');
 const auth = require('../middleware/auth');
 
 const GEMINI_MODEL = 'gemini-2.0-flash';
+
+// ─── API KEY ROTATION SISTEMI ─────────────────────────────────────────────────
+// Bu sistem birden fazla API anahtarını destekler. Biri bitince diğerine atlar.
 const _kp = ['AIzaS', 'yAy6x', 'd8ztC', 'usdvh', 'dWkho', '14dL5', 'IlDTJ', 'jG9c'];
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _kp.join('');
+const defaultKey = _kp.join('');
+
+// Env'de "GEMINI_API_KEYS" virgülle ayrılmış anahtarlar dizisi olabilir.
+const rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || defaultKey;
+const API_KEYS = rawKeys.split(',').map(k => k.trim()).filter(k => k.length > 0);
+
+// İlk başta rastgele bir anahtardan başla ki yük dağılsın
+let currentKeyIndex = API_KEYS.length > 0 ? Math.floor(Math.random() * API_KEYS.length) : 0;
+console.log(`🤖 AI Sistemi Başlatıldı. Yüklü API Key Sayısı: ${API_KEYS.length}`);
 
 // ─── IN-MEMORY CACHE ─────────────────────────────────────────────────────────
-// Aynı soru → aynı yanıt döner, API çağrısı yapılmaz
 const responseCache = new Map();
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 dakika
 
 function getCacheKey(type, text) {
-    // Soruyu normalize et (boşluk/büyük-küçük harf fark etmez)
     const normalized = text.toLowerCase().trim().replace(/\s+/g, ' ');
     return type + ':' + crypto.createHash('md5').update(normalized).digest('hex');
 }
@@ -30,7 +39,6 @@ function getFromCache(key) {
 }
 
 function setCache(key, value) {
-    // Cache 500 entry'den büyürse en eskiyi sil
     if (responseCache.size >= 500) {
         const firstKey = responseCache.keys().next().value;
         responseCache.delete(firstKey);
@@ -39,12 +47,10 @@ function setCache(key, value) {
 }
 
 // ─── PER-USER RATE LIMITING ───────────────────────────────────────────────────
-// Kullanıcı başına günde MAX_DAILY_REQUESTS istek
 const userDailyUsage = new Map();
-const MAX_DAILY_REQUESTS = 30; // Kullanıcı başına günlük limit
+const MAX_DAILY_REQUESTS = 30; // Kullanıcı başına
 
 function checkUserLimit(userId) {
-    const now = Date.now();
     const today = new Date().toDateString();
     const key = userId + ':' + today;
 
@@ -55,7 +61,6 @@ function checkUserLimit(userId) {
     usage.count++;
     userDailyUsage.set(key, usage);
 
-    // Eski kayıtları temizle (24 saatten eski)
     if (userDailyUsage.size > 10000) {
         for (const [k] of userDailyUsage) {
             if (!k.endsWith(today)) userDailyUsage.delete(k);
@@ -66,7 +71,6 @@ function checkUserLimit(userId) {
 }
 
 // ─── REQUEST DEDUPLICATION ────────────────────────────────────────────────────
-// Aynı anda aynı soru gelirse tek API çağrısı yap, hepsine aynı yanıtı dön
 const pendingRequests = new Map();
 
 // ─── SAĞLIK KONTROLÜ ─────────────────────────────────────────────────────────
@@ -74,7 +78,8 @@ router.get('/test', (req, res) => {
     res.json({
         status: 'ok',
         serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
-        geminiKey: GEMINI_API_KEY ? `✅ Kayıtlı (${GEMINI_API_KEY.substring(0, 8)}...)` : '❌ EKSİK',
+        geminiKeysCount: API_KEYS.length,
+        currentKeyIndex: currentKeyIndex,
         model: GEMINI_MODEL,
         cacheSize: responseCache.size,
         activeUsers: userDailyUsage.size,
@@ -82,26 +87,28 @@ router.get('/test', (req, res) => {
     });
 });
 
-// ─── GEMİNİ CANLI TEST (Render'dan çalışıp çalışmadığını test eder) ──────────
+// ─── GEMİNİ CANLI TEST ───────────────────────────────────────────────────────
 router.get('/ping', async (req, res) => {
-    if (!GEMINI_API_KEY) return res.status(500).json({ message: 'API key eksik' });
+    if (API_KEYS.length === 0) return res.status(500).json({ message: 'Hiç API key tanımlanmamış' });
     try {
-        const yanit = await callGemini('Kısa yanıt ver.', 'Test. "Çalışıyor" de.');
-        res.json({ status: 'ok', yanit, model: GEMINI_MODEL, cached: false });
+        const yanit = await callGeminiWithRetry('Kısa yanıt ver.', 'Test. "Sistem Aktif" de.');
+        res.json({ status: 'ok', yanit, model: GEMINI_MODEL, cached: false, activeKeyIndex: currentKeyIndex });
     } catch (err) {
         res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
-// ─── GEMİNİ ÇAĞRI FONKSİYONU ─────────────────────────────────────────────────
-async function callGemini(systemPrompt, userMessage) {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+// ─── GEMİNİ ÇAĞRI FONKSİYONLARI ──────────────────────────────────────────────
+
+// Tek bir key ile deneme yapar
+async function callGeminiSingle(systemPrompt, userMessage, apiKey) {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
     return new Promise((resolve, reject) => {
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 512 } // 1024→512: token tasarrufu
+            generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
         });
 
         const options = {
@@ -120,8 +127,8 @@ async function callGemini(systemPrompt, userMessage) {
                     const parsed = JSON.parse(data);
                     if (parsed.error) {
                         const errMsg = parsed.error.message || 'Gemini API hatası';
-                        // RESOURCE_EXHAUSTED = kota bitti
-                        if (parsed.error.status === 'RESOURCE_EXHAUSTED') {
+                        // 429 Too Many Requests veya RESOURCE_EXHAUSTED = Kota/Limit doldu
+                        if (parsed.error.status === 'RESOURCE_EXHAUSTED' || parsed.error.code === 429) {
                             reject(new Error('KOTA_BITTI: ' + errMsg));
                         } else {
                             reject(new Error(errMsg));
@@ -140,11 +147,41 @@ async function callGemini(systemPrompt, userMessage) {
         req.on('error', reject);
         req.setTimeout(20000, () => {
             req.destroy();
-            reject(new Error('Gemini isteği zaman aşımına uğradı (20s)'));
+            reject(new Error('KOTA_BITTI: İstek zaman aşımına uğradı, rate limit drop ihtimali'));
         });
         req.write(body);
         req.end();
     });
+}
+
+// Tüm keyleri sırayla deneyen asıl fonksiyon
+async function callGeminiWithRetry(systemPrompt, userMessage) {
+    let attempts = 0;
+    const maxAttempts = API_KEYS.length; // En fazla key sayısı kadar deneme yap
+
+    while (attempts < maxAttempts) {
+        const apiKey = API_KEYS[currentKeyIndex];
+        try {
+            // Bir key ile bağlanmayı dene
+            const yanit = await callGeminiSingle(systemPrompt, userMessage, apiKey);
+            return yanit; // Başarılıysa fonksiyonu sonlandır ve yanıtı dön!
+        } catch (err) {
+            console.warn(`[AI] Key indeks ${currentKeyIndex} hata verdi: ${err.message}`);
+
+            // Eğer kota bittiyse veya timeout olduysa sıradaki yedek key'e geç
+            if (err.message.startsWith('KOTA_BITTI')) {
+                currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+                console.log(`[AI] 🔄 Rotasyon: Yeni API Anahtarına geçildi -> Endeks: ${currentKeyIndex}`);
+                attempts++;
+            } else {
+                // Eğer hata prompttan veya başka bir bağlantı sorunundansa fırlat
+                throw err;
+            }
+        }
+    }
+
+    // Bütün döngü bitti ve hala successful yanıt dönemedik
+    throw new Error('KOTA_BITTI: Tüm yedek API anahtarlarının kotası dolu! Sisteme yeni API Key eklenmeli.');
 }
 
 // ─── ORTAK AI HANDLER ─────────────────────────────────────────────────────────
@@ -153,13 +190,12 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
     if (!soru || soru.trim().length < 3) {
         return res.status(400).json({ message: 'Soru çok kısa' });
     }
-    if (!GEMINI_API_KEY) {
-        return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
+    if (API_KEYS.length === 0) {
+        return res.status(500).json({ message: 'AI servisi yapılandırılmamış, key eksik' });
     }
 
     const userId = req.user?.id || req.user?._id || 'anonim';
 
-    // 1. Kullanıcı günlük limit kontrolü
     const limitCheck = checkUserLimit(userId.toString());
     if (!limitCheck.allowed) {
         return res.status(429).json({
@@ -170,19 +206,12 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
 
     const fullQuestion = context ? `${contextPrefix}: ${context}\n\nSoru: ${soru}` : soru;
 
-    // 2. Cache kontrolü
     const cacheKey = getCacheKey(type, fullQuestion);
     const cached = getFromCache(cacheKey);
     if (cached) {
-        return res.json({
-            yanit: cached,
-            model: GEMINI_MODEL,
-            cached: true,
-            remaining: limitCheck.remaining
-        });
+        return res.json({ yanit: cached, model: GEMINI_MODEL, cached: true, remaining: limitCheck.remaining });
     }
 
-    // 3. Request deduplication (aynı anda aynı soru)
     if (pendingRequests.has(cacheKey)) {
         try {
             const yanit = await pendingRequests.get(cacheKey);
@@ -193,8 +222,8 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
         }
     }
 
-    // 4. Gerçek API çağrısı
-    const geminiPromise = callGemini(systemPrompt, fullQuestion);
+    // Gerçek API Çağrısı Başlar (Rotasyonlu)
+    const geminiPromise = callGeminiWithRetry(systemPrompt, fullQuestion);
     pendingRequests.set(cacheKey, geminiPromise);
 
     try {
@@ -204,7 +233,7 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
     } catch (err) {
         console.error(`${type} AI Hata:`, err.message);
         if (err.message.startsWith('KOTA_BITTI')) {
-            return res.status(429).json({ message: 'AI servisi şu an meşgul, lütfen birkaç dakika bekleyip tekrar deneyin.' });
+            return res.status(429).json({ message: 'Mevcut tüm AI sistemlerinin kotası anlık olarak dolu, birkaç dakika bekleyip tekrar deneyin.' });
         }
         return res.status(500).json({ message: 'AI servisi hatası: ' + err.message });
     } finally {
