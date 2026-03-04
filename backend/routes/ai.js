@@ -3,7 +3,7 @@ const router = express.Router();
 const https = require('https');
 const auth = require('../middleware/auth');
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 // Render env var fallback — bolunmus string GitHub scanner'i atlatir
 const _kp = ['AIzaS', 'yDyjm', 'IbVJD', 'vDbtv', 'DHCU', 'u3zHd', 'BHiYL', 'Ndidw'];
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || _kp.join('');
@@ -14,22 +14,18 @@ router.get('/test', (req, res) => {
         status: 'ok',
         serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
         geminiKey: GEMINI_API_KEY ? `✅ Kayıtlı (${GEMINI_API_KEY.substring(0, 8)}...)` : '❌ EKSİK',
-        model: GEMINI_MODEL,
-        apiVersion: 'v1'
+        model: GEMINI_MODEL
     });
 });
 
-// ─── Gemini çağrı fonksiyonu (v1 API, sistem promptu user mesajına dahil) ─────
+// ─── Gemini çağrı fonksiyonu ─────────────────────────────────────────────────
 async function callGemini(systemPrompt, userMessage) {
-    // v1 API kullan — v1beta'dan daha stabil
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     return new Promise((resolve, reject) => {
-        // Sistem promptunu kullanıcı mesajının başına ekle (v1 system_instruction desteklemiyor)
-        const combinedMessage = `${systemPrompt}\n\n---\n\n${userMessage}`;
-
         const body = JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: combinedMessage }] }],
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
             generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
         });
 
