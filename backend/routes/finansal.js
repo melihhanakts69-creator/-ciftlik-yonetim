@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const Finansal = require('../models/Finansal');
 
 // TÜM FİNANSAL KAYITLARI GETİR
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const { tip, baslangic, bitis } = req.query;
 
@@ -32,7 +33,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // YENİ FİNANSAL KAYIT EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const { tip, kategori, miktar, tarih, aciklama, ilgiliHayvanId, ilgiliHayvanTipi } = req.body;
 
@@ -68,7 +69,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // FİNANSAL KAYIT GÜNCELLE
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const { tip, kategori, miktar, tarih, aciklama, ilgiliHayvanId, ilgiliHayvanTipi } = req.body;
 
@@ -95,7 +96,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // FİNANSAL KAYIT SİL
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const kayit = await Finansal.findOneAndDelete({
       _id: req.params.id,
@@ -113,7 +114,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // ÖZET İSTATİSTİKLER (Gelir/Gider Toplamları)
-router.get('/ozet', auth, async (req, res) => {
+router.get('/ozet', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const { baslangic, bitis } = req.query;
 

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const SutKaydi = require('../models/SutKaydi');
 
 // TÜM SÜT KAYITLARINI GETİR
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
     const sutKayitlari = await SutKaydi.find({ userId: req.userId }).sort({ tarih: -1 });
     res.json(sutKayitlari);
@@ -14,7 +15,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // YENİ SÜT KAYDI EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
     const { inekId, inekIsim, tarih, litre } = req.body;
 
@@ -38,7 +39,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // SÜT KAYDI SİL
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
     const sutKaydi = await SutKaydi.findOneAndDelete({
       _id: req.params.id,
@@ -56,7 +57,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // TARİH VE SAĞIMA GÖRE TOPLU SİL
-router.delete('/toplu-sil/tarih', auth, async (req, res) => {
+router.delete('/toplu-sil/tarih', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
     const { tarih, sagim } = req.body;
 
@@ -82,7 +83,7 @@ router.delete('/toplu-sil/tarih', auth, async (req, res) => {
 });
 
 // SEÇİLİ KAYITLARI SİL
-router.delete('/toplu-sil/secili', auth, async (req, res) => {
+router.delete('/toplu-sil/secili', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
     const { kayitIdler } = req.body;
 

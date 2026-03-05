@@ -207,7 +207,6 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
     ];
     yonetimItems = [
-      { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
     ];

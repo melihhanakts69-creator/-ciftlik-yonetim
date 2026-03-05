@@ -87,7 +87,7 @@ const SectionLabel = styled.div`
 const ROLES = [
   { key: 'ciftci', emoji: '🐄', label: 'Çiftçi', color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
   { key: 'veteriner', emoji: '🩺', label: 'Veteriner', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
-  { key: 'sutcu', emoji: '🥛', label: 'Süt Toplayıcı', color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
+  { key: 'sutcu', emoji: '👷‍♂️', label: 'İşçi / Sağımcı', color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
 ];
 
 export default function Login({ onLoginSuccess }) {
@@ -184,7 +184,7 @@ export default function Login({ onLoginSuccess }) {
             alignItems: 'center', justifyContent: 'space-between', gap: 10
           }}>
             <span style={{ fontSize: 12, color: '#fb923c', fontWeight: 600 }}>
-              {mevcutKullanici.rol === 'veteriner' ? '🩺' : mevcutKullanici.rol === 'sutcu' ? '🥛' : '🐄'} {mevcutKullanici.isim} olarak giriş yapılı
+              {mevcutKullanici.rol === 'veteriner' ? '🩺' : mevcutKullanici.rol === 'sutcu' ? '👷‍♂️' : '🐄'} {mevcutKullanici.isim} olarak giriş yapılı
             </span>
             <button onClick={handleCikis} style={{
               background: 'rgba(251,146,60,0.2)', border: 'none', borderRadius: 7,
@@ -259,9 +259,8 @@ export default function Login({ onLoginSuccess }) {
 
             {/* Süt Toplayıcı özel alanları */}
             {seciliRol === 'sutcu' && (<>
-              <SectionLabel>🥛 Toplayıcı Bilgileri</SectionLabel>
-              {inp('firmaAdi', 'Süt kooperatifi veya firma adı', 'Firma Adı', 'text', true)}
-              {inp('bolge', 'örn: Konya Ereğli', 'Hizmet Bölgesi')}
+              <SectionLabel>👷‍♂️ İşçi Bilgileri</SectionLabel>
+              {inp('bolge', 'örn: Sağımhane Sorumlusu', 'Görev / Bölge')}
             </>)}
 
             <SubmitBtn type="submit" disabled={loading}>

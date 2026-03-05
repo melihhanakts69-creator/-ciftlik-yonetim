@@ -23,9 +23,9 @@ app.use(cors({
   ],
   credentials: true
 }));
-app.use(express.json({ limit: '10kb' }));  // Genel body sınırı
 // Profil fotoğrafı (Base64) için /api/auth/update endpoint'i daha yüksek limitle:
-app.use('/api/auth/update', express.json({ limit: '2mb' }));
+app.use('/api/auth/update', express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '10mb' }));  // Genel body sınırı
 
 
 // 🔒 Güvenlik Middleware'leri (Body parser'dan SONRA gelmeli)

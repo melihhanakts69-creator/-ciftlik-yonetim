@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const Stok = require('../models/Stok');
 const Bildirim = require('../models/Bildirim');
 
 // @route   GET /api/stok
 // @desc    Tüm stokları getir
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const stoklar = await Stok.find({ userId: req.userId })
             .populate('yemKutuphanesiId')
@@ -22,7 +23,7 @@ router.get('/', auth, async (req, res) => {
 // @route   POST /api/stok
 // @desc    Yeni stok ekle
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, yemKutuphanesiId } = req.body;
 
@@ -48,7 +49,7 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT /api/stok/:id
 // @desc    Stok güncelle (Miktar artır/azalt veya bilgi düzenle)
 // @access  Private
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         let stok = await Stok.findById(req.params.id);
         if (!stok) return res.status(404).json({ msg: 'Stok bulunamadı' });
@@ -110,7 +111,7 @@ router.put('/:id', auth, async (req, res) => {
 // @route   DELETE /api/stok/:id
 // @desc    Stok sil
 // @access  Private
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         let stok = await Stok.findById(req.params.id);
         if (!stok) return res.status(404).json({ msg: 'Stok bulunamadı' });

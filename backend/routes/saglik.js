@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const AsiTakvimi = require('../models/AsiTakvimi');
 const Timeline = require('../models/Timeline');
@@ -13,7 +14,7 @@ const mongoose = require('mongoose');
 // ============================
 
 // Tüm sağlık kayıtlarını getir (filtreleme destekli)
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { tip, durum, hayvanTipi, hayvanId, baslangic, bitis, limit = 50, page = 1 } = req.query;
 
@@ -54,7 +55,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Belirli hayvanın sağlık geçmişi
-router.get('/hayvan/:hayvanId', auth, async (req, res) => {
+router.get('/hayvan/:hayvanId', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const kayitlar = await SaglikKaydi.hayvanGecmisi(req.userId, req.params.hayvanId);
         res.json(kayitlar);
@@ -65,7 +66,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
 });
 
 // Sağlık istatistikleri
-router.get('/istatistik', auth, async (req, res) => {
+router.get('/istatistik', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const istatistikler = await SaglikKaydi.istatistikler(req.userId);
 
@@ -85,7 +86,7 @@ router.get('/istatistik', auth, async (req, res) => {
 });
 
 // Yaklaşan kontroller ve aşılar
-router.get('/yaklasan', auth, async (req, res) => {
+router.get('/yaklasan', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const gun = parseInt(req.query.gun) || 7;
 
@@ -120,7 +121,7 @@ router.get('/yaklasan', auth, async (req, res) => {
 });
 
 // Yeni sağlık kaydı oluştur
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId: _u, _id, ...safeBody } = req.body;
 
@@ -195,7 +196,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Sağlık kaydını güncelle
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId, _id, ...safeBody } = req.body;
 
@@ -217,7 +218,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Sağlık kaydını sil
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const kayit = await SaglikKaydi.findOneAndDelete({
             _id: req.params.id,
@@ -241,7 +242,7 @@ router.delete('/:id', auth, async (req, res) => {
 // ============================
 
 // Aşı takvimi listesi
-router.get('/asi-takvimi', auth, async (req, res) => {
+router.get('/asi-takvimi', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { durum, hayvanTipi, limit = 50, page = 1 } = req.query;
 
@@ -275,7 +276,7 @@ router.get('/asi-takvimi', auth, async (req, res) => {
 });
 
 // Yeni aşı kaydı
-router.post('/asi', auth, async (req, res) => {
+router.post('/asi', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId: _u, _id, ...safeBody } = req.body;
 
@@ -343,7 +344,7 @@ router.post('/asi', auth, async (req, res) => {
 });
 
 // Aşı güncelle
-router.put('/asi/:id', auth, async (req, res) => {
+router.put('/asi/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId, _id, ...safeBody } = req.body;
 
@@ -365,7 +366,7 @@ router.put('/asi/:id', auth, async (req, res) => {
 });
 
 // Aşı sil
-router.delete('/asi/:id', auth, async (req, res) => {
+router.delete('/asi/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const asi = await AsiTakvimi.findOneAndDelete({
             _id: req.params.id,

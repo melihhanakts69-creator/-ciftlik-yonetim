@@ -131,7 +131,7 @@ export default function Ayarlar() {
 
     // SubAccounts State
     const [subAccounts, setSubAccounts] = useState([]);
-    const [saForm, setSaForm] = useState({ isim: '', email: '', sifre: '', telefon: '', rol: 'veteriner' });
+    const [saForm, setSaForm] = useState({ isim: '', email: '', sifre: '', telefon: '', rol: 'sutcu' });
     const [saMsg, setSaMsg] = useState({ text: '', err: false });
     const [saLoading, setSaLoading] = useState(false);
 
@@ -166,7 +166,7 @@ export default function Ayarlar() {
         try {
             await api.createSubAccount(saForm);
             setSaMsg({ text: '✅ Personel hesabı başarıyla oluşturuldu!', err: false });
-            setSaForm({ isim: '', email: '', sifre: '', telefon: '', rol: 'veteriner' });
+            setSaForm({ isim: '', email: '', sifre: '', telefon: '', rol: 'sutcu' });
             loadSubAccounts();
         } catch (error) {
             setSaMsg({ text: error.response?.data?.message || '❌ Personel eklenemedi.', err: true });
@@ -243,7 +243,7 @@ export default function Ayarlar() {
             {user.rol === 'ciftci' && (
                 <TabContainer>
                     <TabBtn $active={activeTab === 'profil'} onClick={() => setActiveTab('profil')}>🏠 Çiftlik Profili</TabBtn>
-                    <TabBtn $active={activeTab === 'personel'} onClick={() => setActiveTab('personel')}>👥 Personeller (Veteriner/Sütçü)</TabBtn>
+                    <TabBtn $active={activeTab === 'personel'} onClick={() => setActiveTab('personel')}>👥 Personeller (İşçi/Sağımcı)</TabBtn>
                 </TabContainer>
             )}
 
@@ -325,8 +325,7 @@ export default function Ayarlar() {
                                 <FormGrid>
                                     <FG><Label>Görevi (Rolü) *</Label>
                                         <select value={saForm.rol} onChange={e => setSaForm({ ...saForm, rol: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', outline: 'none' }}>
-                                            <option value="veteriner">Veteriner</option>
-                                            <option value="sutcu">Süt Sağımcısı / Sütçü</option>
+                                            <option value="sutcu">👷‍♂️ İşçi / Sağımcı</option>
                                         </select>
                                     </FG>
                                     <FG><Label>Ad Soyad *</Label><Input value={saForm.isim} onChange={e => setSaForm({ ...saForm, isim: e.target.value })} placeholder="Personel Adı" required /></FG>
@@ -361,7 +360,7 @@ export default function Ayarlar() {
                                                 <td>{sa.email}</td>
                                                 <td>
                                                     <RoleBadge style={{ background: sa.rol === 'veteriner' ? '#ebf8ff' : '#fefcbf', color: sa.rol === 'veteriner' ? '#3182ce' : '#d69e2e', borderColor: sa.rol === 'veteriner' ? '#90cdf4' : '#f6e05e' }}>
-                                                        {sa.rol === 'veteriner' ? '🩺 Veteriner' : '🥛 Sütçü'}
+                                                        {sa.rol === 'veteriner' ? '🩺 Veteriner' : '👷‍♂️ İşçi / Sağımcı'}
                                                     </RoleBadge>
                                                 </td>
                                                 <td>{new Date(sa.createdAt).toLocaleDateString('tr-TR')}</td>
@@ -372,7 +371,7 @@ export default function Ayarlar() {
                                 </Table>
                             ) : (
                                 <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
-                                    Henüz Çiftliğinize ait alt personel (Veteriner/Sütçü) eklenmemiş.<br />Yukarıdaki formdan hemen bir hesap tanımlayabilirsiniz.
+                                    Henüz Çiftliğinize ait işçi veya personel eklenmemiş.<br />Yukarıdaki formdan hemen bir hesap tanımlayabilirsiniz.
                                 </div>
                             )}
                         </div>

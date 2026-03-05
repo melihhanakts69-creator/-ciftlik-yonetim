@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const AlisSatis = require('../models/AlisSatis');
 
 // Tüm alış-satış kayıtlarını listele
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
     const {
@@ -56,7 +57,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Belirli bir kaydı getir
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const kayit = await AlisSatis.findOne({
       _id: req.params.id,
@@ -92,7 +93,7 @@ const getModelByType = (type) => {
 };
 
 // SATIŞ İŞLEMİ (Animal Sale)
-router.post('/satis', auth, async (req, res) => {
+router.post('/satis', auth, checkRole(['ciftci']), async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -164,7 +165,7 @@ router.post('/satis', auth, async (req, res) => {
 });
 
 // ALIŞ İŞLEMİ (Animal Purchase)
-router.post('/alis', auth, async (req, res) => {
+router.post('/alis', auth, checkRole(['ciftci']), async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -263,7 +264,7 @@ router.post('/alis', auth, async (req, res) => {
 });
 
 // Toplam alış özeti
-router.get('/ozet/alis', auth, async (req, res) => {
+router.get('/ozet/alis', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
     const { baslangic, bitis } = req.query;
@@ -282,7 +283,7 @@ router.get('/ozet/alis', auth, async (req, res) => {
 });
 
 // Toplam satış özeti
-router.get('/ozet/satis', auth, async (req, res) => {
+router.get('/ozet/satis', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
     const { baslangic, bitis } = req.query;
@@ -301,7 +302,7 @@ router.get('/ozet/satis', auth, async (req, res) => {
 });
 
 // Kar-zarar özeti
-router.get('/ozet/kar-zarar', auth, async (req, res) => {
+router.get('/ozet/kar-zarar', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
     const { baslangic, bitis } = req.query;
@@ -320,7 +321,7 @@ router.get('/ozet/kar-zarar', auth, async (req, res) => {
 });
 
 // Veresiye borçlar
-router.get('/ozet/veresiye', auth, async (req, res) => {
+router.get('/ozet/veresiye', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
 
@@ -346,7 +347,7 @@ router.get('/ozet/veresiye', auth, async (req, res) => {
 });
 
 // Veresiye ödeme yap
-router.post('/:id/odeme', auth, async (req, res) => {
+router.post('/:id/odeme', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const { tutar } = req.body;
 
@@ -383,7 +384,7 @@ router.post('/:id/odeme', auth, async (req, res) => {
 });
 
 // Hayvana göre alış-satış geçmişi
-router.get('/hayvan/:hayvanId', auth, async (req, res) => {
+router.get('/hayvan/:hayvanId', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const kayitlar = await AlisSatis.find({
       userId: req.userId,
@@ -398,7 +399,7 @@ router.get('/hayvan/:hayvanId', auth, async (req, res) => {
 });
 
 // Aylık rapor
-router.get('/rapor/aylik', auth, async (req, res) => {
+router.get('/rapor/aylik', auth, checkRole(['ciftci']), async (req, res) => {
   try {
     const userId = req.userId;
     const { yil, ay } = req.query;
