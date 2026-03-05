@@ -289,11 +289,6 @@ export default function Ayarlar() {
                                 {user.rol === 'ciftci' && <FG><Label>🏠 İşletme / Çiftlik Adı</Label><Input value={user.isletmeAdi} onChange={e => setUser(u => ({ ...u, isletmeAdi: e.target.value }))} placeholder="Çiftliğinizin adı" /></FG>}
                                 {user.rol === 'ciftci' && <FG><Label>📍 Şehir / İlçe</Label><Input value={user.sehir} onChange={e => setUser(u => ({ ...u, sehir: e.target.value }))} placeholder="örn: Konya" /></FG>}
                                 {user.rol === 'sutcu' && <FG><Label>📍 Görev / Bölge</Label><Input value={user.bolge} onChange={e => setUser(u => ({ ...u, bolge: e.target.value }))} placeholder="Mevcut Göreviniz" disabled /></FG>}
-                                {user.rol === 'veteriner' && <FG><Label>🩺 Lisans No</Label><Input value={user.lisansNo} disabled /></FG>}
-                                {user.rol === 'toplayici' && <>
-                                    <FG><Label>🏢 Firma Adı</Label><Input value={user.firmaAdi} onChange={e => setUser(u => ({ ...u, firmaAdi: e.target.value }))} placeholder="Firma Adı" /></FG>
-                                    <FG><Label>📍 Faaliyet Bölgesi</Label><Input value={user.bolge} onChange={e => setUser(u => ({ ...u, bolge: e.target.value }))} placeholder="Faaliyet Bölgesi" /></FG>
-                                </>}
                                 <FullRow><Label>📞 Telefon</Label><Input type="tel" value={user.telefon} onChange={e => setUser(u => ({ ...u, telefon: e.target.value }))} placeholder="05XX XXX XX XX" /></FullRow>
                             </FormGrid>
                             <SaveBtn type="submit" disabled={loading} style={{ marginTop: 16 }}>

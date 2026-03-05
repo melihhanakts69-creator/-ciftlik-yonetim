@@ -23,19 +23,21 @@ router.get('/stats', auth, async (req, res) => {
   try {
     const userId = req.userId;
 
+    const uid = new mongoose.Types.ObjectId(req.userId);
+
     // Toplam hayvan sayıları
-    const toplamInek = await Inek.countDocuments({ userId });
-    const toplamDuve = await Duve.countDocuments({ userId });
-    const toplamBuzagi = await Buzagi.countDocuments({ userId });
-    const toplamTosun = await Tosun.countDocuments({ userId });
+    const toplamInek = await Inek.countDocuments({ userId: uid });
+    const toplamDuve = await Duve.countDocuments({ userId: uid });
+    const toplamBuzagi = await Buzagi.countDocuments({ userId: uid });
+    const toplamTosun = await Tosun.countDocuments({ userId: uid });
 
     // Gebe hayvanlar (Field adı düzeltmeleri)
-    const gebeInek = await Inek.countDocuments({ userId, gebelikDurumu: 'Gebe' });
-    const gebeDuve = await Duve.countDocuments({ userId, gebelikDurumu: 'Gebe' });
+    const gebeInek = await Inek.countDocuments({ userId: uid, gebelikDurumu: 'Gebe' });
+    const gebeDuve = await Duve.countDocuments({ userId: uid, gebelikDurumu: 'Gebe' });
 
     // Sağmal inekler (Aktif olanlar sağmal kabul edilir, Kuru Dönemde olanlar hariç)
     const sagmalInek = await Inek.countDocuments({
-      userId,
+      userId: uid,
       durum: 'Aktif'
     });
 
@@ -63,8 +65,8 @@ router.get('/stats', auth, async (req, res) => {
     // Yaklaşan doğumlar (30 gün içinde)
     // Sadece Gebe olanları çekip JS tarafında hesaplayacağız
     const gebeler = await Promise.all([
-      Inek.find({ userId, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo'),
-      Duve.find({ userId, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo')
+      Inek.find({ userId: uid, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo'),
+      Duve.find({ userId: uid, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo')
     ]);
 
     const otuzGunSonra = new Date();
@@ -88,7 +90,7 @@ router.get('/stats', auth, async (req, res) => {
 
     // Okunmamış bildirimler
     const okunmayanBildirim = await Bildirim.countDocuments({
-      userId,
+      userId: uid,
       okundu: false,
       aktif: true
     });
