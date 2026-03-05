@@ -93,9 +93,30 @@ const AlertBox = styled.div`
   color: ${p => p.$err ? '#ef4444' : '#16a34a'};
 `;
 
+const TabContainer = styled.div`display: flex; gap: 8px; margin-bottom: 24px;`;
+const TabBtn = styled.button`
+    padding: 12px 24px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+    background: ${p => p.$active ? '#1e293b' : '#fff'}; color: ${p => p.$active ? '#fff' : '#64748b'};
+    box-shadow: ${p => p.$active ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)'};
+    transition: all 0.2s;
+    &:hover { background: ${p => p.$active ? '#0f172a' : '#f8fafc'}; }
+`;
+
+const Table = styled.table`
+    width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;
+    th { padding: 12px 16px; background: #f8fafc; color: #64748b; font-weight: 700; border-bottom: 2px solid #e2e8f0; }
+    td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; font-weight: 500; }
+    tr:last-child td { border-bottom: none; }
+`;
+
+const DeleteBtn = styled.button`
+    background: none; border: none; color: #ef4444; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 10px; border-radius: 6px;
+    &:hover { background: rgba(239,68,68,0.1); }
+`;
+
 // ── Component ─────────────────────────────────────────────────────
 export default function Ayarlar() {
-    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', _id: '' });
+    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', _id: '', rol: '' });
     const [pForm, setPForm] = useState({ mevcutSifre: '', yeniSifre: '', yeniSifreTekrar: '' });
     const [loading, setLoading] = useState(false);
     const [pLoading, setPLoading] = useState(false);
@@ -105,7 +126,21 @@ export default function Ayarlar() {
     const [pMsgErr, setPMsgErr] = useState(false);
     const [copied, setCopied] = useState(false);
 
+    // Tab State
+    const [activeTab, setActiveTab] = useState('profil');
+
+    // SubAccounts State
+    const [subAccounts, setSubAccounts] = useState([]);
+    const [saForm, setSaForm] = useState({ isim: '', email: '', sifre: '', telefon: '', rol: 'veteriner' });
+    const [saMsg, setSaMsg] = useState({ text: '', err: false });
+    const [saLoading, setSaLoading] = useState(false);
+
     useEffect(() => { loadProfile(); }, []);
+    useEffect(() => {
+        if (activeTab === 'personel' && user.rol === 'ciftci') {
+            loadSubAccounts();
+        }
+    }, [activeTab, user.rol]);
 
     const loadProfile = async () => {
         try {
@@ -114,9 +149,36 @@ export default function Ayarlar() {
             const res = await api.getProfile();
             if (res.data.user) {
                 const u = res.data.user;
-                setUser({ isim: u.isim || '', email: u.email || '', isletmeAdi: u.isletmeAdi || '', sehir: u.sehir || '', telefon: u.telefon || '', profilFoto: u.profilFoto || '', _id: u._id || local.id || '' });
+                setUser({ isim: u.isim || '', email: u.email || '', isletmeAdi: u.isletmeAdi || '', sehir: u.sehir || '', telefon: u.telefon || '', profilFoto: u.profilFoto || '', _id: u._id || local.id || '', rol: u.rol || 'ciftci' });
             }
         } catch (e) { console.error(e); }
+    };
+
+    const loadSubAccounts = async () => {
+        try {
+            const res = await api.getSubAccounts();
+            setSubAccounts(res.data);
+        } catch (error) { console.error("Alt hesaplar yüklenemedi", error); }
+    };
+
+    const handleCreateSubAccount = async (e) => {
+        e.preventDefault(); setSaLoading(true); setSaMsg({ text: '', err: false });
+        try {
+            await api.createSubAccount(saForm);
+            setSaMsg({ text: '✅ Personel hesabı başarıyla oluşturuldu!', err: false });
+            setSaForm({ isim: '', email: '', sifre: '', telefon: '', rol: 'veteriner' });
+            loadSubAccounts();
+        } catch (error) {
+            setSaMsg({ text: error.response?.data?.message || '❌ Personel eklenemedi.', err: true });
+        } finally { setSaLoading(false); }
+    };
+
+    const handleDeleteSubAccount = async (id, isim) => {
+        if (!window.confirm(`${isim} adlı personelin hesabını kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+        try {
+            await api.deleteSubAccount(id);
+            setSubAccounts(prev => prev.filter(sa => sa._id !== id));
+        } catch (error) { alert(error.response?.data?.message || 'Silinemedi'); }
     };
 
     const handleAvatarUpload = () => {
@@ -176,50 +238,57 @@ export default function Ayarlar() {
 
     return (
         <Page>
-            <PageTitle>⚙️ Profil & Ayarlar</PageTitle>
+            <PageTitle>⚙️ Kurumsal Ayarlar {user.rol === 'ciftci' && '& Personel Yönetimi'}</PageTitle>
 
-            <Grid>
+            {user.rol === 'ciftci' && (
+                <TabContainer>
+                    <TabBtn $active={activeTab === 'profil'} onClick={() => setActiveTab('profil')}>🏠 Çiftlik Profili</TabBtn>
+                    <TabBtn $active={activeTab === 'personel'} onClick={() => setActiveTab('personel')}>👥 Personeller (Veteriner/Sütçü)</TabBtn>
+                </TabContainer>
+            )}
+
+            <Grid style={{ display: activeTab === 'profil' ? 'grid' : 'none' }}>
                 {/* ── Profil Bandı ── */}
                 <Card>
                     <ProfileBand>
-                        <AvatarWrap onClick={handleAvatarUpload} title="Fotoğraf yükle">
-                            <Avatar>
-                                {user.profilFoto ? <img src={user.profilFoto} alt="avatar" /> : initials}
-                            </Avatar>
+                        <AvatarWrap onClick={handleAvatarUpload} title="Fotoğraf yükle/değiştir">
+                            <Avatar>{user.profilFoto ? <img src={user.profilFoto} alt="avatar" /> : initials}</Avatar>
                             <AvatarOverlay>📷</AvatarOverlay>
                         </AvatarWrap>
 
                         <ProfileInfo>
                             <ProfileName>{user.isim || 'İsim belirtilmedi'}</ProfileName>
                             <ProfileSub>{user.isletmeAdi || 'İşletme adı yok'}{user.sehir ? ` · ${user.sehir}` : ''}</ProfileSub>
-                            <RoleBadge>🐄 Çiftçi</RoleBadge>
+                            <RoleBadge>🐄 {user.rol === 'ciftci' ? 'Çiftlik Sahibi' : user.rol}</RoleBadge>
 
-                            <FarmIdBox onClick={copyId} title="Sütçüler bu ID'yi kullanır">
-                                <div>
-                                    <FarmIdLabel>🔑 Çiftlik ID (Sütçüler için)</FarmIdLabel>
-                                    <FarmIdValue>{farmId}</FarmIdValue>
-                                </div>
-                                <CopyBtn>{copied ? '✅ Kopyalandı' : 'Kopyala'}</CopyBtn>
-                            </FarmIdBox>
+                            {user.rol === 'ciftci' && (
+                                <FarmIdBox onClick={copyId} title="Bu ID Alt hesaplar için anahtardır">
+                                    <div>
+                                        <FarmIdLabel>🔑 Çiftlik ID</FarmIdLabel>
+                                        <FarmIdValue>{farmId}</FarmIdValue>
+                                    </div>
+                                    <CopyBtn>{copied ? '✅ Kopyalandı' : 'Kopyala'}</CopyBtn>
+                                </FarmIdBox>
+                            )}
                         </ProfileInfo>
                     </ProfileBand>
                 </Card>
 
                 {/* ── Profil Bilgileri ── */}
                 <Card>
-                    <CardHeader>🙍 Profil Bilgileri</CardHeader>
+                    <CardHeader>🙍 Çiftlik / Profil Bilgileri</CardHeader>
                     <CardBody>
                         {msg && <AlertBox $err={msgErr}>{msg}</AlertBox>}
                         <form onSubmit={handleSave}>
                             <FormGrid>
                                 <FG><Label>Ad Soyad *</Label><Input value={user.isim} onChange={e => setUser(u => ({ ...u, isim: e.target.value }))} placeholder="Adınız Soyadınız" required /></FG>
                                 <FG><Label>E-posta *</Label><Input type="email" value={user.email} onChange={e => setUser(u => ({ ...u, email: e.target.value }))} placeholder="email@ornek.com" required /></FG>
-                                <FG><Label>🏠 İşletme / Çiftlik Adı</Label><Input value={user.isletmeAdi} onChange={e => setUser(u => ({ ...u, isletmeAdi: e.target.value }))} placeholder="Çiftliğinizin adı" /></FG>
-                                <FG><Label>📍 Şehir / İlçe</Label><Input value={user.sehir} onChange={e => setUser(u => ({ ...u, sehir: e.target.value }))} placeholder="örn: Konya" /></FG>
+                                {user.rol === 'ciftci' && <FG><Label>🏠 İşletme / Çiftlik Adı</Label><Input value={user.isletmeAdi} onChange={e => setUser(u => ({ ...u, isletmeAdi: e.target.value }))} placeholder="Çiftliğinizin adı" /></FG>}
+                                {user.rol === 'ciftci' && <FG><Label>📍 Şehir / İlçe</Label><Input value={user.sehir} onChange={e => setUser(u => ({ ...u, sehir: e.target.value }))} placeholder="örn: Konya" /></FG>}
                                 <FullRow><Label>📞 Telefon</Label><Input type="tel" value={user.telefon} onChange={e => setUser(u => ({ ...u, telefon: e.target.value }))} placeholder="05XX XXX XX XX" /></FullRow>
                             </FormGrid>
                             <SaveBtn type="submit" disabled={loading} style={{ marginTop: 16 }}>
-                                {loading ? 'Kaydediliyor...' : '💾 Kaydet'}
+                                {loading ? 'Kaydediliyor...' : '💾 Kurumsal Bilgileri Kaydet'}
                             </SaveBtn>
                         </form>
                     </CardBody>
@@ -243,12 +312,78 @@ export default function Ayarlar() {
                         </form>
                     </CardBody>
                 </Card>
-
-                {/* ── Hakkında ── */}
-                <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 12, padding: '8px 0 16px' }}>
-                    Agrolina v2.0 · © 2026 · Akıllı Çiftlik Yönetim Sistemi
-                </div>
             </Grid>
+
+            {/* ── PERSONEL YÖNETİMİ TABU ── */}
+            {user.rol === 'ciftci' && (
+                <Grid style={{ display: activeTab === 'personel' ? 'grid' : 'none' }}>
+                    <Card>
+                        <CardHeader>👨‍⚕️ Yeni Personel / Alt Hesap Ekle</CardHeader>
+                        <CardBody>
+                            {saMsg.text && <AlertBox $err={saMsg.err}>{saMsg.text}</AlertBox>}
+                            <form onSubmit={handleCreateSubAccount}>
+                                <FormGrid>
+                                    <FG><Label>Görevi (Rolü) *</Label>
+                                        <select value={saForm.rol} onChange={e => setSaForm({ ...saForm, rol: e.target.value })} style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', outline: 'none' }}>
+                                            <option value="veteriner">Veteriner</option>
+                                            <option value="sutcu">Süt Sağımcısı / Sütçü</option>
+                                        </select>
+                                    </FG>
+                                    <FG><Label>Ad Soyad *</Label><Input value={saForm.isim} onChange={e => setSaForm({ ...saForm, isim: e.target.value })} placeholder="Personel Adı" required /></FG>
+                                    <FG><Label>Giriş E-postası *</Label><Input type="email" value={saForm.email} onChange={e => setSaForm({ ...saForm, email: e.target.value })} placeholder="personel@ciftlik.com" required /></FG>
+                                    <FG><Label>Giriş Şifresi *</Label><Input type="text" value={saForm.sifre} onChange={e => setSaForm({ ...saForm, sifre: e.target.value })} placeholder="Geçici şifre belirle" required minLength="6" /></FG>
+                                </FormGrid>
+                                <SaveBtn type="submit" disabled={saLoading} style={{ marginTop: 16 }}>
+                                    {saLoading ? 'Ekleniyor...' : '➕ Personel Hesabı Oluştur (Yetki Ver)'}
+                                </SaveBtn>
+                            </form>
+                        </CardBody>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>📋 Aktif Personeller ({subAccounts.length})</CardHeader>
+                        <div style={{ padding: '0 24px 24px', overflowX: 'auto' }}>
+                            {subAccounts.length > 0 ? (
+                                <Table>
+                                    <thead>
+                                        <tr>
+                                            <th>Personel Adı</th>
+                                            <th>E-posta</th>
+                                            <th>Görev</th>
+                                            <th>Kayıt Tarihi</th>
+                                            <th>İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {subAccounts.map(sa => (
+                                            <tr key={sa._id}>
+                                                <td>{sa.isim}</td>
+                                                <td>{sa.email}</td>
+                                                <td>
+                                                    <RoleBadge style={{ background: sa.rol === 'veteriner' ? '#ebf8ff' : '#fefcbf', color: sa.rol === 'veteriner' ? '#3182ce' : '#d69e2e', borderColor: sa.rol === 'veteriner' ? '#90cdf4' : '#f6e05e' }}>
+                                                        {sa.rol === 'veteriner' ? '🩺 Veteriner' : '🥛 Sütçü'}
+                                                    </RoleBadge>
+                                                </td>
+                                                <td>{new Date(sa.createdAt).toLocaleDateString('tr-TR')}</td>
+                                                <td><DeleteBtn onClick={() => handleDeleteSubAccount(sa._id, sa.isim)}>Sil / Çıkar</DeleteBtn></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            ) : (
+                                <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                                    Henüz Çiftliğinize ait alt personel (Veteriner/Sütçü) eklenmemiş.<br />Yukarıdaki formdan hemen bir hesap tanımlayabilirsiniz.
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </Grid>
+            )}
+
+            {/* ── Hakkında ── */}
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 12, padding: '24px 0 16px' }}>
+                Agrolina v2.0 · Kurumsal Sürüm · Akıllı Çiftlik Yönetim Sistemi
+            </div>
         </Page>
     );
 }

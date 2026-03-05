@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
   sonGiris: { type: Date },
   kayitTarihi: { type: Date, default: Date.now },
 
+  // ── Alt Hesap Mantığı (Personel) ────────────────
+  parentUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+
   // ── Rol sistemi ─────────────────────────────────
   rol: {
     type: String,
@@ -20,6 +23,7 @@ const userSchema = new mongoose.Schema({
   // ── Çiftçi alanları ─────────────────────────────
   isletmeAdi: { type: String, trim: true },  // çiftçi için işletme adı
   sehir: { type: String, trim: true },
+  logoUrl: { type: String, trim: true }, // Çiftlik özel logosu
 
   // ── Veteriner alanları ───────────────────────────
   lisansNo: { type: String, trim: true },

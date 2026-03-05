@@ -6,7 +6,10 @@ import {
   BarChart, Bar, LineChart, Line
 } from 'recharts';
 import * as api from '../services/api';
-import { FaChartBar, FaTint, FaWallet, FaHeartbeat, FaCalendarAlt, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaChartBar, FaTint, FaWallet, FaHeartbeat, FaCalendarAlt, FaArrowUp, FaArrowDown, FaFileExcel, FaFilePdf, FaDownload } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(15px); }
@@ -46,6 +49,27 @@ const PeriodSelector = styled.div`
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 `;
+
+const ExportGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+
+  @media (max-width: 600px) {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+`;
+
+const ExportBtn = styled.button`
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  background: ${p => p.$pdf ? '#ef4444' : '#10b981'}; color: white;
+  transition: all 0.2s;
+  &:hover { background: ${p => p.$pdf ? '#dc2626' : '#059669'}; transform: translateY(-1px); }
+`;
+
 
 const PeriodBtn = styled.button`
   padding: 8px 16px;
@@ -288,6 +312,59 @@ const Raporlar = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ========== EXCEL & PDF İŞLEMLERİ ==========
+  const prepareExportData = () => {
+    switch (activeTab) {
+      case 'suru':
+        return data.inekler.map(i => ({ Tür: 'İnek', Küpe: i.kupeNo, İsim: i.isim, Durum: i.durum, Laktasyon: i.laktasyonSayisi || 0 }))
+          .concat(data.duveler.map(d => ({ Tür: 'Düve', Küpe: d.kupeNo, İsim: d.isim, Durum: d.durum, Laktasyon: '-' })))
+          .concat(data.buzagilar.map(b => ({ Tür: 'Buzağı', Küpe: b.kupeNo, İsim: b.isim, Durum: b.cinsiyet, Laktasyon: '-' })))
+          .concat(data.tosunlar.map(t => ({ Tür: 'Tosun', Küpe: t.kupeNo, İsim: t.isim, Durum: 'Erkek', Laktasyon: '-' })));
+      case 'sut':
+        return data.sutVerileri.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), 'Sabah (Lt)': s.sabahToplami || 0, 'Akşam (Lt)': s.aksamToplami || 0, 'Toplam (Lt)': s.toplamSut || 0 }));
+      case 'finansal':
+        return data.finansal.map(f => ({ Tarih: new Date(f.tarih).toLocaleDateString('tr-TR'), Tür: f.tip === 'gelir' ? 'Gelir' : 'Gider', Kategori: f.kategori, Tutar: f.tutar, Açıklama: f.aciklama }));
+      case 'saglik':
+        return data.saglik.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), Tür: s.tip, Hayvan: s.hayvanIsim || s.hayvanTipi, Tanı: s.tani, Durum: s.durum, Maliyet: s.maliyet || 0 }));
+      default: return [];
+    }
+  };
+
+  const exportToExcel = () => {
+    const exportData = prepareExportData();
+    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+    XLSX.writeFile(wb, `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const exportToPDF = () => {
+    const exportData = prepareExportData();
+    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+    const doc = new jsPDF();
+    doc.setFont("helvetica");
+    doc.setFontSize(18);
+    doc.text(`Agrolina - ${activeTab.toUpperCase()} Raporu`, 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`, 14, 28);
+
+    const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
+
+    doc.autoTable({
+      head: [columns.map(c => c.header)],
+      body: exportData.map(row => columns.map(c => row[c.dataKey])),
+      startY: 35,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [44, 62, 80] },
+      alternateRowStyles: { fillColor: [245, 245, 245] }
+    });
+
+    doc.save(`Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   // ========== SÜRÜ TAB ==========
@@ -616,13 +693,19 @@ const Raporlar = () => {
           <h1>📊 Çiftlik Raporları</h1>
           <p>Detaylı performans analizi ve grafikleri</p>
         </HeaderLeft>
-        <PeriodSelector>
-          {[{ v: 7, l: '7 Gün' }, { v: 30, l: '30 Gün' }, { v: 90, l: '90 Gün' }, { v: 365, l: 'Yıllık' }].map(p => (
-            <PeriodBtn key={p.v} active={period === p.v} onClick={() => setPeriod(p.v)}>
-              <FaCalendarAlt style={{ marginRight: 4 }} /> {p.l}
-            </PeriodBtn>
-          ))}
-        </PeriodSelector>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <PeriodSelector>
+            {[{ v: 7, l: '7 Gün' }, { v: 30, l: '30 Gün' }, { v: 90, l: '90 Gün' }, { v: 365, l: 'Yıllık' }].map(p => (
+              <PeriodBtn key={p.v} active={period === p.v} onClick={() => setPeriod(p.v)}>
+                <FaCalendarAlt style={{ marginRight: 4 }} /> {p.l}
+              </PeriodBtn>
+            ))}
+          </PeriodSelector>
+          <ExportGroup>
+            <ExportBtn onClick={exportToExcel} title="Excel formatında indir"><FaFileExcel /> Excel</ExportBtn>
+            <ExportBtn $pdf onClick={exportToPDF} title="PDF formatında indir"><FaFilePdf /> PDF</ExportBtn>
+          </ExportGroup>
+        </div>
       </Header>
 
       <Tabs>

@@ -190,34 +190,67 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const menuItems = [
-    { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
-    { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
-    { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
-    { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
-    { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
-    { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
-    { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
-  ];
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const role = user.rol || 'ciftci';
+  const ciftlikAdi = user.isletmeAdi || 'Agrolina';
 
-  const yonetimItems = [
-    { path: '/stok-yonetimi', name: 'Stok Yönetimi', icon: <FaWarehouse /> },
-    { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
-    { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
-    { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
-    { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
-    { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
-    { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
-  ];
+  let menuItems = [];
+  let yonetimItems = [];
+
+  if (role === 'veteriner') {
+    menuItems = [
+      { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
+      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
+      { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
+      { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
+      { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
+    ];
+    yonetimItems = [
+      { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
+      { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
+      { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
+    ];
+  } else if (role === 'sutcu') {
+    menuItems = [
+      { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
+      { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
+    ];
+    yonetimItems = [
+      { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
+      { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
+    ];
+  } else {
+    // Çiftçi (Admin)
+    menuItems = [
+      { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
+      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
+      { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
+      { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
+      { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
+      { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
+    ];
+    yonetimItems = [
+      { path: '/stok-yonetimi', name: 'Stok Yönetimi', icon: <FaWarehouse /> },
+      { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
+      { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
+      { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
+      { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
+      { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
+      { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
+    ];
+  }
 
   return (
     <SidebarContainer isOpen={isOpen}>
       <SidebarHeader>
         <BrandContainer>
-          <LogoImage src={logo} alt="Agrolina" />
+          <LogoImage src={user.logoUrl || logo} alt="Logo" />
           <BrandText>
-            <h2>Agrolina</h2>
-            <span>Çiftlik Yönetimi</span>
+            <h2>{ciftlikAdi}</h2>
+            <span>Agrolina Çiftlik Y.</span>
           </BrandText>
         </BrandContainer>
         <CloseButton onClick={onClose} aria-label="Menüyü Kapat">

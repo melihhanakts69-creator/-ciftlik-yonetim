@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaThLarge, FaList, FaTable } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaThLarge, FaList, FaTable, FaFileExcel, FaFilePdf } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import FilterBar from '../components/common/FilterBar';
 
 const PageContainer = styled.div`
@@ -79,6 +82,31 @@ const AddButton = styled.button`
   &:hover {
     transform: translateY(-2px);
     background-color: #43A047;
+  }
+
+  @media (max-width: 768px) {
+    span { display: none; }
+    padding: 10px;
+  }
+`;
+
+const ExportBtn = styled.button`
+  background-color: ${p => p.$pdf ? '#ef4444' : '#10b981'};
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    background-color: ${p => p.$pdf ? '#dc2626' : '#059669'};
   }
 
   @media (max-width: 768px) {
@@ -225,6 +253,53 @@ const Inekler = () => {
         setShowModal(true);
     };
 
+    const prepareExportData = () => {
+        return filteredInekler.map(i => ({
+            'Küpe No': i.kupeNo,
+            'İsim': i.isim,
+            'Yaş': i.yas,
+            'Kilo (kg)': i.kilo,
+            'Durum': i.gebelikDurumu || 'Boş',
+            'Son Doğum': i.sonBuzagilamaTarihi ? new Date(i.sonBuzagilamaTarihi).toLocaleDateString('tr-TR') : '-',
+            'Laktasyon': i.laktasyonSayisi || 0
+        }));
+    };
+
+    const exportToExcel = () => {
+        const exportData = prepareExportData();
+        if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Inekler");
+        XLSX.writeFile(wb, `Agrolina_Inekler_Listesi_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
+
+    const exportToPDF = () => {
+        const exportData = prepareExportData();
+        if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+        const doc = new jsPDF();
+        doc.setFont("helvetica");
+        doc.setFontSize(18);
+        doc.text('Agrolina - Inekler Listesi', 14, 20);
+        doc.setFontSize(11);
+        doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam: ${filteredInekler.length} inek`, 14, 28);
+
+        const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
+
+        doc.autoTable({
+            head: [columns.map(c => c.header)],
+            body: exportData.map(row => columns.map(c => row[c.dataKey])),
+            startY: 35,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [44, 62, 80] },
+            alternateRowStyles: { fillColor: [245, 245, 245] }
+        });
+
+        doc.save(`Agrolina_Inekler_Listesi_${new Date().toISOString().slice(0, 10)}.pdf`);
+    };
+
     const filterOptions = [
         { value: 'gebe', label: 'Gebeler' },
         { value: 'sagmal', label: 'Sağmallar' },
@@ -247,6 +322,8 @@ const Inekler = () => {
                         <button className={viewMode === 'table' ? 'active' : ''} onClick={() => setViewMode('table')}><FaTable /></button>
                         <button className={viewMode === 'card' ? 'active' : ''} onClick={() => setViewMode('card')}><FaThLarge /></button>
                     </ToggleViewButtons>
+                    <ExportBtn onClick={exportToExcel} title="Excel İndir"><FaFileExcel /> <span>Excel</span></ExportBtn>
+                    <ExportBtn $pdf onClick={exportToPDF} title="PDF İndir"><FaFilePdf /> <span>PDF</span></ExportBtn>
                     <AddButton onClick={() => { resetModal(); setShowModal(true); }}>
                         <FaPlus /> <span>Yeni İnek</span>
                     </AddButton>

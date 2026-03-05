@@ -3,8 +3,12 @@ import styled, { keyframes } from 'styled-components';
 import * as api from '../services/api';
 import {
   FiDroplet, FiCalendar, FiClock, FiPlus, FiArrowRight,
-  FiTrash2, FiActivity, FiCheckCircle, FiChevronLeft, FiChevronRight, FiList
+  FiTrash2, FiActivity, FiCheckCircle, FiChevronLeft, FiChevronRight, FiList, FiDownload
 } from 'react-icons/fi';
+import { FaFileExcel, FaFilePdf } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { showSuccess, showError, showWarning } from '../utils/toast';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}`;
@@ -62,6 +66,31 @@ const ActionButton = styled.button`
   &:hover {
     background: #059669;
     box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3);
+  }
+`;
+
+const ExportGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ExportBtn = styled.button`
+  background: ${p => p.$pdf ? '#ef4444' : '#10b981'};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: ${p => p.$pdf ? '#dc2626' : '#059669'};
+    transform: translateY(-1px);
   }
 `;
 
@@ -783,6 +812,51 @@ export default function SutKaydi() {
 
   const monthLabel = calDate.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
 
+  // ========== EXCEL & PDF İŞLEMLERİ ==========
+  const prepareExportData = () => {
+    return gecmis.map(k => ({
+      'Tarih': new Date(k.tarih + 'T12:00').toLocaleDateString('tr-TR'),
+      'Vardiya': k.sagim === 'sabah' ? 'Sabah' : 'Akşam',
+      'Katılan İnek Sayısı': k.detaylar?.length || 0,
+      'Toplam Süt (Litre)': k.toplamSut
+    }));
+  };
+
+  const exportToExcel = () => {
+    const exportData = prepareExportData();
+    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sut Kayitlari");
+    XLSX.writeFile(wb, `Agrolina_SutKayitlari_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const exportToPDF = () => {
+    const exportData = prepareExportData();
+    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+
+    const doc = new jsPDF();
+    doc.setFont("helvetica");
+    doc.setFontSize(18);
+    doc.text('Agrolina - Sut Kayitlari Raporu', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`, 14, 28);
+
+    const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
+
+    doc.autoTable({
+      head: [columns.map(c => c.header)],
+      body: exportData.map(row => columns.map(c => row[c.dataKey])),
+      startY: 35,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [44, 62, 80] },
+      alternateRowStyles: { fillColor: [245, 245, 245] }
+    });
+
+    doc.save(`Agrolina_SutKayitlari_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
     <Container>
       <PageHeader>
@@ -790,11 +864,17 @@ export default function SutKaydi() {
           <h1>Süt Kayıt ve Üretim Takibi</h1>
           <p>İşletmenizin sağım verilerini yönetin, üretim trendlerini analiz edin</p>
         </TitleContent>
-        {adim === 1 && (
-          <ActionButton onClick={() => document.getElementById('miktar-input').focus()}>
-            <FiPlus /> Yeni Kayıt Oluştur
-          </ActionButton>
-        )}
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          {adim === 1 && (
+            <ActionButton onClick={() => document.getElementById('miktar-input').focus()}>
+              <FiPlus /> Yeni Kayıt
+            </ActionButton>
+          )}
+          <ExportGroup>
+            <ExportBtn onClick={exportToExcel} title="Excel İndir"><FaFileExcel /> Excel</ExportBtn>
+            <ExportBtn $pdf onClick={exportToPDF} title="PDF İndir"><FaFilePdf /> PDF</ExportBtn>
+          </ExportGroup>
+        </div>
       </PageHeader>
 
       <MetricsGrid>

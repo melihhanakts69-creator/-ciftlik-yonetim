@@ -201,7 +201,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 // PROFİL GÜNCELLE
 router.put('/update', require('../middleware/auth'), updateValidation, async (req, res) => {
   try {
-    const { isim, email, isletmeAdi, sehir, telefon, profilFoto, mevcutSifre, yeniSifre } = req.body;
+    const { isim, email, isletmeAdi, sehir, telefon, profilFoto, logoUrl, mevcutSifre, yeniSifre } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
@@ -220,6 +220,7 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
     if (sehir !== undefined) user.sehir = sehir;
     if (telefon !== undefined) user.telefon = telefon;
     if (profilFoto !== undefined) user.profilFoto = profilFoto;
+    if (logoUrl !== undefined) user.logoUrl = logoUrl; // Çiftlik özel logosu update
 
     await user.save();
 
@@ -233,9 +234,84 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
         isletmeAdi: user.isletmeAdi,
         sehir: user.sehir,
         telefon: user.telefon,
-        profilFoto: user.profilFoto
+        profilFoto: user.profilFoto,
+        logoUrl: user.logoUrl
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// ── Kurumsal Ayarlar: Alt Hesap (Personel) Yönetimi ──
+
+// 1. Alt Hesapları Listele
+router.get('/sub-accounts', require('../middleware/auth'), async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (user.rol !== 'ciftci') {
+      return res.status(403).json({ message: 'Sadece çiftlik sahipleri alt hesapları görebilir.' });
+    }
+
+    const subAccounts = await User.find({ parentUserId: req.userId }).select('-sifre');
+    res.json(subAccounts);
+  } catch (error) {
+    res.status(500).json({ message: 'Alt hesaplar getirilirken hata oluştu.' });
+  }
+});
+
+// 2. Yeni Alt Hesap Oluştur
+router.post('/sub-accounts', require('../middleware/auth'), async (req, res) => {
+  try {
+    const adminUser = await User.findById(req.userId);
+    if (adminUser.rol !== 'ciftci') {
+      return res.status(403).json({ message: 'Sadece çiftlik sahipleri alt hesap açabilir.' });
+    }
+
+    const { isim, email, sifre, telefon, rol } = req.body;
+
+    if (!isim || !email || !sifre || !rol) {
+      return res.status(400).json({ message: 'İsim, email, şifre ve rol zorunludur.' });
+    }
+
+    if (!['veteriner', 'sutcu'].includes(rol)) {
+      return res.status(400).json({ message: 'Alt personel rolü sadece veteriner veya sutcu olabilir.' });
+    }
+
+    const mevcutUser = await User.findOne({ email: email.toLowerCase(), rol });
+    if (mevcutUser) {
+      return res.status(400).json({ message: `Bu email ile zaten bir ${rol} hesabı var.` });
+    }
+
+    const hashedPassword = await bcrypt.hash(sifre, 10);
+
+    const newUser = new User({
+      isim, email, sifre: hashedPassword, telefon, rol,
+      parentUserId: adminUser._id, // Alt hesap ana hesaba bağlandı!
+      onaylandi: true // Admin kendi açtığı için direkt onaylı
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: 'Alt hesap başarıyla oluşturuldu.', user: { id: newUser._id, isim, email, rol } });
+  } catch (error) {
+    console.error('Alt hesap açma hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// 3. Alt Hesap Sil
+router.delete('/sub-accounts/:id', require('../middleware/auth'), async (req, res) => {
+  try {
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+
+    // Sadece hesabı açan parent (ciftci) silebilir
+    if (targetUser.parentUserId?.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Bu hesabı silme yetkiniz yok.' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Alt hesap silindi.' });
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
   }

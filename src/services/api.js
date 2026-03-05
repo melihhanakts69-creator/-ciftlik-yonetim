@@ -108,6 +108,12 @@ export const login = (credentials) => api.post('/auth/login', credentials).then(
 });
 export const getProfile = () => api.get('/auth/me');
 export const updateProfile = (data) => api.put('/auth/update', data);
+
+// ── Kurumsal Ayarlar: Alt Hesap Servisleri ──
+export const getSubAccounts = () => api.get('/auth/sub-accounts');
+export const createSubAccount = (data) => api.post('/auth/sub-accounts', data);
+export const deleteSubAccount = (id) => api.delete(`/auth/sub-accounts/${id}`);
+
 export const logout = () => {
   const refreshToken = localStorage.getItem('refreshToken');
   const promise = refreshToken
