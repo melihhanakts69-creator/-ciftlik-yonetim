@@ -172,7 +172,7 @@ router.post('', auth, checkRole(['ciftci']), async (req, res) => {
 });
 
 // Yem güncelle
-router.put('', auth, checkRole(['ciftci']), async (req, res) => {
+router.put('/kutuphane/:id', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const { userId, _id, ...safeBody } = req.body;
         const yem = await YemKutuphanesi.findOneAndUpdate(
@@ -187,7 +187,7 @@ router.put('', auth, checkRole(['ciftci']), async (req, res) => {
 });
 
 // Yem sil
-router.delete('', auth, checkRole(['ciftci']), async (req, res) => {
+router.delete('/kutuphane/:id', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         await YemKutuphanesi.findOneAndDelete({ _id: req.params.id, userId: req.userId });
         res.json({ message: 'Yem silindi' });
@@ -200,7 +200,7 @@ router.delete('', auth, checkRole(['ciftci']), async (req, res) => {
 // --- RASYON ---
 
 // Rasyonları getir
-router.get('', auth, checkRole(['ciftci']), async (req, res) => {
+router.get('/rasyon', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const rasyonlar = await Rasyon.find({ userId: req.userId }).populate('icerik.yemId');
         res.json(rasyonlar);
@@ -211,7 +211,8 @@ router.get('', auth, checkRole(['ciftci']), async (req, res) => {
 
 // Rasyon oluştur
 // Rasyon oluştur
-router.post('', auth, checkRole(['ciftci']), async (req, res) => {
+// Rasyon oluştur
+router.post('/rasyon', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         // Hesaplamaları yap (Back-end validasyonu)
         const { icerik } = req.body;
@@ -248,7 +249,7 @@ router.post('', auth, checkRole(['ciftci']), async (req, res) => {
 });
 
 // Rasyon sil
-router.delete('', auth, checkRole(['ciftci']), async (req, res) => {
+router.delete('/rasyon/:id', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         await Rasyon.findOneAndDelete({ _id: req.params.id, userId: req.userId });
         res.json({ message: 'Rasyon silindi' });
@@ -260,7 +261,7 @@ router.delete('', auth, checkRole(['ciftci']), async (req, res) => {
 
 // --- GÜNLÜK YEMLEME UYGULA ---
 // Kritik Fonksiyon: Yem Önerisine veya Rasyona göre stoktan düş ve maliyet yaz
-router.post('', auth, checkRole(['ciftci']), async (req, res) => {
+router.post('/dagit', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const { rasyonId, tarih } = req.body;
         console.log('Rasyon Dağıt İsteği:', rasyonId); // Debug log to force deployment update

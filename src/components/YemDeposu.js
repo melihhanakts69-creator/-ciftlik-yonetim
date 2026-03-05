@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -154,7 +154,7 @@ const StockCard = styled.div`
     }
   }
 
-  ${props => props.isCritical && `
+  ${props => props.isCritical && css`
     animation: ${fadeInUp} 0.5s ease both;
     border-color: #f4433640;
     &:hover {
@@ -219,7 +219,7 @@ const StockCard = styled.div`
     background: ${props => props.color}15;
     color: ${props => props.color};
     border: 1px solid ${props => props.color}25;
-    ${props => props.isCritical && `
+    ${props => props.isCritical && css`
       animation: ${pulseGlow} 2s ease-in-out infinite;
     `}
   }
@@ -661,7 +661,7 @@ const YemDeposu = ({ isEmbedded = false }) => {
           {/* Tüketim Grafiği */}
           <ChartCard>
             <h3>📉 Yem Tüketim Trendi (Son 7 Gün)</h3>
-            <ResponsiveContainer width="100%" height="90%">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={consumptionData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#777' }} axisLine={false} tickLine={false} />
