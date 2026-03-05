@@ -201,7 +201,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 // PROFİL GÜNCELLE
 router.put('/update', require('../middleware/auth'), updateValidation, async (req, res) => {
   try {
-    const { isim, email, isletmeAdi, sehir, telefon, profilFoto, logoUrl, mevcutSifre, yeniSifre } = req.body;
+    const { isim, email, isletmeAdi, sehir, telefon, profilFoto, logoUrl, mevcutSifre, yeniSifre, bolge, firmaAdi, lisansNo } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
@@ -221,6 +221,9 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
     if (telefon !== undefined) user.telefon = telefon;
     if (profilFoto !== undefined) user.profilFoto = profilFoto;
     if (logoUrl !== undefined) user.logoUrl = logoUrl; // Çiftlik özel logosu update
+    if (bolge !== undefined) user.bolge = bolge;
+    if (firmaAdi !== undefined) user.firmaAdi = firmaAdi;
+    if (lisansNo !== undefined) user.lisansNo = lisansNo;
 
     await user.save();
 
@@ -235,7 +238,10 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
         sehir: user.sehir,
         telefon: user.telefon,
         profilFoto: user.profilFoto,
-        logoUrl: user.logoUrl
+        logoUrl: user.logoUrl,
+        bolge: user.bolge,
+        firmaAdi: user.firmaAdi,
+        lisansNo: user.lisansNo
       }
     });
   } catch (error) {

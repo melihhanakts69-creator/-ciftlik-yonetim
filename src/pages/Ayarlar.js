@@ -116,7 +116,7 @@ const DeleteBtn = styled.button`
 
 // ── Component ─────────────────────────────────────────────────────
 export default function Ayarlar() {
-    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', _id: '', rol: '' });
+    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', bolge: '', firmaAdi: '', lisansNo: '', _id: '', rol: '' });
     const [pForm, setPForm] = useState({ mevcutSifre: '', yeniSifre: '', yeniSifreTekrar: '' });
     const [loading, setLoading] = useState(false);
     const [pLoading, setPLoading] = useState(false);
@@ -149,7 +149,7 @@ export default function Ayarlar() {
             const res = await api.getProfile();
             if (res.data.user) {
                 const u = res.data.user;
-                setUser({ isim: u.isim || '', email: u.email || '', isletmeAdi: u.isletmeAdi || '', sehir: u.sehir || '', telefon: u.telefon || '', profilFoto: u.profilFoto || '', _id: u._id || local.id || '', rol: u.rol || 'ciftci' });
+                setUser({ isim: u.isim || '', email: u.email || '', isletmeAdi: u.isletmeAdi || '', sehir: u.sehir || '', telefon: u.telefon || '', profilFoto: u.profilFoto || '', bolge: u.bolge || '', firmaAdi: u.firmaAdi || '', lisansNo: u.lisansNo || '', _id: u._id || local.id || '', rol: u.rol || 'ciftci' });
             }
         } catch (e) { console.error(e); }
     };
@@ -208,7 +208,7 @@ export default function Ayarlar() {
     const handleSave = async (e) => {
         e.preventDefault(); setLoading(true); setMsg('');
         try {
-            const res = await api.updateProfile({ isim: user.isim, email: user.email, isletmeAdi: user.isletmeAdi, sehir: user.sehir, telefon: user.telefon, profilFoto: user.profilFoto });
+            const res = await api.updateProfile({ isim: user.isim, email: user.email, isletmeAdi: user.isletmeAdi, sehir: user.sehir, telefon: user.telefon, profilFoto: user.profilFoto, bolge: user.bolge, firmaAdi: user.firmaAdi });
             const curr = JSON.parse(localStorage.getItem('user') || '{}');
             localStorage.setItem('user', JSON.stringify({ ...curr, ...res.data.user }));
             setMsg('✅ Profil güncellendi!'); setMsgErr(false);
@@ -258,9 +258,12 @@ export default function Ayarlar() {
 
                         <ProfileInfo>
                             <ProfileName>{user.isim || 'İsim belirtilmedi'}</ProfileName>
-                            <ProfileSub>{user.isletmeAdi || 'İşletme adı yok'}{user.sehir ? ` · ${user.sehir}` : ''}</ProfileSub>
-                            <RoleBadge>🐄 {user.rol === 'ciftci' ? 'Çiftlik Sahibi' : user.rol}</RoleBadge>
-
+                            <ProfileSub>
+                                <RoleBadge>
+                                    {user.rol === 'ciftci' ? '🌾 Çiftçi / Yönetici' : user.rol === 'veteriner' ? '🩺 Veteriner' : user.rol === 'sutcu' ? '👷‍♂️ İşçi / Sağımcı' : user.rol === 'toplayici' ? '🥛 Süt Toplayıcı' : 'Personel'}
+                                </RoleBadge>
+                                <span style={{ marginLeft: 10 }}>{user.email}</span>
+                            </ProfileSub>
                             {user.rol === 'ciftci' && (
                                 <FarmIdBox onClick={copyId} title="Bu ID Alt hesaplar için anahtardır">
                                     <div>
@@ -285,6 +288,12 @@ export default function Ayarlar() {
                                 <FG><Label>E-posta *</Label><Input type="email" value={user.email} onChange={e => setUser(u => ({ ...u, email: e.target.value }))} placeholder="email@ornek.com" required /></FG>
                                 {user.rol === 'ciftci' && <FG><Label>🏠 İşletme / Çiftlik Adı</Label><Input value={user.isletmeAdi} onChange={e => setUser(u => ({ ...u, isletmeAdi: e.target.value }))} placeholder="Çiftliğinizin adı" /></FG>}
                                 {user.rol === 'ciftci' && <FG><Label>📍 Şehir / İlçe</Label><Input value={user.sehir} onChange={e => setUser(u => ({ ...u, sehir: e.target.value }))} placeholder="örn: Konya" /></FG>}
+                                {user.rol === 'sutcu' && <FG><Label>📍 Görev / Bölge</Label><Input value={user.bolge} onChange={e => setUser(u => ({ ...u, bolge: e.target.value }))} placeholder="Mevcut Göreviniz" disabled /></FG>}
+                                {user.rol === 'veteriner' && <FG><Label>🩺 Lisans No</Label><Input value={user.lisansNo} disabled /></FG>}
+                                {user.rol === 'toplayici' && <>
+                                    <FG><Label>🏢 Firma Adı</Label><Input value={user.firmaAdi} onChange={e => setUser(u => ({ ...u, firmaAdi: e.target.value }))} placeholder="Firma Adı" /></FG>
+                                    <FG><Label>📍 Faaliyet Bölgesi</Label><Input value={user.bolge} onChange={e => setUser(u => ({ ...u, bolge: e.target.value }))} placeholder="Faaliyet Bölgesi" /></FG>
+                                </>}
                                 <FullRow><Label>📞 Telefon</Label><Input type="tel" value={user.telefon} onChange={e => setUser(u => ({ ...u, telefon: e.target.value }))} placeholder="05XX XXX XX XX" /></FullRow>
                             </FormGrid>
                             <SaveBtn type="submit" disabled={loading} style={{ marginTop: 16 }}>
