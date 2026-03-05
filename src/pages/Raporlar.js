@@ -9,7 +9,7 @@ import * as api from '../services/api';
 import { FaChartBar, FaTint, FaWallet, FaHeartbeat, FaCalendarAlt, FaArrowUp, FaArrowDown, FaFileExcel, FaFilePdf, FaDownload } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(15px); }
@@ -270,12 +270,32 @@ const LoadingSpinner = styled.div`
   font-size: 14px;
 `;
 
-const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4'];
+const ModalOverlay = styled.div`
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+  animation: ${fadeIn} 0.2s ease-out;
+`;
+
+const ModalContent = styled.div`
+  background: white; padding: 24px; border-radius: 16px; width: 100%; max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  h3 { margin-top: 0; font-size: 18px; color: #2c3e50; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
+  .info-box { background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px; color: #475569; line-height: 1.5; }
+  .btn-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+`;
+
+const ActionBtn = styled.button`
+  padding: 10px 18px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: ${p => p.$primary ? '#10b981' : '#e2e8f0'};
+  color: ${p => p.$primary ? '#fff' : '#475569'};
+  &:hover { background: ${p => p.$primary ? '#059669' : '#cbd5e1'}; }
+`;
 
 const Raporlar = () => {
   const [activeTab, setActiveTab] = useState('suru');
   const [period, setPeriod] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [exportModal, setExportModal] = useState({ show: false, type: null, data: [] });
   const [data, setData] = useState({
     inekler: [], duveler: [], buzagilar: [], tosunlar: [],
     sutVerileri: [], finansal: [], saglik: [], alisSatis: []
@@ -318,53 +338,57 @@ const Raporlar = () => {
   const prepareExportData = () => {
     switch (activeTab) {
       case 'suru':
-        return data.inekler.map(i => ({ Tür: 'İnek', Küpe: i.kupeNo, İsim: i.isim, Durum: i.durum, Laktasyon: i.laktasyonSayisi || 0 }))
-          .concat(data.duveler.map(d => ({ Tür: 'Düve', Küpe: d.kupeNo, İsim: d.isim, Durum: d.durum, Laktasyon: '-' })))
-          .concat(data.buzagilar.map(b => ({ Tür: 'Buzağı', Küpe: b.kupeNo, İsim: b.isim, Durum: b.cinsiyet, Laktasyon: '-' })))
-          .concat(data.tosunlar.map(t => ({ Tür: 'Tosun', Küpe: t.kupeNo, İsim: t.isim, Durum: 'Erkek', Laktasyon: '-' })));
+        return data.inekler.map(i => ({ Tür: 'İnek', Küpe: String(i.kupeNo), İsim: String(i.isim), Durum: String(i.durum || '-'), Laktasyon: String(i.laktasyonSayisi || 0) }))
+          .concat(data.duveler.map(d => ({ Tür: 'Düve', Küpe: String(d.kupeNo), İsim: String(d.isim), Durum: String(d.durum || '-'), Laktasyon: '-' })))
+          .concat(data.buzagilar.map(b => ({ Tür: 'Buzağı', Küpe: String(b.kupeNo), İsim: String(b.isim), Durum: String(b.cinsiyet || '-'), Laktasyon: '-' })))
+          .concat(data.tosunlar.map(t => ({ Tür: 'Tosun', Küpe: String(t.kupeNo), İsim: String(t.isim), Durum: 'Erkek', Laktasyon: '-' })));
       case 'sut':
-        return data.sutVerileri.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), 'Sabah (Lt)': s.sabahToplami || 0, 'Akşam (Lt)': s.aksamToplami || 0, 'Toplam (Lt)': s.toplamSut || 0 }));
+        return data.sutVerileri.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), 'Sabah (Lt)': Number(s.sabahToplami || 0), 'Akşam (Lt)': Number(s.aksamToplami || 0), 'Toplam (Lt)': Number(s.toplamSut || 0) }));
       case 'finansal':
-        return data.finansal.map(f => ({ Tarih: new Date(f.tarih).toLocaleDateString('tr-TR'), Tür: f.tip === 'gelir' ? 'Gelir' : 'Gider', Kategori: f.kategori, Tutar: f.tutar, Açıklama: f.aciklama }));
+        return data.finansal.map(f => ({ Tarih: new Date(f.tarih).toLocaleDateString('tr-TR'), Tür: f.tip === 'gelir' ? 'Gelir' : 'Gider', Kategori: String(f.kategori || '-'), Tutar: Number(f.tutar || 0), Açıklama: String(f.aciklama || '-') }));
       case 'saglik':
-        return data.saglik.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), Tür: s.tip, Hayvan: s.hayvanIsim || s.hayvanTipi, Tanı: s.tani, Durum: s.durum, Maliyet: s.maliyet || 0 }));
+        return data.saglik.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), Tür: String(s.tip || '-'), Hayvan: String(s.hayvanIsim || s.hayvanTipi || '-'), Tanı: String(s.tani || '-'), Durum: String(s.durum || '-'), Maliyet: Number(s.maliyet || 0) }));
       default: return [];
     }
   };
 
-  const exportToExcel = () => {
-    const exportData = prepareExportData();
-    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
-
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-    XLSX.writeFile(wb, `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  const handleExportClick = (type) => {
+    const expData = prepareExportData();
+    if (!expData || expData.length === 0) return alert('Dışa aktarılacak veri bulunamadı.');
+    setExportModal({ show: true, type, data: expData });
   };
 
-  const exportToPDF = () => {
-    const exportData = prepareExportData();
-    if (!exportData.length) return alert('Dışa aktarılacak veri bulunamadı.');
+  const confirmExport = () => {
+    const { type, data: exportData } = exportModal;
 
-    const doc = new jsPDF();
-    doc.setFont("helvetica");
-    doc.setFontSize(18);
-    doc.text(`Agrolina - ${activeTab.toUpperCase()} Raporu`, 14, 20);
-    doc.setFontSize(11);
-    doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`, 14, 28);
+    if (type === 'excel') {
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+      XLSX.writeFile(wb, `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } else if (type === 'pdf') {
+      const doc = new jsPDF();
+      doc.setFont("helvetica");
+      doc.setFontSize(18);
+      doc.text(`Agrolina - ${activeTab.toUpperCase()} Raporu`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam Kayıt: ${exportData.length}`, 14, 28);
 
-    const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
+      const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
 
-    doc.autoTable({
-      head: [columns.map(c => c.header)],
-      body: exportData.map(row => columns.map(c => row[c.dataKey])),
-      startY: 35,
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [44, 62, 80] },
-      alternateRowStyles: { fillColor: [245, 245, 245] }
-    });
+      autoTable(doc, {
+        head: [columns.map(c => c.header)],
+        body: exportData.map(row => columns.map(c => row[c.dataKey])),
+        startY: 35,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [44, 62, 80] },
+        alternateRowStyles: { fillColor: [245, 245, 245] }
+      });
 
-    doc.save(`Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
+
+    setExportModal({ show: false, type: null, data: [] });
   };
 
   // ========== SÜRÜ TAB ==========
@@ -702,8 +726,8 @@ const Raporlar = () => {
             ))}
           </PeriodSelector>
           <ExportGroup>
-            <ExportBtn onClick={exportToExcel} title="Excel formatında indir"><FaFileExcel /> Excel</ExportBtn>
-            <ExportBtn $pdf onClick={exportToPDF} title="PDF formatında indir"><FaFilePdf /> PDF</ExportBtn>
+            <ExportBtn onClick={() => handleExportClick('excel')} title="Excel formatında indir"><FaFileExcel /> Excel</ExportBtn>
+            <ExportBtn $pdf onClick={() => handleExportClick('pdf')} title="PDF formatında indir"><FaFilePdf /> PDF</ExportBtn>
           </ExportGroup>
         </div>
       </Header>
@@ -725,6 +749,22 @@ const Raporlar = () => {
           {activeTab === 'finansal' && renderFinansalTab()}
           {activeTab === 'saglik' && renderSaglikTab()}
         </>
+      )}
+
+      {exportModal.show && (
+        <ModalOverlay>
+          <ModalContent>
+            <h3><FaDownload style={{ marginRight: 8, color: '#3b82f6', verticalAlign: 'middle' }} /> Rapor Dışa Aktar</h3>
+            <div className="info-box">
+              <p style={{ margin: '0 0 8px 0' }}><strong>{period}</strong> günlük <strong>{activeTab.toUpperCase()}</strong> verisini dışa aktarmak üzeresiniz.</p>
+              <p style={{ margin: 0 }}>Toplam <strong>{exportModal.data.length}</strong> satır veri <strong>{exportModal.type === 'excel' ? 'Excel (.xlsx)' : 'PDF'}</strong> formatında indirilecektir.</p>
+            </div>
+            <div className="btn-row">
+              <ActionBtn onClick={() => setExportModal({ show: false, type: null, data: [] })}>İptal Et</ActionBtn>
+              <ActionBtn $primary onClick={confirmExport}>Onayla ve İndir</ActionBtn>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
       )}
     </PageContainer>
   );
