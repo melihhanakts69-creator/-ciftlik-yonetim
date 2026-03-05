@@ -291,6 +291,8 @@ const ActionBtn = styled.button`
   &:hover { background: ${p => p.$primary ? '#059669' : '#cbd5e1'}; }
 `;
 
+const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4'];
+
 const Raporlar = () => {
   const [activeTab, setActiveTab] = useState('suru');
   const [period, setPeriod] = useState(30);
