@@ -364,23 +364,52 @@ const Raporlar = () => {
     const { type, data: exportData } = exportModal;
 
     if (type === 'excel') {
-      const ws = XLSX.utils.json_to_sheet(exportData);
+      const excelData = exportData.map(row => {
+        const newRow = {};
+        Object.keys(row).forEach(key => {
+          const val = row[key];
+          newRow[key] = typeof val === 'string' ? val.replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>') : val;
+        });
+        return newRow;
+      });
+      const ws = XLSX.utils.json_to_sheet(excelData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Rapor");
       XLSX.writeFile(wb, `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
     } else if (type === 'pdf') {
+      const replaceTurkishChars = (str) => {
+        if (typeof str !== 'string') return str;
+        // HTML Entity decode it first in case backend sent some entities
+        let decoded = str.replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        return decoded
+          .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+          .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+          .replace(/ş/g, 's').replace(/Ş/g, 'S')
+          .replace(/ı/g, 'i').replace(/İ/g, 'I')
+          .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+          .replace(/ç/g, 'c').replace(/Ç/g, 'C');
+      };
+
+      const pdfData = exportData.map(row => {
+        const newRow = {};
+        Object.keys(row).forEach(key => {
+          newRow[replaceTurkishChars(key)] = replaceTurkishChars(row[key]);
+        });
+        return newRow;
+      });
+
       const doc = new jsPDF();
       doc.setFont("helvetica");
       doc.setFontSize(18);
-      doc.text(`Agrolina - ${activeTab.toUpperCase()} Raporu`, 14, 20);
+      doc.text(`Agrolina - ${replaceTurkishChars(activeTab.toUpperCase())} Raporu`, 14, 20);
       doc.setFontSize(11);
-      doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam Kayıt: ${exportData.length}`, 14, 28);
+      doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam Kayit: ${pdfData.length}`, 14, 28);
 
-      const columns = Object.keys(exportData[0]).map(key => ({ header: key, dataKey: key }));
+      const columns = Object.keys(pdfData[0]).map(key => ({ header: key, dataKey: key }));
 
       autoTable(doc, {
         head: [columns.map(c => c.header)],
-        body: exportData.map(row => columns.map(c => row[c.dataKey])),
+        body: pdfData.map(row => columns.map(c => row[c.dataKey])),
         startY: 35,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [44, 62, 80] },
