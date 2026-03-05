@@ -340,16 +340,16 @@ const Raporlar = () => {
   const prepareExportData = () => {
     switch (activeTab) {
       case 'suru':
-        return data.inekler.map(i => ({ Tür: 'İnek', Küpe: String(i.kupeNo), İsim: String(i.isim), Durum: String(i.durum || '-'), Laktasyon: String(i.laktasyonSayisi || 0) }))
-          .concat(data.duveler.map(d => ({ Tür: 'Düve', Küpe: String(d.kupeNo), İsim: String(d.isim), Durum: String(d.durum || '-'), Laktasyon: '-' })))
-          .concat(data.buzagilar.map(b => ({ Tür: 'Buzağı', Küpe: String(b.kupeNo), İsim: String(b.isim), Durum: String(b.cinsiyet || '-'), Laktasyon: '-' })))
-          .concat(data.tosunlar.map(t => ({ Tür: 'Tosun', Küpe: String(t.kupeNo), İsim: String(t.isim), Durum: 'Erkek', Laktasyon: '-' })));
+        return data.inekler.map(i => ({ Tür: 'İnek', Küpe: i.kupeNo || '-', İsim: i.isim || '-', Durum: i.durum || '-', Laktasyon: i.laktasyonSayisi || 0 }))
+          .concat(data.duveler.map(d => ({ Tür: 'Düve', Küpe: d.kupeNo || '-', İsim: d.isim || '-', Durum: d.durum || '-', Laktasyon: '-' })))
+          .concat(data.buzagilar.map(b => ({ Tür: 'Buzağı', Küpe: b.kupeNo || '-', İsim: b.isim || '-', Durum: b.cinsiyet || '-', Laktasyon: '-' })))
+          .concat(data.tosunlar.map(t => ({ Tür: 'Tosun', Küpe: t.kupeNo || '-', İsim: t.isim || '-', Durum: 'Erkek', Laktasyon: '-' })));
       case 'sut':
         return data.sutVerileri.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), 'Sabah (Lt)': Number(s.sabahToplami || 0), 'Akşam (Lt)': Number(s.aksamToplami || 0), 'Toplam (Lt)': Number(s.toplamSut || 0) }));
       case 'finansal':
-        return data.finansal.map(f => ({ Tarih: new Date(f.tarih).toLocaleDateString('tr-TR'), Tür: f.tip === 'gelir' ? 'Gelir' : 'Gider', Kategori: String(f.kategori || '-'), Tutar: Number(f.tutar || 0), Açıklama: String(f.aciklama || '-') }));
+        return data.finansal.map(f => ({ Tarih: new Date(f.tarih).toLocaleDateString('tr-TR'), Tür: f.tip === 'gelir' ? 'Gelir' : 'Gider', Kategori: f.kategori || '-', Tutar: Number(f.tutar || 0), Açıklama: f.aciklama || '-' }));
       case 'saglik':
-        return data.saglik.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), Tür: String(s.tip || '-'), Hayvan: String(s.hayvanIsim || s.hayvanTipi || '-'), Tanı: String(s.tani || '-'), Durum: String(s.durum || '-'), Maliyet: Number(s.maliyet || 0) }));
+        return data.saglik.map(s => ({ Tarih: new Date(s.tarih).toLocaleDateString('tr-TR'), Tür: s.tip || '-', Hayvan: s.hayvanIsim || s.hayvanTipi || '-', Tanı: s.tani || '-', Durum: s.durum || '-', Maliyet: Number(s.maliyet || 0) }));
       default: return [];
     }
   };
