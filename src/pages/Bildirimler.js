@@ -223,7 +223,9 @@ function Bildirimler() {
     setYukleniyor(true);
     try {
       const res = await api.getBildirimler({ limit: 100 });
-      setBildirimler(res.data.bildirimler || []);
+      // Sadece aktif bildirimleri göster (soft-delete olmayanlar)
+      const aktifler = (res.data.bildirimler || []).filter(b => b.aktif !== false);
+      setBildirimler(aktifler);
     } catch (error) {
       console.error('Veri yükleme hatası:', error);
       toast.error('Bildirimler yüklenemedi');

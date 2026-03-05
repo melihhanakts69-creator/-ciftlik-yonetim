@@ -310,23 +310,23 @@ const Takvim = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [currentDate]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = async (date) => {
     setLoading(true);
     try {
-      const yil = currentDate.getFullYear();
-      const ay = currentDate.getMonth() + 1;
+      const yil = date.getFullYear();
+      const ay = date.getMonth() + 1;
       const res = await api.getTakvim(ay, yil);
-      setEvents(res.data);
+      setEvents(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error('Takvim verisi alınamadı', err);
+      console.error('Takvim verisi alındamadı', err);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchEvents(currentDate); }, [currentDate]);
 
   const nextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
