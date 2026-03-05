@@ -190,7 +190,7 @@ router.post('/logout', async (req, res) => {
 // PROFİL BİLGİLERİ (Login kontrolü ile)
 router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-sifre');
+    const user = await User.findById(req.originalUserId || req.userId).select('-sifre');
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     res.json({ user });
   } catch (error) {
@@ -202,7 +202,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 router.put('/update', require('../middleware/auth'), updateValidation, async (req, res) => {
   try {
     const { isim, email, isletmeAdi, sehir, telefon, profilFoto, logoUrl, mevcutSifre, yeniSifre, bolge, firmaAdi, lisansNo } = req.body;
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.originalUserId || req.userId);
 
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı!' });
 

@@ -25,6 +25,7 @@ module.exports = async (req, res, next) => {
 
     // Daha spesifik işlemler veya rol yetkilendirmesi gerekbilmesi için req e user ekleniyor
     req.user = user;
+    req.originalUserId = user._id.toString();
 
     next();
   } catch (error) {
