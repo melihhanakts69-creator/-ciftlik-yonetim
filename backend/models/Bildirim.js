@@ -17,6 +17,9 @@ const bildirimSchema = new mongoose.Schema({
       'kuru_donem',      // Kuru döneme geçiş
       'sagim',           // Sağım hatırlatması
       'yem',             // Yem stoku azaldı
+      'stok',            // Stok kritik seviye uyarısı
+      'hastalik',        // Hastalık bildirimi
+      'tedavi',          // Tedavi hatırlatması
       'sistem',          // Sistem bildirimi
       'odeme',           // Ödeme hatırlatması
       'diger'

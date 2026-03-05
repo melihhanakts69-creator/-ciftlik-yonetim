@@ -72,24 +72,25 @@ router.put('/:id', auth, async (req, res) => {
         await stok.save();
 
         // Kritik seviye kontrolü ve Bildirim oluşturma
-        if (stok.miktar <= stok.kritikSeviye) {
+        if (stok.kritikSeviye !== undefined && stok.miktar <= stok.kritikSeviye) {
             // Daha önce okunmamış benzer bildirim var mı?
             const mevcutBildirim = await Bildirim.findOne({
                 userId: req.userId,
                 tip: 'stok',
-                baslik: 'Kritik Stok Uyarısı',
                 okundu: false,
-                mesaj: { $regex: stok.urunAdi, $options: 'i' }
+                mesaj: { $regex: stok.urunAdi, $options: 'i' },
+                aktif: true
             });
 
             if (!mevcutBildirim) {
                 await Bildirim.create({
                     userId: req.userId,
-                    baslik: 'Kritik Stok Uyarısı',
-                    mesaj: `${stok.urunAdi} stoğu kritik seviyenin altına düştü! Mevcut: ${stok.miktar} ${stok.birim}`,
+                    baslik: '⚠️ Kritik Stok Uyarısı',
+                    mesaj: `${stok.urunAdi} kritık seviyenin altına düştü! Mevcut: ${stok.miktar} ${stok.birim || ''}, Kritik Eşiği: ${stok.kritikSeviye}`,
                     tip: 'stok',
-                    oncelik: 'yuksek',
-                    hatirlatmaTarihi: new Date()
+                    oncelik: 'acil',
+                    hatirlatmaTarihi: new Date(),
+                    aktif: true
                 });
             }
         }
