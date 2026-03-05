@@ -36,6 +36,11 @@ const stokSchema = new mongoose.Schema({
     },
     notlar: {
         type: String
+    },
+    yemKutuphanesiId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'YemKutuphanesi',
+        required: false
     }
 }, { timestamps: true });
 

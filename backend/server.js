@@ -79,6 +79,7 @@ app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
 app.use('/api/gruplar', require('./routes/gruplar'));
 app.use('/api/takvim', require('./routes/takvim')); // Takvim Modülü
 app.use('/api/stok', require('./routes/stok')); // Stok Modülü
+app.use('/api/yem-kutuphanesi', require('./routes/yemKutuphanesi')); // Yem Kütüphanesi
 app.use('/api/admin', require('./routes/adminContent')); // Admin Panel
 app.use('/api/content', require('./routes/adminContent')); // Public Landing Content
 app.use('/api/ai', require('./routes/ai')); // 🤖 Gemini AI Danışman

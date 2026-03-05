@@ -9,7 +9,9 @@ const Bildirim = require('../models/Bildirim');
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
-        const stoklar = await Stok.find({ userId: req.userId }).sort({ urunAdi: 1 });
+        const stoklar = await Stok.find({ userId: req.userId })
+            .populate('yemKutuphanesiId')
+            .sort({ urunAdi: 1 });
         res.json(stoklar);
     } catch (err) {
         console.error(err);
@@ -22,7 +24,7 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.post('/', auth, async (req, res) => {
     try {
-        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar } = req.body;
+        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, yemKutuphanesiId } = req.body;
 
         const yeniStok = new Stok({
             userId: req.userId,
@@ -31,7 +33,8 @@ router.post('/', auth, async (req, res) => {
             miktar,
             birim,
             kritikSeviye,
-            notlar
+            notlar,
+            yemKutuphanesiId: yemKutuphanesiId || undefined
         });
 
         const stok = await yeniStok.save();
@@ -51,7 +54,7 @@ router.put('/:id', auth, async (req, res) => {
         if (!stok) return res.status(404).json({ msg: 'Stok bulunamadı' });
         if (stok.userId.toString() !== req.userId) return res.status(401).json({ msg: 'Yetkisiz işlem' });
 
-        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, islem } = req.body;
+        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, yemKutuphanesiId, islem } = req.body;
 
         // Eğer işlem 'ekle' veya 'cikar' ise miktarı güncelle
         if (islem === 'ekle') {
@@ -66,6 +69,7 @@ router.put('/:id', auth, async (req, res) => {
             if (birim) stok.birim = birim;
             if (kritikSeviye !== undefined) stok.kritikSeviye = kritikSeviye;
             if (notlar) stok.notlar = notlar;
+            if (yemKutuphanesiId !== undefined) stok.yemKutuphanesiId = yemKutuphanesiId || undefined;
         }
 
         stok.sonGuncelleme = Date.now();
