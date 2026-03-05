@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   // ── Rol sistemi ─────────────────────────────────
   rol: {
     type: String,
-    enum: ['ciftci', 'veteriner', 'sutcu'],
+    enum: ['ciftci', 'veteriner', 'sutcu', 'toplayici'],
     default: 'ciftci'
   },
 

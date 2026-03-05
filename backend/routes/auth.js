@@ -34,14 +34,14 @@ router.post('/register', registerValidation, async (req, res) => {
     if (!isim || !email || !sifre) {
       return res.status(400).json({ message: 'İsim, email ve şifre zorunludur.' });
     }
-    if (!['ciftci', 'veteriner', 'sutcu'].includes(rol)) {
+    if (!['ciftci', 'veteriner', 'sutcu', 'toplayici'].includes(rol)) {
       return res.status(400).json({ message: 'Geçersiz rol.' });
     }
 
     // Aynı email + aynı rol zaten kayıtlı ise hata dön
     const mevcutUser = await User.findOne({ email: email.toLowerCase(), rol });
     if (mevcutUser) {
-      return res.status(400).json({ message: `Bu email ile zaten bir ${rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü'} hesabı mevcut!` });
+      return res.status(400).json({ message: `Bu email ile zaten bir ${rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : rol === 'toplayici' ? 'süt toplayıcı' : 'sütçü'} hesabı mevcut!` });
     }
 
     const hashedPassword = await bcrypt.hash(sifre, 10);

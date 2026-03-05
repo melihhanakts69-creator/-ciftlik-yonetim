@@ -17,7 +17,7 @@ const registerValidation = [
     body('isim').trim().isLength({ min: 2 }).withMessage('İsim en az 2 karakter olmalı'),
     body('email').trim().isEmail().withMessage('Geçerli bir email adresi giriniz'),
     body('sifre').isLength({ min: 6 }).withMessage('Şifre en az 6 karakter olmalı'),
-    body('rol').optional().isIn(['ciftci', 'veteriner', 'sutcu']).withMessage('Geçersiz rol'),
+    body('rol').optional().isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
     // isletmeAdi, lisansNo, firmaAdi vs. role göre opsiyonel — backend kontrolünde
     validate
 ];
@@ -26,7 +26,7 @@ const registerValidation = [
 const loginValidation = [
     body('email').trim().isEmail().withMessage('Geçerli bir email adresi giriniz'),
     body('sifre').notEmpty().withMessage('Şifre boş olamaz'),
-    body('rol').optional().isIn(['ciftci', 'veteriner', 'sutcu']).withMessage('Geçersiz rol'),
+    body('rol').optional().isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
     validate
 ];
 
