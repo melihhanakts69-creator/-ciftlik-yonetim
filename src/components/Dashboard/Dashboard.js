@@ -339,22 +339,24 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
+      const fetchApi = (url) => fetch(url, { headers }).then(r => r.ok ? r.json() : Promise.reject(r.status));
+
       const results = await Promise.allSettled([
-        fetch(`${API_URL}/dashboard/stats`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/dashboard/performans/sut?gun=30`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/dashboard/yapilacaklar`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/dashboard/aktiviteler?limit=10`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/dashboard/top-performers`, { headers }).then(r => r.json())
+        fetchApi(`${API_URL}/dashboard/stats`),
+        fetchApi(`${API_URL}/dashboard/performans/sut?gun=30`),
+        fetchApi(`${API_URL}/dashboard/yapilacaklar`),
+        fetchApi(`${API_URL}/dashboard/aktiviteler?limit=10`),
+        fetchApi(`${API_URL}/dashboard/top-performers`)
       ]);
 
       setData({
         stats: results[0].status === 'fulfilled' ? results[0].value : null,
-        performans: results[1].status === 'fulfilled' ? results[1].value : [],
-        yapilacaklar: results[2].status === 'fulfilled'
+        performans: results[1].status === 'fulfilled' && Array.isArray(results[1].value) ? results[1].value : [],
+        yapilacaklar: results[2].status === 'fulfilled' && results[2].value
           ? [...(results[2].value.geciken || []), ...(results[2].value.bugun || [])]
           : [],
-        aktiviteler: results[3].status === 'fulfilled' ? results[3].value : [],
-        topCows: results[4].status === 'fulfilled' ? results[4].value : []
+        aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value) ? results[3].value : [],
+        topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].value) ? results[4].value : []
       });
     } catch (err) {
       console.error(err);
