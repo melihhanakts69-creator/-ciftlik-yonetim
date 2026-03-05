@@ -1,468 +1,561 @@
 import { useState, useEffect, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import * as api from '../services/api';
-import { FaPlus, FaCalendarAlt, FaChevronLeft, FaChevronRight, FaTrash, FaTachometerAlt, FaClock, FaCheckCircle } from 'react-icons/fa';
+import { FaPlus, FaChevronLeft, FaChevronRight, FaTrash, FaClock, FaTint, FaChartLine, FaCalendarCheck } from 'react-icons/fa';
 import { showSuccess, showError, showWarning } from '../utils/toast';
 
-const fadeIn = keyframes`from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}`;
-const shimmer = keyframes`0%{background-position:-200% 0}100%{background-position:200% 0}`;
+const fadeUp = keyframes`from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}`;
+const slideIn = keyframes`from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}`;
+const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.04)}`;
 
+/* ─── PAGE ───────────────────────────────────────── */
 const Page = styled.div`
-  padding: 24px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 50%, #fafafe 100%);
+  padding: 28px;
+  background: #f4f6fb;
   min-height: calc(100vh - 80px);
-  animation: ${fadeIn} 0.4s ease;
   font-family: 'Inter', system-ui, sans-serif;
 `;
 
-const TopRow = styled.div`
+/* ─── HEADER ─────────────────────────────────────── */
+const Header = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
   margin-bottom: 28px;
-  gap: 16px;
-  flex-wrap: wrap;
+`;
+const HeaderIcon = styled.div`
+  width: 60px; height: 60px; border-radius: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  box-shadow: 0 10px 28px rgba(16,185,129,0.35);
+  flex-shrink: 0;
+`;
+const HeaderText = styled.div`
+  h1 { margin: 0; font-size: 26px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
+  p  { margin: 4px 0 0; font-size: 13px; color: #94a3b8; font-weight: 500; }
 `;
 
-const PageTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  .ico {
-    width: 56px; height: 56px; border-radius: 18px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    box-shadow: 0 8px 24px rgba(16,185,129,0.35);
-  }
-  h1 { margin: 0; font-size: 28px; font-weight: 900; color: #1e293b; letter-spacing: -0.5px; }
-  .sub { font-size: 13px; color: #64748b; margin-top: 3px; }
-`;
-
-const StatsRow = styled.div`
+/* ─── STATS ──────────────────────────────────────── */
+const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
   margin-bottom: 24px;
+  @media(max-width:900px){ grid-template-columns: repeat(2,1fr); }
 `;
-
-const StatCard = styled.div`
-  background: rgba(255,255,255,0.85);
-  border: 1px solid rgba(0,0,0,0.06);
-  border-radius: 18px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  transition: all 0.3s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
-  .label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
-  .value { font-size: 28px; font-weight: 900; color: ${p => p.color || '#1e293b'}; letter-spacing: -1px; }
-  .unit { font-size: 13px; color: #94a3b8; margin-left: 3px; font-weight: 600; }
-`;
-
-const MainGrid = styled.div`
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 20px;
-  @media (max-width: 1024px) { grid-template-columns: 1fr; }
-`;
-
-const Card = styled.div`
-  background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(0,0,0,0.06);
+const Stat = styled.div`
+  background: #fff;
   border-radius: 20px;
-  padding: 28px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  animation: ${fadeIn} 0.4s ease both;
-  animation-delay: ${p => p.$delay || '0s'};
-`;
-
-const CardTitle = styled.div`
-  font-size: 16px;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 24px;
+  padding: 22px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  border: 1px solid #f0f4f8;
   display: flex;
   align-items: center;
-  gap: 10px;
-  svg { color: #10b981; }
+  gap: 16px;
+  animation: ${fadeUp} 0.5s ease both;
+  animation-delay: ${p => p.$d || '0s'};
+  transition: box-shadow 0.2s, transform 0.2s;
+  &:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.10); transform: translateY(-2px); }
+`;
+const StatIcon = styled.div`
+  width: 48px; height: 48px; border-radius: 14px;
+  background: ${p => p.$bg};
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: ${p => p.$color};
+  flex-shrink: 0;
+`;
+const StatInfo = styled.div`
+  .lbl { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
+  .val { font-size: 22px; font-weight: 900; color: ${p => p.$color || '#0f172a'}; letter-spacing: -0.5px; }
+  .sub { font-size: 11px; color: #cbd5e1; font-weight: 600; margin-top: 1px; }
 `;
 
+/* ─── TWO COLUMN LAYOUT ──────────────────────────── */
+const Layout = styled.div`
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
+  @media(max-width:1100px){ grid-template-columns: 1fr; }
+`;
+
+/* ─── GLASS CARD ─────────────────────────────────── */
+const GlassCard = styled.div`
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  border: 1px solid #f0f4f8;
+  animation: ${fadeUp} 0.5s ease both;
+  animation-delay: ${p => p.$d || '0s'};
+`;
+const CardHead = styled.div`
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 22px;
+  h2 { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+  .badge { background: #f0fdf4; color: #10b981; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; border: 1px solid #d1fae5; }
+`;
+const IconDot = styled.div`
+  width: 32px; height: 32px; border-radius: 10px;
+  background: ${p => p.$bg || '#f0fdf4'};
+  display: flex; align-items: center; justify-content: center;
+  color: ${p => p.$color || '#10b981'};
+  font-size: 14px;
+`;
+
+/* ─── FORM ELEMENTS ──────────────────────────────── */
+const FormGroup = styled.div`
+  margin-bottom: 18px;
+`;
 const Label = styled.label`
   display: block;
   font-size: 12px;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   margin-bottom: 8px;
 `;
 
-const Input = styled.input`
+const DateInput = styled.input`
   width: 100%;
   padding: 13px 16px;
   background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  color: #1e293b;
-  font-size: ${p => p.$large ? '28px' : '15px'};
-  font-weight: ${p => p.$large ? '900' : '500'};
+  border: 2px solid #e8edf3;
+  border-radius: 14px;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
   transition: all 0.2s;
-  font-family: inherit;
-  color: ${p => p.$large ? '#10b981' : '#1e293b'};
-  &:focus { border-color: #10b981; background: white; box-shadow: 0 0 0 3px rgba(16,185,129,0.12); }
-  &::placeholder { color: #cbd5e1; }
+  &:focus { border-color: #10b981; background: #f0fdf4; box-shadow: 0 0 0 4px rgba(16,185,129,0.08); }
 `;
 
-const InputWrap = styled.div`
-  position: relative;
-  margin-bottom: 20px;
-  .suffix { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #64748b; font-weight: 700; font-size: 14px; pointer-events: none; }
-`;
-
-const SagimRow = styled.div`
+const SagimPicker = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 20px;
 `;
-
-const SagimBtn = styled.button`
-  padding: 14px;
-  border-radius: 12px;
-  border: 1.5px solid ${p => p.$active ? p.$color : 'rgba(255,255,255,0.1)'};
-  background: ${p => p.$active ? p.$bg : 'transparent'};
-  color: ${p => p.$active ? p.$color : '#64748b'};
+const SagimOpt = styled.button`
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 2px solid ${p => p.$active ? p.$color : '#e8edf3'};
+  background: ${p => p.$active ? p.$bg : '#f8fafc'};
+  color: ${p => p.$active ? p.$color : '#94a3b8'};
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  &:hover { border-color: ${p => p.$color}; color: ${p => p.$color}; }
+  gap: 6px;
+  .ico { font-size: 24px; }
+  .sub { font-size: 10px; font-weight: 600; opacity: 0.7; }
+  box-shadow: ${p => p.$active ? `0 4px 14px ${p.$shadow}` : 'none'};
+  transform: ${p => p.$active ? 'scale(1.02)' : 'scale(1)'};
+  &:hover { border-color: ${p => p.$color}; }
 `;
 
-const DagilimSelect = styled.select`
-  width: 100%;
-  padding: 13px 16px;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  color: #1e293b;
-  font-size: 15px;
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  font-family: inherit;
-  margin-bottom: 20px;
+const MiktarBox = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
+  border: 2px solid #d1fae5;
+  border-radius: 16px;
+  padding: 12px 18px;
+  gap: 12px;
   transition: all 0.2s;
-  &:focus { border-color: #10b981; }
-  option { background: #fff; color: #1e293b; }
+  &:focus-within { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,0.10); }
+  .prefix { font-size: 28px; }
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 32px;
+    font-weight: 900;
+    color: #10b981;
+    outline: none;
+    font-family: inherit;
+    letter-spacing: -1px;
+    min-width: 0;
+    &::placeholder { color: #d1fae5; }
+  }
+  .suffix { font-size: 14px; font-weight: 700; color: #6ee7b7; white-space: nowrap; }
 `;
 
-const SaveBtn = styled.button`
+const DagilimRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+`;
+const DagilimOpt = styled.button`
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid ${p => p.$active ? '#6366f1' : '#e8edf3'};
+  background: ${p => p.$active ? '#eef2ff' : '#f8fafc'};
+  color: ${p => p.$active ? '#6366f1' : '#94a3b8'};
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+  &:hover { border-color: #6366f1; color: #6366f1; }
+`;
+
+const SubmitBtn = styled.button`
   width: 100%;
   padding: 16px;
-  background: ${p => p.disabled ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #10b981, #059669)'};
-  color: ${p => p.disabled ? '#475569' : '#fff'};
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
   border: none;
   border-radius: 14px;
   font-size: 16px;
   font-weight: 800;
-  cursor: ${p => p.disabled ? 'not-allowed' : 'pointer'};
-  transition: all 0.2s;
+  cursor: pointer;
   letter-spacing: 0.3px;
-  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+  box-shadow: 0 6px 20px rgba(16,185,129,0.3);
+  transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-top: 6px;
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.4); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 `;
 
-// Preview panel
-const PreviewPanel = styled.div`
-  background: rgba(16,185,129,0.08);
-  border: 1px solid rgba(16,185,129,0.2);
-  border-radius: 14px;
-  padding: 18px;
-  margin-bottom: 20px;
-`;
-const PreviewRow = styled.div`
+/* ─── PREVIEW MODE ───────────────────────────────── */
+const PreviewHeader = styled.div`
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 16px;
+  padding: 18px 20px;
+  color: white;
+  margin-bottom: 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  font-size: 14px;
-  .k { color: #64748b; font-weight: 500; }
-  .v { color: #f1f5f9; font-weight: 700; }
-  .v.hi { color: #10b981; font-size: 20px; }
+  justify-content: space-between;
+  .title { font-size: 14px; font-weight: 700; opacity: 0.85; }
+  .amount { font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+  .detail { font-size: 12px; opacity: 0.75; margin-top: 2px; }
 `;
-
-const TableWrap = styled.div`
-  max-height: 280px;
+const PreviewTable = styled.div`
+  max-height: 240px;
   overflow-y: auto;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 16px;
+  border: 1px solid #f0f4f8;
+  margin-bottom: 14px;
   &::-webkit-scrollbar { width: 5px; }
-  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; }
-  thead th { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; &:last-child { text-align: right; } }
-  tbody tr { border-bottom: 1px solid #f1f5f9; &:last-child{border:none;} &:hover{background:#f8fafc;} }
-  td { padding: 10px 14px; font-size: 13px; color: #475569; font-weight: 500; &:last-child { text-align: right; font-weight: 700; color: #10b981; } }
+  thead th { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f0f4f8; text-align: left; &:last-child{text-align:right;} }
+  tbody tr { border-bottom: 1px solid #f8fafc; transition: background 0.15s; &:hover{background:#f0fdf4;} &:last-child{border:none;} }
+  td { padding: 10px 14px; font-size: 13px; color: #475569; font-weight: 500; &:first-child{color:#0f172a;font-weight:700;} &:last-child{text-align:right;font-weight:800;color:#10b981;} }
+`;
+const PreviewBtns = styled.div`
+  display: grid; grid-template-columns: 1fr 2fr; gap: 10px;
+`;
+const BackBtn = styled.button`
+  padding: 14px; border-radius: 12px; border: 2px solid #e8edf3; background: #f8fafc;
+  color: #64748b; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;
+  &:hover { border-color: #94a3b8; }
+`;
+const ConfirmBtn = styled(SubmitBtn)`
+  margin-top: 0; width: auto; padding: 14px 24px;
 `;
 
-const BtnGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  button {
-    flex: 1; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-  }
-  .back { background: transparent; border: 1.5px solid rgba(255,255,255,0.1); color: #94a3b8; &:hover{border-color:#64748b;} }
-  .confirm { background: linear-gradient(135deg,#10b981,#059669); border: none; color: white; &:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,185,129,.3);} }
+/* ─── CALENDAR & HISTORY (right column) ─────────── */
+const RightCol = styled.div`
+  display: flex; flex-direction: column; gap: 20px;
 `;
 
-// Takvim
-const CalHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  h3 { color: #f1f5f9; font-size: 17px; font-weight: 800; margin: 0; text-transform: capitalize; }
-  .nav { width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.1); background: transparent; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; &:hover{border-color:#10b981;color:#10b981;} }
+/* Calendar */
+const CalBody = styled.div``;
+const CalHead = styled.div`
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  h3 { margin: 0; font-size: 15px; font-weight: 800; color: #0f172a; text-transform: capitalize; }
+  .nav { width: 32px; height: 32px; border-radius: 10px; border: 1.5px solid #e8edf3; background: #f8fafc; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b; transition: all 0.2s; font-size: 12px; &:hover{border-color:#10b981;color:#10b981;background:#f0fdf4;} }
 `;
-
 const CalGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  display: grid; grid-template-columns: repeat(7,1fr); gap: 5px;
 `;
-
 const DayName = styled.div`
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  text-transform: uppercase;
-  padding-bottom: 10px;
+  text-align: center; font-size: 10px; font-weight: 800; color: #cbd5e1;
+  text-transform: uppercase; padding-bottom: 6px; letter-spacing: 0.5px;
 `;
-
 const DayCell = styled.div`
   border-radius: 10px;
-  min-height: 52px;
+  min-height: 48px;
   padding: 5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.2s;
-  background: ${p => p.$today ? 'rgba(16,185,129,0.15)' : p.$hasData ? 'rgba(255,255,255,0.04)' : 'transparent'};
-  border: 1px solid ${p => p.$today ? 'rgba(16,185,129,0.4)' : p.$hasData ? 'rgba(255,255,255,0.08)' : 'transparent'};
+  display: flex; flex-direction: column; justify-content: space-between;
+  transition: all 0.15s;
+  cursor: ${p => p.$hasData ? 'pointer' : 'default'};
+  background: ${p => p.$today ? '#f0fdf4' : p.$hasData ? '#fafffe' : 'transparent'};
+  border: 1.5px solid ${p => p.$today ? '#10b981' : p.$hasData ? '#d1fae5' : 'transparent'};
+  &:hover { ${p => p.$hasData && 'transform:scale(1.06); box-shadow:0 4px 14px rgba(16,185,129,.15);'} }
   .dn { font-size: 12px; font-weight: 700; color: ${p => p.$today ? '#10b981' : '#64748b'}; }
-  .info { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
-  .total { font-size: 10px; font-weight: 800; color: #10b981; }
-  .dots { display: flex; gap: 3px; }
-  .dot { width: 5px; height: 5px; border-radius: 50%; &.s { background: #f59e0b; } &.a { background: #3b82f6; } }
+  .dots { display: flex; gap: 3px; justify-content: flex-end; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; &.s{background:#f59e0b;} &.a{background:#6366f1;} }
+  .total { font-size: 9px; font-weight: 800; color: #10b981; text-align: right; margin-top: 1px; }
+`;
+const CalLegend = styled.div`
+  display: flex; gap: 14px; margin-top: 12px; justify-content: center;
+  .item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #94a3b8; font-weight: 600; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
 `;
 
-// History
-const HistoryList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 20px;
-  max-height: 360px;
-  overflow-y: auto;
+/* History list */
+const HistoryHead = styled.div`
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  h3 { margin: 0; font-size: 15px; font-weight: 800; color: #0f172a; }
+  .count { background: #f0fdf4; color: #10b981; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 20px; }
+`;
+const HList = styled.div`
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 390px; overflow-y: auto;
   &::-webkit-scrollbar { width: 5px; }
-  &::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 `;
-
-const HistoryItem = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 3px solid ${p => p.$color};
-  border-radius: 12px;
+const HItem = styled.div`
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: ${p => p.$hover ? '#f0fdf4' : '#f8fafc'};
+  border: 1.5px solid ${p => p.$hover ? '#d1fae5' : '#f0f4f8'};
+  border-left: 4px solid ${p => p.$color};
+  border-radius: 14px;
   transition: all 0.2s;
-  &:hover { background: #f1f5f9; }
+  &:hover { background: #f0fdf4; border-color: #d1fae5; transform: translateX(3px); }
   .left { display: flex; align-items: center; gap: 12px; }
-  .icon { width: 36px; height: 36px; border-radius: 10px; background: ${p => p.$iconBg}; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .date { font-size: 13px; font-weight: 700; color: #1e293b; }
-  .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-  .amount { font-size: 18px; font-weight: 900; color: ${p => p.$color}; }
-  .sil { background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 6px 8px; border-radius: 8px; font-size: 13px; transition: all 0.2s; &:hover{background:rgba(239,68,68,0.1);} }
+  .emo { width: 38px; height: 38px; border-radius: 12px; background: ${p => p.$iconBg}; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .date { font-size: 13px; font-weight: 800; color: #0f172a; }
+  .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; font-weight: 500; }
+  .right { display: flex; align-items: center; gap: 10px; }
+  .amount { font-size: 20px; font-weight: 900; color: ${p => p.$color}; letter-spacing: -0.5px; }
+  .unit { font-size: 11px; color: #cbd5e1; font-weight: 700; }
+  .sil { background: none; border: none; color: #fca5a5; cursor: pointer; padding: 6px; border-radius: 8px; font-size: 13px; transition: all 0.2s; &:hover{color:#ef4444;background:#fef2f2;} }
+`;
+const EmptyState = styled.div`
+  text-align: center; padding: 40px; color: #cbd5e1; font-size: 14px; font-weight: 600;
+  .ico { font-size: 40px; margin-bottom: 10px; display: block; }
 `;
 
-const EmptyMsg = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: #94a3b8;
-  font-size: 14px;
-  font-weight: 600;
-`;
-
+/* ─────────────────────────────────────────────────── */
 export default function SutKaydi() {
-  const bugun = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString('en-CA');
 
-  const [tarih, setTarih] = useState(bugun);
+  const [tarih, setTarih] = useState(today);
   const [sagim, setSagim] = useState('sabah');
-  const [toplamSut, setToplamSut] = useState('');
-  const [dagilimTipi, setDagilimTipi] = useState('akilli');
-  const [notlar, setNotlar] = useState('');
+  const [miktar, setMiktar] = useState('');
+  const [dagilim, setDagilim] = useState('akilli');
   const [yukleniyor, setYukleniyor] = useState(false);
   const [onizleme, setOnizleme] = useState(null);
   const [adim, setAdim] = useState(1);
-  const [gecmisKayitlar, setGecmisKayitlar] = useState([]);
-  const [takvimAy, setTakvimAy] = useState(new Date());
+  const [gecmis, setGecmis] = useState([]);
+  const [calAy, setCalAy] = useState(new Date());
 
-  useEffect(() => { fetchGecmis(); }, []);
+  useEffect(() => { getGecmis(); }, []);
 
-  const fetchGecmis = async () => {
-    try {
-      const res = await api.topluSutGecmis(90);
-      setGecmisKayitlar(res.data || []);
-    } catch (e) { console.error(e); }
+  const getGecmis = async () => {
+    try { const r = await api.topluSutGecmis(90); setGecmis(r.data || []); }
+    catch (e) { console.error(e); }
   };
 
-  // Stats
   const stats = useMemo(() => {
-    const thisMonth = new Date().toLocaleDateString('en-CA').slice(0, 7);
-    const kayitlarBuAy = gecmisKayitlar.filter(k => k.tarih?.startsWith(thisMonth));
-    const totalMonth = kayitlarBuAy.reduce((a, k) => a + (k.toplamSut || 0), 0);
-    const totalAll = gecmisKayitlar.reduce((a, k) => a + (k.toplamSut || 0), 0);
-    const dailyArr = {};
-    kayitlarBuAy.forEach(k => { dailyArr[k.tarih] = (dailyArr[k.tarih] || 0) + k.toplamSut; });
-    const vals = Object.values(dailyArr);
-    const dailyAvg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
-    return { totalMonth: totalMonth.toFixed(1), totalAll: totalAll.toFixed(0), dailyAvg: dailyAvg.toFixed(1), kayitSayisi: gecmisKayitlar.length };
-  }, [gecmisKayitlar]);
+    const prefix = today.slice(0, 7);
+    const buAy = gecmis.filter(k => k.tarih?.startsWith(prefix));
+    const toplamAy = buAy.reduce((a, k) => a + k.toplamSut, 0);
+    const toplamGenel = gecmis.reduce((a, k) => a + k.toplamSut, 0);
+    const gunler = {};
+    buAy.forEach(k => { gunler[k.tarih] = (gunler[k.tarih] || 0) + k.toplamSut; });
+    const vals = Object.values(gunler);
+    const ort = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+    return { toplamAy: toplamAy.toFixed(1), toplamGenel: Number(toplamGenel.toFixed(0)).toLocaleString('tr-TR'), ort: ort.toFixed(1), kay: gecmis.length };
+  }, [gecmis]);
 
   const onizlemeAl = async () => {
-    if (!toplamSut || parseFloat(toplamSut) <= 0) return showWarning('Geçerli bir miktar girin!');
+    if (!miktar || parseFloat(miktar) <= 0) return showWarning('Geçerli bir miktar girin!');
     setYukleniyor(true);
     try {
-      const res = await api.topluSutOnizleme({ toplamSut: parseFloat(toplamSut), dagilimTipi, tarih, sagim });
-      setOnizleme(res.data);
-      setAdim(2);
-    } catch (e) { showError(e.response?.data?.message || 'Önizleme alınamadı!'); }
+      const r = await api.topluSutOnizleme({ toplamSut: parseFloat(miktar), dagilimTipi: dagilim, tarih, sagim });
+      setOnizleme(r.data); setAdim(2);
+    } catch (e) { showError(e.response?.data?.message || 'Önizleme alınamadı'); }
     finally { setYukleniyor(false); }
   };
 
   const kaydet = async () => {
     setYukleniyor(true);
     try {
-      await api.topluSutKaydet({ tarih, sagim, toplamSut: onizleme.toplamSut, dagilimTipi, detaylar: onizleme.detaylar, notlar });
-      showSuccess('Süt kaydı eklendi! 🥛');
-      setAdim(1); setToplamSut(''); setOnizleme(null);
-      fetchGecmis();
+      await api.topluSutKaydet({ tarih, sagim, toplamSut: onizleme.toplamSut, dagilimTipi: dagilim, detaylar: onizleme.detaylar });
+      showSuccess('🥛 Süt kaydı eklendi!');
+      setAdim(1); setMiktar(''); setOnizleme(null);
+      getGecmis();
     } catch (e) {
-      if (e.response?.status === 409) showWarning('Bu tarih ve sağım için kayıt zaten var!');
-      else showError('Kayıt hatası: ' + e.message);
+      if (e.response?.status === 409) showWarning('Bu tarih/sağım için kayıt zaten var!');
+      else showError('Hata: ' + e.message);
     } finally { setYukleniyor(false); }
   };
 
-  const sil = async (tarih, sagim) => {
-    if (!window.confirm('Bu kaydı silmek istediğinizden emin misiniz?')) return;
-    try { await api.topluSutSilByTarihSagim(tarih, sagim); fetchGecmis(); showSuccess('Silindi.'); }
-    catch { showError('Silme başarısız.'); }
+  const sil = async (t, s) => {
+    if (!window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
+    try { await api.topluSutSilByTarihSagim(t, s); getGecmis(); showSuccess('Silindi.'); }
+    catch { showError('Silme başarısız'); }
   };
 
-  // Takvim
+  /* Takvim */
   const calDays = useMemo(() => {
-    const year = takvimAy.getFullYear(), month = takvimAy.getMonth();
-    const days = new Date(year, month + 1, 0).getDate();
-    const firstDay = new Date(year, month, 1).getDay();
-    const offset = firstDay === 0 ? 6 : firstDay - 1;
-    const result = [];
-    for (let i = 0; i < offset; i++) result.push(null);
-    for (let i = 1; i <= days; i++) result.push(new Date(year, month, i));
-    return result;
-  }, [takvimAy]);
+    const y = calAy.getFullYear(), m = calAy.getMonth();
+    const days = new Date(y, m + 1, 0).getDate();
+    const first = new Date(y, m, 1).getDay();
+    const offset = first === 0 ? 6 : first - 1;
+    const arr = [];
+    for (let i = 0; i < offset; i++) arr.push(null);
+    for (let i = 1; i <= days; i++) arr.push(new Date(y, m, i));
+    return arr;
+  }, [calAy]);
 
-  const monthName = takvimAy.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+  const monthLabel = calAy.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+
+  const getDayData = (date) => {
+    if (!date) return { items: [], sabah: null, aksam: null, total: 0 };
+    const items = gecmis.filter(k => {
+      const kd = new Date(k.tarih + 'T12:00');
+      return kd.getDate() === date.getDate() && kd.getMonth() === date.getMonth() && kd.getFullYear() === date.getFullYear();
+    });
+    return {
+      items,
+      sabah: items.find(k => k.sagim === 'sabah'),
+      aksam: items.find(k => k.sagim === 'aksam'),
+      total: items.reduce((a, k) => a + k.toplamSut, 0)
+    };
+  };
 
   return (
     <Page>
-      <TopRow>
-        <PageTitle>
-          <div className="ico">🥛</div>
-          <div>
-            <h1>Süt Yönetimi</h1>
-            <div className="sub">Günlük süt üretimi — kayıt, takip ve analiz</div>
-          </div>
-        </PageTitle>
-      </TopRow>
+      {/* HEADER */}
+      <Header>
+        <HeaderIcon>🥛</HeaderIcon>
+        <HeaderText>
+          <h1>Süt Yönetimi</h1>
+          <p>Günlük süt üretimini kayıt altına alın, takip edin ve analiz edin</p>
+        </HeaderText>
+      </Header>
 
       {/* STATS */}
-      <StatsRow>
-        <StatCard color="#10b981">
-          <div className="label">Bu Ay Toplam</div>
-          <div className="value">{stats.totalMonth}<span className="unit">lt</span></div>
-        </StatCard>
-        <StatCard color="#3b82f6">
-          <div className="label">Günlük Ortalama</div>
-          <div className="value">{stats.dailyAvg}<span className="unit">lt</span></div>
-        </StatCard>
-        <StatCard color="#f59e0b">
-          <div className="label">Toplam Kayıt</div>
-          <div className="value">{stats.kayitSayisi}<span className="unit">adet</span></div>
-        </StatCard>
-        <StatCard color="#8b5cf6">
-          <div className="label">Toplam Üretim</div>
-          <div className="value">{Number(stats.totalAll).toLocaleString('tr-TR')}<span className="unit">lt</span></div>
-        </StatCard>
-      </StatsRow>
+      <StatsGrid>
+        <Stat $d="0.05s">
+          <StatIcon $bg="#f0fdf4" $color="#10b981"><FaTint /></StatIcon>
+          <StatInfo $color="#10b981">
+            <div className="lbl">Bu Ay Toplam</div>
+            <div className="val">{stats.toplamAy} <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>lt</span></div>
+          </StatInfo>
+        </Stat>
+        <Stat $d="0.1s">
+          <StatIcon $bg="#eff6ff" $color="#3b82f6"><FaChartLine /></StatIcon>
+          <StatInfo $color="#3b82f6">
+            <div className="lbl">Günlük Ort.</div>
+            <div className="val">{stats.ort} <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>lt</span></div>
+          </StatInfo>
+        </Stat>
+        <Stat $d="0.15s">
+          <StatIcon $bg="#fefce8" $color="#f59e0b"><FaCalendarCheck /></StatIcon>
+          <StatInfo $color="#f59e0b">
+            <div className="lbl">Toplam Kayıt</div>
+            <div className="val">{stats.kay} <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>adet</span></div>
+          </StatInfo>
+        </Stat>
+        <Stat $d="0.2s">
+          <StatIcon $bg="#f5f3ff" $color="#8b5cf6"><FaClock /></StatIcon>
+          <StatInfo $color="#8b5cf6">
+            <div className="lbl">Toplam Üretim</div>
+            <div className="val">{stats.toplamGenel} <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>lt</span></div>
+          </StatInfo>
+        </Stat>
+      </StatsGrid>
 
-      <MainGrid>
+      {/* MAIN */}
+      <Layout>
         {/* SOL: FORM */}
-        <Card $delay="0.05s">
-          <CardTitle><FaPlus /> {adim === 1 ? 'Yeni Kayıt Gir' : 'Önizleme & Onay'}</CardTitle>
+        <GlassCard $d="0.2s">
+          <CardHead>
+            <IconDot $bg="#f0fdf4" $color="#10b981"><FaPlus /></IconDot>
+            <h2>{adim === 1 ? 'Yeni Kayıt' : 'Önizleme'}</h2>
+            {adim === 2 && <div className="badge">✅ Onaya hazır</div>}
+          </CardHead>
 
           {adim === 1 ? (
             <>
-              <InputWrap>
-                <Label>Tarih</Label>
-                <Input type="date" value={tarih} onChange={e => setTarih(e.target.value)} />
-              </InputWrap>
+              <FormGroup>
+                <Label>📅 Tarih</Label>
+                <DateInput type="date" value={tarih} onChange={e => setTarih(e.target.value)} />
+              </FormGroup>
 
-              <div style={{ marginBottom: 20 }}>
-                <Label>Sağım Zamanı</Label>
-                <SagimRow>
-                  <SagimBtn $active={sagim === 'sabah'} $color="#f59e0b" $bg="rgba(245,158,11,0.12)" onClick={() => setSagim('sabah')}>🌅 Sabah</SagimBtn>
-                  <SagimBtn $active={sagim === 'aksam'} $color="#3b82f6" $bg="rgba(59,130,246,0.12)" onClick={() => setSagim('aksam')}>🌙 Akşam</SagimBtn>
-                </SagimRow>
-              </div>
+              <FormGroup>
+                <Label>🕐 Sağım Zamanı</Label>
+                <SagimPicker>
+                  <SagimOpt
+                    $active={sagim === 'sabah'}
+                    $color="#f59e0b" $bg="#fffbeb" $shadow="rgba(245,158,11,0.25)"
+                    onClick={() => setSagim('sabah')}
+                  >
+                    <span className="ico">🌅</span>
+                    <strong>Sabah</strong>
+                    <span className="sub">06:00 – 10:00</span>
+                  </SagimOpt>
+                  <SagimOpt
+                    $active={sagim === 'aksam'}
+                    $color="#6366f1" $bg="#eef2ff" $shadow="rgba(99,102,241,0.25)"
+                    onClick={() => setSagim('aksam')}
+                  >
+                    <span className="ico">🌙</span>
+                    <strong>Akşam</strong>
+                    <span className="sub">17:00 – 20:00</span>
+                  </SagimOpt>
+                </SagimPicker>
+              </FormGroup>
 
-              <InputWrap>
-                <Label>Toplam Süt Miktarı</Label>
-                <Input $large type="number" value={toplamSut} onChange={e => setToplamSut(e.target.value)} placeholder="0.0" style={{ paddingRight: 60 }} />
-                <span className="suffix">Litre</span>
-              </InputWrap>
+              <FormGroup>
+                <Label>🥛 Toplam Miktar</Label>
+                <MiktarBox>
+                  <span className="prefix">🥛</span>
+                  <input
+                    type="number"
+                    value={miktar}
+                    onChange={e => setMiktar(e.target.value)}
+                    placeholder="0.0"
+                  />
+                  <span className="suffix">Litre</span>
+                </MiktarBox>
+              </FormGroup>
 
-              <div style={{ marginBottom: 20 }}>
-                <Label>Dağılım Yöntemi</Label>
-                <DagilimSelect value={dagilimTipi} onChange={e => setDagilimTipi(e.target.value)}>
-                  <option value="akilli">🧠 Akıllı Dağılım (Süt verime göre)</option>
-                  <option value="esit">⚖️ Eşit Dağılım</option>
-                </DagilimSelect>
-              </div>
+              <FormGroup>
+                <Label>⚙️ Dağılım Yöntemi</Label>
+                <DagilimRow>
+                  <DagilimOpt $active={dagilim === 'akilli'} onClick={() => setDagilim('akilli')}>
+                    🧠 Akıllı Dağılım
+                  </DagilimOpt>
+                  <DagilimOpt $active={dagilim === 'esit'} onClick={() => setDagilim('esit')}>
+                    ⚖️ Eşit Dağılım
+                  </DagilimOpt>
+                </DagilimRow>
+              </FormGroup>
 
-              <SaveBtn onClick={onizlemeAl} disabled={!toplamSut || yukleniyor}>
-                {yukleniyor ? '⏳ Hesaplanıyor...' : '🔍 Önizle ve Kaydet'}
-              </SaveBtn>
+              <SubmitBtn onClick={onizlemeAl} disabled={!miktar || yukleniyor}>
+                {yukleniyor ? '⏳ Hesaplanıyor...' : <><FaTint /> Önizle ve Kaydet</>}
+              </SubmitBtn>
             </>
           ) : (
             <>
-              <PreviewPanel>
-                <PreviewRow><span className="k">Tarih</span><span className="v">{new Date(tarih + 'T12:00').toLocaleDateString('tr-TR')} • {sagim === 'sabah' ? '🌅 Sabah' : '🌙 Akşam'}</span></PreviewRow>
-                <PreviewRow><span className="k">Toplam Süt</span><span className="v hi">{onizleme?.toplamSut} Lt</span></PreviewRow>
-                <PreviewRow><span className="k">İnek Sayısı</span><span className="v">{onizleme?.detaylar?.length}</span></PreviewRow>
-              </PreviewPanel>
+              <PreviewHeader>
+                <div>
+                  <div className="title">{new Date(tarih + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} • {sagim === 'sabah' ? '🌅 Sabah' : '🌙 Akşam'} Sağımı</div>
+                  <div className="amount">{onizleme?.toplamSut} Lt</div>
+                  <div className="detail">{onizleme?.detaylar?.length} inek • {dagilim === 'akilli' ? 'Akıllı dağılım' : 'Eşit dağılım'}</div>
+                </div>
+                <div style={{ fontSize: 48 }}>🥛</div>
+              </PreviewHeader>
 
-              <TableWrap>
+              <PreviewTable>
                 <table>
                   <thead><tr><th>İnek</th><th>Miktar (Lt)</th></tr></thead>
                   <tbody>
@@ -471,94 +564,100 @@ export default function SutKaydi() {
                     ))}
                   </tbody>
                 </table>
-              </TableWrap>
+              </PreviewTable>
 
-              <BtnGroup>
-                <button className="back" onClick={() => setAdim(1)}>← Geri</button>
-                <button className="confirm" onClick={kaydet} disabled={yukleniyor}>
-                  {yukleniyor ? '⏳...' : '✅ Onayla ve Kaydet'}
-                </button>
-              </BtnGroup>
+              <PreviewBtns>
+                <BackBtn onClick={() => setAdim(1)}>← Geri</BackBtn>
+                <ConfirmBtn onClick={kaydet} disabled={yukleniyor}>
+                  {yukleniyor ? '⏳ Kaydediliyor...' : '✅ Onayla ve Kaydet'}
+                </ConfirmBtn>
+              </PreviewBtns>
             </>
           )}
-        </Card>
+        </GlassCard>
 
-        {/* SAĞ: TAKVİM + GEÇMİŞ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <Card $delay="0.1s">
-            <CalHeader>
-              <button className="nav" onClick={() => setTakvimAy(new Date(takvimAy.getFullYear(), takvimAy.getMonth() - 1, 1))}><FaChevronLeft /></button>
-              <h3>{monthName}</h3>
-              <button className="nav" onClick={() => setTakvimAy(new Date(takvimAy.getFullYear(), takvimAy.getMonth() + 1, 1))}><FaChevronRight /></button>
-            </CalHeader>
-            <CalGrid>
-              {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(d => <DayName key={d}>{d}</DayName>)}
-              {calDays.map((date, i) => {
-                if (!date) return <div key={i} />;
-                const gunKayitlari = gecmisKayitlar.filter(k => {
-                  const kDate = new Date(k.tarih + 'T12:00');
-                  return kDate.getDate() === date.getDate() && kDate.getMonth() === date.getMonth() && kDate.getFullYear() === date.getFullYear();
-                });
-                const sabah = gunKayitlari.find(k => k.sagim === 'sabah');
-                const aksam = gunKayitlari.find(k => k.sagim === 'aksam');
-                const total = gunKayitlari.reduce((a, k) => a + k.toplamSut, 0);
-                const isToday = date.toDateString() === new Date().toDateString();
+        {/* SAĞ */}
+        <RightCol>
+          {/* Takvim */}
+          <GlassCard $d="0.25s">
+            <CardHead>
+              <IconDot $bg="#fef9c3" $color="#ca8a04">📅</IconDot>
+              <h2>Aylık Takip</h2>
+            </CardHead>
+            <CalBody>
+              <CalHead>
+                <button className="nav" onClick={() => setCalAy(new Date(calAy.getFullYear(), calAy.getMonth() - 1, 1))}><FaChevronLeft /></button>
+                <h3>{monthLabel}</h3>
+                <button className="nav" onClick={() => setCalAy(new Date(calAy.getFullYear(), calAy.getMonth() + 1, 1))}><FaChevronRight /></button>
+              </CalHead>
+              <CalGrid>
+                {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(d => <DayName key={d}>{d}</DayName>)}
+                {calDays.map((date, i) => {
+                  if (!date) return <div key={i} />;
+                  const { sabah, aksam, items, total } = getDayData(date);
+                  const isToday = date.toDateString() === new Date().toDateString();
+                  return (
+                    <DayCell key={i} $today={isToday} $hasData={items.length > 0}>
+                      <span className="dn">{date.getDate()}</span>
+                      {items.length > 0 && (
+                        <>
+                          <div className="dots">
+                            {sabah && <span className="dot s" />}
+                            {aksam && <span className="dot a" />}
+                          </div>
+                          <div className="total">{total.toFixed(0)}lt</div>
+                        </>
+                      )}
+                    </DayCell>
+                  );
+                })}
+              </CalGrid>
+              <CalLegend>
+                <div className="item"><div className="dot" style={{ background: '#f59e0b' }} /> Sabah</div>
+                <div className="item"><div className="dot" style={{ background: '#6366f1' }} /> Akşam</div>
+              </CalLegend>
+            </CalBody>
+          </GlassCard>
+
+          {/* Geçmiş */}
+          <GlassCard $d="0.3s">
+            <CardHead>
+              <IconDot $bg="#f0f4ff" $color="#6366f1"><FaClock /></IconDot>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                <h2>Son Kayıtlar</h2>
+                <span style={{ background: '#f0fdf4', color: '#10b981', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, marginLeft: 'auto' }}>{gecmis.length}</span>
+              </div>
+            </CardHead>
+            <HList>
+              {gecmis.length === 0 ? (
+                <EmptyState><span className="ico">🥛</span>Henüz kayıt yok.<br />İlk süt kaydınızı ekleyin!</EmptyState>
+              ) : gecmis.slice(0, 20).map(k => {
+                const isSabah = k.sagim === 'sabah';
+                const color = isSabah ? '#f59e0b' : '#6366f1';
+                const iconBg = isSabah ? '#fffbeb' : '#eef2ff';
                 return (
-                  <DayCell key={i} $today={isToday} $hasData={gunKayitlari.length > 0}>
-                    <span className="dn">{date.getDate()}</span>
-                    {gunKayitlari.length > 0 && (
-                      <div className="info">
-                        <div className="dots">
-                          {sabah && <span className="dot s" />}
-                          {aksam && <span className="dot a" />}
-                        </div>
-                        <span className="total">{total.toFixed(0)}lt</span>
+                  <HItem key={k._id} $color={color} $iconBg={iconBg}>
+                    <div className="left">
+                      <div className="emo">{isSabah ? '🌅' : '🌙'}</div>
+                      <div>
+                        <div className="date">{new Date(k.tarih + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                        <div className="meta">{isSabah ? 'Sabah' : 'Akşam'} sağımı • {k.detaylar?.length || '?'} inek</div>
                       </div>
-                    )}
-                  </DayCell>
+                    </div>
+                    <div className="right">
+                      <div>
+                        <span className="amount">{k.toplamSut}</span>
+                        <span className="unit"> lt</span>
+                      </div>
+                      <button className="sil" onClick={() => sil(k.tarih, k.sagim)}><FaTrash /></button>
+                    </div>
+                  </HItem>
                 );
               })}
-            </CalGrid>
-            <div style={{ display: 'flex', gap: 16, marginTop: 12, justifyContent: 'center' }}>
-              {[['#f59e0b', 'Sabah'], ['#3b82f6', 'Akşam']].map(([color, label]) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#64748b', fontWeight: 700 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-                  {label}
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card $delay="0.15s">
-            <CardTitle><FaClock /> Son Kayıtlar</CardTitle>
-            <HistoryList>
-              {gecmisKayitlar.length === 0 ? (
-                <EmptyMsg>Henüz kayıt yok. İlk süt kaydınızı ekleyin! 🥛</EmptyMsg>
-              ) : (
-                gecmisKayitlar.slice(0, 20).map(kayit => {
-                  const color = kayit.sagim === 'sabah' ? '#f59e0b' : '#3b82f6';
-                  const iconBg = kayit.sagim === 'sabah' ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)';
-                  return (
-                    <HistoryItem key={kayit._id} $color={color} $iconBg={iconBg}>
-                      <div className="left">
-                        <div className="icon">{kayit.sagim === 'sabah' ? '🌅' : '🌙'}</div>
-                        <div>
-                          <div className="date">{new Date(kayit.tarih + 'T12:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
-                          <div className="meta">{kayit.sagim === 'sabah' ? 'Sabah' : 'Akşam'} sağımı • {kayit.detaylar?.length || '?'} inek</div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span className="amount">{kayit.toplamSut}<span style={{ fontSize: 12, color: '#64748b', marginLeft: 3 }}>lt</span></span>
-                        <button className="sil" onClick={() => sil(kayit.tarih, kayit.sagim)} title="Sil"><FaTrash /></button>
-                      </div>
-                    </HistoryItem>
-                  );
-                })
-              )}
-            </HistoryList>
-          </Card>
-        </div>
-      </MainGrid>
+            </HList>
+          </GlassCard>
+        </RightCol>
+      </Layout>
     </Page>
   );
 }
