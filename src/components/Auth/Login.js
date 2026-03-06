@@ -194,22 +194,34 @@ export default function Login({ onLoginSuccess }) {
           </div>
         )}
 
-        {/* ROL SEÇİCİ */}
-        <RoleGrid>
-          {ROLES.map(r => (
-            <RoleCard key={r.key} $active={seciliRol === r.key} $color={r.color} $bg={r.bg}
-              onClick={() => { setSeciliRol(r.key); setError(''); }} type="button">
-              <span className="emoji">{r.emoji}</span>
-              <span className="lbl">{r.label}</span>
-            </RoleCard>
-          ))}
-        </RoleGrid>
-
         {/* GİRİŞ / KAYIT TAB */}
         <Tabs>
-          <Tab $active={!kayitModu} onClick={() => { setKayitModu(false); setError(''); }}>Giriş Yap</Tab>
-          <Tab $active={kayitModu} onClick={() => { setKayitModu(true); setError(''); }}>Kayıt Ol</Tab>
+          <Tab $active={!kayitModu} type="button" onClick={() => { setKayitModu(false); setError(''); setSeciliRol('ciftci'); }}>Giriş Yap</Tab>
+          <Tab $active={kayitModu} type="button" onClick={() => { setKayitModu(true); setError(''); setSeciliRol('ciftci'); }}>Ücretsiz İhtiyaclar</Tab>
         </Tabs>
+
+        {/* ROL SEÇİCİ */}
+        <SectionLabel>{kayitModu ? "KAYIT TÜRÜ (Sadece Çiftçi Açılabilir)" : "PROFİL TİPİNİZİ SEÇİN"}</SectionLabel>
+        <RoleGrid>
+          {ROLES.map(r => {
+            const isDisabled = kayitModu && r.key !== 'ciftci';
+            return (
+              <RoleCard
+                key={r.key}
+                $active={seciliRol === r.key && !isDisabled}
+                $color={r.color}
+                $bg={r.bg}
+                onClick={() => { if (!isDisabled) { setSeciliRol(r.key); setError(''); } }}
+                type="button"
+                title={isDisabled ? "Bu rol içeriye davet yöntemiyle çiftçiler tarafından eklenebilir." : ""}
+                style={{ opacity: isDisabled ? 0.4 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+              >
+                <span className="emoji">{r.emoji}</span>
+                <span className="lbl">{r.label}{isDisabled && " 🔒"}</span>
+              </RoleCard>
+            )
+          })}
+        </RoleGrid>
 
         {error && <AlertBox $err style={{ marginBottom: 12 }}>❌ {error}</AlertBox>}
         {success && <AlertBox style={{ marginBottom: 12 }}>✅ {success}</AlertBox>}
