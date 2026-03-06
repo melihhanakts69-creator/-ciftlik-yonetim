@@ -201,10 +201,12 @@ export default function Login({ onLoginSuccess }) {
         </Tabs>
 
         {/* ROL SEÇİCİ */}
-        <SectionLabel>{kayitModu ? "KAYIT TÜRÜ (Sadece Çiftçi Açılabilir)" : "PROFİL TİPİNİZİ SEÇİN"}</SectionLabel>
+        <SectionLabel>{kayitModu ? "KAYIT TÜRÜ (İşçi Hariç Açılabilir)" : "PROFİL TİPİNİZİ SEÇİN"}</SectionLabel>
         <RoleGrid>
           {ROLES.map(r => {
-            const isDisabled = kayitModu && r.key !== 'ciftci';
+            // SaaS modeli: Veteriner ve toplayıcılar kendi hesaplarını dışarıdan açabilir.
+            // Sadece İşçi (sutcu) içeriden Çiftçi tarafından eklenmelidir (parentUserId bağı için).
+            const isDisabled = kayitModu && r.key === 'sutcu';
             return (
               <RoleCard
                 key={r.key}
@@ -213,7 +215,7 @@ export default function Login({ onLoginSuccess }) {
                 $bg={r.bg}
                 onClick={() => { if (!isDisabled) { setSeciliRol(r.key); setError(''); } }}
                 type="button"
-                title={isDisabled ? "Bu rol içeriye davet yöntemiyle çiftçiler tarafından eklenebilir." : ""}
+                title={isDisabled ? "Bu rol içeriye davet yöntemiyle (Ayarlar > Personel) sadece çiftçiler tarafından eklenebilir." : ""}
                 style={{ opacity: isDisabled ? 0.4 : 1, cursor: isDisabled ? 'not-allowed' : 'pointer' }}
               >
                 <span className="emoji">{r.emoji}</span>
