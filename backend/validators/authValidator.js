@@ -34,7 +34,6 @@ const loginValidation = [
 const updateValidation = [
     body('isim').optional().trim().isLength({ min: 2 }).withMessage('İsim en az 2 karakter olmalı'),
     body('email').optional().trim().isEmail().normalizeEmail().withMessage('Geçerli bir email giriniz'),
-    body('isletmeAdi').optional().trim().notEmpty().withMessage('İşletme adı boş olamaz'),
     body('yeniSifre').optional().isLength({ min: 6 }).withMessage('Yeni şifre en az 6 karakter olmalı'),
     validate
 ];

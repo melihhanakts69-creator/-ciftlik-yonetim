@@ -197,19 +197,19 @@ router.get('/finansal', auth, async (req, res) => {
 // Bugünün yapılacakları (bildirimler)
 router.get('/yapilacaklar', auth, async (req, res) => {
   try {
-    const userId = req.userId;
+    const uid = new mongoose.Types.ObjectId(req.userId);
 
     // 1. OTOMATİK GÖREV OLUŞTURMA (Her çağrıldığında kontrol eder)
-    await otomatikGorevleriKontrolEt(userId);
+    await otomatikGorevleriKontrolEt(uid);
 
     // Bugünün bildirimleri
-    const bugununkiler = await Bildirim.bugununkiler(userId);
+    const bugununkiler = await Bildirim.bugununkiler(uid);
 
     // Gecikmiş bildirimler
-    const gecikmisler = await Bildirim.gecikmisler(userId);
+    const gecikmisler = await Bildirim.gecikmisler(uid);
 
     // Yaklaşan bildirimler (7 gün)
-    const yaklaşanlar = await Bildirim.yaklaşanlar(userId, 7);
+    const yaklaşanlar = await Bildirim.yaklaşanlar(uid, 7);
 
     res.json({
       bugun: bugununkiler,
@@ -225,7 +225,7 @@ router.get('/yapilacaklar', auth, async (req, res) => {
 // En iyi süt veren inekler (Son 30 gün ortalaması)
 router.get('/top-performers', auth, async (req, res) => {
   try {
-    const userId = req.userId;
+    const uid = new mongoose.Types.ObjectId(req.userId);
     const gunSayisi = 30;
 
     const baslangicTarihi = new Date();
@@ -235,7 +235,7 @@ router.get('/top-performers', auth, async (req, res) => {
     const topCows = await SutKaydi.aggregate([
       {
         $match: {
-          userId: new mongoose.Types.ObjectId(req.userId),
+          userId: uid,
           tarih: { $gte: baslangicStr }
         }
       },
@@ -291,13 +291,13 @@ const TopluSutGirisi = require('../models/TopluSutGirisi'); // Import Eklendi
 // Son aktiviteler
 router.get('/aktiviteler', auth, async (req, res) => {
   try {
-    const userId = req.userId;
+    const uid = new mongoose.Types.ObjectId(req.userId);
     const limit = parseInt(req.query.limit) || 10;
 
     // Son eklenen hayvanlar
-    const sonInekler = await Inek.find({ userId }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonDuveler = await Duve.find({ userId }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonBuzagilar = await Buzagi.find({ userId }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonInekler = await Inek.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonDuveler = await Duve.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonBuzagilar = await Buzagi.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
 
     // Tüm hayvanları birleştir ve tip ekle
     const sonHayvanlar = [
@@ -307,19 +307,19 @@ router.get('/aktiviteler', auth, async (req, res) => {
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
     // Son süt kayıtları - ARTIK TOPLU GİRİŞLERDEN ÇEKİYORUZ
-    const sonSutler = await TopluSutGirisi.find({ userId })
+    const sonSutler = await TopluSutGirisi.find({ userId: uid })
       .sort({ tarih: -1, createdAt: -1 })
       .limit(3)
       .select('tarih toplamSut sagim createdAt'); // toplamSut ve createdAt önemli
 
     // Son maliyetler
-    const sonMaliyetler = await Maliyet.find({ userId })
+    const sonMaliyetler = await Maliyet.find({ userId: uid })
       .sort({ tarih: -1 })
       .limit(3)
       .select('kategori tutar tarih');
 
     // Son alış-satışlar
-    const sonAlisSatis = await AlisSatis.find({ userId })
+    const sonAlisSatis = await AlisSatis.find({ userId: uid })
       .sort({ tarih: -1 })
       .limit(3)
       .select('tip fiyat tarih hayvanTipi');
@@ -365,7 +365,7 @@ router.get('/aktiviteler', auth, async (req, res) => {
 // Sağlık uyarıları
 router.get('/saglik-uyarilari', auth, async (req, res) => {
   try {
-    const userId = req.userId;
+    const uid = new mongoose.Types.ObjectId(req.userId);
 
     // SaglikKaydi ve AsiTakvimi modellerini dinamik yükle (deploy uyumlu)
     let aktifTedaviler = [];
@@ -378,7 +378,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
 
       // Aktif tedaviler (devam eden)
       aktifTedaviler = await SaglikKaydi.find({
-        userId,
+        userId: uid,
         durum: 'devam_ediyor'
       }).sort({ tarih: -1 }).limit(5).lean();
 
@@ -386,7 +386,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
       const yediGunSonra = new Date();
       yediGunSonra.setDate(yediGunSonra.getDate() + 7);
       yaklasanKontroller = await SaglikKaydi.find({
-        userId,
+        userId: uid,
         sonrakiKontrol: { $lte: yediGunSonra, $gte: new Date() },
         durum: 'devam_ediyor'
       }).sort({ sonrakiKontrol: 1 }).limit(5).lean();
@@ -396,7 +396,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
       ayBaslangic.setDate(1);
       ayBaslangic.setHours(0, 0, 0, 0);
       const maliyetSonuc = await SaglikKaydi.aggregate([
-        { $match: { userId: new mongoose.Types.ObjectId(userId), tarih: { $gte: ayBaslangic }, maliyet: { $gt: 0 } } },
+        { $match: { userId: uid, tarih: { $gte: ayBaslangic }, maliyet: { $gt: 0 } } },
         { $group: { _id: null, toplam: { $sum: '$maliyet' } } }
       ]);
       aylikMaliyet = maliyetSonuc.length > 0 ? maliyetSonuc[0].toplam : 0;
@@ -409,7 +409,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
 
       // Gecikmiş aşılar
       gecikmiAsiler = await AsiTakvimi.find({
-        userId,
+        userId: uid,
         sonrakiTarih: { $lt: new Date() },
         durum: { $ne: 'yapildi' }
       }).sort({ sonrakiTarih: 1 }).limit(5).lean();
