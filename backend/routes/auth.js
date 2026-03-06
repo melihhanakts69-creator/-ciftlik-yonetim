@@ -126,10 +126,30 @@ router.post('/login', loginValidation, async (req, res) => {
     const token = generateAccessToken(user._id);
     const refreshToken = await RefreshToken.createToken(user._id);
 
+    let finalIsletmeAdi = user.isletmeAdi;
+
+    // Eğer alt hesapsa (sütçü vb.) asıl işletmenin adını çekelim ki Dashboard veya Ayarlar patlamasın
+    if (user.parentUserId) {
+      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi');
+      if (parentUser && parentUser.isletmeAdi) {
+        finalIsletmeAdi = parentUser.isletmeAdi;
+      }
+    }
+
     res.json({
       message: 'Giriş başarılı!',
       token, refreshToken,
-      user: { id: user._id, isim: user.isim, email: user.email, rol: user.rol, isletmeAdi: user.isletmeAdi, firmaAdi: user.firmaAdi, klinikAdi: user.klinikAdi, onaylandi: user.onaylandi }
+      user: {
+        id: user._id,
+        isim: user.isim,
+        email: user.email,
+        rol: user.rol,
+        isletmeAdi: finalIsletmeAdi,
+        firmaAdi: user.firmaAdi,
+        klinikAdi: user.klinikAdi,
+        onaylandi: user.onaylandi,
+        parentUserId: user.parentUserId || null
+      }
     });
   } catch (error) {
     console.error('Login Hatası:', error);
@@ -192,7 +212,19 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
     const user = await User.findById(req.originalUserId || req.userId).select('-sifre');
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
-    res.json({ user });
+
+    // Eğer alt hesapsa asıl üyenin işletme adını aktar
+    let finalIsletmeAdi = user.isletmeAdi;
+    if (user.parentUserId) {
+      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi');
+      if (parentUser && parentUser.isletmeAdi) {
+        finalIsletmeAdi = parentUser.isletmeAdi;
+      }
+    }
+
+    const userData = { ...user.toObject(), isletmeAdi: finalIsletmeAdi };
+
+    res.json({ user: userData });
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
   }

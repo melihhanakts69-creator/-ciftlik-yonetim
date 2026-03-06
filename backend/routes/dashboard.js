@@ -112,7 +112,7 @@ router.get('/stats', auth, async (req, res) => {
       bugunSut: bugunSut.length > 0 ? bugunSut[0].toplam : 0,
       yaklaşanDogum: yaklaşanDogumSayisi,
       okunmayanBildirim,
-      trendler: await calculateTrends(userId)
+      trendler: await calculateTrends(uid)
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -570,7 +570,7 @@ async function otomatikGorevleriKontrolEt(userId) {
 }
 
 // YARDIMCI: Trend Hesaplama (Son 30 gün vs Önceki 30 gün)
-async function calculateTrends(userId) {
+async function calculateTrends(uid) {
   try {
     const today = new Date();
     const last30Start = new Date(today);
@@ -585,7 +585,7 @@ async function calculateTrends(userId) {
     const result = await SutKaydi.aggregate([
       {
         $match: {
-          userId: new mongoose.Types.ObjectId(userId),
+          userId: uid,
           tarih: { $gte: format(prev30Start) }
         }
       },
