@@ -116,7 +116,7 @@ router.get('/stats', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
-    res.status(500).json({ message: 'Dashboard istatistikleri alınamadı' });
+    res.status(500).json({ message: 'Dashboard istatistikleri alınamadı', detail: error.message });
   }
 });
 
@@ -152,7 +152,7 @@ router.get('/performans/sut', auth, async (req, res) => {
     res.json(sutVerileri);
   } catch (error) {
     console.error('Süt performans error:', error);
-    res.status(500).json({ message: 'Süt performansı alınamadı' });
+    res.status(500).json({ message: 'Süt performansı alınamadı', detail: error.message });
   }
 });
 
@@ -190,7 +190,7 @@ router.get('/finansal', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Finansal özet error:', error);
-    res.status(500).json({ message: 'Finansal özet alınamadı' });
+    res.status(500).json({ message: 'Finansal özet alınamadı', detail: error.message });
   }
 });
 
@@ -218,7 +218,7 @@ router.get('/yapilacaklar', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Yapılacaklar error:', error);
-    res.status(500).json({ message: 'Yapılacaklar alınamadı' });
+    res.status(500).json({ message: 'Yapılacaklar alınamadı', detail: error.message });
   }
 });
 
@@ -358,7 +358,7 @@ router.get('/aktiviteler', auth, async (req, res) => {
     res.json(sonAktiviteler);
   } catch (error) {
     console.error('Aktiviteler error:', error);
-    res.status(500).json({ message: 'Aktiviteler alınamadı' });
+    res.status(500).json({ message: 'Aktiviteler alınamadı', detail: error.message });
   }
 });
 
@@ -430,7 +430,7 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Sağlık uyarıları error:', error);
-    res.status(500).json({ message: 'Sağlık uyarıları alınamadı' });
+    res.status(500).json({ message: 'Sağlık uyarıları alınamadı', detail: error.message });
   }
 });
 

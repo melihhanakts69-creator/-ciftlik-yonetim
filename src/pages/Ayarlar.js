@@ -212,7 +212,7 @@ export default function Ayarlar() {
             const curr = JSON.parse(localStorage.getItem('user') || '{}');
             localStorage.setItem('user', JSON.stringify({ ...curr, ...res.data.user }));
             setMsg('✅ Profil güncellendi!'); setMsgErr(false);
-        } catch (e) { setMsg(e.response?.data?.message || '❌ Güncellenemedi!'); setMsgErr(true); }
+        } catch (e) { setMsg(e.response?.data?.detail || e.response?.data?.message || '❌ Güncellenemedi!'); setMsgErr(true); }
         finally { setLoading(false); }
     };
 
@@ -223,7 +223,7 @@ export default function Ayarlar() {
             await api.updateProfile({ mevcutSifre: pForm.mevcutSifre, yeniSifre: pForm.yeniSifre });
             setPMsg('✅ Şifre değiştirildi!'); setPMsgErr(false);
             setPForm({ mevcutSifre: '', yeniSifre: '', yeniSifreTekrar: '' });
-        } catch (e) { setPMsg(e.response?.data?.message || '❌ Şifre değiştirilemedi!'); setPMsgErr(true); }
+        } catch (e) { setPMsg(e.response?.data?.detail || e.response?.data?.message || '❌ Şifre değiştirilemedi!'); setPMsgErr(true); }
         finally { setPLoading(false); }
     };
 

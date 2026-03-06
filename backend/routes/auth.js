@@ -245,7 +245,8 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası' });
+    console.error('Auth /update error:', error);
+    res.status(500).json({ message: 'Sunucu hatası', detail: error.message });
   }
 });
 

@@ -339,7 +339,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
-      const fetchApi = (url) => fetch(url, { headers }).then(r => r.ok ? r.json() : Promise.reject(r.status));
+      const fetchApi = (url) => fetch(url, { headers }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)));
 
       const results = await Promise.allSettled([
         fetchApi(`${API_URL}/dashboard/stats`),
@@ -358,9 +358,17 @@ const Dashboard = () => {
         aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value) ? results[3].value : [],
         topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].value) ? results[4].value : []
       });
+
+      // Hata olanistekcikleri logla
+      results.forEach((res, index) => {
+        if (res.status === 'rejected') {
+          console.error(`Dashboard Fetch Error [Index ${index}]:`, res.reason);
+        }
+      });
+
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error('Catched Error:', err);
+      setError(err.message || err.detail || String(err));
     } finally {
       setLoading(false);
     }
