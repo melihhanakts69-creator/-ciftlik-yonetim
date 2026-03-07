@@ -75,6 +75,39 @@ function App() {
     );
   }
 
+  // --- ROL BAZLI BAĞIMSIZ DASHBOARD KONTROLLERİ ---
+  if (kullanici?.rol === 'veteriner') {
+    return (
+      <>
+        <ToastContainer
+          position="top-right" autoClose={3000} hideProgressBar={false}
+          newestOnTop closeOnClick rtl={false} pauseOnFocusLoss
+          draggable pauseOnHover theme="colored"
+        />
+        <Routes>
+          <Route path="/" element={<VeterinerDashboard kullanici={kullanici} onLogout={handleLogout} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
+  if (kullanici?.rol === 'sutcu' || kullanici?.rol === 'toplayici') {
+    return (
+      <>
+        <ToastContainer
+          position="top-right" autoClose={3000} hideProgressBar={false}
+          newestOnTop closeOnClick rtl={false} pauseOnFocusLoss
+          draggable pauseOnHover theme="colored"
+        />
+        <Routes>
+          <Route path="/" element={<SutcuDashboard kullanici={kullanici} onLogout={handleLogout} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </>
+    );
+  }
+  // ----------------------------------------------
 
   return (
     <>

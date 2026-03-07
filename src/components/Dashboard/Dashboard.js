@@ -315,7 +315,7 @@ const LiveDot = styled.span`
 
 
 
-const Dashboard = () => {
+const Dashboard = ({ kullanici }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -427,9 +427,11 @@ const Dashboard = () => {
             <ActionButton className="accent" onClick={() => navigate('/sut-kaydi')}>
               <FaPlus /> <span>Süt Ekle</span>
             </ActionButton>
-            <ActionButton onClick={() => navigate('/finansal')}>
-              <FaMoneyBillWave /> <span>Gider Ekle</span>
-            </ActionButton>
+            {kullanici?.rol !== 'isci' && (
+              <ActionButton onClick={() => navigate('/finansal')}>
+                <FaMoneyBillWave /> <span>Gider Ekle</span>
+              </ActionButton>
+            )}
             <ActionButton onClick={() => navigate('/saglik-merkezi')}>
               <FaHeartbeat /> <span>Sağlık</span>
             </ActionButton>

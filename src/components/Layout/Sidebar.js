@@ -237,7 +237,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/stok-yonetimi', name: 'Stok Yönetimi', icon: <FaWarehouse /> },
       { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
-      { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
+      ...(role !== 'isci' ? [{ path: '/finansal', name: 'Finansal', icon: <FaWallet /> }] : []),
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
       { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
