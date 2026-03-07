@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
-
-const API = process.env.REACT_APP_API_URL || 'https://ciftlik-yonetim.onrender.com';
+import * as api from '../services/api';
 
 const PageContainer = styled.div`
   animation: fadeIn 0.4s ease;
@@ -89,21 +87,17 @@ export default function MusteriDetay() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/api/veteriner/musteri/${id}/hayvanlar`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      // Tüm kategorileri düzleştir (İnek, Düve vb)
+      const res = await api.getMusteriHayvanlar(id);
       const allAnimals = [
-        ...res.data.inekler,
-        ...res.data.buzagilar,
-        ...res.data.duveler,
-        ...res.data.tosunlar
+        ...(res.data.inekler || []),
+        ...(res.data.buzagilar || []),
+        ...(res.data.duveler || []),
+        ...(res.data.tosunlar || [])
       ];
       setHayvanlar(allAnimals);
     } catch (e) {
       toast.error('Çiftlik verileri yüklenirken bir sorun oluştu.');
-      if(e.response?.status === 403) navigate('/hastalar');
+      if (e.response?.status === 403) navigate('/hastalar');
     } finally {
       setLoading(false);
     }
@@ -123,23 +117,19 @@ export default function MusteriDetay() {
   const handleKayıtSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      
       const payload = {
         hayvanTipi: secilenHayvan.tip,
         hayvanIsim: secilenHayvan.isim || '',
         hayvanKupeNo: secilenHayvan.kupeNo || '',
-        tip: islemTipi === 'tohumlama' ? 'muayene' : 'hastalik', // Backend'deki validasyona uygun
+        tip: islemTipi === 'tohumlama' ? 'muayene' : 'hastalik',
         tani: islemTipi === 'tohumlama' ? 'Suni Tohumlama' : formData.tani,
-        tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi, // Tohum cinsini ilacAd alanından da alabiliriz
+        tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
         ilaclar: formData.ilacAd ? [{ ilacAdi: formData.ilacAd }] : [],
         notlar: formData.notlar
       };
 
-      await axios.post(`${API}/api/veteriner/musteri/${id}/hayvan/${secilenHayvan._id}/saglik`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      await api.postMusteriHayvanSaglik(id, secilenHayvan._id, payload);
+
       toast.success('Kayıt başarıyla oluşturuldu ve çiftçiye bildirim gönderildi!');
       setModalOpen(false);
     } catch (err) {

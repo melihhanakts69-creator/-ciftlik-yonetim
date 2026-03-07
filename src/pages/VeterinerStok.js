@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaPlus, FaPills, FaTrash, FaEdit } from 'react-icons/fa';
 import { GiFertilizerBag, GiSpotedFlower } from 'react-icons/gi';
-
-const API = process.env.REACT_APP_API_URL || 'https://ciftlik-yonetim.onrender.com';
+import * as api from '../services/api';
 
 const PageContainer = styled.div`
   animation: fadeIn 0.4s ease;
@@ -87,12 +85,9 @@ export default function VeterinerStok() {
 
   const fetchStok = async () => {
     try {
-      const token = localStorage.getItem('token');
-      // Mevcut stok API'si role göre çalışır (Zaten userId ile bağlıdır)
-      const res = await axios.get(`${API}/api/stok`, { headers: { Authorization: `Bearer ${token}` } });
-      const items = Array.isArray(res.data) ? res.data : (res.data.data || []);
-      // Yemi gizle, sadece tıbbi ekipman, ilaç, aşı, tohum göster (Eğer çiftçi değilse)
-      const vetItems = items.filter(s => s.kategori !== 'Yem');
+      const res = await api.getStoklar();
+      const items = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const vetItems = (items || []).filter(s => s.kategori !== 'Yem');
       setStoklar(vetItems);
     } catch (e) {
       toast.error('Klinik stok bilgileri çekilemedi.');
@@ -106,10 +101,11 @@ export default function VeterinerStok() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API}/api/stok`, {
-        ...form, miktar: Number(form.miktar), kritikSeviye: Number(form.kritikSeviye)
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      await api.createStok({
+        ...form,
+        miktar: Number(form.miktar),
+        kritikSeviye: Number(form.kritikSeviye)
+      });
       toast.success('Stok kaydedildi.');
       setModalOpen(false);
       fetchStok();

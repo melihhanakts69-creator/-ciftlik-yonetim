@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
-
-const API = process.env.REACT_APP_API_URL || 'https://ciftlik-yonetim.onrender.com';
+import * as api from '../services/api';
 
 const PageContainer = styled.div`
   animation: fadeIn 0.4s ease;
@@ -71,10 +69,7 @@ export default function Hastalar() {
 
   const fetchMusteriler = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/api/veteriner/musteriler`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.getVeterinerMusteriler();
       setMusteriler(res.data);
     } catch (e) {
       toast.error('Müşteriler alınamadı.');
@@ -89,15 +84,12 @@ export default function Hastalar() {
 
   const handleMusteriEkle = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
 
     if (eklemeModu === 'kod') {
       if (!ciftlikKodu.trim()) return toast.warning('Lütfen çiftlik kodunu girin.');
       setAdding(true);
       try {
-        const res = await axios.post(`${API}/api/veteriner/musteri-ekle-kod`, { ciftlikKodu: ciftlikKodu.trim() }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.veterinerMusteriEkleKod(ciftlikKodu.trim());
         toast.success(res.data.message || 'Çiftlik başarıyla kliniğinize bağlandı!');
         setCiftlikKodu('');
         fetchMusteriler();
@@ -113,9 +105,7 @@ export default function Hastalar() {
     if (ciftciId.length < 20) return toast.warning('Geçersiz bir ID numarası gibi görünüyor.');
     setAdding(true);
     try {
-      const res = await axios.post(`${API}/api/veteriner/musteri-ekle`, { ciftciId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.veterinerMusteriEkle(ciftciId);
       toast.success(res.data.message || 'Çiftlik başarıyla kliniğinize bağlandı!');
       setCiftciId('');
       fetchMusteriler();

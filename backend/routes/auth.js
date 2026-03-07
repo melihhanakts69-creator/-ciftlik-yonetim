@@ -268,18 +268,27 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
     // Eğer alt hesapsa asıl üyenin işletme adını aktar
     let finalIsletmeAdi = user.isletmeAdi;
     let ciftlikKodu = null;
+    const tenantIdToCheck = user.parentUserId
+      ? (await User.findById(user.parentUserId).select('tenantId'))?.tenantId
+      : user.tenantId;
+
+    if (tenantIdToCheck) {
+      const tenant = await Tenant.findById(tenantIdToCheck).populate('ownerUser', 'rol').select('ciftlikKodu ownerUser');
+      if (tenant) {
+        if (tenant.ciftlikKodu) {
+          ciftlikKodu = tenant.ciftlikKodu;
+        } else if (tenant.ownerUser && tenant.ownerUser.rol === 'ciftci') {
+          tenant.ciftlikKodu = await Tenant.generateCiftlikKodu();
+          await tenant.save();
+          ciftlikKodu = tenant.ciftlikKodu;
+        }
+      }
+    }
     if (user.parentUserId) {
-      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi tenantId');
+      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi');
       if (parentUser && parentUser.isletmeAdi) {
         finalIsletmeAdi = parentUser.isletmeAdi;
       }
-      if (parentUser && parentUser.tenantId) {
-        const tenant = await Tenant.findById(parentUser.tenantId).select('ciftlikKodu');
-        if (tenant && tenant.ciftlikKodu) ciftlikKodu = tenant.ciftlikKodu;
-      }
-    } else if (user.tenantId) {
-      const tenant = await Tenant.findById(user.tenantId).select('ciftlikKodu');
-      if (tenant && tenant.ciftlikKodu) ciftlikKodu = tenant.ciftlikKodu;
     }
 
     const userData = { ...user.toObject(), isletmeAdi: finalIsletmeAdi, ciftlikKodu };

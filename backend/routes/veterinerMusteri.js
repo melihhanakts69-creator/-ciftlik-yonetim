@@ -20,7 +20,7 @@ router.use(checkRole(['veteriner']));
 router.post('/musteri-ekle', async (req, res) => {
     try {
         const { ciftciId } = req.body;
-        const vetId = req.user.id;
+        const vetId = req.originalUserId;
 
         if (!mongoose.Types.ObjectId.isValid(ciftciId)) {
             return res.status(400).json({ message: 'Geçersiz Çiftçi ID formatı.' });

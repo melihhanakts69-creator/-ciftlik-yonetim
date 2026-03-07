@@ -206,4 +206,12 @@ export const toplayiciCiftlikEkle = (ciftlikKodu) => api.post('/toplayici/ciftli
 export const getToplayiciCiftlikler = () => api.get('/toplayici/ciftlikler');
 export const toplayiciSutToplama = (data) => api.post('/toplayici/sut-toplama', data);
 
+// VETERINER (merkezi api ile doğru backend adresi kullanılır)
+export const getVeterinerMusteriler = () => api.get('/veteriner/musteriler');
+export const veterinerMusteriEkleKod = (ciftlikKodu) => api.post('/veteriner/musteri-ekle-kod', { ciftlikKodu });
+export const veterinerMusteriEkle = (ciftciId) => api.post('/veteriner/musteri-ekle', { ciftciId });
+export const getMusteriHayvanlar = (ciftciId) => api.get(`/veteriner/musteri/${ciftciId}/hayvanlar`);
+export const postMusteriHayvanSaglik = (ciftciId, hayvanId, payload) =>
+  api.post(`/veteriner/musteri/${ciftciId}/hayvan/${hayvanId}/saglik`, payload);
+
 export default api;
