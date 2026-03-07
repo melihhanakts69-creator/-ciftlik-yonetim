@@ -96,7 +96,30 @@ router.post('/musteri-ekle-kod', async (req, res) => {
     }
 });
 
-// 2. Kayıtlı Çiftlikleri / Müşterileri Getir
+// 2. Son eklenen sağlık kayıtları (müşteri çiftliklerindeki)
+router.get('/son-saglik-kayitlari', async (req, res) => {
+    try {
+        const veteriner = await User.findById(req.originalUserId).select('musteriler');
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) return res.json([]);
+
+        const ciftciler = await User.find({ _id: { $in: musteriIds } }).select('tenantId isim isletmeAdi');
+        const tenantIds = ciftciler.map(c => c.tenantId).filter(Boolean);
+        if (tenantIds.length === 0) return res.json([]);
+
+        const kayitlar = await SaglikKaydi.find({ tenantId: { $in: tenantIds } })
+            .populate('userId', 'isim isletmeAdi')
+            .sort({ createdAt: -1 })
+            .limit(12)
+            .lean();
+        res.json(kayitlar);
+    } catch (error) {
+        console.error('Son saglik kayitlari hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// 3. Kayıtlı Çiftlikleri / Müşterileri Getir
 router.get('/musteriler', async (req, res) => {
     try {
         const veteriner = await User.findById(req.originalUserId).populate('musteriler', 'isim email isletmeAdi sehir telefon');
@@ -106,7 +129,7 @@ router.get('/musteriler', async (req, res) => {
     }
 });
 
-// 3. Bir Müşteriye Ait Tüm Hayvanları Getir
+// 4. Bir Müşteriye Ait Tüm Hayvanları Getir
 router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     try {
         const { ciftciId } = req.params;
@@ -135,7 +158,7 @@ router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     }
 });
 
-// 4. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
+// 5. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
 router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     try {
         const { ciftciId, hayvanId } = req.params;

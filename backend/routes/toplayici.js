@@ -50,7 +50,55 @@ router.post('/ciftlik-ekle', async (req, res) => {
   }
 });
 
-// 2. Toplayıcının eklediği çiftlikleri listele (ciftlikKodu için Tenant bilgisi eklenir)
+// 2. Bugün / bu hafta özet (toplayıcının yazdığı süt kayıtları)
+router.get('/ozet', async (req, res) => {
+  try {
+    const toplayiciId = req.originalUserId;
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - 7);
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+
+    const [bugunKayitlar, haftalikKayitlar] = await Promise.all([
+      SutKaydi.find({ toplayiciUserId: toplayiciId, tarih: today }),
+      SutKaydi.find({
+        toplayiciUserId: toplayiciId,
+        tarih: { $gte: weekStartStr, $lte: today }
+      })
+    ]);
+
+    const bugunLitre = bugunKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+    const bugunCiftlikSayisi = new Set(bugunKayitlar.map(k => k.tenantId?.toString()).filter(Boolean)).size;
+    const haftalikLitre = haftalikKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+
+    res.json({
+      bugunToplamLitre: Math.round(bugunLitre * 10) / 10,
+      bugunCiftlikSayisi,
+      buHaftaToplamLitre: Math.round(haftalikLitre * 10) / 10
+    });
+  } catch (error) {
+    console.error('Toplayici ozet hatasi:', error);
+    res.status(500).json({ message: 'Sunucu hatası.' });
+  }
+});
+
+// 3. Son toplamalar (toplayıcının yazdığı süt kayıtları, en yeniler)
+router.get('/son-toplamalar', async (req, res) => {
+  try {
+    const list = await SutKaydi.find({ toplayiciUserId: req.originalUserId })
+      .populate('tenantId', 'name ciftlikKodu')
+      .sort({ createdAt: -1 })
+      .limit(15)
+      .lean();
+    res.json(list);
+  } catch (error) {
+    console.error('Son toplamalar hatasi:', error);
+    res.status(500).json({ message: 'Sunucu hatası.' });
+  }
+});
+
+// 4. Toplayıcının eklediği çiftlikleri listele (ciftlikKodu için Tenant bilgisi eklenir)
 router.get('/ciftlikler', async (req, res) => {
   try {
     const toplayici = await User.findById(req.originalUserId)
@@ -71,7 +119,7 @@ router.get('/ciftlikler', async (req, res) => {
   }
 });
 
-// 3. Süt toplama kaydı – çiftliğin verisine yazılır
+// 5. Süt toplama kaydı – çiftliğin verisine yazılır
 router.post('/sut-toplama', async (req, res) => {
   try {
     const { ciftlikKodu, tarih, litre, sagim } = req.body;
@@ -105,6 +153,7 @@ router.post('/sut-toplama', async (req, res) => {
     const kayit = new SutKaydi({
       userId: ciftci._id,
       tenantId: tenant._id,
+      toplayiciUserId: toplayiciId,
       inekId: 'toplayici-giris',
       inekIsim: 'Süt toplayıcı toplama',
       tarih: tarihStr,

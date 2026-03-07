@@ -204,10 +204,13 @@ export const getAiChat = (id) => api.get(`/ai/history/${id}`);
 // SÜT TOPLAYICI (çiftlik kodu ile bağlanan sektör)
 export const toplayiciCiftlikEkle = (ciftlikKodu) => api.post('/toplayici/ciftlik-ekle', { ciftlikKodu });
 export const getToplayiciCiftlikler = () => api.get('/toplayici/ciftlikler');
+export const getToplayiciOzet = () => api.get('/toplayici/ozet');
+export const getToplayiciSonToplamalar = () => api.get('/toplayici/son-toplamalar');
 export const toplayiciSutToplama = (data) => api.post('/toplayici/sut-toplama', data);
 
 // VETERINER (merkezi api ile doğru backend adresi kullanılır)
 export const getVeterinerMusteriler = () => api.get('/veteriner/musteriler');
+export const getVeterinerSonSaglikKayitlari = () => api.get('/veteriner/son-saglik-kayitlari');
 export const veterinerMusteriEkleKod = (ciftlikKodu) => api.post('/veteriner/musteri-ekle-kod', { ciftlikKodu });
 export const veterinerMusteriEkle = (ciftciId) => api.post('/veteriner/musteri-ekle', { ciftciId });
 export const getMusteriHayvanlar = (ciftciId) => api.get(`/veteriner/musteri/${ciftciId}/hayvanlar`);

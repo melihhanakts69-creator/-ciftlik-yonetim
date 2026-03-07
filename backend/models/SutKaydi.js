@@ -36,6 +36,12 @@ const sutKaydiSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  toplayiciUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+    index: true
+  },
   topluGirisId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TopluSutGirisi',
