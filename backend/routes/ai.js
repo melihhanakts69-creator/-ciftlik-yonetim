@@ -9,116 +9,81 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 
 // ─── API KEY ROTATION SISTEMI ─────────────────────────────────────────────────
 // Bu sistem birden fazla API anahtarını destekler. Biri bitince diğerine atlar.
+// ─── API KEY YAPILANDIRMASI ──────────────────────────────────────────────────
 const _kp = ['AIzaS', 'yAy6x', 'd8ztC', 'usdvh', 'dWkho', '14dL5', 'IlDTJ', 'jG9c'];
 const defaultKey = _kp.join('');
 
-// Env'de "GEMINI_API_KEYS" virgülle ayrılmış anahtarlar dizisi olabilir.
-const rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || defaultKey;
-const API_KEYS = rawKeys.split(',').map(k => k.trim()).filter(k => k.length > 0);
+const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || defaultKey)
+    .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
-// İlk başta rastgele bir anahtardan başla ki yük dağılsın
-let currentKeyIndex = API_KEYS.length > 0 ? Math.floor(Math.random() * API_KEYS.length) : 0;
-console.log(`🤖 AI Sistemi Başlatıldı. Yüklü API Key Sayısı: ${API_KEYS.length}`);
+const CLAUDE_KEYS = (process.env.CLAUDE_API_KEYS || process.env.CLAUDE_API_KEY || '')
+    .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
-// ─── IN-MEMORY CACHE ─────────────────────────────────────────────────────────
-const responseCache = new Map();
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 dakika
+let currentGeminiIndex = 0;
+let currentClaudeIndex = 0;
 
-function getCacheKey(type, text) {
-    const normalized = text.toLowerCase().trim().replace(/\s+/g, ' ');
-    return type + ':' + crypto.createHash('md5').update(normalized).digest('hex');
-}
+console.log(`🤖 AI Sistemi Başlatıldı. Gemini: ${GEMINI_KEYS.length}, Claude: ${CLAUDE_KEYS.length}`);
 
-function getFromCache(key) {
-    const entry = responseCache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-        responseCache.delete(key);
-        return null;
-    }
-    return entry.value;
-}
+// ─── API ÇAĞRI FONKSİYONLARI ──────────────────────────────────────────────────
 
-function setCache(key, value) {
-    if (responseCache.size >= 500) {
-        const firstKey = responseCache.keys().next().value;
-        responseCache.delete(firstKey);
-    }
-    responseCache.set(key, { value, timestamp: Date.now() });
-}
-
-// ─── PER-USER RATE LIMITING ───────────────────────────────────────────────────
-const userDailyUsage = new Map();
-const MAX_DAILY_REQUESTS = 30; // Kullanıcı başına
-
-function checkUserLimit(userId) {
-    const today = new Date().toDateString();
-    const key = userId + ':' + today;
-
-    const usage = userDailyUsage.get(key) || { count: 0, resetAt: today };
-    if (usage.count >= MAX_DAILY_REQUESTS) {
-        return { allowed: false, remaining: 0, limit: MAX_DAILY_REQUESTS };
-    }
-    usage.count++;
-    userDailyUsage.set(key, usage);
-
-    if (userDailyUsage.size > 10000) {
-        for (const [k] of userDailyUsage) {
-            if (!k.endsWith(today)) userDailyUsage.delete(k);
-        }
-    }
-
-    return { allowed: true, remaining: MAX_DAILY_REQUESTS - usage.count, limit: MAX_DAILY_REQUESTS };
-}
-
-// ─── REQUEST DEDUPLICATION ────────────────────────────────────────────────────
-const pendingRequests = new Map();
-
-// ─── SAĞLIK KONTROLÜ ─────────────────────────────────────────────────────────
-router.get('/test', (req, res) => {
-    res.json({
-        status: 'ok',
-        serviceName: process.env.RENDER_SERVICE_NAME || 'bilinmiyor',
-        geminiKeysCount: API_KEYS.length,
-        currentKeyIndex: currentKeyIndex,
-        model: GEMINI_MODEL,
-        cacheSize: responseCache.size,
-        activeUsers: userDailyUsage.size,
-        dailyLimit: MAX_DAILY_REQUESTS
+async function callClaude(systemPrompt, userMessage, apiKey, history = []) {
+    const body = JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [
+            ...history.map(m => ({ role: m.role === 'model' ? 'assistant' : 'user', content: m.text })),
+            { role: "user", content: userMessage }
+        ]
     });
-});
-
-// ─── GEMİNİ CANLI TEST ───────────────────────────────────────────────────────
-router.get('/ping', async (req, res) => {
-    if (API_KEYS.length === 0) return res.status(500).json({ message: 'Hiç API key tanımlanmamış' });
-    try {
-        const yanit = await callGeminiWithRetry('Kısa yanıt ver.', 'Test. "Sistem Aktif" de.');
-        res.json({ status: 'ok', yanit, model: GEMINI_MODEL, cached: false, activeKeyIndex: currentKeyIndex });
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message });
-    }
-});
-
-// ─── GEMİNİ ÇAĞRI FONKSİYONLARI ──────────────────────────────────────────────
-
-// Tek bir key ile ve geçmiş mesajlarla (history) deneme yapar
-async function callGeminiSingle(systemPrompt, userMessage, apiKey, history = []) {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
 
     return new Promise((resolve, reject) => {
-        // Geçmişi Gemini formatına uygun hale getiriyoruz
+        const options = {
+            hostname: 'api.anthropic.com',
+            path: '/v1/messages',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'Content-Length': Buffer.byteLength(body)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.error) {
+                        if (res.statusCode === 429) reject(new Error('KOTA_BITTI: Claude limit doldu'));
+                        else reject(new Error(parsed.error.message || 'Claude API Hatası'));
+                        return;
+                    }
+                    resolve(parsed.content[0].text);
+                } catch (e) { reject(new Error('Claude yanıtı parse edilemedi')); }
+            });
+        });
+        req.on('error', reject);
+        req.write(body);
+        req.end();
+    });
+}
+
+async function callGeminiSingle(systemPrompt, userMessage, apiKey, history = []) {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+    return new Promise((resolve, reject) => {
         const contents = history.map(msg => ({
             role: msg.role === 'model' ? 'model' : 'user',
             parts: [{ text: msg.text }]
         }));
-
-        // Yeni mesajı ekle
         contents.push({ role: 'user', parts: [{ text: userMessage }] });
 
         const body = JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: contents,
-            generationConfig: { temperature: 0.7 } // Limit tamamen kaldırıldı, modelin kendi limitleri geçerli
+            generationConfig: { temperature: 0.7 }
         });
 
         const options = {
@@ -136,62 +101,55 @@ async function callGeminiSingle(systemPrompt, userMessage, apiKey, history = [])
                 try {
                     const parsed = JSON.parse(data);
                     if (parsed.error) {
-                        const errMsg = parsed.error.message || 'Gemini API hatası';
-                        // 429 Too Many Requests veya RESOURCE_EXHAUSTED = Kota/Limit doldu
                         if (parsed.error.status === 'RESOURCE_EXHAUSTED' || parsed.error.code === 429) {
-                            reject(new Error('KOTA_BITTI: ' + errMsg));
+                            reject(new Error('KOTA_BITTI: Gemini limit doldu'));
                         } else {
-                            reject(new Error(errMsg));
+                            reject(new Error(parsed.error.message || 'Gemini API hatası'));
                         }
                         return;
                     }
                     const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (!text) { reject(new Error('Gemini boş yanıt döndürdü')); return; }
                     resolve(text);
-                } catch (e) {
-                    reject(new Error('Gemini yanıtı parse edilemedi'));
-                }
+                } catch (e) { reject(new Error('Gemini yanıtı parse edilemedi')); }
             });
         });
-
         req.on('error', reject);
-        req.setTimeout(20000, () => {
-            req.destroy();
-            reject(new Error('KOTA_BITTI: İstek zaman aşımına uğradı, rate limit drop ihtimali'));
-        });
+        req.setTimeout(15000, () => { req.destroy(); reject(new Error('KOTA_BITTI: Zaman aşımı')); });
         req.write(body);
         req.end();
     });
 }
 
-// Tüm keyleri sırayla deneyen asıl fonksiyon (geçmiş desteği ile)
-async function callGeminiWithRetry(systemPrompt, userMessage, history = []) {
-    let attempts = 0;
-    const maxAttempts = API_KEYS.length; // En fazla key sayısı kadar deneme yap
-
-    while (attempts < maxAttempts) {
-        const apiKey = API_KEYS[currentKeyIndex];
+async function callAiWithRetry(systemPrompt, userMessage, history = []) {
+    // 1. ÖNCE CLAUDE DENE (Kullanıcı Claude istiyor)
+    for (let i = 0; i < CLAUDE_KEYS.length; i++) {
+        const idx = (currentClaudeIndex + i) % CLAUDE_KEYS.length;
         try {
-            // Bir key ile bağlanmayı dene
-            const yanit = await callGeminiSingle(systemPrompt, userMessage, apiKey, history);
-            return yanit; // Başarılıysa fonksiyonu sonlandır ve yanıtı dön!
+            const res = await callClaude(systemPrompt, userMessage, CLAUDE_KEYS[idx], history);
+            currentClaudeIndex = idx;
+            return res;
         } catch (err) {
-            console.warn(`[AI] Key indeks ${currentKeyIndex} hata verdi: ${err.message}`);
-
-            // Eğer kota bittiyse veya timeout olduysa sıradaki yedek key'e geç
-            if (err.message.startsWith('KOTA_BITTI')) {
-                currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-                console.log(`[AI] 🔄 Rotasyon: Yeni API Anahtarına geçildi -> Endeks: ${currentKeyIndex}`);
-                attempts++;
-            } else {
-                // Eğer hata prompttan veya başka bir bağlantı sorunundansa fırlat
-                throw err;
-            }
+            if (!err.message.startsWith('KOTA_BITTI')) throw err;
+            console.warn(`[AI] Claude Key ${idx} kota bitti.`);
         }
     }
 
-    // Bütün döngü bitti ve hala successful yanıt dönemedik
-    throw new Error('KOTA_BITTI: Tüm yedek API anahtarlarının kotası dolu! Sisteme yeni API Key eklenmeli.');
+    // 2. Claude bittiyse YEDEK OLARAK Gemini dene
+    console.log("[AI] Claude kotaları doldu, Gemini'ye (yedek) geçiliyor...");
+    for (let i = 0; i < GEMINI_KEYS.length; i++) {
+        const idx = (currentGeminiIndex + i) % GEMINI_KEYS.length;
+        try {
+            const res = await callGeminiSingle(systemPrompt, userMessage, GEMINI_KEYS[idx], history);
+            currentGeminiIndex = idx;
+            return res;
+        } catch (err) {
+            if (!err.message.startsWith('KOTA_BITTI')) throw err;
+            console.warn(`[AI] Gemini Key ${idx} kota bitti.`);
+        }
+    }
+
+    throw new Error('KOTA_BITTI: Mevcut tüm API anahtarlarının (Claude & Gemini) kotası doldu.');
 }
 
 // ─── ORTAK AI HANDLER (DİNAMİK GEÇMİŞ İLE EKLENDİ) ────────────────────────
@@ -232,11 +190,11 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
         }
     }
 
-    // Gerçek API Çağrısı Başlar (Rotasyonlu ve Geçmişli)
-    const geminiPromise = callGeminiWithRetry(systemPrompt, fullQuestion, chatHistory);
+    // Gerçek API Çağrısı Başlar (Claude Öncelikli)
+    const aiPromise = callAiWithRetry(systemPrompt, fullQuestion, chatHistory);
 
     try {
-        const yanit = await geminiPromise;
+        const yanit = await aiPromise;
 
         // --- Veritabanı Kayıt İşlemi ---
         if (userId !== 'anonim') {

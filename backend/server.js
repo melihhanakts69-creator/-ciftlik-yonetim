@@ -83,6 +83,7 @@ app.use('/api/yem-kutuphanesi', require('./routes/yemKutuphanesi')); // Yem Küt
 app.use('/api/admin', require('./routes/adminContent')); // Admin Panel
 app.use('/api/content', require('./routes/adminContent')); // Public Landing Content
 app.use('/api/ai', require('./routes/ai')); // 🤖 Gemini AI Danışman
+app.use('/api/veteriner', require('./routes/veterinerMusteri')); // Veteriner Modülü
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);

@@ -29,6 +29,9 @@ import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 import VeterinerDashboard from './pages/VeterinerDashboard';
 import SutcuDashboard from './pages/SutcuDashboard';
+import Hastalar from './pages/Hastalar';
+import MusteriDetay from './pages/MusteriDetay';
+import VeterinerStok from './pages/VeterinerStok';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -121,6 +124,12 @@ function App() {
           <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
           <Route path="/takvim" element={<Takvim />} />
           <Route path="/stok-yonetimi" element={<StokYonetimi />} />
+          
+          {/* Veteriner Özel Sayfaları */}
+          <Route path="/hastalar" element={<Hastalar />} />
+          <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
+          <Route path="/receteler" element={<VeterinerStok />} />
+
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
   uzmanlik: { type: String, trim: true },    // örn: "Büyükbaş Hayvanlar"
   klinikAdi: { type: String, trim: true },
   onaylandi: { type: Boolean, default: false }, // admin onayı
+  musteriler: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Veteriner'in takip ettiği çiftçiler
 
   // ── Süt Toplayıcı alanları ───────────────────────
   firmaAdi: { type: String, trim: true },

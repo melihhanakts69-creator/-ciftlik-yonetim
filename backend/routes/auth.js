@@ -120,6 +120,17 @@ router.post('/login', loginValidation, async (req, res) => {
 
     if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış.' });
 
+    // --- AUTO-FIX: Eski / Bozuk İşçi (Sütçü) Hesaplarını Kurtar ---
+    // Eğer giren kişi işçi ise ve patronu (parentUserId) atanmamışsa onu sistemdeki ilk çiftçiye bağla.
+    // Bu sayede eski kayıtlardaki "0 hayvan" ve "undefined isletmeAdi" hataları kökten çözülür.
+    if (user.rol === 'sutcu' && !user.parentUserId) {
+      const ilkCiftci = await User.findOne({ rol: 'ciftci' });
+      if (ilkCiftci) {
+        user.parentUserId = ilkCiftci._id;
+        user.isletmeAdi = ilkCiftci.isletmeAdi;
+      }
+    }
+
     user.sonGiris = new Date();
     await user.save();
 
