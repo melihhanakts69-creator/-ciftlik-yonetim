@@ -210,6 +210,7 @@ export const toplayiciSutToplama = (data) => api.post('/toplayici/sut-toplama', 
 
 // VETERINER (merkezi api ile doğru backend adresi kullanılır)
 export const getVeterinerMusteriler = () => api.get('/veteriner/musteriler');
+export const getVeterinerOzet = () => api.get('/veteriner/ozet');
 export const getVeterinerSonSaglikKayitlari = () => api.get('/veteriner/son-saglik-kayitlari');
 export const veterinerMusteriEkleKod = (ciftlikKodu) => api.post('/veteriner/musteri-ekle-kod', { ciftlikKodu });
 export const veterinerMusteriEkle = (ciftciId) => api.post('/veteriner/musteri-ekle', { ciftciId });

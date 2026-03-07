@@ -96,7 +96,47 @@ router.post('/musteri-ekle-kod', async (req, res) => {
     }
 });
 
-// 2. Son eklenen sağlık kayıtları (müşteri çiftliklerindeki)
+// 2. Dashboard özeti (çiftlik sayısı, toplam hayvan, bu ay kayıt, devam eden tedavi)
+router.get('/ozet', async (req, res) => {
+    try {
+        const veteriner = await User.findById(req.originalUserId).select('musteriler');
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) {
+            return res.json({ musteriSayisi: 0, toplamHayvan: 0, buAySaglikKaydi: 0, devamEdenTedavi: 0 });
+        }
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const buAyBaslangic = new Date();
+        buAyBaslangic.setDate(1);
+        buAyBaslangic.setHours(0, 0, 0, 0);
+
+        const [toplamInek, toplamBuzagi, toplamDuve, toplamTosun, buAyKayit, devamEden] = await Promise.all([
+            Inek.countDocuments({ userId: { $in: objIds } }),
+            Buzagi.countDocuments({ userId: { $in: objIds } }),
+            Duve.countDocuments({ userId: { $in: objIds } }),
+            Tosun.countDocuments({ userId: { $in: objIds } }),
+            SaglikKaydi.countDocuments({
+                userId: { $in: objIds },
+                createdAt: { $gte: buAyBaslangic }
+            }),
+            SaglikKaydi.countDocuments({
+                userId: { $in: objIds },
+                durum: 'devam_ediyor'
+            })
+        ]);
+        const toplamHayvan = toplamInek + toplamBuzagi + toplamDuve + toplamTosun;
+        res.json({
+            musteriSayisi: musteriIds.length,
+            toplamHayvan,
+            buAySaglikKaydi: buAyKayit,
+            devamEdenTedavi: devamEden
+        });
+    } catch (error) {
+        console.error('Veteriner ozet hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// 3. Son eklenen sağlık kayıtları (müşteri çiftliklerindeki)
 router.get('/son-saglik-kayitlari', async (req, res) => {
     try {
         const veteriner = await User.findById(req.originalUserId).select('musteriler');
@@ -119,7 +159,7 @@ router.get('/son-saglik-kayitlari', async (req, res) => {
     }
 });
 
-// 3. Kayıtlı Çiftlikleri / Müşterileri Getir
+// 4. Kayıtlı Çiftlikleri / Müşterileri Getir
 router.get('/musteriler', async (req, res) => {
     try {
         const veteriner = await User.findById(req.originalUserId).populate('musteriler', 'isim email isletmeAdi sehir telefon');
@@ -129,7 +169,7 @@ router.get('/musteriler', async (req, res) => {
     }
 });
 
-// 4. Bir Müşteriye Ait Tüm Hayvanları Getir
+// 5. Bir Müşteriye Ait Tüm Hayvanları Getir
 router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     try {
         const { ciftciId } = req.params;
@@ -158,7 +198,7 @@ router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     }
 });
 
-// 5. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
+// 6. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
 router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     try {
         const { ciftciId, hayvanId } = req.params;
