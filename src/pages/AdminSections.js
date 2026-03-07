@@ -5,7 +5,7 @@ import styled, { keyframes } from 'styled-components';
 const spin = keyframes`to { transform: rotate(360deg); }`;
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); }`;
 
-// ── Shared styled components ──────────────────────────────────────────────────
+// â”€â”€ Shared styled components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PageHeader = styled.div`
   margin-bottom: 24px; display: flex; align-items: center; gap: 14px;
   .emoji { font-size: 30px; }
@@ -152,9 +152,9 @@ function authAxios() {
     });
 }
 
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DASHBOARD SECTION
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 export function DashboardSection({ API, toast_ }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -178,7 +178,7 @@ export function DashboardSection({ API, toast_ }) {
     );
     if (error) return (
         <div>
-            <PageHeader><span className="emoji">📊</span><div><h1>Dashboard</h1></div></PageHeader>
+            <PageHeader><span className="emoji">ğŸ“Š</span><div><h1>Dashboard</h1></div></PageHeader>
             <ErrBox>
                 <strong>Veri alinamadi</strong>
                 {error}<br /><br />
@@ -195,7 +195,7 @@ export function DashboardSection({ API, toast_ }) {
 
     return (
         <>
-            <PageHeader><span className="emoji">📊</span><div><h1>Dashboard</h1><p>Genel istatistikler ve ozet</p></div></PageHeader>
+            <PageHeader><span className="emoji">ğŸ“Š</span><div><h1>Dashboard</h1><p>Genel istatistikler ve ozet</p></div></PageHeader>
             <StatGrid>
                 <StatCard $color="rgba(74,222,128,0.06)" $border="rgba(74,222,128,0.15)" $textColor="#4ade80">
                     <div className="val">{data.kullanici.toplam}</div>
@@ -205,7 +205,7 @@ export function DashboardSection({ API, toast_ }) {
                 <StatCard $color="rgba(59,130,246,0.06)" $border="rgba(59,130,246,0.15)" $textColor="#60a5fa">
                     <div className="val">{data.hayvan.toplam}</div>
                     <div className="lbl">Toplam Hayvan</div>
-                    <div className="sub">Inek · Duve · Buzagi · Tosun</div>
+                    <div className="sub">Inek Â· Duve Â· Buzagi Â· Tosun</div>
                 </StatCard>
                 <StatCard $color="rgba(168,85,247,0.06)" $border="rgba(168,85,247,0.15)" $textColor="#c084fc">
                     <div className="val">{data.kullanici.aktif}</div>
@@ -242,7 +242,7 @@ export function DashboardSection({ API, toast_ }) {
                     })}
                 </Card>
                 <Card style={{ marginBottom: 0 }}>
-                    <h3>Son 7 Gun — Yeni Kayitlar</h3>
+                    <h3>Son 7 Gun â€” Yeni Kayitlar</h3>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 100 }}>
                         {(data.gunlukKayitlar || []).map((g, i) => {
                             const max = Math.max(...(data.gunlukKayitlar || []).map(x => x.sayi), 1);
@@ -269,7 +269,7 @@ export function DashboardSection({ API, toast_ }) {
                     {(data.sonKullanicilar || []).map(u => (
                         <TRow key={u._id} $cols="1fr 1fr 1fr 80px">
                             <div className="td name">{u.isim}</div>
-                            <div className="td">{u.isletmeAdi || '—'}</div>
+                            <div className="td">{u.isletmeAdi || 'â€”'}</div>
                             <div className="td" style={{ fontSize: 11 }}>{u.email}</div>
                             <div className="td"><Badge $active={u.aktif !== false}>{u.aktif !== false ? 'Aktif' : 'Pasif'}</Badge></div>
                         </TRow>
@@ -283,9 +283,9 @@ export function DashboardSection({ API, toast_ }) {
     );
 }
 
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // USERS SECTION
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 export function UsersSection({ API, toast_ }) {
     const [users, setUsers] = useState([]);
     const [q, setQ] = useState('');
@@ -326,7 +326,7 @@ export function UsersSection({ API, toast_ }) {
 
     return (
         <>
-            <PageHeader><span className="emoji">👥</span><div><h1>Kullanicilar</h1><p>Toplam {toplam} kayitli kullanici</p></div></PageHeader>
+            <PageHeader><span className="emoji">ğŸ‘¥</span><div><h1>Kullanicilar</h1><p>Toplam {toplam} kayitli kullanici</p></div></PageHeader>
             <SearchBar>
                 <input placeholder="Isim, e-posta veya isletme ara..."
                     value={q} onChange={e => setQ(e.target.value)}
@@ -343,7 +343,7 @@ export function UsersSection({ API, toast_ }) {
                     {users.map(u => (
                         <TRow key={u._id} $cols="1.4fr 1fr 1.5fr 70px 80px 80px">
                             <div className="td name">{u.isim}</div>
-                            <div className="td">{u.isletmeAdi || '—'}</div>
+                            <div className="td">{u.isletmeAdi || 'â€”'}</div>
                             <div className="td" style={{ fontSize: 11 }}>{u.email}</div>
                             <div className="td"><Badge $active={u.aktif !== false}>{u.aktif !== false ? 'Aktif' : 'Pasif'}</Badge></div>
                             <div className="td" style={{ fontSize: 11 }}>
@@ -351,9 +351,9 @@ export function UsersSection({ API, toast_ }) {
                             </div>
                             <div className="td" style={{ display: 'flex', gap: 5 }}>
                                 <SmBtn onClick={() => toggleAktif(u._id, u.aktif !== false)} title={u.aktif !== false ? 'Pasife Al' : 'Aktifestir'}>
-                                    {u.aktif !== false ? '⏸' : '▶️'}
+                                    {u.aktif !== false ? 'â¸' : 'â–¶ï¸'}
                                 </SmBtn>
-                                <SmBtn $danger onClick={() => deleteUser(u._id, u.isim)} title="Sil">🗑</SmBtn>
+                                <SmBtn $danger onClick={() => deleteUser(u._id, u.isim)} title="Sil">ğŸ—‘</SmBtn>
                             </div>
                         </TRow>
                     ))}
@@ -368,9 +368,9 @@ export function UsersSection({ API, toast_ }) {
     );
 }
 
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // BLOG SECTION
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const EMPTY_POST = { title: '', excerpt: '', content: '', imageUrl: '', published: false, author: 'Agrolina Admin', tags: '' };
 
 export function BlogSection({ API, toast_ }) {
@@ -413,7 +413,7 @@ export function BlogSection({ API, toast_ }) {
 
     if (editing) return (
         <>
-            <PageHeader><span className="emoji">✏️</span><div><h1>{editing._id ? 'Yaziyi Duzenle' : 'Yeni Yazi'}</h1><p>Blog / Duyurular</p></div></PageHeader>
+            <PageHeader><span className="emoji">âœï¸</span><div><h1>{editing._id ? 'Yaziyi Duzenle' : 'Yeni Yazi'}</h1><p>Blog / Duyurular</p></div></PageHeader>
             <Card>
                 <h3>Icerik</h3>
                 <Grid><Field><label>Baslik *</label><input value={editing.title} onChange={e => setEditing(p => ({ ...p, title: e.target.value }))} placeholder="Yazi basligi..." /></Field></Grid>
@@ -434,7 +434,7 @@ export function BlogSection({ API, toast_ }) {
                 </ToggleRow>
             </Card>
             <div style={{ display: 'flex', gap: 10 }}>
-                <SaveBtn onClick={savePost} disabled={saving}>{saving ? <Loader /> : '💾'} Kaydet</SaveBtn>
+                <SaveBtn onClick={savePost} disabled={saving}>{saving ? <Loader /> : 'ğŸ’¾'} Kaydet</SaveBtn>
                 <SaveBtn onClick={() => setEditing(null)} style={{ background: 'rgba(255,255,255,0.06)', boxShadow: 'none', color: '#94a3b8', marginTop: 18 }}>Iptal</SaveBtn>
             </div>
         </>
@@ -442,7 +442,7 @@ export function BlogSection({ API, toast_ }) {
 
     return (
         <>
-            <PageHeader><span className="emoji">📝</span><div><h1>Blog / Duyurular</h1><p>{posts.length} yazi</p></div></PageHeader>
+            <PageHeader><span className="emoji">ğŸ“</span><div><h1>Blog / Duyurular</h1><p>{posts.length} yazi</p></div></PageHeader>
             {error && <ErrBox><strong>Hata</strong>{error}</ErrBox>}
             <AddBtn onClick={() => setEditing({ ...EMPTY_POST })} style={{ marginBottom: 16 }}>+ Yeni Yazi Ekle</AddBtn>
             {loading ? <div style={{ color: '#475569', padding: 16 }}>Yukleniyor...</div>
@@ -458,7 +458,7 @@ export function BlogSection({ API, toast_ }) {
                                         <Badge $active={p.published}>{p.published ? 'Yayinda' : 'Taslak'}</Badge>
                                     </div>
                                     <div style={{ color: '#475569', fontSize: 12 }}>{p.excerpt || (p.content || '').slice(0, 90) + '...'}</div>
-                                    <div style={{ color: '#334155', fontSize: 11, marginTop: 5 }}>{p.author} · {new Date(p.createdAt).toLocaleDateString('tr-TR')}</div>
+                                    <div style={{ color: '#334155', fontSize: 11, marginTop: 5 }}>{p.author} Â· {new Date(p.createdAt).toLocaleDateString('tr-TR')}</div>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
@@ -472,9 +472,9 @@ export function BlogSection({ API, toast_ }) {
     );
 }
 
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // SETTINGS SECTION
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const DEFAULT_APP_SETTINGS = {
     bakimModu: false, kayitAcik: true,
     yemDanismaniAktif: true, finansalModulAktif: true, saglikModulAktif: true,
@@ -514,7 +514,7 @@ export function SettingsSection({ API, toast_ }) {
 
     return (
         <>
-            <PageHeader><span className="emoji">⚙️</span><div><h1>Uygulama Ayarlari</h1><p>Ozellik bayraklari ve sistem limitleri</p></div></PageHeader>
+            <PageHeader><span className="emoji">âš™ï¸</span><div><h1>Uygulama Ayarlari</h1><p>Ozellik bayraklari ve sistem limitleri</p></div></PageHeader>
             {error && <ErrBox><strong>Ayarlar yuklenemedi (varsayilan degerler kullaniliyor)</strong>{error}</ErrBox>}
             <Card>
                 <h3>Ozellik Bayraklari</h3>
@@ -540,14 +540,14 @@ export function SettingsSection({ API, toast_ }) {
                     Bakim modu aktif! Landing page ziyaretcilere bakim mesaji gosteriyor.
                 </div>
             )}
-            <SaveBtn onClick={save} disabled={saving}>{saving ? <Loader /> : '💾'} Ayarlari Kaydet</SaveBtn>
+            <SaveBtn onClick={save} disabled={saving}>{saving ? <Loader /> : 'ğŸ’¾'} Ayarlari Kaydet</SaveBtn>
         </>
     );
 }
 
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MEDIA MANAGER SECTION (Gorsel Yonetimi)
-// ═════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const MediaGrid = styled.div`
   display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px; margin-bottom: 16px;
@@ -647,12 +647,12 @@ const ImageUploader = ({ value, onChange, icon }) => {
                 <>
                     <img src={value} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: dragging ? 0.3 : 0.9 }} />
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', opacity: dragging ? 1 : 0, transition: 'opacity 0.2s', color: '#fff', fontSize: 13, fontWeight: 700 }}>
-                        {loading ? 'Isleniyor...' : 'Birak Guncelsin 🚀'}
+                        {loading ? 'Isleniyor...' : 'Birak Guncelsin ğŸš€'}
                     </div>
                 </>
             ) : (
                 <>
-                    <div style={{ fontSize: 28, marginBottom: 4 }}>{loading ? '⏳' : icon || '📁'}</div>
+                    <div style={{ fontSize: 28, marginBottom: 4 }}>{loading ? 'â³' : icon || 'ğŸ“'}</div>
                     <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', padding: '0 10px', lineHeight: 1.3 }}>
                         {loading ? 'Goruntu isleniyor...' : 'Buraya surukle veya\n secmek icin tikla'}
                     </div>
@@ -663,10 +663,10 @@ const ImageUploader = ({ value, onChange, icon }) => {
 };
 
 const STATIC_SLOTS = [
-    { key: 'heroImage', label: 'Hero Arkaplan', icon: '🌄', desc: 'Ana sayfa arka plan gorseli (1920x1080 onerilen)' },
-    { key: 'logoUrl', label: 'Logo', icon: '🏷️', desc: 'Site logosu PNG/SVG' },
-    { key: 'ogImage', label: 'OG Gorseli', icon: '📤', desc: 'Sosyal medya paylasim gorseli (1200x630)' },
-    { key: 'featuresImage', label: 'Ozellikler Gorseli', icon: '✨', desc: 'Ozellikler bolumu gorseli' },
+    { key: 'heroImage', label: 'Hero Arkaplan', icon: 'ğŸŒ„', desc: 'Ana sayfa arka plan gorseli (1920x1080 onerilen)' },
+    { key: 'logoUrl', label: 'Logo', icon: 'ğŸ·ï¸', desc: 'Site logosu PNG/SVG' },
+    { key: 'ogImage', label: 'OG Gorseli', icon: 'ğŸ“¤', desc: 'Sosyal medya paylasim gorseli (1200x630)' },
+    { key: 'featuresImage', label: 'Ozellikler Gorseli', icon: 'âœ¨', desc: 'Ozellikler bolumu gorseli' },
 ];
 
 export function MediaSection({ API, toast_ }) {
@@ -724,7 +724,7 @@ export function MediaSection({ API, toast_ }) {
 
     return (
         <>
-            <PageHeader><span className="emoji">🖼️</span><div><h1>Gorsel Yonetimi</h1><p>Site gorselleri ve haftalik haberler</p></div></PageHeader>
+            <PageHeader><span className="emoji">ğŸ–¼ï¸</span><div><h1>Gorsel Yonetimi</h1><p>Site gorselleri ve haftalik haberler</p></div></PageHeader>
 
             {/* STATIC SLOTS */}
             <Card>
@@ -768,7 +768,7 @@ export function MediaSection({ API, toast_ }) {
                 <div style={{ fontSize: 11, color: '#475569', marginBottom: 12 }}>
                     Gorsel URL'sini girdikten sonra "Tum Gorselleri Kaydet" ile kaydet.
                 </div>
-                <SaveBtn onClick={saveImages} disabled={saving}>{saving ? <Loader /> : '💾'} Tum Gorselleri Kaydet</SaveBtn>
+                <SaveBtn onClick={saveImages} disabled={saving}>{saving ? <Loader /> : 'ğŸ’¾'} Tum Gorselleri Kaydet</SaveBtn>
             </Card>
 
             {/* NEWS / PROMO IMAGES */}
@@ -816,10 +816,10 @@ export function MediaSection({ API, toast_ }) {
                 ) : (
                     newsItems.map(n => (
                         <NewsCard key={n.id}>
-                            {n.imageUrl ? <img src={n.imageUrl} alt="" /> : <div className="no-img">📰</div>}
+                            {n.imageUrl ? <img src={n.imageUrl} alt="" /> : <div className="no-img">ğŸ“°</div>}
                             <div className="content">
                                 <div className="title">{n.title}</div>
-                                <div className="meta">{n.date}{n.link && <> · <a href={n.link} target="_blank" rel="noreferrer" style={{ color: '#4ade80', textDecoration: 'none' }}>Link</a></>}</div>
+                                <div className="meta">{n.date}{n.link && <> Â· <a href={n.link} target="_blank" rel="noreferrer" style={{ color: '#4ade80', textDecoration: 'none' }}>Link</a></>}</div>
                             </div>
                             <button className="del" onClick={() => removeNews(n.id)}>Sil</button>
                         </NewsCard>
