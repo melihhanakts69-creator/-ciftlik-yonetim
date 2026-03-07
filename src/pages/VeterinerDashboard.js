@@ -82,34 +82,46 @@ const Section = styled.section`
   h3 { font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 16px; }
 `;
 
-const QuickAddForm = styled.form`
+const KupeAramaForm = styled.form`
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
   input {
     flex: 1;
-    min-width: 160px;
+    min-width: 180px;
     padding: 12px 14px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 14px;
-    text-transform: uppercase;
-    &::placeholder { text-transform: none; }
     &:focus { outline: none; border-color: #3b82f6; }
   }
   button {
     padding: 12px 20px;
     border-radius: 8px;
     border: none;
-    background: #111827;
+    background: #2563eb;
     color: white;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    &:hover:not(:disabled) { background: #374151; }
+    &:hover:not(:disabled) { background: #1d4ed8; }
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
+`;
+
+const HayvanSonucItem = styled.div`
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: #eff6ff; border-color: #93c5fd; }
+  .ciftlik { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+  .hayvan { font-size: 14px; font-weight: 600; color: #111827; }
+  .tip { font-size: 11px; color: #6b7280; margin-top: 2px; }
 `;
 
 const FarmList = styled.div`
@@ -181,8 +193,9 @@ export default function VeterinerDashboard({ kullanici }) {
   const [musteriler, setMusteriler] = useState([]);
   const [sonSaglik, setSonSaglik] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [addCode, setAddCode] = useState('');
-  const [adding, setAdding] = useState(false);
+  const [kupeArama, setKupeArama] = useState('');
+  const [kupeSonuc, setKupeSonuc] = useState([]);
+  const [kupeLoading, setKupeLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchAll = () => {
@@ -209,25 +222,32 @@ export default function VeterinerDashboard({ kullanici }) {
     fetchAll();
   }, []);
 
-  const handleQuickAdd = async (e) => {
+  const handleKupeAra = async (e) => {
     e.preventDefault();
-    const kod = addCode.trim().toUpperCase();
-    if (!kod) {
-      toast.warning('Çiftlik kodunu girin.');
+    const q = kupeArama.trim();
+    if (!q || q.length < 2) {
+      toast.warning('En az 2 karakter girin.');
       return;
     }
-    setAdding(true);
+    setKupeLoading(true);
+    setKupeSonuc([]);
     try {
-      await api.veterinerMusteriEkleKod(kod);
-      toast.success('Çiftlik listenize eklendi.');
-      setAddCode('');
-      fetchAll();
+      const res = await api.getVeterinerHayvanAra(q);
+      const list = res.data || [];
+      setKupeSonuc(list);
+      if (list.length === 1) {
+        navigate(`/hastalar/${list[0].ciftciId}`);
+        return;
+      }
+      if (list.length === 0) toast.info('Bu küpe numarasına ait hayvan bulunamadı.');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Eklenemedi.');
+      toast.error('Arama yapılamadı.');
     } finally {
-      setAdding(false);
+      setKupeLoading(false);
     }
   };
+
+  const tipLabel = { inek: 'İnek', buzagi: 'Buzağı', duve: 'Düve', tosun: 'Tosun' };
 
   const sonCiftlikler = musteriler.slice(0, 6);
 
@@ -270,20 +290,30 @@ export default function VeterinerDashboard({ kullanici }) {
       </PrimaryAction>
 
       <Section>
-        <h3>Çiftlik kodu ile hızlı ekle</h3>
-        <QuickAddForm onSubmit={handleQuickAdd}>
+        <h3>Küpe no ile hayvan bul</h3>
+        <KupeAramaForm onSubmit={handleKupeAra}>
           <input
             type="text"
-            value={addCode}
-            onChange={e => setAddCode(e.target.value.toUpperCase())}
-            placeholder="Çiftlik kodu (örn. ABC12XYZ)"
-            maxLength={12}
+            value={kupeArama}
+            onChange={e => setKupeArama(e.target.value)}
+            placeholder="Küpe numarası (örn. TR-123)"
             disabled={!isApproved}
           />
-          <button type="submit" disabled={adding || !addCode.trim()}>
-            {adding ? 'Ekleniyor…' : 'Ekle'}
+          <button type="submit" disabled={kupeLoading || !kupeArama.trim()}>
+            {kupeLoading ? 'Aranıyor…' : 'Ara'}
           </button>
-        </QuickAddForm>
+        </KupeAramaForm>
+        {kupeSonuc.length > 1 && (
+          <FarmList>
+            {kupeSonuc.map((r, i) => (
+              <HayvanSonucItem key={`${r.ciftciId}-${r.hayvan?._id}-${i}`} onClick={() => navigate(`/hastalar/${r.ciftciId}`)}>
+                <div className="ciftlik">{r.ciftlikAdi || r.ciftciIsim}</div>
+                <div className="hayvan">{r.hayvan?.kupeNo || r.hayvan?.isim || '–'} {r.hayvan?.isim && `(${r.hayvan.isim})`}</div>
+                <div className="tip">{tipLabel[r.tip] || r.tip}</div>
+              </HayvanSonucItem>
+            ))}
+          </FarmList>
+        )}
       </Section>
 
       <TwoCol>
@@ -296,7 +326,7 @@ export default function VeterinerDashboard({ kullanici }) {
           ) : (
             <FarmList>
               {sonCiftlikler.map(m => (
-                <FarmRow key={m._id} onClick={() => navigate(`/musteri-detay/${m._id}`)}>
+                <FarmRow key={m._id} onClick={() => navigate(`/hastalar/${m._id}`)}>
                   <div>
                     <div className="name">{m.isletmeAdi || m.isim || 'İsimsiz çiftlik'}</div>
                     <div className="sub">{m.isim} · Hayvanlar ve sağlık kayıtları</div>
@@ -338,7 +368,7 @@ export default function VeterinerDashboard({ kullanici }) {
             <Section>
               <h3>Son eklediğiniz kayıtlar</h3>
               {sonSaglik.slice(0, 6).map(k => (
-                <RecordItem key={k._id} onClick={() => k.userId?._id && navigate(`/musteri-detay/${k.userId._id}`)}>
+                <RecordItem key={k._id} onClick={() => k.userId?._id && navigate(`/hastalar/${k.userId._id}`)}>
                   <div className="line1">{k.userId?.isletmeAdi || k.userId?.isim || 'Çiftlik'} · {k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'}</div>
                   <div className="line2">{tipEtiket[k.tip] || k.tip} — {k.tani} · {k.tarih ? new Date(k.tarih).toLocaleDateString('tr-TR') : ''}</div>
                 </RecordItem>

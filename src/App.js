@@ -131,6 +131,7 @@ function App() {
           
           {/* Veteriner Özel Sayfaları */}
           <Route path="/hastalar" element={<Hastalar />} />
+          <Route path="/hastalar/:id" element={<Hastalar />} />
           <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
           <Route path="/receteler" element={<VeterinerStok />} />
 

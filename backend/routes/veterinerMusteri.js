@@ -136,7 +136,44 @@ router.get('/ozet', async (req, res) => {
     }
 });
 
-// 3. Son eklenen sağlık kayıtları (müşteri çiftliklerindeki)
+// 3. Küpe no ile hayvan ara (tüm müşteri çiftliklerinde)
+router.get('/hayvan-ara', async (req, res) => {
+    try {
+        const { kupeNo } = req.query;
+        if (!kupeNo || String(kupeNo).trim().length < 2) {
+            return res.json([]);
+        }
+        const veteriner = await User.findById(req.originalUserId).select('musteriler');
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) return res.json([]);
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const aranacak = String(kupeNo).trim();
+        const regex = new RegExp(aranacak.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+        const [inekler, buzagilar, duveler, tosunlar] = await Promise.all([
+            Inek.find({ userId: { $in: objIds }, kupeNo: regex }).select('userId isim kupeNo irk guncelDurum').lean(),
+            Buzagi.find({ userId: { $in: objIds }, kupeNo: regex }).select('userId isim kupeNo irk saglikDurumu cinsiyet').lean(),
+            Duve.find({ userId: { $in: objIds }, kupeNo: regex }).select('userId isim kupeNo irk guncelDurum').lean(),
+            Tosun.find({ userId: { $in: objIds }, kupeNo: regex }).select('userId isim kupeNo irk saglikDurumu').lean()
+        ]);
+
+        const ciftciler = await User.find({ _id: { $in: objIds } }).select('isim isletmeAdi').lean();
+        const ciftciMap = {};
+        ciftciler.forEach(c => { ciftciMap[c._id?.toString()] = c; });
+
+        const sonuc = [];
+        inekler.forEach(h => { sonuc.push({ ciftciId: h.userId?.toString(), ciftlikAdi: ciftciMap[h.userId?.toString()]?.isletmeAdi || ciftciMap[h.userId?.toString()]?.isim, ciftciIsim: ciftciMap[h.userId?.toString()]?.isim, tip: 'inek', hayvan: { ...h, tip: 'inek' } }); });
+        buzagilar.forEach(h => { sonuc.push({ ciftciId: h.userId?.toString(), ciftlikAdi: ciftciMap[h.userId?.toString()]?.isletmeAdi || ciftciMap[h.userId?.toString()]?.isim, ciftciIsim: ciftciMap[h.userId?.toString()]?.isim, tip: 'buzagi', hayvan: { ...h, tip: 'buzagi' } }); });
+        duveler.forEach(h => { sonuc.push({ ciftciId: h.userId?.toString(), ciftlikAdi: ciftciMap[h.userId?.toString()]?.isletmeAdi || ciftciMap[h.userId?.toString()]?.isim, ciftciIsim: ciftciMap[h.userId?.toString()]?.isim, tip: 'duve', hayvan: { ...h, tip: 'duve' } }); });
+        tosunlar.forEach(h => { sonuc.push({ ciftciId: h.userId?.toString(), ciftlikAdi: ciftciMap[h.userId?.toString()]?.isletmeAdi || ciftciMap[h.userId?.toString()]?.isim, ciftciIsim: ciftciMap[h.userId?.toString()]?.isim, tip: 'tosun', hayvan: { ...h, tip: 'tosun' } }); });
+        res.json(sonuc.slice(0, 20));
+    } catch (error) {
+        console.error('Hayvan ara hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// 4. Son eklenen sağlık kayıtları (müşteri çiftliklerindeki)
 router.get('/son-saglik-kayitlari', async (req, res) => {
     try {
         const veteriner = await User.findById(req.originalUserId).select('musteriler');
@@ -159,7 +196,26 @@ router.get('/son-saglik-kayitlari', async (req, res) => {
     }
 });
 
-// 4. Kayıtlı Çiftlikleri / Müşterileri Getir
+// 5. Bir müşteriye ait sağlık kayıtları (geçmiş)
+router.get('/musteri/:ciftciId/saglik-kayitlari', async (req, res) => {
+    try {
+        const { ciftciId } = req.params;
+        const veteriner = await User.findById(req.originalUserId).select('musteriler');
+        if (!veteriner.musteriler.some(m => m.toString() === ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftliğe erişim izniniz yok.' });
+        }
+        const kayitlar = await SaglikKaydi.find({ userId: ciftciId })
+            .sort({ createdAt: -1 })
+            .limit(80)
+            .lean();
+        res.json(kayitlar);
+    } catch (error) {
+        console.error('Musteri saglik kayitlari hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// 6. Kayıtlı Çiftlikleri / Müşterileri Getir
 router.get('/musteriler', async (req, res) => {
     try {
         const veteriner = await User.findById(req.originalUserId).populate('musteriler', 'isim email isletmeAdi sehir telefon');
@@ -169,7 +225,7 @@ router.get('/musteriler', async (req, res) => {
     }
 });
 
-// 5. Bir Müşteriye Ait Tüm Hayvanları Getir
+// 7. Bir Müşteriye Ait Tüm Hayvanları Getir
 router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     try {
         const { ciftciId } = req.params;
@@ -198,7 +254,7 @@ router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     }
 });
 
-// 6. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
+// 8. Müşterinin Hayvanına Uzaktan Sağlık/Tohum Kaydı Ekleme
 router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     try {
         const { ciftciId, hayvanId } = req.params;

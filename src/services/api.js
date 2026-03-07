@@ -212,6 +212,8 @@ export const toplayiciSutToplama = (data) => api.post('/toplayici/sut-toplama', 
 export const getVeterinerMusteriler = () => api.get('/veteriner/musteriler');
 export const getVeterinerOzet = () => api.get('/veteriner/ozet');
 export const getVeterinerSonSaglikKayitlari = () => api.get('/veteriner/son-saglik-kayitlari');
+export const getVeterinerHayvanAra = (kupeNo) => api.get('/veteriner/hayvan-ara', { params: { kupeNo } });
+export const getVeterinerMusteriSaglikKayitlari = (ciftciId) => api.get(`/veteriner/musteri/${ciftciId}/saglik-kayitlari`);
 export const veterinerMusteriEkleKod = (ciftlikKodu) => api.post('/veteriner/musteri-ekle-kod', { ciftlikKodu });
 export const veterinerMusteriEkle = (ciftciId) => api.post('/veteriner/musteri-ekle', { ciftciId });
 export const getMusteriHayvanlar = (ciftciId) => api.get(`/veteriner/musteri/${ciftciId}/hayvanlar`);
