@@ -157,6 +157,8 @@ const ModalBox = styled.div`
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
 export default function Hastalar() {
+  const { id: urlId } = useParams();
+  const navigate = useNavigate();
   const [musteriler, setMusteriler] = useState([]);
   const [loading, setLoading] = useState(true);
   const [arama, setArama] = useState('');
