@@ -221,6 +221,13 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
     ];
+  } else if (role === 'toplayici') {
+    menuItems = [
+      { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+    ];
+    yonetimItems = [
+      { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
+    ];
   } else {
     // Çiftçi (Admin)
     menuItems = [

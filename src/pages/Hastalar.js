@@ -64,6 +64,8 @@ export default function Hastalar() {
   const [musteriler, setMusteriler] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ciftciId, setCiftciId] = useState('');
+  const [ciftlikKodu, setCiftlikKodu] = useState('');
+  const [eklemeModu, setEklemeModu] = useState('kod'); // 'kod' | 'id'
   const [adding, setAdding] = useState(false);
   const navigate = useNavigate();
 
@@ -87,12 +89,30 @@ export default function Hastalar() {
 
   const handleMusteriEkle = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
+
+    if (eklemeModu === 'kod') {
+      if (!ciftlikKodu.trim()) return toast.warning('Lütfen çiftlik kodunu girin.');
+      setAdding(true);
+      try {
+        const res = await axios.post(`${API}/api/veteriner/musteri-ekle-kod`, { ciftlikKodu: ciftlikKodu.trim() }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success(res.data.message || 'Çiftlik başarıyla kliniğinize bağlandı!');
+        setCiftlikKodu('');
+        fetchMusteriler();
+      } catch (e) {
+        toast.error(e.response?.data?.message || 'Çiftlik eklenirken hata oluştu.');
+      } finally {
+        setAdding(false);
+      }
+      return;
+    }
+
     if (!ciftciId.trim()) return toast.warning('Lütfen Çiftçi ID numarasını girin.');
     if (ciftciId.length < 20) return toast.warning('Geçersiz bir ID numarası gibi görünüyor.');
-    
     setAdding(true);
     try {
-      const token = localStorage.getItem('token');
       const res = await axios.post(`${API}/api/veteriner/musteri-ekle`, { ciftciId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -116,14 +136,59 @@ export default function Hastalar() {
       </Header>
 
       <Card>
+        <div style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setEklemeModu('kod')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: eklemeModu === 'kod' ? '2px solid #2196F3' : '1px solid #e2e8f0',
+              background: eklemeModu === 'kod' ? '#E3F2FD' : 'white',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600
+            }}
+          >
+            Çiftlik kodu ile ekle
+          </button>
+          <button
+            type="button"
+            onClick={() => setEklemeModu('id')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: eklemeModu === 'id' ? '2px solid #2196F3' : '1px solid #e2e8f0',
+              background: eklemeModu === 'id' ? '#E3F2FD' : 'white',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600
+            }}
+          >
+            Çiftçi ID ile ekle
+          </button>
+        </div>
         <AddForm onSubmit={handleMusteriEkle}>
-          <div className="field" style={{ maxWidth: '400px' }}>
-            <label>Yeni Çiftlik (Çiftçi) ID</label>
-            <input 
-              value={ciftciId} onChange={e => setCiftciId(e.target.value)}
-              placeholder="Çiftçiden edindiğiniz 24 haneli ID'yi girin..." 
-            />
-          </div>
+          {eklemeModu === 'kod' ? (
+            <div className="field" style={{ maxWidth: '400px' }}>
+              <label>Çiftlik kodu</label>
+              <input
+                value={ciftlikKodu}
+                onChange={e => setCiftlikKodu(e.target.value.toUpperCase())}
+                placeholder="Örn: ABC12XYZ (çiftçinin paylaştığı 8 karakterlik kod)"
+                maxLength={12}
+              />
+            </div>
+          ) : (
+            <div className="field" style={{ maxWidth: '400px' }}>
+              <label>Çiftçi ID</label>
+              <input
+                value={ciftciId}
+                onChange={e => setCiftciId(e.target.value)}
+                placeholder="24 haneli MongoDB ID..."
+              />
+            </div>
+          )}
           <button type="submit" disabled={adding}>
             {adding ? 'Ekleniyor...' : '+ Bağla / Ekle'}
           </button>

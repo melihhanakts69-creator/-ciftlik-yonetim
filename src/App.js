@@ -29,6 +29,7 @@ import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 import VeterinerDashboard from './pages/VeterinerDashboard';
 import SutcuDashboard from './pages/SutcuDashboard';
+import ToplayiciDashboard from './pages/ToplayiciDashboard';
 import Hastalar from './pages/Hastalar';
 import MusteriDetay from './pages/MusteriDetay';
 import VeterinerStok from './pages/VeterinerStok';
@@ -83,7 +84,10 @@ function App() {
     if (kullanici?.rol === 'veteriner') {
       return <VeterinerDashboard kullanici={kullanici} />;
     }
-    if (kullanici?.rol === 'sutcu' || kullanici?.rol === 'toplayici') {
+    if (kullanici?.rol === 'toplayici') {
+      return <ToplayiciDashboard kullanici={kullanici} />;
+    }
+    if (kullanici?.rol === 'sutcu') {
       return <SutcuDashboard kullanici={kullanici} />;
     }
     return <Home kullanici={kullanici} />;

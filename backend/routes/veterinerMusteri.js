@@ -7,11 +7,13 @@ const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const Bildirim = require('../models/Bildirim');
-const { verifyToken, checkRole } = require('../middleware/auth');
+const Tenant = require('../models/Tenant');
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
 const mongoose = require('mongoose');
 
 // Sadece veterinerlerin okuyabileceği rotalar
-router.use(verifyToken);
+router.use(auth);
 router.use(checkRole(['veteriner']));
 
 // 1. Yeni Çiftlik / Müşteri Ekleme
@@ -24,8 +26,8 @@ router.post('/musteri-ekle', async (req, res) => {
             return res.status(400).json({ message: 'Geçersiz Çiftçi ID formatı.' });
         }
 
-        // Çiftçiyi bul
-        const ciftci = await User.findOne({ _id: ciftciId, rol: 'ciftci' });
+        const ciftciObjId = new mongoose.Types.ObjectId(ciftciId);
+        const ciftci = await User.findOne({ _id: ciftciObjId, rol: 'ciftci' });
         if (!ciftci) {
             return res.status(404).json({ message: 'Bu ID ile eşleşen bir çiftçi bulunamadı.' });
         }
@@ -35,11 +37,12 @@ router.post('/musteri-ekle', async (req, res) => {
             return res.status(403).json({ message: 'Hesabınız henüz onaylanmadığı için işlem yapamazsınız.' });
         }
 
-        if (veteriner.musteriler.includes(ciftciId)) {
+        const ciftciIdStr = ciftci._id.toString();
+        if (veteriner.musteriler.some(m => m.toString() === ciftciIdStr)) {
             return res.status(400).json({ message: 'Bu çiftlik zaten hastalarınız arasında ekli.' });
         }
 
-        veteriner.musteriler.push(ciftciId);
+        veteriner.musteriler.push(ciftci._id);
         await veteriner.save();
 
         res.json({ message: 'Müşteri başarıyla eklendi', ciftci: { _id: ciftci._id, isim: ciftci.isim, isletmeAdi: ciftci.isletmeAdi } });
@@ -49,10 +52,54 @@ router.post('/musteri-ekle', async (req, res) => {
     }
 });
 
+// 1b. Çiftlik kodu ile müşteri ekleme
+router.post('/musteri-ekle-kod', async (req, res) => {
+    try {
+        const { ciftlikKodu } = req.body;
+        const vetId = req.originalUserId;
+
+        if (!ciftlikKodu || typeof ciftlikKodu !== 'string') {
+            return res.status(400).json({ message: 'Çiftlik kodu girin.' });
+        }
+
+        const kod = ciftlikKodu.trim().toUpperCase();
+        const tenant = await Tenant.findOne({ ciftlikKodu: kod }).populate('ownerUser');
+        if (!tenant || !tenant.ownerUser) {
+            return res.status(404).json({ message: 'Bu çiftlik kodu ile eşleşen bir çiftlik bulunamadı.' });
+        }
+
+        const ciftci = tenant.ownerUser;
+        if (ciftci.rol !== 'ciftci') {
+            return res.status(400).json({ message: 'Bu kod bir çiftlik hesabına ait değil.' });
+        }
+
+        const veteriner = await User.findById(vetId);
+        if (!veteriner.onaylandi) {
+            return res.status(403).json({ message: 'Hesabınız henüz onaylanmadığı için işlem yapamazsınız.' });
+        }
+
+        const ciftciIdStr = ciftci._id.toString();
+        if (veteriner.musteriler.some(m => m.toString() === ciftciIdStr)) {
+            return res.status(400).json({ message: 'Bu çiftlik zaten hastalarınız arasında ekli.' });
+        }
+
+        veteriner.musteriler.push(ciftci._id);
+        await veteriner.save();
+
+        res.json({
+            message: 'Müşteri başarıyla eklendi',
+            ciftci: { _id: ciftci._id, isim: ciftci.isim, isletmeAdi: ciftci.isletmeAdi }
+        });
+    } catch (error) {
+        console.error('Musteri Ekleme (Kod) Hatası:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
 // 2. Kayıtlı Çiftlikleri / Müşterileri Getir
 router.get('/musteriler', async (req, res) => {
     try {
-        const veteriner = await User.findById(req.user.id).populate('musteriler', 'isim email isletmeAdi sehir telefon');
+        const veteriner = await User.findById(req.originalUserId).populate('musteriler', 'isim email isletmeAdi sehir telefon');
         res.json(veteriner.musteriler || []);
     } catch (error) {
         res.status(500).json({ message: 'Sunucu hatası.' });
@@ -63,9 +110,9 @@ router.get('/musteriler', async (req, res) => {
 router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
     try {
         const { ciftciId } = req.params;
-        const veteriner = await User.findById(req.user.id);
+        const veteriner = await User.findById(req.originalUserId);
 
-        if (!veteriner.musteriler.includes(ciftciId)) {
+        if (!veteriner.musteriler.some(m => m.toString() === ciftciId)) {
             return res.status(403).json({ message: 'Bu çiftliğe erişim izniniz yok (Listenizde değil).' });
         }
 
@@ -92,18 +139,22 @@ router.get('/musteri/:ciftciId/hayvanlar', async (req, res) => {
 router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     try {
         const { ciftciId, hayvanId } = req.params;
-        const vetId = req.user.id;
+        const vetId = req.originalUserId;
         const { hayvanTipi, hayvanIsim, hayvanKupeNo, tip, tani, belirtiler, tedavi, ilaclar, notlar } = req.body;
         // tip = 'hastalik' | 'tedavi' | 'asi' | 'muayene' | 'tohumlama' vs (Tohumlamayı Saglik kaydı üzerinden tutacağız)
 
         const veteriner = await User.findById(vetId);
-        if (!veteriner.musteriler.includes(ciftciId)) {
+        if (!veteriner.musteriler.some(m => m.toString() === ciftciId)) {
             return res.status(403).json({ message: 'Yetkisiz işlem.' });
         }
 
-        // Yeni Sağlık Kaydı (Direkt olarak Çiftçinin userId'si ile açılıyor)
+        const ciftci = await User.findById(ciftciId).select('tenantId');
+        const farmTenantId = ciftci && ciftci.tenantId ? ciftci.tenantId : null;
+
+        // Yeni Sağlık Kaydı (çiftliğin userId ve tenantId'si ile)
         const yeniKayit = new SaglikKaydi({
             userId: ciftciId,
+            tenantId: farmTenantId,
             hayvanId,
             hayvanTipi,
             hayvanIsim,

@@ -9,7 +9,12 @@ const Timeline = require('../models/Timeline');
 // TÜM İNEKLERİ GETİR
 router.get('/', auth, async (req, res) => {
   try {
-    const inekler = await Inek.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const query = { userId: req.userId };
+    if (req.tenantId) {
+      query.tenantId = req.tenantId;
+    }
+
+    const inekler = await Inek.find(query).sort({ createdAt: -1 });
     res.json(inekler);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -82,13 +87,14 @@ router.post('/', auth, async (req, res) => {
 
     const inek = new Inek({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim,
       yas,
       kilo,
       kupeNo,
       dogumTarihi,
       buzagiSayisi,
-      notlar
+      notlar,
     });
 
     await inek.save();
@@ -116,8 +122,13 @@ router.put('/:id', auth, async (req, res) => {
       laktasyonDonemi
     } = req.body;
 
+    const filter = { _id: req.params.id, userId: req.userId };
+    if (req.tenantId) {
+      filter.tenantId = req.tenantId;
+    }
+
     const inek = await Inek.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      filter,
       {
         isim,
         yas,
@@ -148,10 +159,15 @@ router.put('/:id', auth, async (req, res) => {
 // İNEK SİL
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const inek = await Inek.findOneAndDelete({
+    const filter = {
       _id: req.params.id,
-      userId: req.userId
-    });
+      userId: req.userId,
+    };
+    if (req.tenantId) {
+      filter.tenantId = req.tenantId;
+    }
+
+    const inek = await Inek.findOneAndDelete(filter);
 
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
@@ -168,7 +184,12 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
   try {
     const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = req.body;
 
-    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    const inekFilter = { _id: req.params.id, userId: req.userId };
+    if (req.tenantId) {
+      inekFilter.tenantId = req.tenantId;
+    }
+
+    const inek = await Inek.findOne(inekFilter);
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
     }
@@ -184,6 +205,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     // 1. Buzağı oluştur
     const buzagi = new Buzagi({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim: buzagiIsim,
       kupeNo: `BZ-${Date.now()}`,
       anneId: inek._id.toString(),
@@ -208,6 +230,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     // 3. Timeline event'i oluştur
     await Timeline.create({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       hayvanId: inek._id.toString(),
       hayvanTipi: 'inek',
       tip: 'dogum',
@@ -231,7 +254,12 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
 router.post('/:id/tohumlama', auth, async (req, res) => {
   try {
     const { tohumlamaTarihi } = req.body;
-    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    const inekFilter2 = { _id: req.params.id, userId: req.userId };
+    if (req.tenantId) {
+      inekFilter2.tenantId = req.tenantId;
+    }
+
+    const inek = await Inek.findOne(inekFilter2);
 
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
@@ -270,10 +298,15 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
     await inek.save();
 
     // En son eklenen tohumlama timeline kaydını sil
-    const lastTimeline = await Timeline.findOne({
+    const lastTimelineFilter = {
       hayvanId: inek._id.toString(),
-      tip: 'tohumlama'
-    }).sort({ createdAt: -1 });
+      tip: 'tohumlama',
+    };
+    if (req.tenantId) {
+      lastTimelineFilter.tenantId = req.tenantId;
+    }
+
+    const lastTimeline = await Timeline.findOne(lastTimelineFilter).sort({ createdAt: -1 });
     if (lastTimeline) await lastTimeline.deleteOne();
 
     res.json({ message: 'Tohumlama kaydı silindi', inek });
@@ -284,7 +317,12 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
 
 router.get('/:id', auth, async (req, res) => {
   try {
-    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    const inekFilter3 = { _id: req.params.id, userId: req.userId };
+    if (req.tenantId) {
+      inekFilter3.tenantId = req.tenantId;
+    }
+
+    const inek = await Inek.findOne(inekFilter3);
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
     }
@@ -296,11 +334,16 @@ router.get('/:id', auth, async (req, res) => {
     const tarihStr = otuzGunOnce.toISOString().split('T')[0];
 
     // İnek detayına süt verisini de ekle
-    const sutGecmisi = await SutKaydi.find({
+    const sutFilter = {
       userId: req.userId,
       inekId: inek._id,
-      tarih: { $gte: tarihStr }
-    }).sort({ tarih: 1 });
+      tarih: { $gte: tarihStr },
+    };
+    if (req.tenantId) {
+      sutFilter.tenantId = req.tenantId;
+    }
+
+    const sutGecmisi = await SutKaydi.find(sutFilter).sort({ tarih: 1 });
 
     // Mongoose belgesini objeye çevirip süt geçmişini ekliyoruz
     const inekObj = inek.toObject();

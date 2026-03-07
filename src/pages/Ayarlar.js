@@ -116,7 +116,7 @@ const DeleteBtn = styled.button`
 
 // ── Component ─────────────────────────────────────────────────────
 export default function Ayarlar() {
-    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', bolge: '', firmaAdi: '', lisansNo: '', _id: '', rol: '' });
+    const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', bolge: '', firmaAdi: '', lisansNo: '', _id: '', rol: '', ciftlikKodu: '' });
     const [pForm, setPForm] = useState({ mevcutSifre: '', yeniSifre: '', yeniSifreTekrar: '' });
     const [loading, setLoading] = useState(false);
     const [pLoading, setPLoading] = useState(false);
@@ -228,10 +228,11 @@ export default function Ayarlar() {
     };
 
     const farmId = user._id || user.id || '—';
+    const ciftlikKodu = user.ciftlikKodu || '';
     const initials = user.isim ? user.isim.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '🐄';
 
-    const copyId = () => {
-        navigator.clipboard.writeText(farmId);
+    const copyId = (text) => {
+        navigator.clipboard.writeText(text || farmId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -265,13 +266,24 @@ export default function Ayarlar() {
                                 <span style={{ marginLeft: 10 }}>{user.email}</span>
                             </ProfileSub>
                             {user.rol === 'ciftci' && (
-                                <FarmIdBox onClick={copyId} title="Bu ID Alt hesaplar için anahtardır">
-                                    <div>
-                                        <FarmIdLabel>🔑 Çiftlik ID</FarmIdLabel>
-                                        <FarmIdValue>{farmId}</FarmIdValue>
-                                    </div>
-                                    <CopyBtn>{copied ? '✅ Kopyalandı' : 'Kopyala'}</CopyBtn>
-                                </FarmIdBox>
+                                <>
+                                    {ciftlikKodu && (
+                                        <FarmIdBox onClick={() => copyId(ciftlikKodu)} title="Veteriner ve süt toplayıcıyla paylaşın">
+                                            <div>
+                                                <FarmIdLabel>🔑 Çiftlik kodu</FarmIdLabel>
+                                                <FarmIdValue>{ciftlikKodu}</FarmIdValue>
+                                            </div>
+                                            <CopyBtn>{copied ? '✅ Kopyalandı' : 'Kopyala'}</CopyBtn>
+                                        </FarmIdBox>
+                                    )}
+                                    <FarmIdBox onClick={() => copyId(farmId)} title="Çiftçi ID (isteğe bağlı)">
+                                        <div>
+                                            <FarmIdLabel>ID (gelişmiş)</FarmIdLabel>
+                                            <FarmIdValue style={{ fontSize: 11 }}>{farmId}</FarmIdValue>
+                                        </div>
+                                        <CopyBtn>{copied ? '✅' : 'Kopyala'}</CopyBtn>
+                                    </FarmIdBox>
+                                </>
                             )}
                         </ProfileInfo>
                     </ProfileBand>

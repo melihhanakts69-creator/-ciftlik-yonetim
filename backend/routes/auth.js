@@ -3,17 +3,26 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Tenant = require('../models/Tenant');
 const RefreshToken = require('../models/RefreshToken');
 const { registerValidation, loginValidation, updateValidation } = require('../validators/authValidator');
 
 // Token oluşturma yardımcı fonksiyonu
-const generateAccessToken = (userId) => {
+const generateAccessToken = (user) => {
   if (!process.env.JWT_SECRET) {
     console.error('CRITICAL ERROR: JWT_SECRET environment variable is not defined!');
     throw new Error('JWT_SECRET missing');
   }
+
+  const payload = {
+    userId: user._id.toString(),
+    rol: user.rol,
+    // tenantId henüz migrasyon tamamlanmamış sistemlerde null olabilir
+    tenantId: user.tenantId ? user.tenantId.toString() : undefined,
+  };
+
   return jwt.sign(
-    { userId },
+    payload,
     process.env.JWT_SECRET,
     { expiresIn: '15m' }  // 15 dakika
   );
@@ -58,7 +67,39 @@ router.post('/register', registerValidation, async (req, res) => {
 
     await user.save();
 
-    const token = generateAccessToken(user._id);
+    // Her ana hesap için (parentUserId olmayan) bir tenant oluştur
+    if (!user.parentUserId) {
+      const tenantName =
+        isletmeAdi ||
+        firmaAdi ||
+        klinikAdi ||
+        `${isim}'in Çiftliği`;
+
+      const baseSlug = (tenantName || isim).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+      // Slug çakışmalarını basitçe önlemek için zaman eklentisi
+      const slug = `${baseSlug}-${Date.now().toString(36)}`;
+
+      const trialDays = parseInt(process.env.TRIAL_DAYS || '14', 10);
+      const now = new Date();
+      const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+      const tenantData = {
+        name: tenantName,
+        slug,
+        ownerUser: user._id,
+        trialEndsAt,
+      };
+      if (rol === 'ciftci') {
+        tenantData.ciftlikKodu = await Tenant.generateCiftlikKodu();
+      }
+      const tenant = await Tenant.create(tenantData);
+
+      user.tenantId = tenant._id;
+      await user.save();
+    }
+
+    const token = generateAccessToken(user);
     const refreshToken = await RefreshToken.createToken(user._id);
 
     res.status(201).json({
@@ -134,7 +175,7 @@ router.post('/login', loginValidation, async (req, res) => {
     user.sonGiris = new Date();
     await user.save();
 
-    const token = generateAccessToken(user._id);
+    const token = generateAccessToken(user);
     const refreshToken = await RefreshToken.createToken(user._id);
 
     let finalIsletmeAdi = user.isletmeAdi;
@@ -194,7 +235,7 @@ router.post('/refresh', async (req, res) => {
     // Eski refresh token'ı sil, yenisini üret (rotation)
     await storedToken.deleteOne();
     const newRefreshToken = await RefreshToken.createToken(user._id);
-    const newAccessToken = generateAccessToken(user._id);
+    const newAccessToken = generateAccessToken(user);
 
     res.json({
       token: newAccessToken,
@@ -226,14 +267,22 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 
     // Eğer alt hesapsa asıl üyenin işletme adını aktar
     let finalIsletmeAdi = user.isletmeAdi;
+    let ciftlikKodu = null;
     if (user.parentUserId) {
-      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi');
+      const parentUser = await User.findById(user.parentUserId).select('isletmeAdi tenantId');
       if (parentUser && parentUser.isletmeAdi) {
         finalIsletmeAdi = parentUser.isletmeAdi;
       }
+      if (parentUser && parentUser.tenantId) {
+        const tenant = await Tenant.findById(parentUser.tenantId).select('ciftlikKodu');
+        if (tenant && tenant.ciftlikKodu) ciftlikKodu = tenant.ciftlikKodu;
+      }
+    } else if (user.tenantId) {
+      const tenant = await Tenant.findById(user.tenantId).select('ciftlikKodu');
+      if (tenant && tenant.ciftlikKodu) ciftlikKodu = tenant.ciftlikKodu;
     }
 
-    const userData = { ...user.toObject(), isletmeAdi: finalIsletmeAdi };
+    const userData = { ...user.toObject(), isletmeAdi: finalIsletmeAdi, ciftlikKodu };
 
     res.json({ user: userData });
   } catch (error) {
@@ -336,8 +385,13 @@ router.post('/sub-accounts', require('../middleware/auth'), async (req, res) => 
     const hashedPassword = await bcrypt.hash(sifre, 10);
 
     const newUser = new User({
-      isim, email, sifre: hashedPassword, telefon, rol,
+      isim,
+      email,
+      sifre: hashedPassword,
+      telefon,
+      rol,
       parentUserId: adminUser._id, // Alt hesap ana hesaba bağlandı!
+      tenantId: adminUser.tenantId || null, // Aynı tenant altında
       onaylandi: true // Admin kendi açtığı için direkt onaylı
     });
 

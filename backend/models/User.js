@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  // ── SaaS / Tenant alanı ───────────────────────────
+  tenantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tenant', default: null },
   // ── Temel alanlar (tüm roller) ──────────────────
   isim: { type: String, required: true, trim: true },
   email: { type: String, required: true, lowercase: true, trim: true }, // unique: email+rol compound index
@@ -35,6 +37,7 @@ const userSchema = new mongoose.Schema({
   // ── Süt Toplayıcı alanları ───────────────────────
   firmaAdi: { type: String, trim: true },
   bolge: { type: String, trim: true },
+  topladigiCiftlikler: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Kod ile eklediği çiftlikler (çiftçi User id)
 
   // ── Profil ───────────────────────────────────────
   profilFoto: { type: String },  // URL
