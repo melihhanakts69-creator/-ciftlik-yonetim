@@ -264,7 +264,7 @@ export default function Hastalar() {
   const handleAddFarmById = async (e) => {
     e.preventDefault();
     const id = addId.trim();
-    if (!id || id.length < 20) { toast.warning('Geçerli bir çiftçi ID girin (24 karakter).'); return; }
+    if (!id) { toast.warning('Çiftçi ID girin.'); return; }
     setAdding(true);
     try {
       await api.veterinerMusteriEkle(id);

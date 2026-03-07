@@ -33,12 +33,11 @@ router.post('/musteri-ekle', async (req, res) => {
         }
 
         const veteriner = await User.findById(vetId);
-        if (!veteriner.onaylandi) {
-            return res.status(403).json({ message: 'Hesabınız henüz onaylanmadığı için işlem yapamazsınız.' });
-        }
+        if (!veteriner) return res.status(500).json({ message: 'Veteriner bulunamadı.' });
+        if (!Array.isArray(veteriner.musteriler)) veteriner.musteriler = [];
 
         const ciftciIdStr = ciftci._id.toString();
-        if (veteriner.musteriler.some(m => m.toString() === ciftciIdStr)) {
+        if (veteriner.musteriler.some(m => m && m.toString() === ciftciIdStr)) {
             return res.status(400).json({ message: 'Bu çiftlik zaten hastalarınız arasında ekli.' });
         }
 
@@ -74,12 +73,11 @@ router.post('/musteri-ekle-kod', async (req, res) => {
         }
 
         const veteriner = await User.findById(vetId);
-        if (!veteriner.onaylandi) {
-            return res.status(403).json({ message: 'Hesabınız henüz onaylanmadığı için işlem yapamazsınız.' });
-        }
+        if (!veteriner) return res.status(500).json({ message: 'Veteriner bulunamadı.' });
+        if (!Array.isArray(veteriner.musteriler)) veteriner.musteriler = [];
 
         const ciftciIdStr = ciftci._id.toString();
-        if (veteriner.musteriler.some(m => m.toString() === ciftciIdStr)) {
+        if (veteriner.musteriler.some(m => m && m.toString() === ciftciIdStr)) {
             return res.status(400).json({ message: 'Bu çiftlik zaten hastalarınız arasında ekli.' });
         }
 

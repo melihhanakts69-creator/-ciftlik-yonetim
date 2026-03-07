@@ -23,19 +23,6 @@ const Header = styled.header`
   .meta { font-size: 13px; color: #6b7280; margin-top: 6px; }
 `;
 
-const UnapprovedAlert = styled.div`
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  border-radius: 8px;
-  padding: 14px 18px;
-  margin-bottom: 24px;
-  color: #92400e;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
 const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -188,7 +175,6 @@ const EmptyState = styled.p`
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
 export default function VeterinerDashboard({ kullanici }) {
-  const isApproved = kullanici?.onaylandi;
   const [ozet, setOzet] = useState(null);
   const [musteriler, setMusteriler] = useState([]);
   const [sonSaglik, setSonSaglik] = useState([]);
@@ -253,13 +239,6 @@ export default function VeterinerDashboard({ kullanici }) {
 
   return (
     <Page>
-      {!isApproved && (
-        <UnapprovedAlert>
-          <span>Hesabınız onay bekliyor.</span>
-          <span>Sisteme tam erişim ve reçete/teşhis işlemleri için yönetici onayı gereklidir.</span>
-        </UnapprovedAlert>
-      )}
-
       <Header>
         <p className="title">Veteriner Paneli</p>
         <h1 className="name">Dr. {kullanici?.isim || ''}</h1>
@@ -297,7 +276,6 @@ export default function VeterinerDashboard({ kullanici }) {
             value={kupeArama}
             onChange={e => setKupeArama(e.target.value)}
             placeholder="Küpe numarası (örn. TR-123)"
-            disabled={!isApproved}
           />
           <button type="submit" disabled={kupeLoading || !kupeArama.trim()}>
             {kupeLoading ? 'Aranıyor…' : 'Ara'}

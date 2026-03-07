@@ -59,8 +59,9 @@ router.post('/register', registerValidation, async (req, res) => {
       isim, email, sifre: hashedPassword, telefon, rol,
       // Çiftçi
       isletmeAdi, sehir,
-      // Veteriner
+      // Veteriner (şimdilik admin onayı devre dışı – yeni veteriner otomatik onaylı)
       lisansNo, uzmanlik, klinikAdi,
+      onaylandi: rol === 'veteriner' ? true : undefined,
       // Sütçü
       firmaAdi, bolge,
     });
