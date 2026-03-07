@@ -233,11 +233,16 @@ const ActionBtns = styled.div`
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
+    padding: 8px 10px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 
+    &.iyilesti { color: #2e7d32; background: #e8f5e9; &:hover { background: #c8e6c9; } }
     &.edit { color: #2196F3; &:hover { background: #e3f2fd; } }
     &.delete { color: #f44336; &:hover { background: #ffebee; } }
   }
@@ -398,6 +403,109 @@ const hayvanTipiLabel = {
     tosun: '🐃 Tosun'
 };
 
+// Veterinerler paneli için stiller
+const VetPanelWrap = styled.div`
+  animation: ${fadeIn} 0.4s ease;
+`;
+const VetPanelTitle = styled.h3`
+  margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #1e293b;
+`;
+const VetPanelSub = styled.p`
+  margin: 0 0 24px; font-size: 14px; color: #64748b; line-height: 1.5;
+`;
+const VetCardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+`;
+const VetCard = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+  transition: all 0.25s;
+  &:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+  .vet-name { font-size: 17px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .vet-clinic { font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 14px; }
+  .vet-contact { font-size: 13px; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .vet-contact a { color: #2563eb; text-decoration: none; }
+  .vet-contact a:hover { text-decoration: underline; }
+  .vet-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .vet-actions button { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-danis { background: #4f46e5; color: #fff; }
+  .btn-danis:hover { background: #4338ca; }
+  .btn-ara { background: #e0e7ff; color: #4338ca; }
+  .btn-ara:hover { background: #c7d2fe; }
+`;
+const SohbetBox = styled.div`
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #e2e8f0;
+  .sohbet-title { font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 12px; }
+  textarea { width: 100%; min-height: 100px; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; resize: vertical; box-sizing: border-box; }
+  textarea:focus { outline: none; border-color: #6366f1; }
+  .sohbet-actions { margin-top: 12px; display: flex; gap: 10px; }
+  .sohbet-actions button { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .sohbet-actions button:not(.btn-close) { background: #4f46e5; color: #fff; }
+  .sohbet-actions button:not(.btn-close):hover { background: #4338ca; }
+  .sohbet-actions button.btn-close { background: #e2e8f0; color: #475569; }
+  .sohbet-actions button.btn-close:hover { background: #cbd5e1; }
+`;
+
+// Placeholder veteriner listesi (ileride API ile doldurulacak)
+const ORNEK_VETERINERLER = [
+    { id: '1', isim: 'Dr. Ayşe Yılmaz', klinikAdi: 'Yılmaz Veteriner Kliniği', telefon: '+905551234567', email: 'ayse@vet.com', sehir: 'Ankara' },
+    { id: '2', isim: 'Dr. Mehmet Kaya', klinikAdi: 'Kaya Hayvan Sağlığı', telefon: '+905559876543', email: 'mehmet@vet.com', sehir: 'Ankara' }
+];
+
+function VeterinerlerPanel() {
+    const [seciliVet, setSeciliVet] = useState(null);
+    const [mesaj, setMesaj] = useState('');
+    const vets = ORNEK_VETERINERLER;
+    return (
+        <VetPanelWrap>
+            <VetPanelTitle>Veterinerler (Acil sağlık danışmanı)</VetPanelTitle>
+            <VetPanelSub>
+                Yakın çevrenizdeki veterinerlerle iletişime geçin, danışın veya acil durumlarda hızlıca ulaşın. Sohbet ile mesaj bırakabilir veya doğrudan arayabilirsiniz.
+            </VetPanelSub>
+            <VetCardGrid>
+                {vets.map(v => (
+                    <VetCard key={v.id}>
+                        <div className="vet-name">{v.isim}</div>
+                        <div className="vet-clinic">{v.klinikAdi}</div>
+                        {v.sehir && <div className="vet-contact">📍 {v.sehir}</div>}
+                        {v.telefon && <div className="vet-contact"><a href={`tel:${v.telefon}`}>{v.telefon}</a></div>}
+                        {v.email && <div className="vet-contact"><a href={`mailto:${v.email}`}>{v.email}</a></div>}
+                        <div className="vet-actions">
+                            <button type="button" className="btn-danis" onClick={() => setSeciliVet(seciliVet?.id === v.id ? null : v)}>
+                                💬 Danış / Sohbet
+                            </button>
+                            <a href={`tel:${v.telefon}`} style={{ textDecoration: 'none' }}>
+                                <button type="button" className="btn-ara">📞 Ara</button>
+                            </a>
+                        </div>
+                        {seciliVet?.id === v.id && (
+                            <SohbetBox>
+                                <div className="sohbet-title">Mesajınızı yazın (isteğe bağlı — arayabilirsiniz)</div>
+                                <textarea value={mesaj} onChange={e => setMesaj(e.target.value)} placeholder="Örn: Merhaba, ineklerimden birinde iştahsızlık var, danışmak isterim..." />
+                                <div className="sohbet-actions">
+                                    <a href={`https://wa.me/${v.telefon?.replace(/\D/g, '')}?text=${encodeURIComponent(mesaj || 'Merhaba, çiftliğimden danışmak istiyorum.')}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                        <button type="button">WhatsApp ile gönder</button>
+                                    </a>
+                                    <button type="button" className="btn-close" onClick={() => setSeciliVet(null)}>Kapat</button>
+                                </div>
+                            </SohbetBox>
+                        )}
+                    </VetCard>
+                ))}
+            </VetCardGrid>
+        </VetPanelWrap>
+    );
+}
+
 // =====================
 //  COMPONENT
 // =====================
@@ -548,6 +656,17 @@ function SaglikMerkezi() {
         }
     };
 
+    // Tedavi için İyileşti olarak işaretle
+    const handleIyilesti = async (id) => {
+        try {
+            await api.updateSaglikKaydi(id, { durum: 'iyilesti' });
+            toast.success('İyileşti olarak işaretlendi');
+            veriYukle();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Güncellenemedi');
+        }
+    };
+
     const resetForms = () => {
         setForm({
             hayvanId: '', hayvanTipi: 'inek', tip: 'hastalik',
@@ -646,6 +765,9 @@ function SaglikMerkezi() {
                             }}>
                             <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
                         </Tab>
+                        <Tab active={aktifTab === 'veterinerler'} onClick={() => setAktifTab('veterinerler')}>
+                            🩺 Veterinerler
+                        </Tab>
                     </TabBar>
 
                     <div style={{ flex: 1, width: '100%' }}>
@@ -712,6 +834,11 @@ function SaglikMerkezi() {
                                                         </div>
                                                     </RecordContent>
                                                     <ActionBtns>
+                                                        {k.durum === 'devam_ediyor' && (
+                                                            <button className="iyilesti" onClick={() => handleIyilesti(k._id)} title="İyileşti olarak işaretle">
+                                                                <FaCheckCircle /> İyileşti
+                                                            </button>
+                                                        )}
                                                         <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
                                                     </ActionBtns>
                                                 </RecordCard>
@@ -846,6 +973,11 @@ function SaglikMerkezi() {
                         {/* 🤖 AI DANIŞMAN TAB */}
                         {aktifTab === 'ai' && (
                             <SaglikDanismani />
+                        )}
+
+                        {/* 🩺 VETERİNERLER (Acil sağlık danışmanı) TAB */}
+                        {aktifTab === 'veterinerler' && (
+                            <VeterinerlerPanel />
                         )}
                     </div>
                 </div>
