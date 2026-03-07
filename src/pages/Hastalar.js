@@ -142,19 +142,32 @@ const KayitItem = styled.div`
 `;
 
 const ModalOverlay = styled.div`
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
 `;
 
 const ModalBox = styled.div`
-  background: #fff; width: 100%; max-width: 480px; border-radius: 12px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-  h2 { margin: 0 0 20px; font-size: 18px; color: #111827; }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
-  .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; }
-  .buttons { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-submit { flex: 2; background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-  .btn-cancel { flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  background: #fff; width: 100%; max-width: 520px; border-radius: 14px; box-shadow: 0 24px 48px rgba(0,0,0,0.18);
+  overflow: hidden;
+  .modal-header { background: #f8fafc; padding: 18px 24px; border-bottom: 1px solid #e5e7eb; }
+  .modal-header h2 { margin: 0; font-size: 17px; font-weight: 700; color: #111827; }
+  .modal-header .sub { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  .modal-body { padding: 24px; }
+  .hayvan-badge { display: inline-flex; align-items: center; gap: 8px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+  .hayvan-badge .tip { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; }
+  .form-section { margin-bottom: 20px; }
+  .form-section-title { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+  .form-group input, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #2563eb; }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  .modal-footer { padding: 0 24px 24px; display: flex; gap: 12px; }
+  .btn-submit { flex: 2; background: #2563eb; color: white; border: none; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-submit:hover { background: #1d4ed8; }
+  .btn-cancel { flex: 1; background: #f3f4f6; color: #374151; border: none; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-cancel:hover { background: #e5e7eb; }
 `;
 
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
@@ -431,39 +444,54 @@ export default function Hastalar() {
       {modalOpen && secilenHayvan && (
         <ModalOverlay onClick={() => setModalOpen(false)}>
           <ModalBox onClick={e => e.stopPropagation()}>
-            <h2>{islemTipi === 'tohumlama' ? 'Suni tohumlama' : 'Teşhis ve reçete'}</h2>
+            <div className="modal-header">
+              <h2>{islemTipi === 'tohumlama' ? 'Suni tohumlama kaydı' : 'Teşhis ve reçete'}</h2>
+              <p className="sub">{islemTipi === 'tohumlama' ? 'Tohumlama bilgisini girin, çiftçiye bildirilecek.' : 'Tanı, tedavi ve reçete alanlarını doldurun.'}</p>
+            </div>
             <form onSubmit={handleKayitSubmit}>
-              <div className="form-group" style={{ background: '#f9fafb', padding: 10, borderRadius: 8 }}>
-                <strong>{secilenHayvan.kupeNo}</strong> ({secilenHayvan.tip})
-              </div>
-              {islemTipi === 'hastalik' ? (
-                <>
-                  <div className="form-group">
-                    <label>Tanı / Teşhis</label>
-                    <input required value={formData.tani} onChange={e => setFormData({ ...formData, tani: e.target.value })} placeholder="Örn: Mastitis" />
-                  </div>
-                  <div className="form-group">
-                    <label>Tedavi</label>
-                    <input required value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Uygulanan tedavi" />
-                  </div>
-                  <div className="form-group">
-                    <label>İlaç / Aşı</label>
-                    <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Opsiyonel" />
-                  </div>
-                </>
-              ) : (
-                <div className="form-group">
-                  <label>Tohum (sperma) cinsi</label>
-                  <input required value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Holstein, Simental..." />
+              <div className="modal-body">
+                <div className="hayvan-badge">
+                  <span>{secilenHayvan.kupeNo || '–'}</span>
+                  {secilenHayvan.isim && <span>({secilenHayvan.isim})</span>}
+                  <span className="tip">{secilenHayvan.tip}</span>
                 </div>
-              )}
-              <div className="form-group">
-                <label>Notlar</label>
-                <textarea rows={2} value={formData.notlar} onChange={e => setFormData({ ...formData, notlar: e.target.value })} placeholder="Çiftçiye iletilecek" />
+                {islemTipi === 'hastalik' ? (
+                  <>
+                    <div className="form-section">
+                      <div className="form-section-title">Klinik bilgiler</div>
+                      <div className="form-group">
+                        <label>Tanı / Teşhis *</label>
+                        <input required value={formData.tani} onChange={e => setFormData({ ...formData, tani: e.target.value })} placeholder="Örn: Mastitis, Süt humması" />
+                      </div>
+                      <div className="form-group">
+                        <label>Uygulanan tedavi *</label>
+                        <input required value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Örn: 1 hafta gözlem, antibiyotik" />
+                      </div>
+                      <div className="form-group">
+                        <label>İlaç / Aşı</label>
+                        <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Reçete edilen ilaç (opsiyonel)" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="form-section">
+                    <div className="form-section-title">Tohumlama bilgisi</div>
+                    <div className="form-group">
+                      <label>Tohum (sperma) cinsi *</label>
+                      <input required value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Holstein, Simental" />
+                    </div>
+                  </div>
+                )}
+                <div className="form-section">
+                  <div className="form-section-title">Not (çiftçiye iletilecek)</div>
+                  <div className="form-group">
+                    <textarea value={formData.notlar} onChange={e => setFormData({ ...formData, notlar: e.target.value })} placeholder="Ek not veya öneri..." rows={3} />
+                  </div>
+                </div>
               </div>
-              <div className="buttons">
-                <button type="submit" className="btn-submit">Kaydet ve bildir</button>
+              <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setModalOpen(false)}>İptal</button>
+                <button type="submit" className="btn-submit">Kaydet ve çiftçiye bildir</button>
               </div>
             </form>
           </ModalBox>

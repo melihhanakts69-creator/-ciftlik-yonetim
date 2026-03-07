@@ -20,6 +20,7 @@ const bildirimSchema = new mongoose.Schema({
       'stok',            // Stok kritik seviye uyarısı
       'hastalik',        // Hastalık bildirimi
       'tedavi',          // Tedavi hatırlatması
+      'saglik',          // Veteriner reçete/rapor bildirimi
       'sistem',          // Sistem bildirimi
       'odeme',           // Ödeme hatırlatması
       'diger'

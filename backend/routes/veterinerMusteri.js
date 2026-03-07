@@ -261,7 +261,9 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
         // tip = 'hastalik' | 'tedavi' | 'asi' | 'muayene' | 'tohumlama' vs (Tohumlamayı Saglik kaydı üzerinden tutacağız)
 
         const veteriner = await User.findById(vetId);
-        if (!veteriner.musteriler.some(m => m.toString() === ciftciId)) {
+        if (!veteriner) return res.status(500).json({ message: 'Veteriner bulunamadı.' });
+        if (!Array.isArray(veteriner.musteriler)) veteriner.musteriler = [];
+        if (!veteriner.musteriler.some(m => m && m.toString() === ciftciId)) {
             return res.status(403).json({ message: 'Yetkisiz işlem.' });
         }
 
@@ -296,10 +298,10 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
         const bildirim = new Bildirim({
             userId: ciftciId,
             baslik: 'Yeni Veteriner Raporu',
-            mesaj: mesaj,
+            mesaj,
             tip: 'saglik',
-            baglantiliId: hayvanId,
-            baglantiliModel: hayvanTipi.charAt(0).toUpperCase() + hayvanTipi.slice(1) // Inek, Duve vb
+            hayvanId: hayvanId || undefined,
+            hayvanTipi: hayvanTipi || 'genel'
         });
         await bildirim.save();
 
