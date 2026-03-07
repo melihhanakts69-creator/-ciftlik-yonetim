@@ -60,11 +60,14 @@ const FarmItem = styled.div`
 const AddFarmBlock = styled.div`
   padding: 16px 20px;
   border-top: 1px solid #f3f4f6;
-  .btn { width: 100%; padding: 10px 16px; border: 1px dashed #d1d5db; border-radius: 8px; background: #fff; color: #6b7280; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn { width: 100%; padding: 10px 16px; border: 1px dashed #d1d5db; border-radius: 8px; background: #fff; color: #6b7280; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
+  .btn:last-child { margin-bottom: 0; }
   .btn:hover { border-color: #2563eb; color: #2563eb; }
-  form { display: flex; gap: 8px; margin-top: 10px; }
-  form input { flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; }
+  .btnRow { display: flex; flex-direction: column; gap: 6px; }
+  form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  form input { flex: 1; min-width: 120px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; }
   form button { padding: 10px 16px; border-radius: 8px; border: none; background: #2563eb; color: white; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .formLabel { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
 `;
 
 const DetailPanel = styled.div`
@@ -167,7 +170,9 @@ export default function Hastalar() {
   const [saglikKayitlari, setSaglikKayitlari] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showAddFarm, setShowAddFarm] = useState(false);
+  const [addMode, setAddMode] = useState('kod');
   const [addKod, setAddKod] = useState('');
+  const [addId, setAddId] = useState('');
   const [adding, setAdding] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [secilenHayvan, setSecilenHayvan] = useState(null);
@@ -238,7 +243,7 @@ export default function Hastalar() {
       .finally(() => setDetailLoading(false));
   }, [selectedId]);
 
-  const handleAddFarm = async (e) => {
+  const handleAddFarmByKod = async (e) => {
     e.preventDefault();
     const kod = addKod.trim().toUpperCase();
     if (!kod) { toast.warning('Çiftlik kodu girin.'); return; }
@@ -254,6 +259,30 @@ export default function Hastalar() {
     } finally {
       setAdding(false);
     }
+  };
+
+  const handleAddFarmById = async (e) => {
+    e.preventDefault();
+    const id = addId.trim();
+    if (!id || id.length < 20) { toast.warning('Geçerli bir çiftçi ID girin (24 karakter).'); return; }
+    setAdding(true);
+    try {
+      await api.veterinerMusteriEkle(id);
+      toast.success('Çiftlik eklendi.');
+      setAddId('');
+      setShowAddFarm(false);
+      fetchMusteriler();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Eklenemedi.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const closeAddFarm = () => {
+    setShowAddFarm(false);
+    setAddKod('');
+    setAddId('');
   };
 
   const openModal = (tip, hayvan) => {
@@ -317,12 +346,25 @@ export default function Hastalar() {
         </FarmList>
         <AddFarmBlock>
           {!showAddFarm ? (
-            <button type="button" className="btn" onClick={() => setShowAddFarm(true)}>+ Çiftlik kodu ile ekle</button>
+            <div className="btnRow">
+              <button type="button" className="btn" onClick={() => { setAddMode('kod'); setShowAddFarm(true); }}>+ Çiftlik kodu ile ekle</button>
+              <button type="button" className="btn" onClick={() => { setAddMode('id'); setShowAddFarm(true); }}>+ Çiftçi ID ile ekle</button>
+            </div>
+          ) : addMode === 'kod' ? (
+            <>
+              <button type="button" className="btn" onClick={closeAddFarm}>İptal</button>
+              <div className="formLabel">Çiftlik kodu</div>
+              <form onSubmit={handleAddFarmByKod}>
+                <input value={addKod} onChange={e => setAddKod(e.target.value.toUpperCase())} placeholder="Örn: ABC12XYZ" maxLength={12} />
+                <button type="submit" disabled={adding}>{adding ? '…' : 'Ekle'}</button>
+              </form>
+            </>
           ) : (
             <>
-              <button type="button" className="btn" onClick={() => setShowAddFarm(false)}>İptal</button>
-              <form onSubmit={handleAddFarm}>
-                <input value={addKod} onChange={e => setAddKod(e.target.value.toUpperCase())} placeholder="Çiftlik kodu" maxLength={12} />
+              <button type="button" className="btn" onClick={closeAddFarm}>İptal</button>
+              <div className="formLabel">Çiftçi ID (24 karakter)</div>
+              <form onSubmit={handleAddFarmById}>
+                <input value={addId} onChange={e => setAddId(e.target.value.trim())} placeholder="MongoDB ObjectId" />
                 <button type="submit" disabled={adding}>{adding ? '…' : 'Ekle'}</button>
               </form>
             </>

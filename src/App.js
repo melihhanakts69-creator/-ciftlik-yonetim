@@ -33,6 +33,7 @@ import ToplayiciDashboard from './pages/ToplayiciDashboard';
 import Hastalar from './pages/Hastalar';
 import MusteriDetay from './pages/MusteriDetay';
 import VeterinerStok from './pages/VeterinerStok';
+import Danismalar from './pages/Danismalar';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -133,6 +134,7 @@ function App() {
           <Route path="/hastalar" element={<Hastalar />} />
           <Route path="/hastalar/:id" element={<Hastalar />} />
           <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
+          <Route path="/danismalar" element={<Danismalar />} />
           <Route path="/receteler" element={<VeterinerStok />} />
 
           <Route path="/login" element={<Navigate to="/" replace />} />
