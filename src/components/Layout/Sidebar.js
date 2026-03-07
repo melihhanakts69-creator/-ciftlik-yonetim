@@ -200,11 +200,10 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
   if (role === 'veteriner') {
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/hastalar', name: 'Hastalar', icon: <FaHeartbeat /> },
+      { path: '/danismalar', name: 'Danışmalar', icon: <FaFileAlt /> },
+      { path: '/receteler', name: 'Reçete & Stok', icon: <FaWarehouse /> },
       { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
-      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
-      { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
-      { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
-      { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
     ];
     yonetimItems = [
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
@@ -213,10 +212,10 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
   } else if (role === 'sutcu') {
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
-      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
-      { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
-      { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
-      { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
+      { path: '/sut-toplama', name: 'Süt Teslim Al', icon: <FaGlassWhiskey /> },
+      { path: '/gecmis', name: 'Gemiş Teslimatlar', icon: <FaFileAlt /> },
+      { path: '/rotalar', name: 'Çiftlik Rotaları', icon: <FaSeedling /> },
+      { path: '/performans', name: 'Performans', icon: <FaChartPie /> },
     ];
     yonetimItems = [
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
