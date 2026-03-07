@@ -75,39 +75,16 @@ function App() {
     );
   }
 
-  // --- ROL BAZLI BAĞIMSIZ DASHBOARD KONTROLLERİ ---
-  if (kullanici?.rol === 'veteriner') {
-    return (
-      <>
-        <ToastContainer
-          position="top-right" autoClose={3000} hideProgressBar={false}
-          newestOnTop closeOnClick rtl={false} pauseOnFocusLoss
-          draggable pauseOnHover theme="colored"
-        />
-        <Routes>
-          <Route path="/" element={<VeterinerDashboard kullanici={kullanici} onLogout={handleLogout} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </>
-    );
-  }
-
-  if (kullanici?.rol === 'sutcu' || kullanici?.rol === 'toplayici') {
-    return (
-      <>
-        <ToastContainer
-          position="top-right" autoClose={3000} hideProgressBar={false}
-          newestOnTop closeOnClick rtl={false} pauseOnFocusLoss
-          draggable pauseOnHover theme="colored"
-        />
-        <Routes>
-          <Route path="/" element={<SutcuDashboard kullanici={kullanici} onLogout={handleLogout} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </>
-    );
-  }
-  // ----------------------------------------------
+  // --- ANA UYGULAMA (Layout Dahil) ---
+  const renderHome = () => {
+    if (kullanici?.rol === 'veteriner') {
+      return <VeterinerDashboard kullanici={kullanici} />;
+    }
+    if (kullanici?.rol === 'sutcu' || kullanici?.rol === 'toplayici') {
+      return <SutcuDashboard kullanici={kullanici} />;
+    }
+    return <Home kullanici={kullanici} />;
+  };
 
   return (
     <>
@@ -125,7 +102,7 @@ function App() {
       />
       <Layout onLogout={handleLogout}>
         <Routes>
-          <Route path="/" element={<Home kullanici={kullanici} />} />
+          <Route path="/" element={renderHome()} />
           <Route path="/inekler" element={<IneklerPage />} />
           <Route path="/ayarlar" element={<Ayarlar />} />
           <Route path="/buzagilar" element={<Buzagilar />} />
