@@ -27,41 +27,62 @@ const PageContainer = styled.div`
   }
 `;
 
-const Header = styled.div`
-  display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;
-  h1 { font-size: 32px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.02em; line-height: 1.1;}
-  p { color: #64748b; font-size: 15px; margin: 6px 0 0 0; font-weight: 500; }
-  .btn-add { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; border: none; padding: 14px 24px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4); }
-  .btn-add:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 25px -8px rgba(37, 99, 235, 0.5); }
+const Header = styled.header`
+  margin-bottom: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
+    background: linear-gradient(180deg, #10b981, #3b82f6);
+    border-radius: 10px 0 0 10px;
+  }
+
+  h1 { font-size: 26px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.01em; line-height: 1.1;}
+  p { font-size: 14px; color: #64748b; margin-top: 6px; line-height: 1.5; font-weight: 500;}
+  
+  .btn-add { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.3); }
+  .btn-add:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 20px -4px rgba(16, 185, 129, 0.4); }
 `;
 
 const StatsGrid = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 24px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;
 `;
 
 const StatCard = styled.div`
-  background: #ffffff; border-radius: 20px; padding: 24px; border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative; overflow: hidden;
   &:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 35px -10px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-  .icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;}
+  
+  .icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);}
   .info .val { font-size: 28px; font-weight: 900; color: #0f172a; margin-bottom: 4px; line-height: 1; letter-spacing: -0.01em;}
   .info .lbl { font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;}
 `;
 
 const Card = styled.div`
-  background: #ffffff; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px -15px rgba(0,0,0,0.05); border: 1px solid rgba(226, 232, 240, 0.8); overflow: hidden;
+  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px -15px rgba(0,0,0,0.05); border: 1px solid rgba(226, 232, 240, 0.8); overflow: hidden;
 `;
 
 const Table = styled.table`
   width: 100%; border-collapse: separate; border-spacing: 0; text-align: left;
-  th { background: #f8fafc; color: #475569; font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 16px 20px; border-bottom: 2px solid #e2e8f0; letter-spacing: 0.1em; }
+  th { background: rgba(248, 250, 252, 0.8); color: #475569; font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 16px 20px; border-bottom: 2px solid #e2e8f0; letter-spacing: 0.1em; }
   th:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
   th:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-  td { padding: 18px 20px; border-bottom: 1px solid #f1f5f9; font-size: 15px; color: #0f172a; font-weight: 600; transition: all 0.2s; }
+  td { padding: 18px 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #0f172a; font-weight: 600; transition: all 0.2s; }
   tbody tr { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;}
-  tbody tr:hover td { background: #f8fafc; }
-  tbody tr:hover { transform: scale(1.01); box-shadow: 0 6px 20px -10px rgba(0,0,0,0.05); }
+  tbody tr:hover td { background: rgba(248, 250, 252, 0.8); }
+  tbody tr:hover { transform: scale(1.005) translateX(4px); box-shadow: 0 6px 20px -10px rgba(0,0,0,0.05); }
   
   .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;}
   .bg-blue { background: #e0f2fe; color: #0284c7; }
@@ -114,7 +135,7 @@ export default function VeterinerStok() {
       const vetItems = (items || []).filter(s => s.kategori !== 'Yem');
       setStoklar(vetItems);
     } catch (e) {
-      toast.error('Klinik stok bilgileri çekilemedi.');
+      console.error('Klinik stok bilgileri çekilemedi.', e);
     } finally {
       setLoading(false);
     }

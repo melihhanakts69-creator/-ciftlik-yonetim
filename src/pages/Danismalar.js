@@ -29,7 +29,8 @@ const Page = styled.div`
 const Header = styled.header`
   margin-bottom: 24px;
   padding: 24px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
   border-radius: 20px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
@@ -61,7 +62,8 @@ const Layout = styled.div`
 const ThreadList = styled.div`
   width: 320px;
   flex-shrink: 0;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 20px;
   overflow: hidden;
@@ -73,7 +75,8 @@ const ThreadList = styled.div`
 
 const ThreadListHeader = styled.div`
   padding: 20px 24px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;
   display: flex; align-items: center; justify-content: space-between;
@@ -93,10 +96,10 @@ const ThreadItem = styled.div`
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.06) 0%, rgba(255,255,255,0) 100%)' : 'transparent'};
+  background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.08) 0%, rgba(255,255,255,0) 100%)' : 'transparent'};
   
   &:hover { 
-    background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.06) 0%, rgba(255,255,255,0) 100%)' : '#f8fafc'}; 
+    background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.08) 0%, rgba(255,255,255,0) 100%)' : 'rgba(248, 250, 252, 0.6)'}; 
     padding-left: ${p => p.$active ? '24px' : '28px'};
   }
   
@@ -121,7 +124,8 @@ const ThreadItem = styled.div`
 
 const ChatPanel = styled.div`
   flex: 1;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
@@ -133,7 +137,8 @@ const ChatPanel = styled.div`
 
 const ChatHeader = styled.div`
   padding: 20px 28px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   align-items: center;
@@ -159,7 +164,7 @@ const MsgList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.6);
   scroll-behavior: smooth;
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -194,7 +199,8 @@ const MsgBubble = styled.div`
 
 const ChatInput = styled.div`
   padding: 20px 24px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
   border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   gap: 16px;
