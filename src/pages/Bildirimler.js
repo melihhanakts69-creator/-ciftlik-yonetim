@@ -230,11 +230,13 @@ function Bildirimler() {
   const [bildirimler, setBildirimler] = useState([]);
   const [aktifFiltre, setAktifFiltre] = useState('hepsi');
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [detayBildirim, setDetayBildirim] = useState(null);
 
   const filtreler = [
     { id: 'hepsi', label: 'Tümü', icon: <FaBell /> },
     { id: 'okunmamis', label: 'Okunmamış', icon: <FaBell color="#E91E63" /> },
     { id: 'randevu', label: 'Randevu', icon: <FaCalendarAlt /> },
+    { id: 'mesajlar', label: 'Mesajlar', icon: <FaInfoCircle /> },
     { id: 'saglik', label: 'Sağlık', icon: <FaStethoscope /> },
     { id: 'ureme', label: 'Doğum/Tohum', icon: <FaBaby /> },
     { id: 'stok', label: 'Stok & Yem', icon: <FaBoxOpen /> },
@@ -309,20 +311,30 @@ function Bildirimler() {
         return { icon: <FaExclamationTriangle />, color: '#FF9800', bg: '#FFF3E0' };
       case 'tohumlama': return { icon: <FaInfoCircle />, color: '#673AB7', bg: '#EDE7F6' };
       case 'randevu': return { icon: <FaCalendarAlt />, color: '#0d9488', bg: '#ccfbf1' };
+      case 'danisma': return { icon: <FaInfoCircle />, color: '#7c3aed', bg: '#ede9fe' };
       default: return { icon: <FaBell />, color: '#4CAF50', bg: '#E8F5E9' };
     }
   };
 
-  const [detayBildirim, setDetayBildirim] = useState(null);
+  const handleRandevuDetayAc = async (b) => {
+    setDetayBildirim(b);
+    if (!b.okundu) {
+      try {
+        await api.bildirimOkunduIsaretle(b._id);
+        setBildirimler(prev => prev.map(x => x._id === b._id ? { ...x, okundu: true } : x));
+      } catch {}
+    }
+  };
 
   const filtrelenmis_data = bildirimler.filter(b => {
     if (aktifFiltre === 'hepsi') return true;
     if (aktifFiltre === 'okunmamis') return !b.okundu;
     if (aktifFiltre === 'randevu') return b.tip === 'randevu';
-    if (aktifFiltre === 'saglik') return ['asi', 'muayene', 'hastalik', 'tedavi'].includes(b.tip);
+    if (aktifFiltre === 'mesajlar') return b.tip === 'danisma';
+    if (aktifFiltre === 'saglik') return ['asi', 'muayene', 'hastalik', 'tedavi', 'saglik'].includes(b.tip);
     if (aktifFiltre === 'ureme') return ['dogum', 'tohumlama', 'kizginlik'].includes(b.tip);
     if (aktifFiltre === 'stok') return ['yem', 'stok'].includes(b.tip);
-    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'dogum', 'tohumlama', 'kizginlik', 'yem', 'stok', 'randevu'].includes(b.tip);
+    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'saglik', 'dogum', 'tohumlama', 'kizginlik', 'yem', 'stok', 'randevu', 'danisma'].includes(b.tip);
     return true;
   });
 
@@ -368,7 +380,7 @@ function Bildirimler() {
                 key={b._id}
                 unread={!b.okundu}
                 color={style.color}
-                onClick={b.tip === 'randevu' ? () => setDetayBildirim(b) : undefined}
+                onClick={b.tip === 'randevu' ? () => handleRandevuDetayAc(b) : undefined}
                 style={b.tip === 'randevu' ? { cursor: 'pointer' } : {}}
               >
                 <IconWrapper bg={style.bg} color={style.color}>

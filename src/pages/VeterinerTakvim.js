@@ -67,6 +67,15 @@ const Empty = styled.p`
   padding: 12px 0;
 `;
 
+function getRandevuAralik() {
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 2);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 export default function VeterinerTakvim() {
   const [randevular, setRandevular] = useState([]);
   const [oneriler, setOneriler] = useState([]);
@@ -75,14 +84,16 @@ export default function VeterinerTakvim() {
   const [form, setForm] = useState({ ciftciId: '', baslik: '', tarih: '', saat: '', aciklama: '' });
   const [gonderiyor, setGonderiyor] = useState(false);
 
-  const start = new Date();
-  start.setDate(1);
-  const end = new Date(start);
-  end.setMonth(end.getMonth() + 2);
+  const fetchRandevular = async () => {
+    const { start, end } = getRandevuAralik();
+    const rRes = await api.getVeterinerRandevu(start, end);
+    setRandevular(rRes.data || []);
+  };
 
   useEffect(() => {
+    const { start, end } = getRandevuAralik();
     Promise.all([
-      api.getVeterinerRandevu(start.toISOString(), end.toISOString()),
+      api.getVeterinerRandevu(start, end),
       api.getVeterinerZiyaretOnerileri(),
       api.getVeterinerMusteriler()
     ])
@@ -101,10 +112,9 @@ export default function VeterinerTakvim() {
     setGonderiyor(true);
     try {
       await api.postVeterinerRandevu(form);
-      toast.success('Randevu eklendi.');
+      toast.success('Randevu eklendi ve çiftçiye bildirim gönderildi.');
       setForm({ ciftciId: '', baslik: '', tarih: '', saat: '', aciklama: '' });
-      const rRes = await api.getVeterinerRandevu(start.toISOString(), end.toISOString());
-      setRandevular(rRes.data || []);
+      await fetchRandevular();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Eklenemedi.');
     } finally {

@@ -27,11 +27,14 @@ router.post('/', async (req, res) => {
     if (!gonderen) return res.status(401).json({ message: 'Oturum geçersiz.' });
 
     if (gonderen.rol === 'ciftci' && alici.rol === 'veteriner') {
+      // Çiftçi veterinere yazıyor: veterinerin musteriler listesinde çiftçinin _id'si veya parentUserId'si olmalı
       const musteriler = (alici.musteriler || []).map(m => m.toString());
-      if (!musteriler.includes(gonderenId)) {
+      const gonderenOriginal = req.originalUserId ? req.originalUserId.toString() : gonderenId;
+      if (!musteriler.includes(gonderenId) && !musteriler.includes(gonderenOriginal)) {
         return res.status(403).json({ message: 'Bu veteriner sizi müşteri listesinde yok.' });
       }
     } else if (gonderen.rol === 'veteriner' && alici.rol === 'ciftci') {
+      // Veteriner çiftçiye yazıyor: veterinerin musteriler listesinde alıcı çiftçi olmalı
       const musteriler = (gonderen.musteriler || []).map(m => m && m.toString());
       const ciftciId = aliciId.toString();
       if (!musteriler.includes(ciftciId)) {

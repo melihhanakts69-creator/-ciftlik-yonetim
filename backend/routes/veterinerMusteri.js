@@ -486,7 +486,7 @@ router.post('/randevu', async (req, res) => {
         const vetId = req.originalUserId;
         const { ciftciId, baslik, tarih, saat, aciklama } = req.body;
         if (!ciftciId || !baslik || !tarih) return res.status(400).json({ message: 'Çiftçi, başlık ve tarih gerekli.' });
-        const veteriner = await User.findById(vetId).select('musteriler');
+        const veteriner = await User.findById(vetId).select('musteriler isim klinikAdi').lean();
         if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
             return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
         }
@@ -499,8 +499,7 @@ router.post('/randevu', async (req, res) => {
             aciklama: (aciklama || '').trim(),
             durum: 'planlandi'
         });
-        const vet = await User.findById(vetId).select('isim klinikAdi').lean();
-        const vetAd = vet ? (vet.klinikAdi || vet.isim || 'Veteriner') : 'Veteriner';
+        const vetAd = veteriner.klinikAdi || veteriner.isim || 'Veteriner';
         const tarihStr = new Date(tarih).toLocaleDateString('tr-TR');
         const saatStr = (saat || '').trim() || '—';
         const randevuTarih = new Date(tarih);
