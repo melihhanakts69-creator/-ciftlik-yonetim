@@ -10,7 +10,21 @@ const Page = styled.div`
   display: flex;
   height: calc(100vh - 60px);
   min-height: 400px;
-  background: linear-gradient(180deg, #f0f9ff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.08) 0%, transparent 25%),
+      radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 25%);
+    z-index: -1;
+    pointer-events: none;
+  }
   @media (max-width: 900px) { flex-direction: column; height: auto; min-height: auto; }
 `;
 

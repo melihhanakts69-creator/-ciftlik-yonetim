@@ -9,6 +9,19 @@ const PageContainer = styled.div`
   animation: fadeIn 0.4s ease;
   font-family: 'Inter', sans-serif;
   color: #333;
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(16, 185, 129, 0.06) 0%, transparent 25%),
+      radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.06) 0%, transparent 25%);
+    z-index: -1;
+    pointer-events: none;
+  }
 `;
 
 const Header = styled.div`

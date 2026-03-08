@@ -7,11 +7,25 @@ import * as api from '../services/api';
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); }`;
 
 const Page = styled.div`
-  animation: ${fadeIn} 0.35s ease;
+  animation: ${fadeIn} 0.4s ease;
   font-family: 'Inter', -apple-system, sans-serif;
   color: #1a1a1a;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 20%),
+      radial-gradient(circle at 80% 60%, rgba(14, 165, 233, 0.08) 0%, transparent 20%),
+      radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 20%);
+    z-index: -1;
+    pointer-events: none;
+  }
 `;
 
 const Header = styled.header`
