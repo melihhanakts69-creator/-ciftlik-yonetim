@@ -21,6 +21,7 @@ const bildirimSchema = new mongoose.Schema({
       'hastalik',        // Hastalık bildirimi
       'tedavi',          // Tedavi hatırlatması
       'saglik',          // Veteriner reçete/rapor bildirimi
+      'danisma',         // Danışma mesajı (çiftçi–veteriner)
       'sistem',          // Sistem bildirimi
       'odeme',           // Ödeme hatırlatması
       'diger'

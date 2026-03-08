@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 const DanismaMesaji = require('../models/DanismaMesaji');
+const Bildirim = require('../models/Bildirim');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
     }
     const alici = await User.findById(aliciId).select('rol musteriler');
     if (!alici) return res.status(404).json({ message: 'Alıcı bulunamadı.' });
-    const gonderen = await User.findById(gonderenId).select('rol musteriler');
+    const gonderen = await User.findById(gonderenId).select('rol musteriler isim isletmeAdi');
     if (!gonderen) return res.status(401).json({ message: 'Oturum geçersiz.' });
 
     if (gonderen.rol === 'ciftci' && alici.rol === 'veteriner') {
@@ -44,6 +45,16 @@ router.post('/', async (req, res) => {
       gonderenId: new mongoose.Types.ObjectId(gonderenId),
       aliciId: new mongoose.Types.ObjectId(aliciId),
       mesaj: mesaj.trim(),
+    });
+    const gonderenAd = (gonderen.isletmeAdi || gonderen.isim || 'Biri').toString();
+    const mesajKisa = mesaj.trim().length > 120 ? mesaj.trim().slice(0, 117) + '...' : mesaj.trim();
+    await Bildirim.create({
+      userId: new mongoose.Types.ObjectId(aliciId),
+      tip: 'danisma',
+      baslik: `${gonderenAd} size danışma mesajı gönderdi`,
+      mesaj: mesajKisa,
+      oncelik: 'normal',
+      metadata: { danismaMesajiId: doc._id, gonderenId },
     });
     const populated = await DanismaMesaji.findById(doc._id)
       .populate('gonderenId', 'isim isletmeAdi')

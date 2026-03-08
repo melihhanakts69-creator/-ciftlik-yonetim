@@ -85,25 +85,28 @@ const ChatHeader = styled.div`
 const MsgList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-height: 240px;
   max-height: 420px;
-  background: #f4f4f5;
+  background: #eef2f7;
 `;
 
 const MsgBubble = styled.div`
-  max-width: 85%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px; line-height: 1.45;
+  max-width: 78%;
+  padding: 11px 14px;
+  font-size: 13px;
+  line-height: 1.45;
   word-break: break-word;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  ${p => p.$ben ? 'align-self: flex-end;' : 'align-self: flex-start;'}
-  .time { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+  border: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  ${p => p.$ben
+    ? 'align-self: flex-end; background: #0ea5e9; color: #fff; border-radius: 14px 14px 4px 14px;'
+    : 'align-self: flex-start; background: #fff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 14px 14px 14px 4px;'}
+  .time { font-size: 10px; margin-top: 4px; opacity: 0.85; }
+  ${p => !p.$ben && '.time { color: #64748b; opacity: 1; }'}
 `;
 
 const ChatInput = styled.div`

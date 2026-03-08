@@ -473,22 +473,36 @@ const DanismaPanel = styled.div`
     min-height: 200px;
     max-height: 320px;
     overflow-y: auto;
-    padding: 12px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background: #f4f4f5;
+    gap: 12px;
+    background: #eef2f7;
   }
   .msg-bubble {
-    max-width: 88%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 13px; line-height: 1.45;
+    max-width: 78%;
+    padding: 11px 14px;
+    font-size: 13px;
+    line-height: 1.45;
     word-break: break-word;
+    border: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   }
-  .msg-bubble.ben { align-self: flex-end; background: #fff; border: 1px solid #e5e7eb; color: #111827; }
-  .msg-bubble.vet { align-self: flex-start; background: #fff; border: 1px solid #e5e7eb; color: #374151; }
-  .msg-time { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+  .msg-bubble.ben {
+    align-self: flex-end;
+    background: #0ea5e9;
+    color: #fff;
+    border-radius: 14px 14px 4px 14px;
+  }
+  .msg-bubble.vet {
+    align-self: flex-start;
+    background: #fff;
+    color: #1e293b;
+    border-radius: 14px 14px 14px 4px;
+    border: 1px solid #e2e8f0;
+  }
+  .msg-bubble .msg-time { font-size: 10px; opacity: 0.85; margin-top: 4px; }
+  .msg-bubble.vet .msg-time { color: #64748b; opacity: 1; }
   .panel-input {
     padding: 12px;
     background: #fff;
