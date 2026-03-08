@@ -43,8 +43,8 @@ router.post('/register', registerValidation, async (req, res) => {
     if (!isim || !email || !sifre) {
       return res.status(400).json({ message: 'İsim, email ve şifre zorunludur.' });
     }
-    if (!['ciftci', 'veteriner', 'sutcu', 'toplayici'].includes(rol)) {
-      return res.status(400).json({ message: 'Geçersiz rol.' });
+    if (!['ciftci', 'veteriner', 'toplayici'].includes(rol)) {
+      return res.status(400).json({ message: 'Geçersiz rol. İşçi hesabı sadece çiftlik sahibi tarafından oluşturulabilir.' });
     }
 
     // Aynı email + aynı rol zaten kayıtlı ise hata dön
@@ -141,11 +141,12 @@ router.post('/login', loginValidation, async (req, res) => {
 
     if (!user) {
       // Aynı email'in başka rolde kaydı var mı kontrol et
-      const digerRoller = ['ciftci', 'veteriner', 'sutcu'].filter(r => r !== rol);
+      const digerRoller = ['ciftci', 'veteriner', 'toplayici', 'sutcu'].filter(r => r !== rol);
       const digerHesap = await User.findOne({ email: email.toLowerCase(), rol: { $in: digerRoller } });
 
       if (digerHesap) {
-        const digerRolLabel = digerHesap.rol === 'ciftci' ? 'Çiftçi 🐄' : digerHesap.rol === 'veteriner' ? 'Veteriner 🩺' : 'Süt Toplayıcı 🥛';
+        const rolLabels = { ciftci: 'Çiftçi 🐄', veteriner: 'Veteriner 🩺', toplayici: 'Süt Toplayıcı 🥛', sutcu: 'İşçi 👷' };
+        const digerRolLabel = rolLabels[digerHesap.rol] || digerHesap.rol;
         return res.status(400).json({
           message: `Bu email, ${digerRolLabel} olarak kayıtlı! Lütfen giriş sayfasında doğru profili seçin.`,
           digerRol: digerHesap.rol
@@ -162,15 +163,11 @@ router.post('/login', loginValidation, async (req, res) => {
 
     if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış.' });
 
-    // --- AUTO-FIX: Eski / Bozuk İşçi (Sütçü) Hesaplarını Kurtar ---
-    // Eğer giren kişi işçi ise ve patronu (parentUserId) atanmamışsa onu sistemdeki ilk çiftçiye bağla.
-    // Bu sayede eski kayıtlardaki "0 hayvan" ve "undefined isletmeAdi" hataları kökten çözülür.
+    // İşçi (sutcu) hesabı parentUserId olmadan giriş yapamasın
     if (user.rol === 'sutcu' && !user.parentUserId) {
-      const ilkCiftci = await User.findOne({ rol: 'ciftci' });
-      if (ilkCiftci) {
-        user.parentUserId = ilkCiftci._id;
-        user.isletmeAdi = ilkCiftci.isletmeAdi;
-      }
+      return res.status(403).json({
+        message: 'İşçi hesabınız bir çiftliğe bağlı değil. Çiftlik sahibinizden hesabınızı oluşturmasını isteyin.'
+      });
     }
 
     user.sonGiris = new Date();
@@ -383,8 +380,8 @@ router.post('/sub-accounts', require('../middleware/auth'), async (req, res) => 
       return res.status(400).json({ message: 'İsim, email, şifre ve rol zorunludur.' });
     }
 
-    if (!['veteriner', 'sutcu'].includes(rol)) {
-      return res.status(400).json({ message: 'Alt personel rolü sadece veteriner veya sutcu olabilir.' });
+    if (rol !== 'sutcu') {
+      return res.status(400).json({ message: 'Alt personel rolü sadece işçi (sütçü/sağımcı) olabilir. Veteriner ve toplayıcı bağımsız profil açmalıdır.' });
     }
 
     const mevcutUser = await User.findOne({ email: email.toLowerCase(), rol });

@@ -37,7 +37,7 @@ const LogoImg = styled.img`width: 140px; height: auto; filter: drop-shadow(0 4px
 const Tagline = styled.p`color: #475569; font-size: 13px; margin: 8px 0 0; font-weight: 500;`;
 
 // Role selector
-const RoleGrid = styled.div`display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;`;
+const RoleGrid = styled.div`display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; @media (max-width: 480px) { grid-template-columns: repeat(2, 1fr); }`;
 const RoleCard = styled.button`
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 16px 8px; border-radius: 14px; cursor: pointer; transition: all 0.2s;
@@ -197,7 +197,7 @@ export default function Login({ onLoginSuccess }) {
         {/* GİRİŞ / KAYIT TAB */}
         <Tabs>
           <Tab $active={!kayitModu} type="button" onClick={() => { setKayitModu(false); setError(''); setSeciliRol('ciftci'); }}>Giriş Yap</Tab>
-          <Tab $active={kayitModu} type="button" onClick={() => { setKayitModu(true); setError(''); setSeciliRol('ciftci'); }}>Ücretsiz İhtiyaclar</Tab>
+          <Tab $active={kayitModu} type="button" onClick={() => { setKayitModu(true); setError(''); setSeciliRol('ciftci'); }}>Kayıt Ol</Tab>
         </Tabs>
 
         {/* ROL SEÇİCİ */}
@@ -268,7 +268,7 @@ export default function Login({ onLoginSuccess }) {
               {inp('klinikAdi', 'Klinik veya çalıştığınız yer', 'Klinik / Hastane Adı')}
               {inp('sehir', 'Şehir / İlçe', 'Hizmet Verdiğiniz Şehir')}
               <AlertBox style={{ fontSize: 12 }}>
-                ℹ️ Kaydınız admin onayından sonra aktif olacak.
+                ℹ️ Kayıt sonrası hemen giriş yapabilirsiniz. Çiftlik sahipleri sizi çiftlik kodu / ID ile ekleyecektir.
               </AlertBox>
             </>)}
 

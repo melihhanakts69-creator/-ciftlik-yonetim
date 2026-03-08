@@ -97,6 +97,11 @@ function App() {
     return <Home kullanici={kullanici} />;
   };
 
+  const rol = kullanici?.rol;
+  const isCiftci = rol === 'ciftci' || rol === 'sutcu';
+  const isVet = rol === 'veteriner';
+  const isToplayici = rol === 'toplayici';
+
   return (
     <>
       <ToastContainer
@@ -114,33 +119,49 @@ function App() {
       <Layout onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={renderHome()} />
-          <Route path="/inekler" element={<IneklerPage />} />
           <Route path="/ayarlar" element={<Ayarlar />} />
-          <Route path="/buzagilar" element={<Buzagilar />} />
-          <Route path="/duveler" element={<Duveler />} />
-          <Route path="/tosunlar" element={<Tosunlar />} />
-          <Route path="/sut-kaydi" element={<SutKaydiPage />} />
-          <Route path="/inek-detay/:id" element={<InekDetay />} />
-          <Route path="/duve-detay/:id" element={<DuveDetay />} />
-          <Route path="/tosun-detay/:id" element={<TosunDetay />} />
-          <Route path="/buzagi-detay/:id" element={<BuzagiDetay />} />
-          <Route path="/finansal" element={<Finansal />} />
           <Route path="/bildirimler" element={<Bildirimler />} />
-          <Route path="/aktiviteler" element={<Aktiviteler />} />
-          <Route path="/raporlar" element={<Raporlar />} />
-          <Route path="/yem-merkezi" element={<YemMerkezi />} />
-          <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
-          <Route path="/takvim" element={kullanici?.rol === 'veteriner' ? <VeterinerTakvim /> : <Takvim />} />
-          <Route path="/stok-yonetimi" element={<StokYonetimi />} />
-          
-          {/* Veteriner Özel Sayfaları */}
-          <Route path="/hastalar" element={<Hastalar />} />
-          <Route path="/hastalar/:id" element={<Hastalar />} />
-          <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
-          <Route path="/danismalar" element={<Danismalar />} />
-          <Route path="/finans" element={<VeterinerFinans />} />
-          <Route path="/receteler" element={<VeterinerStok />} />
-          <Route path="/rapor" element={<VeterinerRapor />} />
+
+          {/* Çiftçi & İşçi ortak route'lar */}
+          {isCiftci && <>
+            <Route path="/inekler" element={<IneklerPage />} />
+            <Route path="/buzagilar" element={<Buzagilar />} />
+            <Route path="/duveler" element={<Duveler />} />
+            <Route path="/tosunlar" element={<Tosunlar />} />
+            <Route path="/sut-kaydi" element={<SutKaydiPage />} />
+            <Route path="/inek-detay/:id" element={<InekDetay />} />
+            <Route path="/duve-detay/:id" element={<DuveDetay />} />
+            <Route path="/tosun-detay/:id" element={<TosunDetay />} />
+            <Route path="/buzagi-detay/:id" element={<BuzagiDetay />} />
+            <Route path="/takvim" element={<Takvim />} />
+            <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
+            <Route path="/yem-merkezi" element={<YemMerkezi />} />
+            <Route path="/stok-yonetimi" element={<StokYonetimi />} />
+            <Route path="/aktiviteler" element={<Aktiviteler />} />
+            <Route path="/raporlar" element={<Raporlar />} />
+          </>}
+
+          {/* Sadece çiftçi (patron) — işçinin görmemesi gereken */}
+          {rol === 'ciftci' && <>
+            <Route path="/finansal" element={<Finansal />} />
+          </>}
+
+          {/* Veteriner özel route'lar */}
+          {isVet && <>
+            <Route path="/hastalar" element={<Hastalar />} />
+            <Route path="/hastalar/:id" element={<Hastalar />} />
+            <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
+            <Route path="/danismalar" element={<Danismalar />} />
+            <Route path="/finans" element={<VeterinerFinans />} />
+            <Route path="/receteler" element={<VeterinerStok />} />
+            <Route path="/takvim" element={<VeterinerTakvim />} />
+            <Route path="/rapor" element={<VeterinerRapor />} />
+          </>}
+
+          {/* Süt Toplayıcı */}
+          {isToplayici && <>
+            <Route path="/takvim" element={<Takvim />} />
+          </>}
 
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<NotFound />} />

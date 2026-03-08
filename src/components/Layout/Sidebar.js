@@ -212,14 +212,18 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
     ];
   } else if (role === 'sutcu') {
+    // İşçi (sub-account of çiftçi) — çiftçi verilerine erişir ama finansal/ayarları görmez
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
-      { path: '/sut-toplama', name: 'Süt Teslim Al', icon: <FaGlassWhiskey /> },
-      { path: '/gecmis', name: 'Gemiş Teslimatlar', icon: <FaFileAlt /> },
-      { path: '/rotalar', name: 'Çiftlik Rotaları', icon: <FaSeedling /> },
-      { path: '/performans', name: 'Performans', icon: <FaChartPie /> },
+      { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
+      { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
+      { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
+      { path: '/buzagilar', name: 'Buzağılar', icon: <FaBaby /> },
+      { path: '/duveler', name: 'Düveler', icon: <FaVenus /> },
+      { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
     ];
     yonetimItems = [
+      { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
     ];
@@ -228,10 +232,11 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
     ];
     yonetimItems = [
+      { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
     ];
   } else {
-    // Çiftçi (Admin)
+    // Çiftçi (Ana Patron)
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
       { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
@@ -245,7 +250,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/stok-yonetimi', name: 'Stok Yönetimi', icon: <FaWarehouse /> },
       { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
-      ...(role !== 'isci' ? [{ path: '/finansal', name: 'Finansal', icon: <FaWallet /> }] : []),
+      { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
       { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
@@ -269,7 +274,9 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
 
       <MenuArea>
         <MenuSection>
-          <SectionTitle>Hayvanlar</SectionTitle>
+          <SectionTitle>
+            {role === 'veteriner' ? 'Klinik' : role === 'toplayici' ? 'Toplama' : 'Çiftlik'}
+          </SectionTitle>
           {menuItems.map((item, index) => (
             <StyledNavLink
               key={index}
