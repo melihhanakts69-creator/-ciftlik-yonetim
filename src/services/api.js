@@ -179,6 +179,11 @@ export const updateSaglikKaydi = (id, data) => api.put(`/saglik/${id}`, data);
 export const deleteSaglikKaydi = (id) => api.delete(`/saglik/${id}`);
 export const getVeterinerlerim = () => api.get('/saglik/veterinerlerim');
 
+// Danışma (çiftçi–veteriner mesajlaşma)
+export const getDanismaThreads = () => api.get('/danismalar');
+export const getDanismaMesajlar = (otherUserId) => api.get(`/danismalar/${otherUserId}`);
+export const postDanismaMesaj = (aliciId, mesaj) => api.post('/danismalar', { aliciId, mesaj });
+
 // AŞI TAKVİMİ
 export const getAsiTakvimi = (params = {}) => {
   const query = new URLSearchParams(params).toString();

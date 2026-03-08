@@ -448,51 +448,77 @@ const VetCard = styled.div`
   .btn-ara:hover { background: #c7d2fe; }
 `;
 const DanismaPanel = styled.div`
-  width: 380px;
+  width: 400px;
   flex-shrink: 0;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  border: 1px solid #e2e8f0;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: ${fadeIn} 0.3s ease;
+  animation: ${fadeIn} 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   .panel-header {
-    padding: 20px;
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-    color: #fff;
+    padding: 16px 18px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
   }
-  .panel-header h4 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
-  .panel-header .clinic { font-size: 13px; opacity: 0.95; margin-bottom: 12px; }
-  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; }
-  .panel-header .contacts a { color: #fff; text-decoration: underline; opacity: 0.95; }
-  .panel-body {
-    padding: 20px;
+  .panel-header h4 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: #111827; }
+  .panel-header .clinic { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
+  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+  .panel-header .contacts a { color: #2563eb; text-decoration: none; }
+  .panel-header .contacts a:hover { text-decoration: underline; }
+  .msg-list {
     flex: 1;
+    min-height: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
+    background: #f4f4f5;
   }
-  .sohbet-title { font-size: 13px; font-weight: 700; color: #475569; }
-  textarea {
-    width: 100%;
-    min-height: 120px;
-    padding: 14px;
+  .msg-bubble {
+    max-width: 88%;
+    padding: 10px 14px;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    font-size: 14px;
-    resize: vertical;
+    font-size: 13px; line-height: 1.45;
+    word-break: break-word;
+  }
+  .msg-bubble.ben { align-self: flex-end; background: #fff; border: 1px solid #e5e7eb; color: #111827; }
+  .msg-bubble.vet { align-self: flex-start; background: #fff; border: 1px solid #e5e7eb; color: #374151; }
+  .msg-time { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+  .panel-input {
+    padding: 12px;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel-input textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    resize: none;
     box-sizing: border-box;
     font-family: inherit;
+    background: #fafafa;
   }
-  textarea:focus { outline: none; border-color: #6366f1; }
-  .sohbet-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .sohbet-actions button { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-  .sohbet-actions button:not(.btn-close) { background: #4f46e5; color: #fff; }
-  .sohbet-actions button:not(.btn-close):hover { background: #4338ca; }
-  .sohbet-actions button.btn-close { background: #e2e8f0; color: #475569; }
-  .sohbet-actions button.btn-close:hover { background: #cbd5e1; }
+  .panel-input textarea:focus { outline: none; border-color: #d1d5db; background: #fff; }
+  .panel-input .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .panel-input .row button { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-gonder { background: #111827; color: #fff; }
+  .btn-gonder:hover { background: #374151; }
+  .btn-gonder:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-wa { background: #f3f4f6; color: #374151; }
+  .btn-wa:hover { background: #e5e7eb; }
+  .btn-kapat { background: transparent; color: #6b7280; }
+  .btn-kapat:hover { background: #f3f4f6; }
 `;
 const VetEmpty = styled.div`
   text-align: center;
@@ -510,15 +536,46 @@ function VeterinerlerPanel() {
     const [yukleniyor, setYukleniyor] = useState(true);
     const [seciliVet, setSeciliVet] = useState(null);
     const [mesaj, setMesaj] = useState('');
+    const [mesajlar, setMesajlar] = useState([]);
+    const [mesajYukleniyor, setMesajYukleniyor] = useState(false);
+    const [gonderiyor, setGonderiyor] = useState(false);
+    const [benimId, setBenimId] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
+        api.getProfile().then(res => { if (!cancelled && res?.data) setBenimId(res.data.parentUserId || res.data._id); }).catch(() => {});
         api.getVeterinerlerim()
             .then(res => { if (!cancelled) setVets(Array.isArray(res.data) ? res.data : []); })
             .catch(() => { if (!cancelled) setVets([]); })
             .finally(() => { if (!cancelled) setYukleniyor(false); });
         return () => { cancelled = true; };
     }, []);
+
+    useEffect(() => {
+        if (!seciliVet?._id) { setMesajlar([]); return; }
+        setMesajYukleniyor(true);
+        api.getDanismaMesajlar(seciliVet._id)
+            .then(res => { setMesajlar(Array.isArray(res.data) ? res.data : []); })
+            .catch(() => setMesajlar([]))
+            .finally(() => setMesajYukleniyor(false));
+    }, [seciliVet?._id]);
+
+    const handleGonder = async (e) => {
+        e.preventDefault();
+        const metin = (mesaj || '').trim();
+        if (!metin || !seciliVet?._id || gonderiyor) return;
+        setGonderiyor(true);
+        try {
+            await api.postDanismaMesaj(seciliVet._id, metin);
+            setMesaj('');
+            const res = await api.getDanismaMesajlar(seciliVet._id);
+            setMesajlar(Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Mesaj gönderilemedi.');
+        } finally {
+            setGonderiyor(false);
+        }
+    };
 
     const telNum = seciliVet?.telefon ? String(seciliVet.telefon).replace(/\D/g, '') : '';
     const whatsappUrl = telNum
@@ -529,7 +586,7 @@ function VeterinerlerPanel() {
         <VetPanelWrap>
             <VetPanelTitle>Veterinerler (Acil sağlık danışmanı)</VetPanelTitle>
             <VetPanelSub>
-                Sizi müşteri olarak ekleyen veterinerler burada listelenir. Danışmak için bir veteriner seçin; sağda açılan pencereden mesaj yazıp WhatsApp ile iletebilir veya doğrudan arayabilirsiniz.
+                Sizi müşteri olarak ekleyen veterinerler burada listelenir. Bir veteriner seçin; sağdaki pencereden uygulama içi yazışma yapabilir veya WhatsApp ile iletebilirsiniz.
             </VetPanelSub>
             {yukleniyor ? (
                 <VetEmpty>Yükleniyor...</VetEmpty>
@@ -567,24 +624,45 @@ function VeterinerlerPanel() {
                                 <h4>{seciliVet.isim}</h4>
                                 {seciliVet.klinikAdi && <div className="clinic">{seciliVet.klinikAdi}</div>}
                                 <div className="contacts">
-                                    {seciliVet.telefon && <a href={`tel:${seciliVet.telefon}`}>📞 {seciliVet.telefon}</a>}
-                                    {seciliVet.email && <a href={`mailto:${seciliVet.email}`}>✉️ E-posta</a>}
+                                    {seciliVet.telefon && <a href={`tel:${seciliVet.telefon}`} onClick={e => e.stopPropagation()}>📞 {seciliVet.telefon}</a>}
+                                    {seciliVet.email && <a href={`mailto:${seciliVet.email}`} onClick={e => e.stopPropagation()}>✉️ E-posta</a>}
                                 </div>
                             </div>
-                            <div className="panel-body">
-                                <div className="sohbet-title">Danışma mesajınızı yazın</div>
+                            <div className="msg-list">
+                                {mesajYukleniyor ? (
+                                    <div style={{ textAlign: 'center', color: '#6b7280', fontSize: 13 }}>Yükleniyor…</div>
+                                ) : mesajlar.length === 0 ? (
+                                    <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Henüz mesaj yok. İlk mesajı siz yazın.</div>
+                                ) : (
+                                    mesajlar.map(m => {
+                                        const gonderenId = (m.gonderenId && (m.gonderenId._id || m.gonderenId)) || '';
+                                        const benim = String(gonderenId) === String(benimId);
+                                        return (
+                                            <div key={m._id} className={`msg-bubble ${benim ? 'ben' : 'vet'}`}>
+                                                <div>{m.mesaj}</div>
+                                                <div className="msg-time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            <div className="panel-input">
                                 <textarea
                                     value={mesaj}
                                     onChange={e => setMesaj(e.target.value)}
-                                    placeholder="Örn: Merhaba, ineklerimden birinde iştahsızlık var, danışmak isterim..."
+                                    placeholder="Mesajınızı yazın..."
+                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGonder(e); } }}
                                 />
-                                <div className="sohbet-actions">
+                                <div className="row">
+                                    <button type="button" className="btn-gonder" onClick={handleGonder} disabled={!mesaj.trim() || gonderiyor}>
+                                        {gonderiyor ? '…' : 'Gönder'}
+                                    </button>
                                     {whatsappUrl && (
                                         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                                            <button type="button">WhatsApp ile gönder</button>
+                                            <button type="button" className="btn-wa">WhatsApp ile gönder</button>
                                         </a>
                                     )}
-                                    <button type="button" className="btn-close" onClick={() => setSeciliVet(null)}>Kapat</button>
+                                    <button type="button" className="btn-kapat" onClick={() => setSeciliVet(null)}>Kapat</button>
                                 </div>
                             </div>
                         </DanismaPanel>
