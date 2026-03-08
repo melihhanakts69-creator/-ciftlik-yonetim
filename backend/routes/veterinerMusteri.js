@@ -432,7 +432,7 @@ router.post('/finans/tahsilat', async (req, res) => {
     }
 });
 
-// Borç hatırlatması: Çiftçiye "X TL borcunuz var" bildirimi atar (vet tetikler; ileride cron ile otomatik yapılabilir)
+// Borç hatırlatması: Çiftçiye "X TL borcunuz var" bildirimi atar
 router.post('/finans/hatirlatma-gonder/:ciftciId', async (req, res) => {
     try {
         const vetId = req.originalUserId;

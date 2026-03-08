@@ -229,6 +229,7 @@ export const postMusteriHayvanSaglik = (ciftciId, hayvanId, payload) =>
 export const getVeterinerCari = () => api.get('/veteriner/finans/cari');
 export const getVeterinerCariDetay = (ciftciId) => api.get(`/veteriner/finans/cari/${ciftciId}`);
 export const postVeterinerTahsilat = (data) => api.post('/veteriner/finans/tahsilat', data);
+export const postVeterinerFatura = (data) => api.post('/veteriner/finans/fatura', data);
 export const postVeterinerHatirlatma = (ciftciId) => api.post(`/veteriner/finans/hatirlatma-gonder/${ciftciId}`);
 
 export const getVeterinerRandevu = (baslangic, bitis) => api.get('/veteriner/randevu', { params: { baslangic, bitis } });

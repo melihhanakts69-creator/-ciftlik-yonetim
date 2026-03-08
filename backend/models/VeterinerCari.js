@@ -13,8 +13,16 @@ const veterinerCariSchema = new mongoose.Schema({
   saglikKaydiId: { type: mongoose.Schema.Types.ObjectId, ref: 'SaglikKaydi', default: null },
   tarih: { type: Date, default: Date.now },
   vadeTarihi: { type: Date, default: null },
-  odemeTarihi: { type: Date, default: null },                 // Son tahsilat tarihi (veya kapatıldığında)
+  odemeTarihi: { type: Date, default: null },                 // Son tahsilat tarihi
   durum: { type: String, enum: ['acik', 'kapali'], default: 'acik' },
+  // Fatura bilgileri
+  tip: { type: String, enum: ['saglik', 'manuel', 'diger'], default: 'saglik' },
+  fatura_no: { type: String, trim: true, default: null },
+  hizmetler: [{
+    ad: { type: String, trim: true },
+    miktar: { type: Number, default: 1 },
+    birimFiyat: { type: Number, default: 0 },
+  }],
 }, { timestamps: true });
 
 veterinerCariSchema.index({ veterinerId: 1, ciftciId: 1, tarih: -1 });
