@@ -7,6 +7,10 @@ const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const Bildirim = require('../models/Bildirim');
+const VeterinerCari = require('../models/VeterinerCari');
+const VeterinerRandevu = require('../models/VeterinerRandevu');
+const Finansal = require('../models/Finansal');
+const AsiTakvimi = require('../models/AsiTakvimi');
 const Tenant = require('../models/Tenant');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
@@ -257,7 +261,7 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     try {
         const { ciftciId, hayvanId } = req.params;
         const vetId = req.originalUserId;
-        const { hayvanTipi, hayvanIsim, hayvanKupeNo, tip, tani, belirtiler, tedavi, ilaclar, notlar } = req.body;
+        const { hayvanTipi, hayvanIsim, hayvanKupeNo, tip, tani, belirtiler, tedavi, ilaclar, notlar, maliyet } = req.body;
         // tip = 'hastalik' | 'tedavi' | 'asi' | 'muayene' | 'tohumlama' vs (Tohumlamayı Saglik kaydı üzerinden tutacağız)
 
         const veteriner = await User.findById(vetId);
@@ -270,7 +274,7 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
         const ciftci = await User.findById(ciftciId).select('tenantId');
         const farmTenantId = ciftci && ciftci.tenantId ? ciftci.tenantId : null;
 
-        // Yeni Sağlık Kaydı (çiftliğin userId ve tenantId'si ile)
+        const maliyetTutar = typeof maliyet === 'number' && maliyet > 0 ? maliyet : (parseFloat(maliyet) || 0);
         const yeniKayit = new SaglikKaydi({
             userId: ciftciId,
             tenantId: farmTenantId,
@@ -284,10 +288,34 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
             tedavi,
             ilaclar,
             veteriner: `Dr. ${veteriner.isim} (Klinik: ${veteriner.klinikAdi || 'Serbest'})`,
-            notlar
+            notlar,
+            maliyet: maliyetTutar
         });
 
         await yeniKayit.save();
+
+        if (maliyetTutar > 0) {
+            await VeterinerCari.create({
+                veterinerId: vetId,
+                ciftciId,
+                tutar: maliyetTutar,
+                aciklama: `${tani || tip}${hayvanKupeNo ? ` (${hayvanKupeNo})` : ''}`.slice(0, 200),
+                saglikKaydiId: yeniKayit._id,
+                tarih: new Date(),
+                durum: 'acik'
+            });
+            const bugun = new Date().toISOString().split('T')[0];
+            await Finansal.create({
+                userId: ciftciId,
+                tip: 'gider',
+                kategori: 'veteriner',
+                miktar: maliyetTutar,
+                tarih: bugun,
+                aciklama: `Veteriner: ${veteriner.isim} - ${tani || tip}`,
+                ilgiliHayvanId: hayvanId || undefined,
+                ilgiliHayvanTipi: hayvanTipi || undefined
+            });
+        }
 
         // ** Çiftçiye Bildirim Gönderme **
         let mesaj = `Veterineriniz ${veteriner.isim}, ${hayvanKupeNo || hayvanIsim} küpeli hayvanınız için yeni bir sağlık kaydı/reçete oluşturdu.`;
@@ -309,6 +337,286 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
     } catch (error) {
         console.error('Veteriner Sağlık Kaydı Hatası:', error);
         res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    }
+});
+
+// ========== FİNANS / CARİ HESAP ==========
+
+// Cari özet: Müşteri bazında toplam alacak ve tahsilat
+router.get('/finans/cari', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const cariler = await VeterinerCari.aggregate([
+            { $match: { veterinerId: new mongoose.Types.ObjectId(vetId), durum: 'acik' } },
+            { $group: { _id: '$ciftciId', toplamAlacak: { $sum: '$tutar' }, toplamOdenen: { $sum: '$odenenTutar' } } },
+            { $project: { ciftciId: '$_id', toplamAlacak: 1, toplamOdenen: 1, bakiye: { $subtract: ['$toplamAlacak', '$toplamOdenen'] } } },
+            { $match: { bakiye: { $gt: 0 } } },
+            { $sort: { bakiye: -1 } }
+        ]);
+        const ciftciIds = cariler.map(c => c.ciftciId);
+        const users = await User.find({ _id: { $in: ciftciIds } }).select('isim isletmeAdi').lean();
+        const userMap = {};
+        users.forEach(u => { userMap[u._id.toString()] = u; });
+        const list = cariler.map(c => ({
+            ciftciId: c.ciftciId,
+            isim: userMap[c.ciftciId.toString()]?.isim,
+            isletmeAdi: userMap[c.ciftciId.toString()]?.isletmeAdi,
+            toplamAlacak: c.toplamAlacak,
+            toplamOdenen: c.toplamOdenen,
+            bakiye: c.bakiye
+        }));
+        const toplamBakiye = list.reduce((s, c) => s + (c.bakiye || 0), 0);
+        res.json({ list, toplamBakiye });
+    } catch (error) {
+        console.error('Veteriner cari list error:', error);
+        res.status(500).json({ message: 'Cari listelenemedi.' });
+    }
+});
+
+// Belirli çiftçinin cari kalemleri (fatura detayı)
+router.get('/finans/cari/:ciftciId', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId } = req.params;
+        const veteriner = await User.findById(vetId).select('musteriler');
+        if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
+        }
+        const kalemler = await VeterinerCari.find({ veterinerId: vetId, ciftciId }).sort({ tarih: -1 }).lean();
+        const ciftci = await User.findById(ciftciId).select('isim isletmeAdi').lean();
+        const toplamAlacak = kalemler.reduce((s, k) => s + k.tutar, 0);
+        const toplamOdenen = kalemler.reduce((s, k) => s + (k.odenenTutar || 0), 0);
+        res.json({ kalemler, ciftci, toplamAlacak, toplamOdenen, bakiye: toplamAlacak - toplamOdenen });
+    } catch (error) {
+        console.error('Veteriner cari detay error:', error);
+        res.status(500).json({ message: 'Cari detayı alınamadı.' });
+    }
+});
+
+// Tahsilat gir: Belirli çiftçiye yapılan ödeme (genel veya kalem bazlı)
+router.post('/finans/tahsilat', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId, tutar, aciklama } = req.body;
+        const odenenTutar = typeof tutar === 'number' ? tutar : parseFloat(tutar);
+        if (!ciftciId || !(odenenTutar > 0)) return res.status(400).json({ message: 'Çiftçi ve geçerli tutar gerekli.' });
+        const veteriner = await User.findById(vetId).select('musteriler');
+        if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
+        }
+        const acikKalemler = await VeterinerCari.find({ veterinerId: vetId, ciftciId, durum: 'acik' }).sort({ tarih: 1 });
+        let kalan = odenenTutar;
+        for (const kalem of acikKalemler) {
+            if (kalan <= 0) break;
+            const borc = kalem.tutar - (kalem.odenenTutar || 0);
+            if (borc <= 0) continue;
+            const ode = Math.min(kalan, borc);
+            kalem.odenenTutar = (kalem.odenenTutar || 0) + ode;
+            kalem.odemeTarihi = new Date();
+            if (kalem.odenenTutar >= kalem.tutar) kalem.durum = 'kapali';
+            await kalem.save();
+            kalan -= ode;
+        }
+        const vet = await User.findById(vetId).select('isim').lean();
+        await Bildirim.create({
+            userId: ciftciId,
+            tip: 'odeme',
+            baslik: 'Veteriner tahsilat',
+            mesaj: `${vet?.isim || 'Veteriner'} ${odenenTutar.toFixed(2)} TL tahsilat kaydetti.${aciklama ? ` (${aciklama})` : ''}`,
+            oncelik: 'normal'
+        });
+        res.json({ message: 'Tahsilat kaydedildi.', odenenTutar });
+    } catch (error) {
+        console.error('Veteriner tahsilat error:', error);
+        res.status(500).json({ message: 'Tahsilat kaydedilemedi.' });
+    }
+});
+
+// Borç hatırlatması: Çiftçiye "X TL borcunuz var" bildirimi atar (vet tetikler; ileride cron ile otomatik yapılabilir)
+router.post('/finans/hatirlatma-gonder/:ciftciId', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId } = req.params;
+        const veteriner = await User.findById(vetId).select('musteriler isim');
+        if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
+        }
+        const cariler = await VeterinerCari.find({ veterinerId: vetId, ciftciId, durum: 'acik' });
+        const toplamAlacak = cariler.reduce((s, k) => s + k.tutar, 0);
+        const toplamOdenen = cariler.reduce((s, k) => s + (k.odenenTutar || 0), 0);
+        const bakiye = toplamAlacak - toplamOdenen;
+        if (bakiye <= 0) return res.status(400).json({ message: 'Bu çiftçinin bakiyesi yok.' });
+        await Bildirim.create({
+            userId: ciftciId,
+            tip: 'odeme',
+            baslik: 'Veteriner borç hatırlatması',
+            mesaj: `${veteriner.isim} size ${bakiye.toFixed(2)} TL borcunuz olduğunu hatırlatıyor. Lütfen ödeme yapınız.`,
+            oncelik: 'normal'
+        });
+        res.json({ message: 'Hatırlatma gönderildi.', bakiye });
+    } catch (error) {
+        console.error('Hatirlatma error:', error);
+        res.status(500).json({ message: 'Hatırlatma gönderilemedi.' });
+    }
+});
+
+// ========== RANDEVU / ZİYARET TAKVİMİ ==========
+
+router.get('/randevu', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { baslangic, bitis } = req.query;
+        const start = baslangic ? new Date(baslangic) : new Date(new Date().setHours(0, 0, 0, 0));
+        const end = bitis ? new Date(bitis) : new Date(start);
+        end.setDate(end.getDate() + 31);
+        const list = await VeterinerRandevu.find({
+            veterinerId: vetId,
+            tarih: { $gte: start, $lte: end },
+            durum: { $ne: 'iptal' }
+        }).populate('ciftciId', 'isim isletmeAdi').sort({ tarih: 1, saat: 1 }).lean();
+        res.json(list);
+    } catch (error) {
+        console.error('Randevu list error:', error);
+        res.status(500).json({ message: 'Randevular alınamadı.' });
+    }
+});
+
+router.post('/randevu', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId, baslik, tarih, saat, aciklama } = req.body;
+        if (!ciftciId || !baslik || !tarih) return res.status(400).json({ message: 'Çiftçi, başlık ve tarih gerekli.' });
+        const veteriner = await User.findById(vetId).select('musteriler');
+        if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
+        }
+        const doc = await VeterinerRandevu.create({
+            veterinerId: vetId,
+            ciftciId,
+            baslik: baslik.trim(),
+            tarih: new Date(tarih),
+            saat: (saat || '').trim(),
+            aciklama: (aciklama || '').trim(),
+            durum: 'planlandi'
+        });
+        const populated = await VeterinerRandevu.findById(doc._id).populate('ciftciId', 'isim isletmeAdi').lean();
+        res.status(201).json(populated);
+    } catch (error) {
+        console.error('Randevu create error:', error);
+        res.status(500).json({ message: 'Randevu oluşturulamadı.' });
+    }
+});
+
+router.patch('/randevu/:id', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { durum } = req.body;
+        const r = await VeterinerRandevu.findOne({ _id: req.params.id, veterinerId: vetId });
+        if (!r) return res.status(404).json({ message: 'Randevu bulunamadı.' });
+        if (durum) r.durum = durum;
+        await r.save();
+        res.json(r);
+    } catch (error) {
+        console.error('Randevu update error:', error);
+        res.status(500).json({ message: 'Güncellenemedi.' });
+    }
+});
+
+// Müşteri çiftliklerinden yaklaşan aşı ve sonraki kontrol tarihleri (ziyaret önerileri)
+router.get('/ziyaret-onerileri', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const veteriner = await User.findById(vetId).select('musteriler');
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) return res.json([]);
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
+        const birAySonra = new Date(bugun);
+        birAySonra.setDate(birAySonra.getDate() + 31);
+        const asilar = await AsiTakvimi.find({
+            userId: { $in: objIds },
+            sonrakiTarih: { $gte: bugun, $lte: birAySonra }
+        }).populate('userId', 'isim isletmeAdi').lean();
+        const sagliklar = await SaglikKaydi.find({
+            userId: { $in: objIds },
+            sonrakiKontrol: { $gte: bugun, $lte: birAySonra }
+        }).populate('userId', 'isim isletmeAdi').lean();
+        const ciftciMap = {};
+        (await User.find({ _id: { $in: objIds } }).select('isim isletmeAdi').lean()).forEach(u => { ciftciMap[u._id.toString()] = u; });
+        const oneriler = [
+            ...asilar.map(a => ({
+                tip: 'asi',
+                tarih: a.sonrakiTarih,
+                baslik: `Aşı: ${a.asiAdi}`,
+                ciftlik: ciftciMap[a.userId?.toString()]?.isletmeAdi || ciftciMap[a.userId?.toString()]?.isim || 'Çiftlik',
+                ciftciId: a.userId?._id || a.userId,
+                detay: a.hayvanIsim || a.hayvanKupeNo || ''
+            })),
+            ...sagliklar.map(s => ({
+                tip: 'kontrol',
+                tarih: s.sonrakiKontrol,
+                baslik: `Kontrol: ${s.tani || 'Sonraki muayene'}`,
+                ciftlik: ciftciMap[s.userId?.toString()]?.isletmeAdi || ciftciMap[s.userId?.toString()]?.isim || 'Çiftlik',
+                ciftciId: s.userId?._id || s.userId,
+                detay: s.hayvanIsim || s.hayvanKupeNo || ''
+            }))
+        ];
+        oneriler.sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
+        res.json(oneriler.slice(0, 50));
+    } catch (error) {
+        console.error('Ziyaret onerileri error:', error);
+        res.status(500).json({ message: 'Öneriler alınamadı.' });
+    }
+});
+
+// ========== KLİNİK RAPORLAMA ==========
+router.get('/rapor/aylik', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const veteriner = await User.findById(vetId).select('musteriler');
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) {
+            return res.json({ enCokHastalik: [], enCokIlac: [], problemliCiftlikler: [], toplamKayit: 0 });
+        }
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const baslangic = new Date();
+        baslangic.setDate(1);
+        baslangic.setHours(0, 0, 0, 0);
+        const bitis = new Date();
+        bitis.setMonth(bitis.getMonth() + 1);
+        bitis.setDate(0);
+        bitis.setHours(23, 59, 59, 999);
+        const kayitlar = await SaglikKaydi.find({
+            userId: { $in: objIds },
+            tarih: { $gte: baslangic, $lte: bitis }
+        }).lean();
+        const taniCount = {};
+        const ilacCount = {};
+        const ciftciCount = {};
+        kayitlar.forEach(k => {
+            const t = (k.tani || k.tip || '').trim() || 'Diğer';
+            taniCount[t] = (taniCount[t] || 0) + 1;
+            (k.ilaclar || []).forEach(il => {
+                const ad = (il.ilacAdi || '').trim() || 'Belirtilmemiş';
+                ilacCount[ad] = (ilacCount[ad] || 0) + 1;
+            });
+            const cid = (k.userId && (k.userId._id || k.userId)).toString();
+            ciftciCount[cid] = (ciftciCount[cid] || 0) + 1;
+        });
+        const enCokHastalik = Object.entries(taniCount).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([ad, sayi]) => ({ ad, sayi }));
+        const enCokIlac = Object.entries(ilacCount).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([ad, sayi]) => ({ ad, sayi }));
+        const ciftciList = await User.find({ _id: { $in: Object.keys(ciftciCount) } }).select('isim isletmeAdi').lean();
+        const ciftciMap = {};
+        ciftciList.forEach(u => { ciftciMap[u._id.toString()] = u; });
+        const problemliCiftlikler = Object.entries(ciftciCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([cid, sayi]) => ({ ciftciId: cid, isim: ciftciMap[cid]?.isim, isletmeAdi: ciftciMap[cid]?.isletmeAdi, kayitSayisi: sayi }));
+        res.json({ enCokHastalik, enCokIlac, problemliCiftlikler, toplamKayit: kayitlar.length });
+    } catch (error) {
+        console.error('Rapor aylik error:', error);
+        res.status(500).json({ message: 'Rapor alınamadı.' });
     }
 });
 

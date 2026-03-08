@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import { indirRecetePdf } from '../utils/recetePdf';
 
 const Page = styled.div`
   display: flex;
@@ -250,6 +251,10 @@ const KayitItem = styled.div`
   .baslik { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.01em;}
   .alt { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;}
   .tarih { font-size: 12px; color: #94a3b8; white-space: nowrap; font-weight: 600;}
+  .line1 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+  .line2 { font-size: 12px; color: #64748b; }
+  .btn-pdf { flex-shrink: 0; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; border: 1px solid #e2e8f0; background: #f8fafc; color: #0ea5e9; cursor: pointer; }
+  .btn-pdf:hover { background: #e0f2fe; border-color: #0ea5e9; }
   
   @media (max-width: 600px) { flex-direction: column; align-items: flex-start; gap: 8px; .tarih { align-self: flex-start; } }
 `;
@@ -303,7 +308,7 @@ export default function Hastalar() {
   const [modalOpen, setModalOpen] = useState(false);
   const [secilenHayvan, setSecilenHayvan] = useState(null);
   const [islemTipi, setIslemTipi] = useState('hastalik');
-  const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '' });
+  const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
   const [hayvanKategori, setHayvanKategori] = useState('');
   const [hayvanKupeArama, setHayvanKupeArama] = useState('');
 
@@ -431,7 +436,7 @@ export default function Hastalar() {
   const openModal = (tip, hayvan) => {
     setIslemTipi(tip);
     setSecilenHayvan(hayvan);
-    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '' });
+    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
     setModalOpen(true);
   };
 
@@ -439,6 +444,7 @@ export default function Hastalar() {
     e.preventDefault();
     if (!selectedId || !secilenHayvan) return;
     try {
+      const maliyetNum = formData.maliyet ? parseFloat(String(formData.maliyet).replace(',', '.')) : 0;
       const payload = {
         hayvanTipi: secilenHayvan.tip,
         hayvanIsim: secilenHayvan.isim || '',
@@ -447,7 +453,8 @@ export default function Hastalar() {
         tani: islemTipi === 'tohumlama' ? 'Suni Tohumlama' : formData.tani,
         tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
         ilaclar: formData.ilacAd ? [{ ilacAdi: formData.ilacAd }] : [],
-        notlar: formData.notlar
+        notlar: formData.notlar,
+        ...(maliyetNum > 0 && { maliyet: maliyetNum })
       };
       await api.postMusteriHayvanSaglik(selectedId, secilenHayvan._id, payload);
       toast.success('Kayıt eklendi, çiftçiye bildirildi.');
@@ -588,8 +595,11 @@ export default function Hastalar() {
                 <KayitList>
                   {saglikKayitlari.slice(0, 30).map(k => (
                     <KayitItem key={k._id}>
-                      <div className="line1">{k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'} · {tipEtiket[k.tip] || k.tip} — {k.tani}</div>
-                      <div className="line2">{k.tarih ? new Date(k.tarih).toLocaleDateString('tr-TR') : ''} {k.tedavi ? `· ${k.tedavi}` : ''}</div>
+                      <div className="content">
+                        <div className="line1">{k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'} · {tipEtiket[k.tip] || k.tip} — {k.tani}</div>
+                        <div className="line2">{k.tarih ? new Date(k.tarih).toLocaleDateString('tr-TR') : ''} {k.tedavi ? `· ${k.tedavi}` : ''}</div>
+                      </div>
+                      <button type="button" className="btn-pdf" onClick={e => { e.stopPropagation(); indirRecetePdf(k); }}>PDF İndir</button>
                     </KayitItem>
                   ))}
                 </KayitList>
@@ -628,6 +638,10 @@ export default function Hastalar() {
                       <div className="form-group">
                         <label>İlaç / Aşı</label>
                         <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Reçete edilen ilaç (opsiyonel)" />
+                      </div>
+                      <div className="form-group">
+                        <label>Tutar (TL) — Cari alacak</label>
+                        <input type="number" min="0" step="0.01" value={formData.maliyet} onChange={e => setFormData({ ...formData, maliyet: e.target.value })} placeholder="Örn: 5000" />
                       </div>
                     </div>
                   </>

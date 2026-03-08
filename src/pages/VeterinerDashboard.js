@@ -396,6 +396,13 @@ export default function VeterinerDashboard({ kullanici }) {
               </div>
               <span className="arrow">→</span>
             </LinkRow>
+            <LinkRow onClick={() => navigate('/finans')}>
+              <div>
+                <div className="name">Fatura & Tahsilat</div>
+                <div className="desc">Cari alacak, tahsilat</div>
+              </div>
+              <span className="arrow">→</span>
+            </LinkRow>
             <LinkRow onClick={() => navigate('/receteler')}>
               <div>
                 <div className="name">Reçete & Stok</div>

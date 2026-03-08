@@ -202,8 +202,10 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
       { path: '/hastalar', name: 'Hastalar', icon: <FaHeartbeat /> },
       { path: '/danismalar', name: 'Danışmalar', icon: <FaFileAlt /> },
+      { path: '/finans', name: 'Fatura & Tahsilat', icon: <FaWallet /> },
       { path: '/receteler', name: 'Reçete & Stok', icon: <FaWarehouse /> },
       { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
+      { path: '/rapor', name: 'Aylık Rapor', icon: <FaChartPie /> },
     ];
     yonetimItems = [
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },

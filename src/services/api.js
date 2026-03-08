@@ -226,4 +226,15 @@ export const getMusteriHayvanlar = (ciftciId) => api.get(`/veteriner/musteri/${c
 export const postMusteriHayvanSaglik = (ciftciId, hayvanId, payload) =>
   api.post(`/veteriner/musteri/${ciftciId}/hayvan/${hayvanId}/saglik`, payload);
 
+export const getVeterinerCari = () => api.get('/veteriner/finans/cari');
+export const getVeterinerCariDetay = (ciftciId) => api.get(`/veteriner/finans/cari/${ciftciId}`);
+export const postVeterinerTahsilat = (data) => api.post('/veteriner/finans/tahsilat', data);
+export const postVeterinerHatirlatma = (ciftciId) => api.post(`/veteriner/finans/hatirlatma-gonder/${ciftciId}`);
+
+export const getVeterinerRandevu = (baslangic, bitis) => api.get('/veteriner/randevu', { params: { baslangic, bitis } });
+export const postVeterinerRandevu = (data) => api.post('/veteriner/randevu', data);
+export const patchVeterinerRandevu = (id, data) => api.patch(`/veteriner/randevu/${id}`, data);
+export const getVeterinerZiyaretOnerileri = () => api.get('/veteriner/ziyaret-onerileri');
+export const getVeterinerRaporAylik = () => api.get('/veteriner/rapor/aylik');
+
 export default api;

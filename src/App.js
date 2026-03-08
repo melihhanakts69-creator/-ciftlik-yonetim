@@ -34,6 +34,9 @@ import Hastalar from './pages/Hastalar';
 import MusteriDetay from './pages/MusteriDetay';
 import VeterinerStok from './pages/VeterinerStok';
 import Danismalar from './pages/Danismalar';
+import VeterinerFinans from './pages/VeterinerFinans';
+import VeterinerTakvim from './pages/VeterinerTakvim';
+import VeterinerRapor from './pages/VeterinerRapor';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -127,7 +130,7 @@ function App() {
           <Route path="/raporlar" element={<Raporlar />} />
           <Route path="/yem-merkezi" element={<YemMerkezi />} />
           <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
-          <Route path="/takvim" element={<Takvim />} />
+          <Route path="/takvim" element={kullanici?.rol === 'veteriner' ? <VeterinerTakvim /> : <Takvim />} />
           <Route path="/stok-yonetimi" element={<StokYonetimi />} />
           
           {/* Veteriner Özel Sayfaları */}
@@ -135,7 +138,9 @@ function App() {
           <Route path="/hastalar/:id" element={<Hastalar />} />
           <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
           <Route path="/danismalar" element={<Danismalar />} />
+          <Route path="/finans" element={<VeterinerFinans />} />
           <Route path="/receteler" element={<VeterinerStok />} />
+          <Route path="/rapor" element={<VeterinerRapor />} />
 
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<NotFound />} />
