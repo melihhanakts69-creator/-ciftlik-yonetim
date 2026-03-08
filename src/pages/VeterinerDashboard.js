@@ -15,100 +15,148 @@ const Page = styled.div`
 `;
 
 const Header = styled.header`
-  margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
-  .title { font-size: 15px; font-weight: 600; color: #6b7280; letter-spacing: 0.02em; margin: 0 0 4px; }
-  .name { font-size: 22px; font-weight: 700; color: #111827; margin: 0; }
-  .meta { font-size: 13px; color: #6b7280; margin-top: 6px; }
+  margin-bottom: 32px;
+  padding: 32px 36px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; width: 300px; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.05));
+    border-radius: 0 24px 24px 0;
+  }
+  
+  .title { font-size: 14px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 6px; }
+  .name { font-size: 32px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+  .meta { font-size: 15px; color: #64748b; margin-top: 8px; font-weight: 500; }
 `;
 
 const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 20px;
+  margin-bottom: 32px;
   @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
 `;
 
 const Stat = styled.div`
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 18px 20px;
-  .value { font-size: 26px; font-weight: 800; color: #111827; line-height: 1.2; }
-  .label { font-size: 12px; color: #6b7280; font-weight: 500; margin-top: 4px; }
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    background: #fff;
+  }
+
+  .value { font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 8px;}
+  .label { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;}
+  
   ${p => p.$highlight && `
-    border-color: #3b82f6;
-    background: #f8fafc;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #bfdbfe;
     .value { color: #1d4ed8; }
+    .label { color: #1e3a8a; }
+    &:hover { background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%); }
   `}
 `;
 
 const PrimaryAction = styled.button`
   width: 100%;
-  padding: 18px 24px;
-  border-radius: 10px;
+  padding: 20px 32px;
+  border-radius: 16px;
   border: none;
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: white;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-bottom: 24px;
-  &:hover { background: #1d4ed8; }
+  transition: all 0.3s ease;
+  margin-bottom: 32px;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  
+  &:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  }
 `;
 
 const Section = styled.section`
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 22px 24px;
-  margin-bottom: 20px;
-  h3 { font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 16px; }
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+  h3 { font-size: 14px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
+  h3::before { content: ''; display: block; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; }
 `;
 
 const KupeAramaForm = styled.form`
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   input {
     flex: 1;
-    min-width: 180px;
-    padding: 12px 14px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    &:focus { outline: none; border-color: #3b82f6; }
+    min-width: 220px;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px;
+    background: #f8fafc;
+    transition: all 0.2s;
+    &:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
   }
   button {
-    padding: 12px 20px;
-    border-radius: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
     border: none;
-    background: #2563eb;
+    background: #0f172a;
     color: white;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
-    &:hover:not(:disabled) { background: #1d4ed8; }
+    transition: all 0.2s;
+    &:hover:not(:disabled) { background: #334155; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.2);}
     &:disabled { opacity: 0.6; cursor: not-allowed; }
   }
 `;
 
 const HayvanSonucItem = styled.div`
-  padding: 12px 14px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
-  transition: background 0.15s;
-  &:hover { background: #eff6ff; border-color: #93c5fd; }
-  .ciftlik { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
-  .hayvan { font-size: 14px; font-weight: 600; color: #111827; }
-  .tip { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  &:hover { background: #f0f9ff; border-color: #7dd3fc; transform: translateX(4px); box-shadow: 0 4px 12px rgba(125, 211, 252, 0.15);}
+  .info { display: flex; flex-direction: column; gap: 4px; }
+  .ciftlik { font-size: 13px; color: #64748b; font-weight: 500; }
+  .hayvan { font-size: 16px; font-weight: 800; color: #0f172a; }
+  .tip { font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 4px 10px; border-radius: 20px; font-weight: 700; display: inline-block;}
 `;
 
 const FarmList = styled.div`
@@ -121,41 +169,46 @@ const FarmRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 18px 16px;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  border-radius: 12px;
   &:last-child { border-bottom: none; }
-  &:hover { background: #f9fafb; }
-  .name { font-weight: 600; color: #111827; font-size: 14px; }
-  .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .arrow { color: #9ca3af; font-size: 14px; }
+  &:hover { background: #f8fafc; transform: translateX(4px); }
+  .name { font-weight: 800; color: #0f172a; font-size: 15px; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #64748b; font-weight: 500;}
+  .arrow { color: #94a3b8; font-size: 18px; transition: color 0.2s; }
+  &:hover .arrow { color: #3b82f6; }
 `;
 
 const LinkRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  border-radius: 12px;
   &:last-child { border-bottom: none; }
-  &:hover { background: #f9fafb; }
-  .name { font-weight: 600; color: #111827; font-size: 14px; }
-  .desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .arrow { color: #9ca3af; font-size: 14px; }
+  &:hover { background: #f8fafc; transform: translateX(4px); }
+  .name { font-weight: 800; color: #0f172a; font-size: 15px; margin-bottom: 4px; }
+  .desc { font-size: 13px; color: #64748b; font-weight: 500;}
+  .arrow { color: #94a3b8; font-size: 18px; transition: color 0.2s; }
+  &:hover .arrow { color: #3b82f6; }
 `;
 
 const RecordItem = styled.div`
-  padding: 12px 0;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  border-radius: 12px;
   &:last-child { border-bottom: none; }
-  &:hover { background: #f9fafb; }
-  .line1 { font-size: 13px; font-weight: 600; color: #111827; }
-  .line2 { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  &:hover { background: #f8fafc; transform: translateX(4px); }
+  .line1 { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;}
+  .line2 { font-size: 13px; color: #64748b; font-weight: 500;}
 `;
 
 const TwoCol = styled.div`
@@ -285,8 +338,10 @@ export default function VeterinerDashboard({ kullanici }) {
           <FarmList>
             {kupeSonuc.map((r, i) => (
               <HayvanSonucItem key={`${r.ciftciId}-${r.hayvan?._id}-${i}`} onClick={() => navigate(`/hastalar/${r.ciftciId}`)}>
-                <div className="ciftlik">{r.ciftlikAdi || r.ciftciIsim}</div>
-                <div className="hayvan">{r.hayvan?.kupeNo || r.hayvan?.isim || '–'} {r.hayvan?.isim && `(${r.hayvan.isim})`}</div>
+                <div className="info">
+                  <div className="ciftlik">{r.ciftlikAdi || r.ciftciIsim}</div>
+                  <div className="hayvan">{r.hayvan?.kupeNo || r.hayvan?.isim || '–'} {r.hayvan?.isim && `(${r.hayvan.isim})`}</div>
+                </div>
                 <div className="tip">{tipLabel[r.tip] || r.tip}</div>
               </HayvanSonucItem>
             ))}

@@ -417,7 +417,12 @@ const VetLayout = styled.div`
   display: flex;
   gap: 24px;
   align-items: stretch;
-  min-height: 420px;
+  min-height: 480px;
+  max-height: 700px;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    max-height: none;
+  }
 `;
 const VetListCol = styled.div`
   flex: 1;
@@ -425,6 +430,13 @@ const VetListCol = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+  padding-right: 8px;
+  
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 `;
 const VetCard = styled.div`
   background: #fff;
@@ -477,6 +489,10 @@ const DanismaPanel = styled.div`
   overflow: hidden;
   animation: ${fadeIn} 0.25s ease;
   box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+  @media (max-width: 900px) {
+    width: 100%;
+    height: 500px;
+  }
 
   .panel-header {
     padding: 20px 24px;
@@ -610,7 +626,11 @@ function VeterinerlerPanel() {
 
     useEffect(() => {
         let cancelled = false;
-        api.getProfile().then(res => { if (!cancelled && res?.data) setBenimId(res.data.parentUserId || res.data._id); }).catch(() => { });
+        api.getProfile().then(res => {
+            if (!cancelled && res?.data) {
+                setBenimId(res.data.user?.parentUserId || res.data.user?._id || res.data.parentUserId || res.data._id);
+            }
+        }).catch(() => { });
         api.getVeterinerlerim()
             .then(res => { if (!cancelled) setVets(Array.isArray(res.data) ? res.data : []); })
             .catch(() => { if (!cancelled) setVets([]); })

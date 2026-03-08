@@ -274,7 +274,11 @@ export default function Danismalar() {
 
   useEffect(() => {
     let cancelled = false;
-    api.getProfile().then(res => { if (!cancelled && res?.data) setBenimId(res.data.parentUserId || res.data._id); }).catch(() => { });
+    api.getProfile().then(res => {
+      if (!cancelled && res?.data) {
+        setBenimId(res.data.user?.parentUserId || res.data.user?._id || res.data.parentUserId || res.data._id);
+      }
+    }).catch(() => { });
     api.getDanismaThreads()
       .then(res => { if (!cancelled) setThreads(Array.isArray(res.data) ? res.data : []); })
       .catch(() => { if (!cancelled) setThreads([]); })

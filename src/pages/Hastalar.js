@@ -26,43 +26,59 @@ const Sidebar = styled.aside`
 `;
 
 const SidebarHeader = styled.div`
-  padding: 24px 22px 20px;
-  border-bottom: 1px solid #f0f9ff;
-  background: linear-gradient(135deg, #f0f9ff 0%, #fff 100%);
-  .title { font-size: 18px; font-weight: 800; color: #0c4a6e; margin: 0 0 4px; letter-spacing: -0.02em; }
-  .title-sub { font-size: 12px; color: #0ea5e9; font-weight: 600; }
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  .title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .title-sub { font-size: 13px; color: #3b82f6; font-weight: 700; }
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 14px 16px;
-  border: 1px solid #e0f2fe;
-  border-radius: 12px;
+  padding: 16px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
   font-size: 14px;
   box-sizing: border-box;
   background: #f8fafc;
-  margin-top: 12px;
-  &:focus { outline: none; border-color: #0ea5e9; background: #fff; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
-  &::placeholder { color: #94a3b8; }
+  margin-top: 16px;
+  transition: all 0.2s;
+  &:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+  &::placeholder { color: #94a3b8; font-weight: 500;}
 `;
 
 const FarmList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 12px 10px;
+  padding: 16px 12px;
 `;
 
 const FarmItem = styled.div`
-  padding: 16px 18px;
-  margin-bottom: 8px;
-  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid transparent;
-  ${p => p.$active && 'background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%); border-color: #0ea5e9; box-shadow: 0 2px 12px rgba(14, 165, 233, 0.15);'}
-  &:hover { background: #f0f9ff; }
-  .name { font-weight: 700; color: #0f172a; font-size: 15px; }
-  .sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+  ${p => p.$active ? `
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); 
+    border-color: #7dd3fc; 
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+    transform: translateY(-2px);
+  ` : `
+    background: #fff;
+    border-color: #f1f5f9;
+  `}
+  &:hover { 
+    ${p => !p.$active && `
+      background: #f8fafc; 
+      border-color: #e2e8f0; 
+      transform: translateX(4px);
+    `}
+  }
+  .name { font-weight: 800; color: #0f172a; font-size: 15px; }
+  .sub { font-size: 13px; color: #64748b; margin-top: 6px; font-weight: 500;}
 `;
 
 const AddFarmBlock = styled.div`
@@ -82,45 +98,49 @@ const AddFarmBlock = styled.div`
 const DetailPanel = styled.div`
   flex: 1;
   overflow-y: auto;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 28px 32px;
-  @media (max-width: 900px) { min-height: 50vh; padding: 20px; }
+  background: #f8fafc;
+  padding: 32px 40px;
+  @media (max-width: 900px) { min-height: 50vh; padding: 24px; }
 `;
 
 const EmptyDetail = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 280px;
+  min-height: 320px;
   color: #64748b;
   font-size: 15px;
   text-align: center;
-  padding: 24px;
-  background: #fff;
-  border-radius: 16px;
-  border: 1px dashed #cbd5e1;
-  margin: 0 8px;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  border: 2px dashed #cbd5e1;
+  margin: 0 16px;
+  font-weight: 500;
 `;
 
 const DetailHeader = styled.div`
-  margin-bottom: 28px;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #fff 0%, #f0f9ff 100%);
-  border-radius: 16px;
-  border: 1px solid #e0f2fe;
-  box-shadow: 0 2px 12px rgba(14, 165, 233, 0.08);
-  .farm-name { font-size: 22px; font-weight: 800; color: #0c4a6e; margin: 0 0 6px; letter-spacing: -0.02em; }
-  .farm-sub { font-size: 14px; color: #64748b; }
+  margin-bottom: 32px;
+  padding: 32px 36px;
+  background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  .farm-name { font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .farm-sub { font-size: 15px; color: #64748b; font-weight: 500;}
 `;
 
 const Block = styled.section`
-  background: #fff;
-  border: 1px solid #e0f2fe;
-  border-radius: 14px;
-  padding: 24px 26px;
-  margin-bottom: 22px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  h4 { font-size: 11px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 16px; }
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 24px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+  h4 { font-size: 13px; font-weight: 800; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
+  h4::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; }
 `;
 
 const HayvanFiltreRow = styled.div`
@@ -156,22 +176,23 @@ const AnimalGrid = styled.div`
 `;
 
 const AnimalCard = styled.div`
-  border: 1px solid #e0f2fe;
-  border-radius: 12px;
-  padding: 18px 20px;
-  background: #fff;
-  transition: all 0.2s;
-  &:hover { box-shadow: 0 4px 16px rgba(14, 165, 233, 0.1); border-color: #bae6fd; }
-  .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .kupe { font-weight: 700; color: #0f172a; font-size: 15px; }
-  .tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0369a1; font-weight: 600; }
-  .info { font-size: 13px; color: #64748b; margin-bottom: 14px; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .actions button { padding: 10px 14px; border-radius: 10px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-saglik { background: #ccfbf1; color: #0f766e; }
-  .btn-saglik:hover { background: #99f6e4; }
-  .btn-tohum { background: #e0f2fe; color: #0369a1; }
-  .btn-tohum:hover { background: #bae6fd; }
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 24px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover { box-shadow: 0 10px 30px rgba(14, 165, 233, 0.12); border-color: #bae6fd; transform: translateY(-4px); background: #fff;}
+  .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .kupe { font-weight: 800; color: #0f172a; font-size: 16px; }
+  .tag { font-size: 12px; padding: 6px 12px; border-radius: 20px; background: #e0f2fe; color: #0284c7; font-weight: 700; text-transform: capitalize;}
+  .info { font-size: 14px; color: #64748b; margin-bottom: 20px; font-weight: 500;}
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .actions button { padding: 12px 16px; border-radius: 12px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; flex: 1; display:flex; justify-content:center;}
+  .btn-saglik { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);}
+  .btn-saglik:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);}
+  .btn-tohum { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);}
+  .btn-tohum:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);}
 `;
 
 const KayitList = styled.div`
@@ -493,22 +514,22 @@ export default function Hastalar() {
                     />
                   </HayvanFiltreRow>
                   <AnimalGrid>
-                  {filteredHayvanlar.map(h => (
-                    <AnimalCard key={h._id}>
-                      <div className="row">
-                        <span className="kupe">{h.kupeNo || '–'} {h.isim && `(${h.isim})`}</span>
-                        <span className="tag">{h.tip}</span>
-                      </div>
-                      <div className="info">{h.irk || '–'} · {h.guncelDurum || h.saglikDurumu || '–'}</div>
-                      <div className="actions">
-                        <button type="button" className="btn-saglik" onClick={() => openModal('hastalik', h)}>+ Sağlık / İlaç</button>
-                        {(h.tip === 'inek' || h.tip === 'duve') && (
-                          <button type="button" className="btn-tohum" onClick={() => openModal('tohumlama', h)}>+ Tohumlama</button>
-                        )}
-                      </div>
-                    </AnimalCard>
-                  ))}
-                </AnimalGrid>
+                    {filteredHayvanlar.map(h => (
+                      <AnimalCard key={h._id}>
+                        <div className="row">
+                          <span className="kupe">{h.kupeNo || '–'} {h.isim && `(${h.isim})`}</span>
+                          <span className="tag">{h.tip}</span>
+                        </div>
+                        <div className="info">{h.irk || '–'} · {h.guncelDurum || h.saglikDurumu || '–'}</div>
+                        <div className="actions">
+                          <button type="button" className="btn-saglik" onClick={() => openModal('hastalik', h)}>+ Sağlık / İlaç</button>
+                          {(h.tip === 'inek' || h.tip === 'duve') && (
+                            <button type="button" className="btn-tohum" onClick={() => openModal('tohumlama', h)}>+ Tohumlama</button>
+                          )}
+                        </div>
+                      </AnimalCard>
+                    ))}
+                  </AnimalGrid>
                   {filteredHayvanlar.length === 0 && (hayvanKategori || hayvanKupeArama.trim()) && (
                     <p style={{ margin: '12px 0 0', color: '#64748b', fontSize: 13 }}>Bu filtreye uygun hayvan bulunamadı.</p>
                   )}
