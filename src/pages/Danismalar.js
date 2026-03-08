@@ -6,137 +6,161 @@ import * as api from '../services/api';
 const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
   color: #1a1a1a;
-  max-width: 960px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 24px 20px 48px;
+  padding: 28px 24px 56px;
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 100px);
+  background: #f8fafc;
 `;
 
 const Header = styled.header`
   margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
-  .title { font-size: 12px; font-weight: 600; color: #6b7280; letter-spacing: 0.04em; margin: 0 0 4px; text-transform: uppercase; }
-  .name { font-size: 22px; font-weight: 700; color: #111827; margin: 0; }
-  .desc { font-size: 14px; color: #6b7280; margin-top: 6px; }
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  .title { font-size: 11px; font-weight: 700; color: #0ea5e9; letter-spacing: 0.08em; margin: 0 0 6px; text-transform: uppercase; }
+  .name { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+  .desc { font-size: 13px; color: #64748b; margin-top: 8px; line-height: 1.5; }
 `;
 
 const Layout = styled.div`
   display: flex;
-  gap: 20px;
+  gap: 24px;
   flex: 1;
-  min-height: 400px;
+  min-height: 480px;
   @media (max-width: 768px) { flex-direction: column; }
 `;
 
 const ThreadList = styled.div`
-  width: 280px;
+  width: 300px;
   flex-shrink: 0;
-  background: #fafafa;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  @media (max-width: 768px) { width: 100%; max-height: 220px; }
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  @media (max-width: 768px) { width: 100%; max-height: 240px; }
 `;
 
 const ThreadListHeader = styled.div`
-  padding: 14px 16px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 13px; font-weight: 600; color: #374151;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px; font-weight: 700; color: #475569; letter-spacing: 0.03em; text-transform: uppercase;
 `;
 
 const ThreadItem = styled.div`
-  padding: 14px 16px;
+  padding: 16px 18px;
   cursor: pointer;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background 0.15s;
-  &:hover { background: #f3f4f6; }
-  ${p => p.$active && 'background: #fff; border-left: 3px solid #111827;'}
-  .name { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 2px; }
-  .preview { font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meta { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-  .unread { display: inline-block; background: #111827; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s, border-color 0.15s;
+  &:hover { background: #f8fafc; }
+  ${p => p.$active && 'background: #eff6ff !important; border-left: 4px solid #0ea5e9;'}
+  .name { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .preview { font-size: 12px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+  .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+  .unread { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 6px; background: #0ea5e9; color: #fff; font-size: 11px; font-weight: 600; border-radius: 9px; }
 `;
 
 const ChatPanel = styled.div`
   flex: 1;
-  background: #fafafa;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 `;
 
 const ChatHeader = styled.div`
-  padding: 16px 18px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  .name { font-size: 16px; font-weight: 700; color: #111827; }
-  .sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  padding: 18px 22px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border-bottom: 1px solid #e2e8f0;
+  .name { font-size: 17px; font-weight: 700; color: #0f172a; }
+  .sub { font-size: 12px; color: #64748b; margin-top: 4px; }
 `;
 
 const MsgList = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px 18px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 240px;
-  max-height: 420px;
-  background: #eef2f7;
+  gap: 16px;
+  min-height: 280px;
+  max-height: 440px;
+  background: #f1f5f9;
+`;
+
+const BubbleWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: ${p => p.$ben ? 'flex-end' : 'flex-start'};
+  max-width: 100%;
+`;
+
+const SenderLabel = styled.span`
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: ${p => p.$ben ? '#0284c7' : '#64748b'};
+  margin-bottom: 4px;
+  padding: 0 4px;
 `;
 
 const MsgBubble = styled.div`
-  max-width: 78%;
-  padding: 11px 14px;
-  font-size: 13px;
-  line-height: 1.45;
+  max-width: 75%;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
   word-break: break-word;
   border: none;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
   ${p => p.$ben
-    ? 'align-self: flex-end; background: #0ea5e9; color: #fff; border-radius: 14px 14px 4px 14px;'
-    : 'align-self: flex-start; background: #fff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 14px 14px 14px 4px;'}
-  .time { font-size: 10px; margin-top: 4px; opacity: 0.85; }
-  ${p => !p.$ben && '.time { color: #64748b; opacity: 1; }'}
+    ? 'background: #0ea5e9; color: #fff; border-radius: 16px 16px 4px 16px;'
+    : 'background: #fff; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 16px 16px 16px 4px;'}
+  .time { font-size: 10px; margin-top: 6px; }
+  ${p => p.$ben && '.time { opacity: 0.9; }'}
+  ${p => !p.$ben && '.time { color: #64748b; }'}
 `;
 
 const ChatInput = styled.div`
-  padding: 12px 16px;
+  padding: 16px 22px;
   background: #fff;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e2e8f0;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-end;
   textarea {
     flex: 1;
-    min-height: 44px;
+    min-height: 48px;
     max-height: 120px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    font-size: 13px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
     resize: none;
     font-family: inherit;
-    background: #fafafa;
+    background: #f8fafc;
   }
-  textarea:focus { outline: none; border-color: #d1d5db; background: #fff; }
+  textarea:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.15); background: #fff; }
   button {
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 13px; font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 600;
     border: none; cursor: pointer;
-    background: #111827; color: #fff;
+    background: #0ea5e9; color: #fff;
   }
-  button:hover { background: #374151; }
+  button:hover { background: #0284c7; }
   button:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
@@ -145,13 +169,15 @@ const EmptyState = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 48px 28px;
   text-align: center;
-  color: #9ca3af;
+  color: #64748b;
   font-size: 14px;
-  background: #fafafa;
-  border: 1px dashed #e5e7eb;
+  line-height: 1.6;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
   border-radius: 12px;
+  margin: 20px 24px;
 `;
 
 export default function Danismalar() {
@@ -262,10 +288,13 @@ export default function Danismalar() {
                     const gonderenId = (m.gonderenId && (m.gonderenId._id || m.gonderenId)) || '';
                     const benim = String(gonderenId) === String(benimId);
                     return (
-                      <MsgBubble key={m._id} $ben={benim}>
-                        <div>{m.mesaj}</div>
-                        <div className="time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
-                      </MsgBubble>
+                      <BubbleWrap key={m._id} $ben={benim}>
+                        <SenderLabel $ben={benim}>{benim ? 'Siz' : 'Çiftlik'}</SenderLabel>
+                        <MsgBubble $ben={benim}>
+                          <div>{m.mesaj}</div>
+                          <div className="time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
+                        </MsgBubble>
+                      </BubbleWrap>
                     );
                   })
                 )}

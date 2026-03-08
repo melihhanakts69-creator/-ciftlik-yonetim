@@ -473,36 +473,41 @@ const DanismaPanel = styled.div`
     min-height: 200px;
     max-height: 320px;
     overflow-y: auto;
-    padding: 14px 16px;
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background: #eef2f7;
+    gap: 14px;
+    background: #f1f5f9;
   }
+  .msg-row { display: flex; flex-direction: column; max-width: 100%; }
+  .msg-row.ben { align-items: flex-end; }
+  .msg-row.vet { align-items: flex-start; }
+  .msg-sender { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; padding: 0 4px; }
+  .msg-row.ben .msg-sender { color: #0284c7; }
+  .msg-row.vet .msg-sender { color: #64748b; }
   .msg-bubble {
-    max-width: 78%;
-    padding: 11px 14px;
+    max-width: 75%;
+    padding: 12px 14px;
     font-size: 13px;
-    line-height: 1.45;
+    line-height: 1.5;
     word-break: break-word;
     border: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
   }
   .msg-bubble.ben {
-    align-self: flex-end;
     background: #0ea5e9;
     color: #fff;
-    border-radius: 14px 14px 4px 14px;
+    border-radius: 16px 16px 4px 16px;
   }
   .msg-bubble.vet {
-    align-self: flex-start;
     background: #fff;
     color: #1e293b;
-    border-radius: 14px 14px 14px 4px;
+    border-radius: 16px 16px 16px 4px;
     border: 1px solid #e2e8f0;
   }
-  .msg-bubble .msg-time { font-size: 10px; opacity: 0.85; margin-top: 4px; }
-  .msg-bubble.vet .msg-time { color: #64748b; opacity: 1; }
+  .msg-bubble .msg-time { font-size: 10px; margin-top: 6px; }
+  .msg-bubble.ben .msg-time { opacity: 0.9; }
+  .msg-bubble.vet .msg-time { color: #64748b; }
   .panel-input {
     padding: 12px;
     background: #fff;
@@ -652,9 +657,12 @@ function VeterinerlerPanel() {
                                         const gonderenId = (m.gonderenId && (m.gonderenId._id || m.gonderenId)) || '';
                                         const benim = String(gonderenId) === String(benimId);
                                         return (
-                                            <div key={m._id} className={`msg-bubble ${benim ? 'ben' : 'vet'}`}>
-                                                <div>{m.mesaj}</div>
-                                                <div className="msg-time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
+                                            <div key={m._id} className={`msg-row ${benim ? 'ben' : 'vet'}`}>
+                                                <span className="msg-sender">{benim ? 'Siz' : 'Veteriner'}</span>
+                                                <div className={`msg-bubble ${benim ? 'ben' : 'vet'}`}>
+                                                    <div>{m.mesaj}</div>
+                                                    <div className="msg-time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
+                                                </div>
                                             </div>
                                         );
                                     })
