@@ -428,116 +428,164 @@ const VetListCol = styled.div`
 `;
 const VetCard = styled.div`
   background: #fff;
-  border-radius: 14px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  border: 1px solid ${p => p.$secili ? '#4f46e5' : '#e2e8f0'};
-  transition: all 0.2s;
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  border: 1px solid ${p => p.$secili ? 'rgba(79, 70, 229, 0.4)' : 'rgba(226, 232, 240, 0.8)'};
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-  .vet-name { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 2px; }
-  .vet-clinic { font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 8px; }
-  .vet-contact { font-size: 12px; color: #64748b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-  .vet-contact a { color: #2563eb; text-decoration: none; }
-  .vet-contact a:hover { text-decoration: underline; }
-  .vet-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .vet-actions button { padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-  .btn-danis { background: #4f46e5; color: #fff; }
-  .btn-danis:hover { background: #4338ca; }
+  position: relative;
+  overflow: hidden;
+
+  ${p => p.$secili && `
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 6px;
+      background: linear-gradient(180deg, #4f46e5, #818cf8);
+    }
+    background: linear-gradient(90deg, rgba(79, 70, 229, 0.03) 0%, rgba(255,255,255,0) 100%);
+  `}
+
+  &:hover { 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06); 
+    border-color: ${p => p.$secili ? 'rgba(79, 70, 229, 0.6)' : 'rgba(203, 213, 225, 0.8)'}; 
+    transform: translateY(-2px);
+  }
+  
+  .vet-name { font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+  .vet-clinic { font-size: 13.5px; color: #4f46e5; font-weight: 600; margin-bottom: 12px; display: inline-block; padding: 4px 10px; background: rgba(79, 70, 229, 0.1); border-radius: 8px;}
+  .vet-contact { font-size: 13px; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-weight: 500;}
+  .vet-contact a { color: #3b82f6; text-decoration: none; transition: color 0.2s; }
+  .vet-contact a:hover { color: #2563eb; }
+  .vet-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .vet-actions button { padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+  .btn-danis { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25); }
+  .btn-danis:hover { background: linear-gradient(135deg, #4338ca, #4f46e5); box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35); transform: translateY(-1px); }
   .btn-ara { background: #e0e7ff; color: #4338ca; }
-  .btn-ara:hover { background: #c7d2fe; }
+  .btn-ara:hover { background: #c7d2fe; transform: translateY(-1px); }
 `;
 const DanismaPanel = styled.div`
-  width: 400px;
+  width: 420px;
   flex-shrink: 0;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: ${fadeIn} 0.25s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+
   .panel-header {
-    padding: 16px 18px;
-    background: #fff;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .panel-header h4 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: #111827; }
-  .panel-header .clinic { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
-  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; }
-  .panel-header .contacts a { color: #2563eb; text-decoration: none; }
-  .panel-header .contacts a:hover { text-decoration: underline; }
-  .msg-list {
-    flex: 1;
-    min-height: 200px;
-    max-height: 320px;
-    overflow-y: auto;
-    padding: 16px 18px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    background: #f1f5f9;
+    gap: 4px;
+    z-index: 10;
   }
-  .msg-row { display: flex; flex-direction: column; max-width: 100%; }
+  .panel-header h4 { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; }
+  .panel-header .clinic { font-size: 13px; color: #64748b; font-weight: 500; }
+  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; margin-top: 8px; font-weight: 500; }
+  .panel-header .contacts a { color: #3b82f6; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+  .panel-header .contacts a:hover { color: #2563eb; }
+
+  .msg-list {
+    flex: 1;
+    min-height: 240px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #f8fafc;
+    scroll-behavior: smooth;
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+  }
+
+  .msg-row { display: flex; flex-direction: column; max-width: 100%; animation: fadeInMsg 0.3s ease; }
+  @keyframes fadeInMsg { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .msg-row.ben { align-items: flex-end; }
   .msg-row.vet { align-items: flex-start; }
-  .msg-sender { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; padding: 0 4px; }
-  .msg-row.ben .msg-sender { color: #0284c7; }
-  .msg-row.vet .msg-sender { color: #64748b; }
+
   .msg-bubble {
     max-width: 75%;
-    padding: 12px 14px;
-    font-size: 13px;
+    padding: 14px 18px;
+    font-size: 14px;
     line-height: 1.5;
     word-break: break-word;
     border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
   }
   .msg-bubble.ben {
-    background: #0ea5e9;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
     color: #fff;
-    border-radius: 16px 16px 4px 16px;
+    border-radius: 20px 20px 4px 20px;
+    box-shadow: 0 4px 14px rgba(14,165,233,0.2);
   }
   .msg-bubble.vet {
     background: #fff;
     color: #1e293b;
-    border-radius: 16px 16px 16px 4px;
-    border: 1px solid #e2e8f0;
+    border-radius: 20px 20px 20px 4px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
   }
-  .msg-bubble .msg-time { font-size: 10px; margin-top: 6px; }
-  .msg-bubble.ben .msg-time { opacity: 0.9; }
-  .msg-bubble.vet .msg-time { color: #64748b; }
+  .msg-bubble .msg-time { font-size: 11px; margin-top: 8px; text-align: right; font-weight: 500; }
+  .msg-bubble.ben .msg-time { color: rgba(255,255,255,0.7); }
+  .msg-bubble.vet .msg-time { color: #94a3b8; }
+
   .panel-input {
-    padding: 12px;
+    padding: 20px 24px;
     background: #fff;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
   }
+  
+  .input-wrapper {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 10px 16px;
+    transition: all 0.2s;
+    &:focus-within {
+      border-color: #0ea5e9;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(14,165,233,0.1);
+    }
+  }
+
   .panel-input textarea {
     width: 100%;
-    min-height: 72px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    font-size: 13px;
+    min-height: 24px;
+    max-height: 120px;
+    font-size: 15px;
     resize: none;
-    box-sizing: border-box;
     font-family: inherit;
-    background: #fafafa;
+    background: transparent;
+    border: none;
+    color: #1e293b;
+    line-height: 1.5;
+    outline: none;
+    &::placeholder { color: #94a3b8; }
   }
-  .panel-input textarea:focus { outline: none; border-color: #d1d5db; background: #fff; }
-  .panel-input .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .panel-input .row button { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-  .btn-gonder { background: #111827; color: #fff; }
-  .btn-gonder:hover { background: #374151; }
-  .btn-gonder:disabled { opacity: 0.6; cursor: not-allowed; }
-  .btn-wa { background: #f3f4f6; color: #374151; }
-  .btn-wa:hover { background: #e5e7eb; }
-  .btn-kapat { background: transparent; color: #6b7280; }
-  .btn-kapat:hover { background: #f3f4f6; }
+  
+  .panel-input .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end;}
+  .panel-input .row button { padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-gonder { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; box-shadow: 0 4px 12px rgba(14,165,233,0.25); }
+  .btn-gonder:hover:not(:disabled) { box-shadow: 0 6px 16px rgba(14,165,233,0.35); transform: translateY(-1px); }
+  .btn-gonder:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #f1f5f9; }
+  .btn-wa { background: #25D366; color: #fff; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25); }
+  .btn-wa:hover { box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35); transform: translateY(-1px); }
+  .btn-kapat { background: transparent; color: #64748b; }
+  .btn-kapat:hover { background: #f1f5f9; color: #0f172a; }
 `;
 const VetEmpty = styled.div`
   text-align: center;
@@ -562,7 +610,7 @@ function VeterinerlerPanel() {
 
     useEffect(() => {
         let cancelled = false;
-        api.getProfile().then(res => { if (!cancelled && res?.data) setBenimId(res.data.parentUserId || res.data._id); }).catch(() => {});
+        api.getProfile().then(res => { if (!cancelled && res?.data) setBenimId(res.data.parentUserId || res.data._id); }).catch(() => { });
         api.getVeterinerlerim()
             .then(res => { if (!cancelled) setVets(Array.isArray(res.data) ? res.data : []); })
             .catch(() => { if (!cancelled) setVets([]); })
@@ -658,10 +706,9 @@ function VeterinerlerPanel() {
                                         const benim = String(gonderenId) === String(benimId);
                                         return (
                                             <div key={m._id} className={`msg-row ${benim ? 'ben' : 'vet'}`}>
-                                                <span className="msg-sender">{benim ? 'Siz' : 'Veteriner'}</span>
                                                 <div className={`msg-bubble ${benim ? 'ben' : 'vet'}`}>
                                                     <div>{m.mesaj}</div>
-                                                    <div className="msg-time">{m.createdAt ? new Date(m.createdAt).toLocaleString('tr-TR') : ''}</div>
+                                                    <div className="msg-time">{m.createdAt ? new Date(m.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
                                                 </div>
                                             </div>
                                         );
@@ -669,22 +716,29 @@ function VeterinerlerPanel() {
                                 )}
                             </div>
                             <div className="panel-input">
-                                <textarea
-                                    value={mesaj}
-                                    onChange={e => setMesaj(e.target.value)}
-                                    placeholder="Mesajınızı yazın..."
-                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGonder(e); } }}
-                                />
+                                <div className="input-wrapper">
+                                    <textarea
+                                        value={mesaj}
+                                        onChange={e => {
+                                            setMesaj(e.target.value);
+                                            e.target.style.height = 'auto';
+                                            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                        }}
+                                        placeholder="Mesajınızı yazın..."
+                                        rows={1}
+                                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGonder(e); e.target.style.height = 'auto'; } }}
+                                    />
+                                </div>
                                 <div className="row">
+                                    <button type="button" className="btn-kapat" onClick={() => setSeciliVet(null)}>Kapat</button>
+                                    {whatsappUrl && (
+                                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                            <button type="button" className="btn-wa">WP</button>
+                                        </a>
+                                    )}
                                     <button type="button" className="btn-gonder" onClick={handleGonder} disabled={!mesaj.trim() || gonderiyor}>
                                         {gonderiyor ? '…' : 'Gönder'}
                                     </button>
-                                    {whatsappUrl && (
-                                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                                            <button type="button" className="btn-wa">WhatsApp ile gönder</button>
-                                        </a>
-                                    )}
-                                    <button type="button" className="btn-kapat" onClick={() => setSeciliVet(null)}>Kapat</button>
                                 </div>
                             </div>
                         </DanismaPanel>
