@@ -1,49 +1,159 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import * as api from '../services/api';
+
+const fadeUp = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
 
 const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 28px 24px 56px;
+  padding: 28px 24px 64px;
   background: #f8fafc;
   min-height: calc(100vh - 100px);
+  animation: ${fadeUp} 0.4s ease;
 `;
 
-const Header = styled.header`
+const PageHeader = styled.header`
+  margin-bottom: 28px;
+  padding: 24px 28px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, #8b5cf6, #0ea5e9);
+    border-radius: 10px 0 0 10px;
+  }
+  .left { padding-left: 8px; }
+  .eyebrow { font-size: 11px; font-weight: 800; color: #8b5cf6; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 4px; }
+  .title { font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+  .desc { font-size: 13px; color: #64748b; margin: 6px 0 0; }
+  .badge { padding: 6px 14px; background: #f5f3ff; color: #7c3aed; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid #ddd6fe; }
+`;
+
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   margin-bottom: 24px;
-  padding: 20px 24px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  .title { font-size: 11px; font-weight: 700; color: #0ea5e9; letter-spacing: 0.08em; margin: 0 0 6px; text-transform: uppercase; }
-  .name { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; }
-  .desc { font-size: 13px; color: #64748b; margin-top: 8px; }
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
 `;
 
-const Section = styled.section`
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  padding: 20px 24px;
+const StatCard = styled.div`
+  background: ${p => p.$gradient || '#fff'};
+  border-radius: 14px;
+  padding: 20px 22px;
+  border: 1px solid ${p => p.$gradient ? 'transparent' : '#e2e8f0'};
+  box-shadow: ${p => p.$gradient
+    ? '0 12px 28px -8px rgba(139,92,246,0.3)'
+    : '0 2px 8px rgba(0,0,0,0.04)'};
+  transition: transform 0.2s;
+  &:hover { transform: translateY(-2px); }
+  .icon { font-size: 24px; margin-bottom: 8px; }
+  .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: ${p => p.$gradient ? 'rgba(255,255,255,0.75)' : '#94a3b8'}; margin-bottom: 4px; }
+  .value { font-size: 30px; font-weight: 900; color: ${p => p.$gradient ? '#fff' : (p.$color || '#0f172a')}; letter-spacing: -0.02em; line-height: 1; }
+  .sub { font-size: 12px; color: ${p => p.$gradient ? 'rgba(255,255,255,0.65)' : '#64748b'}; margin-top: 6px; }
+`;
+
+const Grid2 = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  h3 { margin: 0 0 16px; font-size: 14px; font-weight: 700; color: #475569; }
-  ul { margin: 0; padding: 0; list-style: none; }
-  li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-  li:last-child { border-bottom: none; }
-  .sayi { font-weight: 700; color: #0ea5e9; }
+  @media (max-width: 720px) { grid-template-columns: 1fr; }
 `;
 
-const Ozet = styled.div`
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  color: #fff;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
-  .label { font-size: 12px; font-weight: 600; opacity: 0.9; }
-  .value { font-size: 28px; font-weight: 800; }
+const SectionCard = styled.div`
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+`;
+
+const SectionHead = styled.div`
+  padding: 16px 22px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  .icon { font-size: 18px; }
+  h2 { margin: 0; font-size: 14px; font-weight: 800; color: #0f172a; flex: 1; }
+  .count { font-size: 11px; color: #94a3b8; font-weight: 700; }
+`;
+
+const RankList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 12px 0;
+`;
+
+const RankItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  transition: background 0.15s;
+  &:hover { background: #fafbfc; }
+
+  .rank {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; flex-shrink: 0;
+    background: ${p => p.$r === 1 ? '#fef3c7' : p.$r === 2 ? '#f3f4f6' : p.$r === 3 ? '#fff7ed' : '#f8fafc'};
+    color: ${p => p.$r === 1 ? '#d97706' : p.$r === 2 ? '#6b7280' : p.$r === 3 ? '#c2410c' : '#94a3b8'};
+    border: 1px solid ${p => p.$r === 1 ? '#fde68a' : p.$r === 2 ? '#e5e7eb' : p.$r === 3 ? '#fed7aa' : '#e5e7eb'};
+  }
+
+  .info { flex: 1; min-width: 0; }
+  .name { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .bar-wrap { flex: 1; height: 6px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 6px; background: ${p => p.$color || '#0ea5e9'}; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+
+  .sayi { font-size: 13px; font-weight: 800; color: ${p => p.$color || '#0ea5e9'}; min-width: 32px; text-align: right; }
+`;
+
+const EmptySection = styled.p`
+  padding: 20px 22px;
+  color: #94a3b8;
+  font-size: 13px;
+  margin: 0;
+`;
+
+const FarmRankItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  transition: background 0.15s;
+  &:hover { background: #fafbfc; }
+  .rank {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; flex-shrink: 0;
+    background: ${p => p.$r === 1 ? '#fef3c7' : p.$r === 2 ? '#f3f4f6' : '#fff7ed'};
+    color: ${p => p.$r === 1 ? '#d97706' : p.$r === 2 ? '#6b7280' : '#c2410c'};
+  }
+  .name { flex: 1; font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    background: ${p => p.$r === 1 ? '#fef9c3' : p.$r === 2 ? '#f3f4f6' : '#fff7ed'};
+    color: ${p => p.$r === 1 ? '#92400e' : p.$r === 2 ? '#374151' : '#c2410c'};
+    border: 1px solid ${p => p.$r === 1 ? '#fde68a' : p.$r === 2 ? '#d1d5db' : '#fcd34d'};
+  }
 `;
 
 export default function VeterinerRapor() {
@@ -57,55 +167,142 @@ export default function VeterinerRapor() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Page><Header><p className="title">Rapor</p><h1 className="name">Aylık özet</h1></Header><p>Yükleniyor…</p></Page>;
+  const buAy = new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
 
-  const { enCokHastalik = [], enCokIlac = [], problemliCiftlikler = [], toplamKayit = 0 } = rapor || {};
+  if (loading) {
+    return (
+      <Page>
+        <PageHeader>
+          <div className="left">
+            <p className="eyebrow">Rapor</p>
+            <h1 className="title">Klinik istatistikler</h1>
+          </div>
+        </PageHeader>
+        <p style={{ padding: 24, color: '#94a3b8' }}>Yükleniyor…</p>
+      </Page>
+    );
+  }
+
+  const {
+    enCokHastalik = [],
+    enCokIlac = [],
+    problemliCiftlikler = [],
+    toplamKayit = 0,
+    ciftlikSayisi = 0,
+    ilacSayisi = 0,
+  } = rapor || {};
+
+  const maxH = enCokHastalik[0]?.sayi || 1;
+  const maxI = enCokIlac[0]?.sayi || 1;
+
+  const rankEmoji = (i) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
 
   return (
     <Page>
-      <Header>
-        <p className="title">Rapor</p>
-        <h1 className="name">Klinik raporlama ve istatistikler</h1>
-        <p className="desc">Bu ay en çok hangi hastalık, hangi ilaç ve hangi çiftlikte daha fazla kayıt oluştu.</p>
-      </Header>
+      <PageHeader>
+        <div className="left">
+          <p className="eyebrow">Rapor</p>
+          <h1 className="title">Klinik Raporlama</h1>
+          <p className="desc">Bu ay en çok karşılaşılan hastalıklar, kullanılan ilaçlar ve aktif çiftlikler.</p>
+        </div>
+        <span className="badge">📅 {buAy}</span>
+      </PageHeader>
 
-      <Ozet>
-        <div className="label">Bu ay toplam kayıt</div>
-        <div className="value">{toplamKayit}</div>
-      </Ozet>
+      <StatsGrid>
+        <StatCard $gradient="linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)">
+          <div className="icon">📋</div>
+          <div className="label">Toplam kayıt</div>
+          <div className="value">{toplamKayit}</div>
+          <div className="sub">bu ay tüm müşteriler</div>
+        </StatCard>
+        <StatCard>
+          <div className="icon">🏥</div>
+          <div className="label">Aktif çiftlik</div>
+          <div className="value" style={{ color: '#0ea5e9' }}>{ciftlikSayisi || problemliCiftlikler.length}</div>
+          <div className="sub">kayıt girilen müşteri</div>
+        </StatCard>
+        <StatCard>
+          <div className="icon">💊</div>
+          <div className="label">Farklı ilaç</div>
+          <div className="value" style={{ color: '#059669' }}>{ilacSayisi || enCokIlac.length}</div>
+          <div className="sub">bu ay kullanıldı</div>
+        </StatCard>
+      </StatsGrid>
 
-      <Section>
-        <h3>En çok karşılaşılan hastalık / tanı</h3>
-        {enCokHastalik.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>Veri yok.</p> : (
-          <ul>
-            {enCokHastalik.map((x, i) => (
-              <li key={i}><span>{x.ad}</span><span className="sayi">{x.sayi}</span></li>
-            ))}
-          </ul>
-        )}
-      </Section>
+      <Grid2>
+        <SectionCard>
+          <SectionHead>
+            <span className="icon">🦠</span>
+            <h2>En çok karşılaşılan tanı</h2>
+            <span className="count">{enCokHastalik.length} kayıt</span>
+          </SectionHead>
+          {enCokHastalik.length === 0 ? (
+            <EmptySection>Bu ay henüz veri yok.</EmptySection>
+          ) : (
+            <RankList>
+              {enCokHastalik.map((x, i) => (
+                <RankItem key={i} $r={i + 1} $color="#8b5cf6">
+                  <div className="rank">{rankEmoji(i)}</div>
+                  <div className="info">
+                    <div className="name" title={x.ad}>{x.ad}</div>
+                    <div className="bar-wrap">
+                      <div className="bar" style={{ width: `${Math.round(x.sayi / maxH * 100)}%`, background: '#8b5cf6' }} />
+                    </div>
+                  </div>
+                  <span className="sayi" style={{ color: '#8b5cf6' }}>{x.sayi}</span>
+                </RankItem>
+              ))}
+            </RankList>
+          )}
+        </SectionCard>
 
-      <Section>
-        <h3>En çok kullanılan ilaç</h3>
-        {enCokIlac.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>Veri yok.</p> : (
-          <ul>
-            {enCokIlac.map((x, i) => (
-              <li key={i}><span>{x.ad}</span><span className="sayi">{x.sayi}</span></li>
-            ))}
-          </ul>
-        )}
-      </Section>
+        <SectionCard>
+          <SectionHead>
+            <span className="icon">💊</span>
+            <h2>En çok kullanılan ilaç</h2>
+            <span className="count">{enCokIlac.length} çeşit</span>
+          </SectionHead>
+          {enCokIlac.length === 0 ? (
+            <EmptySection>Bu ay henüz ilaç kaydı yok.</EmptySection>
+          ) : (
+            <RankList>
+              {enCokIlac.map((x, i) => (
+                <RankItem key={i} $r={i + 1} $color="#0ea5e9">
+                  <div className="rank">{rankEmoji(i)}</div>
+                  <div className="info">
+                    <div className="name" title={x.ad}>{x.ad}</div>
+                    <div className="bar-wrap">
+                      <div className="bar" style={{ width: `${Math.round(x.sayi / maxI * 100)}%`, background: '#0ea5e9' }} />
+                    </div>
+                  </div>
+                  <span className="sayi" style={{ color: '#0ea5e9' }}>{x.sayi}</span>
+                </RankItem>
+              ))}
+            </RankList>
+          )}
+        </SectionCard>
+      </Grid2>
 
-      <Section>
-        <h3>En çok kayıt oluşan çiftlikler</h3>
-        {problemliCiftlikler.length === 0 ? <p style={{ margin: 0, color: '#64748b' }}>Veri yok.</p> : (
-          <ul>
+      <SectionCard>
+        <SectionHead>
+          <span className="icon">🏆</span>
+          <h2>En çok kayıt oluşan çiftlikler</h2>
+          <span className="count">{problemliCiftlikler.length} çiftlik</span>
+        </SectionHead>
+        {problemliCiftlikler.length === 0 ? (
+          <EmptySection>Bu ay henüz veri yok.</EmptySection>
+        ) : (
+          <RankList>
             {problemliCiftlikler.map((x, i) => (
-              <li key={i}><span>{x.isletmeAdi || x.isim || 'Çiftlik'}</span><span className="sayi">{x.kayitSayisi} kayıt</span></li>
+              <FarmRankItem key={i} $r={i + 1}>
+                <div className="rank">{rankEmoji(i)}</div>
+                <span className="name">{x.isletmeAdi || x.isim || 'Çiftlik'}</span>
+                <span className="badge">{x.kayitSayisi} kayıt</span>
+              </FarmRankItem>
             ))}
-          </ul>
+          </RankList>
         )}
-      </Section>
+      </SectionCard>
     </Page>
   );
 }
