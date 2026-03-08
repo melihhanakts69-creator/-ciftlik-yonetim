@@ -405,21 +405,27 @@ const hayvanTipiLabel = {
 
 // Veterinerler paneli için stiller
 const VetPanelWrap = styled.div`
-  animation: ${fadeIn} 0.4s ease;
+  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 32px;
+  box-shadow: 0 15px 50px -15px rgba(0,0,0,0.06);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  margin-top: 32px;
 `;
 const VetPanelTitle = styled.h3`
-  margin: 0 0 8px; font-size: 20px; font-weight: 800; color: #1e293b;
+  margin: 0 0 12px; font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em;
 `;
 const VetPanelSub = styled.p`
-  margin: 0 0 24px; font-size: 14px; color: #64748b; line-height: 1.5;
+  margin: 0 0 32px; font-size: 16px; color: #64748b; line-height: 1.5; font-weight: 500;
 `;
 const VetLayout = styled.div`
   display: flex;
-  gap: 24px;
+  gap: 32px;
   align-items: stretch;
-  min-height: 480px;
-  max-height: 700px;
-  @media (max-width: 900px) {
+  min-height: 600px;
+  max-height: 800px;
+  @media (max-width: 1024px) {
     flex-direction: column;
     max-height: none;
   }
@@ -429,22 +435,22 @@ const VetListCol = styled.div`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 12px;
   
-  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar { width: 8px; }
   &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   &::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 `;
 const VetCard = styled.div`
-  background: #fff;
-  border-radius: 20px;
-  padding: 20px 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-  border: 1px solid ${p => p.$secili ? 'rgba(79, 70, 229, 0.4)' : 'rgba(226, 232, 240, 0.8)'};
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04);
+  border: 2px solid ${p => p.$secili ? 'rgba(79, 70, 229, 0.6)' : 'rgba(226, 232, 240, 0.8)'};
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -454,50 +460,50 @@ const VetCard = styled.div`
       content: '';
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      width: 6px;
+      width: 8px;
       background: linear-gradient(180deg, #4f46e5, #818cf8);
     }
-    background: linear-gradient(90deg, rgba(79, 70, 229, 0.03) 0%, rgba(255,255,255,0) 100%);
+    background: linear-gradient(90deg, rgba(79, 70, 229, 0.04) 0%, rgba(255,255,255,0) 100%);
   `}
 
   &:hover { 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.06); 
-    border-color: ${p => p.$secili ? 'rgba(79, 70, 229, 0.6)' : 'rgba(203, 213, 225, 0.8)'}; 
-    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); 
+    border-color: ${p => p.$secili ? 'rgba(79, 70, 229, 0.8)' : 'rgba(203, 213, 225, 0.8)'}; 
+    transform: translateY(-4px) scale(1.01);
   }
   
-  .vet-name { font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-  .vet-clinic { font-size: 13.5px; color: #4f46e5; font-weight: 600; margin-bottom: 12px; display: inline-block; padding: 4px 10px; background: rgba(79, 70, 229, 0.1); border-radius: 8px;}
-  .vet-contact { font-size: 13px; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-weight: 500;}
-  .vet-contact a { color: #3b82f6; text-decoration: none; transition: color 0.2s; }
-  .vet-contact a:hover { color: #2563eb; }
-  .vet-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-  .vet-actions button { padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-  .btn-danis { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25); }
-  .btn-danis:hover { background: linear-gradient(135deg, #4338ca, #4f46e5); box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35); transform: translateY(-1px); }
+  .vet-name { font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.01em;}
+  .vet-clinic { font-size: 14px; color: #4f46e5; font-weight: 800; margin-bottom: 16px; display: inline-block; padding: 6px 14px; background: rgba(79, 70, 229, 0.1); border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;}
+  .vet-contact { font-size: 15px; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-weight: 500;}
+  .vet-contact a { color: #3b82f6; text-decoration: none; transition: color 0.3s; font-weight: 600;}
+  .vet-contact a:hover { color: #1d4ed8; }
+  .vet-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+  .vet-actions button { padding: 14px 24px; border-radius: 16px; font-size: 15px; font-weight: 800; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .btn-danis { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); }
+  .btn-danis:hover { background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%); box-shadow: 0 15px 25px -5px rgba(79, 70, 229, 0.5); transform: translateY(-2px); }
   .btn-ara { background: #e0e7ff; color: #4338ca; }
-  .btn-ara:hover { background: #c7d2fe; transform: translateY(-1px); }
+  .btn-ara:hover { background: #c7d2fe; transform: translateY(-2px); }
 `;
 const DanismaPanel = styled.div`
-  width: 420px;
+  width: 480px;
   flex-shrink: 0;
-  background: #fff;
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 28px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: ${fadeIn} 0.25s ease;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-  @media (max-width: 900px) {
+  animation: ${fadeIn} 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 15px 50px -15px rgba(0,0,0,0.08);
+  @media (max-width: 1024px) {
     width: 100%;
-    height: 500px;
+    height: 600px;
   }
 
   .panel-header {
-    padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    padding: 32px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
     flex-direction: column;
