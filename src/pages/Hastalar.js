@@ -123,6 +123,32 @@ const Block = styled.section`
   h4 { font-size: 11px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 16px; }
 `;
 
+const HayvanFiltreRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  .kategori-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .kategori-wrap span { font-size: 12px; font-weight: 600; color: #64748b; margin-right: 4px; }
+  .kategori-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #e0f2fe;
+    background: #fff;
+    color: #0369a1;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .kategori-btn:hover { background: #f0f9ff; border-color: #0ea5e9; }
+  .kategori-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+  .kupe-search { flex: 1; min-width: 180px; max-width: 260px; padding: 10px 14px; border: 1px solid #e0f2fe; border-radius: 10px; font-size: 13px; }
+  .kupe-search:focus { outline: none; border-color: #0ea5e9; }
+  .kupe-search::placeholder { color: #94a3b8; }
+`;
+
 const AnimalGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
@@ -214,6 +240,8 @@ export default function Hastalar() {
   const [secilenHayvan, setSecilenHayvan] = useState(null);
   const [islemTipi, setIslemTipi] = useState('hastalik');
   const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '' });
+  const [hayvanKategori, setHayvanKategori] = useState('');
+  const [hayvanKupeArama, setHayvanKupeArama] = useState('');
 
   const filteredMusteriler = useMemo(() => {
     if (!arama.trim()) return musteriler;
@@ -226,6 +254,16 @@ export default function Hastalar() {
   }, [musteriler, arama]);
 
   const selectedMusteri = useMemo(() => musteriler.find(m => m._id === selectedId), [musteriler, selectedId]);
+
+  const filteredHayvanlar = useMemo(() => {
+    let list = hayvanlar;
+    if (hayvanKategori) list = list.filter(h => h.tip === hayvanKategori);
+    if (hayvanKupeArama.trim()) {
+      const q = hayvanKupeArama.trim().toLowerCase();
+      list = list.filter(h => (h.kupeNo || '').toLowerCase().includes(q) || (h.isim || '').toLowerCase().includes(q));
+    }
+    return list;
+  }, [hayvanlar, hayvanKategori, hayvanKupeArama]);
 
   const fetchMusteriler = async () => {
     try {
@@ -249,6 +287,11 @@ export default function Hastalar() {
     if (id) navigate(`/hastalar/${id}`, { replace: true });
     else navigate('/hastalar', { replace: true });
   };
+
+  useEffect(() => {
+    setHayvanKategori('');
+    setHayvanKupeArama('');
+  }, [selectedId]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -426,8 +469,31 @@ export default function Hastalar() {
               {hayvanlar.length === 0 ? (
                 <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Bu çiftlikte kayıtlı hayvan yok.</p>
               ) : (
-                <AnimalGrid>
-                  {hayvanlar.map(h => (
+                <>
+                  <HayvanFiltreRow>
+                    <div className="kategori-wrap">
+                      <span>Kategori:</span>
+                      {['', 'inek', 'buzagi', 'duve', 'tosun'].map(k => (
+                        <button
+                          key={k || 'tumu'}
+                          type="button"
+                          className={`kategori-btn ${hayvanKategori === k ? 'active' : ''}`}
+                          onClick={() => setHayvanKategori(k)}
+                        >
+                          {k === '' ? 'Tümü' : k === 'inek' ? 'İnek' : k === 'buzagi' ? 'Buzağı' : k === 'duve' ? 'Düve' : 'Tosun'}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      className="kupe-search"
+                      placeholder="Küpe no veya isim ara..."
+                      value={hayvanKupeArama}
+                      onChange={e => setHayvanKupeArama(e.target.value)}
+                    />
+                  </HayvanFiltreRow>
+                  <AnimalGrid>
+                  {filteredHayvanlar.map(h => (
                     <AnimalCard key={h._id}>
                       <div className="row">
                         <span className="kupe">{h.kupeNo || '–'} {h.isim && `(${h.isim})`}</span>
@@ -443,6 +509,10 @@ export default function Hastalar() {
                     </AnimalCard>
                   ))}
                 </AnimalGrid>
+                  {filteredHayvanlar.length === 0 && (hayvanKategori || hayvanKupeArama.trim()) && (
+                    <p style={{ margin: '12px 0 0', color: '#64748b', fontSize: 13 }}>Bu filtreye uygun hayvan bulunamadı.</p>
+                  )}
+                </>
               )}
             </Block>
 

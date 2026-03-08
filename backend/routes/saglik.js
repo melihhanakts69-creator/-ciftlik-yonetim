@@ -8,15 +8,24 @@ const Timeline = require('../models/Timeline');
 const Bildirim = require('../models/Bildirim');
 const Maliyet = require('../models/Maliyet');
 const User = require('../models/User');
+const Tenant = require('../models/Tenant');
 const mongoose = require('mongoose');
 
 // Çiftçinin veterinerleri (beni müşteri olarak ekleyen aktif veterinerler)
+// Vet musteriler'de çiftlik sahibi User _id tutulur; çiftçi girişinde req.userId veya tenant owner kullanılır
 router.get('/veterinerlerim', auth, checkRole(['ciftci']), async (req, res) => {
     try {
-        const ciftciId = req.userId;
+        let ciftciId = (req.userId || req.originalUserId || '').toString().trim();
+        if (req.tenantId && mongoose.Types.ObjectId.isValid(req.tenantId)) {
+            const tenant = await Tenant.findById(req.tenantId).select('ownerUser').lean();
+            if (tenant?.ownerUser) ciftciId = tenant.ownerUser.toString();
+        }
+        if (!ciftciId) return res.json([]);
+        const ciftciObjId = mongoose.Types.ObjectId.isValid(ciftciId) ? new mongoose.Types.ObjectId(ciftciId) : null;
+        if (!ciftciObjId) return res.json([]);
         const list = await User.find({
             rol: 'veteriner',
-            musteriler: ciftciId
+            musteriler: ciftciObjId
         }).select('isim email telefon klinikAdi').lean();
         res.json(list || []);
     } catch (error) {
