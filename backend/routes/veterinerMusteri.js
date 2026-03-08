@@ -499,6 +499,27 @@ router.post('/randevu', async (req, res) => {
             aciklama: (aciklama || '').trim(),
             durum: 'planlandi'
         });
+        const vet = await User.findById(vetId).select('isim klinikAdi').lean();
+        const vetAd = vet ? (vet.klinikAdi || vet.isim || 'Veteriner') : 'Veteriner';
+        const tarihStr = new Date(tarih).toLocaleDateString('tr-TR');
+        const saatStr = (saat || '').trim() || '—';
+        const randevuTarih = new Date(tarih);
+        await Bildirim.create({
+            userId: ciftciId,
+            tip: 'randevu',
+            baslik: 'Veteriner randevusu',
+            mesaj: `${vetAd} sizin için ${tarihStr} ${saatStr !== '—' ? saatStr : ''} tarihli randevu oluşturdu: ${baslik.trim()}`.trim(),
+            oncelik: 'normal',
+            hatirlatmaTarihi: randevuTarih,
+            metadata: {
+                randevuId: doc._id,
+                veterinerAdi: vetAd,
+                baslik: baslik.trim(),
+                tarih: randevuTarih,
+                saat: (saat || '').trim(),
+                aciklama: (aciklama || '').trim()
+            }
+        });
         const populated = await VeterinerRandevu.findById(doc._id).populate('ciftciId', 'isim isletmeAdi').lean();
         res.status(201).json(populated);
     } catch (error) {

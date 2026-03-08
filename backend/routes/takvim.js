@@ -11,6 +11,7 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 const Bildirim = require('../models/Bildirim');
 const TopluSutGirisi = require('../models/TopluSutGirisi');
 const AlisSatis = require('../models/AlisSatis');
+const VeterinerRandevu = require('../models/VeterinerRandevu');
 
 // @route   GET /api/takvim
 // @desc    Belirli bir ay için tüm etkinlikleri getir
@@ -190,6 +191,28 @@ router.get('/', auth, async (req, res) => {
                 title: `🐄 Buzağı: ${buzagi.isim || buzagi.kupeNo}`,
                 type: 'buzagi_dogum',
                 details: { cinsiyet: buzagi.cinsiyet, kupeNo: buzagi.kupeNo }
+            });
+        });
+
+        // ─── 8. VETERİNER RANDEVULARI (bu çiftliğe planlanan) ─────
+        const randevular = await VeterinerRandevu.find({
+            ciftciId: userId,
+            tarih: { $gte: startDate, $lte: endDate },
+            durum: { $ne: 'iptal' }
+        }).populate('veterinerId', 'isim klinikAdi').lean();
+
+        randevular.forEach(r => {
+            events.push({
+                id: `randevu_${r._id}`,
+                date: r.tarih,
+                title: `📅 Randevu: ${r.baslik}${r.saat ? ` — ${r.saat}` : ''}`,
+                type: 'randevu',
+                details: {
+                    veterinerAdi: r.veterinerId?.isim || r.veterinerId?.klinikAdi || 'Veteriner',
+                    baslik: r.baslik,
+                    saat: r.saat,
+                    aciklama: r.aciklama
+                }
             });
         });
 

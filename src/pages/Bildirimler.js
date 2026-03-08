@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import {
   FaBell, FaCheckDouble, FaTrash, FaSyringe, FaBaby,
   FaStethoscope, FaInfoCircle, FaCheck, FaExclamationTriangle,
-  FaBoxOpen, FaFilter, FaTrashAlt
+  FaBoxOpen, FaFilter, FaTrashAlt, FaCalendarAlt
 } from 'react-icons/fa';
 import * as api from '../services/api';
 import { toast } from 'react-toastify';
@@ -188,6 +188,31 @@ const ActionButtons = styled.div`
   }
 `;
 
+const RandevuDetayOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+const RandevuDetayKutu = styled.div`
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  border-left: 6px solid #0d9488;
+  h3 { margin: 0 0 16px; font-size: 18px; color: #0f172a; }
+  .satir { margin-bottom: 12px; font-size: 14px; }
+  .satir strong { display: inline-block; min-width: 90px; color: #64748b; }
+  .kapat { margin-top: 20px; padding: 10px 20px; border-radius: 10px; border: none; background: #0d9488; color: #fff; font-weight: 600; cursor: pointer; }
+  .kapat:hover { background: #0f766e; }
+`;
+
 const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
@@ -209,6 +234,7 @@ function Bildirimler() {
   const filtreler = [
     { id: 'hepsi', label: 'Tümü', icon: <FaBell /> },
     { id: 'okunmamis', label: 'Okunmamış', icon: <FaBell color="#E91E63" /> },
+    { id: 'randevu', label: 'Randevu', icon: <FaCalendarAlt /> },
     { id: 'saglik', label: 'Sağlık', icon: <FaStethoscope /> },
     { id: 'ureme', label: 'Doğum/Tohum', icon: <FaBaby /> },
     { id: 'stok', label: 'Stok & Yem', icon: <FaBoxOpen /> },
@@ -282,17 +308,21 @@ function Bildirimler() {
       case 'stok':
         return { icon: <FaExclamationTriangle />, color: '#FF9800', bg: '#FFF3E0' };
       case 'tohumlama': return { icon: <FaInfoCircle />, color: '#673AB7', bg: '#EDE7F6' };
+      case 'randevu': return { icon: <FaCalendarAlt />, color: '#0d9488', bg: '#ccfbf1' };
       default: return { icon: <FaBell />, color: '#4CAF50', bg: '#E8F5E9' };
     }
   };
 
+  const [detayBildirim, setDetayBildirim] = useState(null);
+
   const filtrelenmis_data = bildirimler.filter(b => {
     if (aktifFiltre === 'hepsi') return true;
     if (aktifFiltre === 'okunmamis') return !b.okundu;
+    if (aktifFiltre === 'randevu') return b.tip === 'randevu';
     if (aktifFiltre === 'saglik') return ['asi', 'muayene', 'hastalik', 'tedavi'].includes(b.tip);
     if (aktifFiltre === 'ureme') return ['dogum', 'tohumlama', 'kizginlik'].includes(b.tip);
     if (aktifFiltre === 'stok') return ['yem', 'stok'].includes(b.tip);
-    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'dogum', 'tohumlama', 'kizginlik', 'yem', 'stok'].includes(b.tip);
+    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'dogum', 'tohumlama', 'kizginlik', 'yem', 'stok', 'randevu'].includes(b.tip);
     return true;
   });
 
@@ -334,7 +364,13 @@ function Bildirimler() {
           filtrelenmis_data.map(b => {
             const style = getStyle(b.tip);
             return (
-              <NotificationCard key={b._id} unread={!b.okundu} color={style.color}>
+              <NotificationCard
+                key={b._id}
+                unread={!b.okundu}
+                color={style.color}
+                onClick={b.tip === 'randevu' ? () => setDetayBildirim(b) : undefined}
+                style={b.tip === 'randevu' ? { cursor: 'pointer' } : {}}
+              >
                 <IconWrapper bg={style.bg} color={style.color}>
                   {style.icon}
                 </IconWrapper>
@@ -347,7 +383,7 @@ function Bildirimler() {
                   <p className="message">{b.mesaj}</p>
                 </Content>
 
-                <ActionButtons>
+                <ActionButtons onClick={e => e.stopPropagation()}>
                   {!b.okundu && (
                     <button className="check" onClick={() => handleAction(b._id, 'okundu')} title="Okundu işaretle">
                       <FaCheck />
@@ -362,6 +398,25 @@ function Bildirimler() {
           })
         )}
       </NotificationList>
+
+      {detayBildirim && detayBildirim.tip === 'randevu' && (
+        <RandevuDetayOverlay onClick={() => setDetayBildirim(null)}>
+          <RandevuDetayKutu onClick={e => e.stopPropagation()}>
+            <h3>📅 Randevu detayı</h3>
+            {detayBildirim.metadata && (
+              <>
+                <div className="satir"><strong>Veteriner:</strong> {detayBildirim.metadata.veterinerAdi || '—'}</div>
+                <div className="satir"><strong>Konu:</strong> {detayBildirim.metadata.baslik || '—'}</div>
+                <div className="satir"><strong>Tarih:</strong> {detayBildirim.metadata.tarih ? new Date(detayBildirim.metadata.tarih).toLocaleDateString('tr-TR') : '—'}</div>
+                <div className="satir"><strong>Saat:</strong> {detayBildirim.metadata.saat || 'Belirtilmedi'}</div>
+                {detayBildirim.metadata.aciklama && <div className="satir"><strong>Not:</strong> {detayBildirim.metadata.aciklama}</div>}
+              </>
+            )}
+            {!detayBildirim.metadata && <p className="message">{detayBildirim.mesaj}</p>}
+            <button type="button" className="kapat" onClick={() => setDetayBildirim(null)}>Kapat</button>
+          </RandevuDetayKutu>
+        </RandevuDetayOverlay>
+      )}
 
     </PageContainer>
   );

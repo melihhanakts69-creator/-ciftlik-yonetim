@@ -273,6 +273,7 @@ const CFG = {
   alis: { bg: '#f1f5f9', color: '#475569', icon: <FiTruck />, label: 'Alış İşlemi' },
   satis: { bg: '#f1f5f9', color: '#475569', icon: <FiTruck />, label: 'Satış İşlemi' },
   buzagi_dogum: { bg: '#fefce8', color: '#ca8a04', icon: <FiHeart />, label: 'Buzağı' },
+  randevu: { bg: '#ccfbf1', color: '#0d9488', icon: <FiCalendar />, label: 'Veteriner Randevusu' },
 };
 
 const getStyle = (type) => CFG[type] || { bg: '#f8fafc', color: '#cbd5e1', icon: <FiCalendar />, label: 'Diğer' };
@@ -372,6 +373,12 @@ export default function Takvim() {
             <MetricBadge $bg="#fef2f2" $color="#ef4444">
               <div className="m-icon"><FiHeart /></div>
               <div className="m-info"><div className="m-val">{stats.dogum}</div><div className="m-lbl">Beklenen Doğum</div></div>
+            </MetricBadge>
+          )}
+          {stats.randevu > 0 && (
+            <MetricBadge $bg="#ccfbf1" $color="#0d9488">
+              <div className="m-icon"><FiCalendar /></div>
+              <div className="m-info"><div className="m-val">{stats.randevu}</div><div className="m-lbl">Veteriner Randevusu</div></div>
             </MetricBadge>
           )}
         </MetricsGrid>
