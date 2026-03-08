@@ -5,12 +5,12 @@ import { toast } from 'react-toastify';
 import * as api from '../services/api';
 
 const Page = styled.div`
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: #0f172a;
   display: flex;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 70px);
   min-height: 500px;
   background-color: #f8fafc;
+  font-family: 'Inter', sans-serif;
+  color: #0f172a;
   position: relative;
   overflow: hidden;
   z-index: 1;
@@ -20,16 +20,17 @@ const Page = styled.div`
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background: 
-      radial-gradient(circle at 15% 30%, rgba(56, 189, 248, 0.04), transparent 25%),
-      radial-gradient(circle at 85% 70%, rgba(99, 102, 241, 0.05), transparent 25%);
+      radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
     z-index: -1;
+    pointer-events: none;
   }
   @media (max-width: 900px) { flex-direction: column; height: auto; min-height: auto; }
 `;
 
 const Sidebar = styled.aside`
-  width: 380px;
-  min-width: 340px;
+  width: 320px;
+  min-width: 300px;
   background: #ffffff;
   border-right: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 10px 0 30px -10px rgba(0,0,0,0.03);
@@ -40,24 +41,24 @@ const Sidebar = styled.aside`
 `;
 
 const SidebarHeader = styled.div`
-  padding: 32px 28px 24px;
+  padding: 24px 20px 20px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   background: #ffffff;
-  .title { font-size: 24px; font-weight: 900; color: #0f172a; margin: 0 0 8px; letter-spacing: -0.02em; }
-  .title-sub { font-size: 14px; color: #3b82f6; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+  .title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .title-sub { font-size: 13px; color: #3b82f6; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 18px 20px;
+  padding: 14px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 500;
   box-sizing: border-box;
   background: #f8fafc;
-  margin-top: 20px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   &:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
   &::placeholder { color: #94a3b8; font-weight: 500;}
 `;
@@ -72,15 +73,15 @@ const FarmList = styled.div`
 `;
 
 const FarmItem = styled.div`
-  padding: 24px 28px;
-  border-radius: 20px;
+  padding: 16px 20px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: 2px solid transparent;
   ${p => p.$active ? `
     background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); 
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
-    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.3);
+    transform: translateY(-2px) scale(1.01);
     .name { color: #ffffff; }
     .sub { color: rgba(255,255,255,0.8); }
   ` : `
@@ -94,12 +95,12 @@ const FarmItem = styled.div`
     ${p => !p.$active && `
       background: #f8fafc; 
       border-color: #e2e8f0; 
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 8px 20px -5px rgba(0,0,0,0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px -5px rgba(0,0,0,0.05);
     `}
   }
-  .name { font-weight: 900; font-size: 18px; line-height: 1.2; margin-bottom: 6px; letter-spacing: -0.01em;}
-  .sub { font-size: 14px; font-weight: 600;}
+  .name { font-weight: 800; font-size: 15px; line-height: 1.2; margin-bottom: 4px; letter-spacing: -0.01em;}
+  .sub { font-size: 13px; font-weight: 600;}
 `;
 
 const AddFarmBlock = styled.div`
@@ -120,26 +121,26 @@ const DetailPanel = styled.div`
   flex: 1;
   overflow-y: auto;
   background: transparent;
-  padding: 48px 64px;
-  @media (max-width: 1024px) { padding: 40px; }
-  @media (max-width: 900px) { min-height: 50vh; padding: 32px 24px; }
+  padding: 32px 40px;
+  @media (max-width: 1024px) { padding: 24px; }
+  @media (max-width: 900px) { min-height: 50vh; padding: 24px 20px; }
 `;
 
 const EmptyDetail = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 300px;
   color: #64748b;
-  font-size: 18px;
+  font-size: 15px;
   text-align: center;
-  padding: 48px;
+  padding: 32px;
   background: #ffffff;
-  border-radius: 32px;
+  border-radius: 24px;
   border: 2px dashed #cbd5e1;
   margin: 0 16px;
-  font-weight: 700;
-  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.03);
+  font-weight: 600;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.03);
 `;
 
 const DetailHeader = styled.div`
@@ -154,13 +155,13 @@ const DetailHeader = styled.div`
 
 const Block = styled.section`
   background: #ffffff;
-  border-radius: 28px;
-  padding: 40px;
-  margin-bottom: 32px;
-  box-shadow: 0 15px 50px -15px rgba(0,0,0,0.06);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  h4 { font-size: 16px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 28px; display: flex; align-items: center; gap: 12px;}
-  h4::before { content: ''; display: block; width: 6px; height: 24px; border-radius: 4px; background: #3b82f6; }
+  h4 { font-size: 15px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
+  h4::before { content: ''; display: block; width: 4px; height: 18px; border-radius: 4px; background: #3b82f6; }
 `;
 
 const HayvanFiltreRow = styled.div`
@@ -191,35 +192,35 @@ const HayvanFiltreRow = styled.div`
 
 const AnimalGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
 `;
 
 const AnimalCard = styled.div`
-  border: 2px solid #f1f5f9;
-  border-radius: 24px;
-  padding: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
   background: #ffffff;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px -5px rgba(0,0,0,0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px -5px rgba(0,0,0,0.02);
   
   &:hover { 
-    box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.15); 
+    box-shadow: 0 8px 20px -8px rgba(14, 165, 233, 0.12); 
     border-color: #bae6fd; 
-    transform: translateY(-6px) scale(1.02); 
+    transform: translateY(-2px) scale(1.01); 
   }
 
-  .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-  .kupe { font-weight: 900; color: #0f172a; font-size: 22px; letter-spacing: -0.01em;}
-  .tag { font-size: 13px; padding: 8px 16px; border-radius: 24px; background: #e0f2fe; color: #0284c7; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;}
-  .info { font-size: 15px; color: #64748b; margin-bottom: 28px; font-weight: 600; line-height: 1.5;}
+  .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .kupe { font-weight: 800; color: #0f172a; font-size: 16px; letter-spacing: -0.01em;}
+  .tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0284c7; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;}
+  .info { font-size: 13px; color: #64748b; margin-bottom: 20px; font-weight: 600; line-height: 1.5;}
   
-  .actions { display: flex; gap: 16px; flex-wrap: wrap; }
-  .actions button { padding: 16px 20px; border-radius: 16px; border: none; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); flex: 1; display:flex; justify-content:center; align-items: center; gap: 8px;}
-  .btn-saglik { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.3);}
-  .btn-saglik:hover { transform: translateY(-2px); box-shadow: 0 12px 25px -5px rgba(16, 185, 129, 0.4);}
-  .btn-tohum { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 8px 20px -5px rgba(59, 130, 246, 0.3);}
-  .btn-tohum:hover { transform: translateY(-2px); box-shadow: 0 12px 25px -5px rgba(59, 130, 246, 0.4);}
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions button { padding: 10px 14px; border-radius: 10px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); flex: 1; display:flex; justify-content:center; align-items: center; gap: 6px;}
+  .btn-saglik { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(16, 185, 129, 0.3);}
+  .btn-saglik:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(16, 185, 129, 0.4);}
+  .btn-tohum { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.3);}
+  .btn-tohum:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(59, 130, 246, 0.4);}
 `;
 
 const KayitList = styled.div`
@@ -229,28 +230,28 @@ const KayitList = styled.div`
 `;
 
 const KayitItem = styled.div`
-  padding: 24px 28px;
+  padding: 18px 24px;
   background: #ffffff;
-  border-radius: 20px;
-  border: 2px solid #f1f5f9;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 20px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px -5px rgba(0,0,0,0.02);
+  gap: 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px -2px rgba(0,0,0,0.02);
   
-  &:hover { box-shadow: 0 12px 24px -8px rgba(0,0,0,0.06); transform: scale(1.01); border-color: #cbd5e1; }
+  &:hover { box-shadow: 0 6px 16px -4px rgba(0,0,0,0.04); transform: translateY(-1px); border-color: #cbd5e1; }
   .icon-box { 
-    width: 56px; height: 56px; border-radius: 16px; 
+    width: 44px; height: 44px; border-radius: 12px; 
     background: ${p => p.$bg || '#f1f5f9'}; color: ${p => p.$color || '#64748b'}; 
-    display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
   }
   .content { flex: 1; min-width: 0; }
-  .baslik { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 6px; letter-spacing: -0.01em;}
-  .alt { font-size: 14px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;}
-  .tarih { font-size: 14px; color: #94a3b8; white-space: nowrap; font-weight: 600;}
+  .baslik { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.01em;}
+  .alt { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;}
+  .tarih { font-size: 12px; color: #94a3b8; white-space: nowrap; font-weight: 600;}
   
-  @media (max-width: 600px) { flex-direction: column; align-items: flex-start; gap: 12px; .tarih { align-self: flex-start; } }
+  @media (max-width: 600px) { flex-direction: column; align-items: flex-start; gap: 8px; .tarih { align-self: flex-start; } }
 `;
 
 const ModalOverlay = styled.div`

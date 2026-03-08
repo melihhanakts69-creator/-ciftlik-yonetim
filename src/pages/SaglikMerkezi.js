@@ -405,26 +405,26 @@ const hayvanTipiLabel = {
 
 // Veterinerler paneli için stiller
 const VetPanelWrap = styled.div`
-  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 40px;
+  animation: ${fadeIn} 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 24px;
   background: #ffffff;
-  border-radius: 32px;
-  box-shadow: 0 15px 50px -15px rgba(0,0,0,0.06);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  margin-top: 32px;
+  margin-top: 24px;
 `;
 const VetPanelTitle = styled.h3`
-  margin: 0 0 12px; font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em;
+  margin: 0 0 8px; font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em;
 `;
 const VetPanelSub = styled.p`
-  margin: 0 0 32px; font-size: 16px; color: #64748b; line-height: 1.5; font-weight: 500;
+  margin: 0 0 24px; font-size: 15px; color: #64748b; line-height: 1.5; font-weight: 500;
 `;
 const VetLayout = styled.div`
   display: flex;
-  gap: 32px;
+  gap: 24px;
   align-items: stretch;
-  min-height: 600px;
-  max-height: 800px;
+  min-height: 500px;
+  max-height: 700px;
   @media (max-width: 1024px) {
     flex-direction: column;
     max-height: none;
@@ -446,11 +446,11 @@ const VetListCol = styled.div`
 `;
 const VetCard = styled.div`
   background: #ffffff;
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.04);
   border: 2px solid ${p => p.$secili ? 'rgba(79, 70, 229, 0.6)' : 'rgba(226, 232, 240, 0.8)'};
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -460,59 +460,58 @@ const VetCard = styled.div`
       content: '';
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      width: 8px;
+      width: 6px;
       background: linear-gradient(180deg, #4f46e5, #818cf8);
     }
     background: linear-gradient(90deg, rgba(79, 70, 229, 0.04) 0%, rgba(255,255,255,0) 100%);
   `}
 
   &:hover { 
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); 
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,0.06); 
     border-color: ${p => p.$secili ? 'rgba(79, 70, 229, 0.8)' : 'rgba(203, 213, 225, 0.8)'}; 
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(-2px) scale(1.01);
   }
   
-  .vet-name { font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.01em;}
-  .vet-clinic { font-size: 14px; color: #4f46e5; font-weight: 800; margin-bottom: 16px; display: inline-block; padding: 6px 14px; background: rgba(79, 70, 229, 0.1); border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;}
-  .vet-contact { font-size: 15px; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-weight: 500;}
-  .vet-contact a { color: #3b82f6; text-decoration: none; transition: color 0.3s; font-weight: 600;}
+  .vet-name { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 6px; letter-spacing: -0.01em;}
+  .vet-clinic { font-size: 13px; color: #4f46e5; font-weight: 800; margin-bottom: 12px; display: inline-block; padding: 4px 12px; background: rgba(79, 70, 229, 0.1); border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em;}
+  .vet-contact { font-size: 14px; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-weight: 500;}
+  .vet-contact a { color: #3b82f6; text-decoration: none; transition: color 0.2s; font-weight: 600;}
   .vet-contact a:hover { color: #1d4ed8; }
-  .vet-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-  .vet-actions button { padding: 14px 24px; border-radius: 16px; font-size: 15px; font-weight: 800; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 10px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-  .btn-danis { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); }
-  .btn-danis:hover { background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%); box-shadow: 0 15px 25px -5px rgba(79, 70, 229, 0.5); transform: translateY(-2px); }
+  .vet-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .vet-actions button { padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  .btn-danis { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: #fff; box-shadow: 0 8px 16px -5px rgba(79, 70, 229, 0.3); }
+  .btn-danis:hover { background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%); box-shadow: 0 12px 20px -5px rgba(79, 70, 229, 0.4); transform: translateY(-2px); }
   .btn-ara { background: #e0e7ff; color: #4338ca; }
   .btn-ara:hover { background: #c7d2fe; transform: translateY(-2px); }
 `;
 const DanismaPanel = styled.div`
-  width: 480px;
+  width: 420px;
   flex-shrink: 0;
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 20px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: ${fadeIn} 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 15px 50px -15px rgba(0,0,0,0.08);
+  animation: ${fadeIn} 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
   @media (max-width: 1024px) {
     width: 100%;
-    height: 600px;
+    height: 500px;
   }
 
   .panel-header {
-    padding: 32px;
+    padding: 24px;
     background: #ffffff;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
     flex-direction: column;
     gap: 4px;
     z-index: 10;
   }
-  .panel-header h4 { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; }
-  .panel-header .clinic { font-size: 13px; color: #64748b; font-weight: 500; }
-  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; margin-top: 8px; font-weight: 500; }
+  .panel-header h4 { margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; }
+  .panel-header .clinic { font-size: 12px; color: #64748b; font-weight: 500; }
+  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; margin-top: 6px; font-weight: 500; }
   .panel-header .contacts a { color: #3b82f6; text-decoration: none; display: flex; align-items: center; gap: 4px; }
   .panel-header .contacts a:hover { color: #2563eb; }
 
@@ -524,7 +523,7 @@ const DanismaPanel = styled.div`
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     background: #f8fafc;
     scroll-behavior: smooth;
     &::-webkit-scrollbar { width: 6px; }
@@ -532,50 +531,50 @@ const DanismaPanel = styled.div`
     &::-webkit-scrollbar-track { background: transparent; }
   }
 
-  .msg-row { display: flex; flex-direction: column; max-width: 100%; animation: fadeInMsg 0.3s ease; }
-  @keyframes fadeInMsg { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .msg-row { display: flex; flex-direction: column; max-width: 100%; animation: fadeInMsg 0.2s ease; }
+  @keyframes fadeInMsg { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .msg-row.ben { align-items: flex-end; }
   .msg-row.vet { align-items: flex-start; }
 
   .msg-bubble {
     max-width: 75%;
-    padding: 14px 18px;
+    padding: 12px 16px;
     font-size: 14px;
     line-height: 1.5;
     word-break: break-word;
     border: none;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
   .msg-bubble.ben {
     background: linear-gradient(135deg, #0ea5e9, #0284c7);
     color: #fff;
-    border-radius: 20px 20px 4px 20px;
-    box-shadow: 0 4px 14px rgba(14,165,233,0.2);
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 4px 12px rgba(14,165,233,0.15);
   }
   .msg-bubble.vet {
     background: #fff;
     color: #1e293b;
-    border-radius: 20px 20px 20px 4px;
+    border-radius: 16px 16px 16px 4px;
     border: 1px solid rgba(226, 232, 240, 0.8);
   }
-  .msg-bubble .msg-time { font-size: 11px; margin-top: 8px; text-align: right; font-weight: 500; }
+  .msg-bubble .msg-time { font-size: 11px; margin-top: 6px; text-align: right; font-weight: 500; }
   .msg-bubble.ben .msg-time { color: rgba(255,255,255,0.7); }
   .msg-bubble.vet .msg-time { color: #94a3b8; }
 
   .panel-input {
-    padding: 20px 24px;
+    padding: 16px 20px;
     background: #fff;
     border-top: 1px solid rgba(226, 232, 240, 0.8);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
   
   .input-wrapper {
     background: #f8fafc;
     border: 2px solid #e2e8f0;
     border-radius: 16px;
-    padding: 10px 16px;
+    padding: 10px 14px;
     transition: all 0.2s;
     &:focus-within {
       border-color: #0ea5e9;
