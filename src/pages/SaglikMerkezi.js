@@ -413,95 +413,184 @@ const VetPanelTitle = styled.h3`
 const VetPanelSub = styled.p`
   margin: 0 0 24px; font-size: 14px; color: #64748b; line-height: 1.5;
 `;
-const VetCardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+const VetLayout = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  min-height: 420px;
+`;
+const VetListCol = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
 const VetCard = styled.div`
   background: #fff;
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  border: 1px solid #e2e8f0;
-  transition: all 0.25s;
-  &:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-  .vet-name { font-size: 17px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-  .vet-clinic { font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 14px; }
-  .vet-contact { font-size: 13px; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid ${p => p.$secili ? '#4f46e5' : '#e2e8f0'};
+  transition: all 0.2s;
+  cursor: pointer;
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+  .vet-name { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+  .vet-clinic { font-size: 13px; color: #6366f1; font-weight: 600; margin-bottom: 8px; }
+  .vet-contact { font-size: 12px; color: #64748b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
   .vet-contact a { color: #2563eb; text-decoration: none; }
   .vet-contact a:hover { text-decoration: underline; }
-  .vet-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-  .vet-actions button { padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .vet-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .vet-actions button { padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
   .btn-danis { background: #4f46e5; color: #fff; }
   .btn-danis:hover { background: #4338ca; }
   .btn-ara { background: #e0e7ff; color: #4338ca; }
   .btn-ara:hover { background: #c7d2fe; }
 `;
-const SohbetBox = styled.div`
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
+const DanismaPanel = styled.div`
+  width: 380px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   border: 1px solid #e2e8f0;
-  .sohbet-title { font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 12px; }
-  textarea { width: 100%; min-height: 100px; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; resize: vertical; box-sizing: border-box; }
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ${fadeIn} 0.3s ease;
+  .panel-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #fff;
+  }
+  .panel-header h4 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+  .panel-header .clinic { font-size: 13px; opacity: 0.95; margin-bottom: 12px; }
+  .panel-header .contacts { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; }
+  .panel-header .contacts a { color: #fff; text-decoration: underline; opacity: 0.95; }
+  .panel-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .sohbet-title { font-size: 13px; font-weight: 700; color: #475569; }
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
   textarea:focus { outline: none; border-color: #6366f1; }
-  .sohbet-actions { margin-top: 12px; display: flex; gap: 10px; }
+  .sohbet-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .sohbet-actions button { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
   .sohbet-actions button:not(.btn-close) { background: #4f46e5; color: #fff; }
   .sohbet-actions button:not(.btn-close):hover { background: #4338ca; }
   .sohbet-actions button.btn-close { background: #e2e8f0; color: #475569; }
   .sohbet-actions button.btn-close:hover { background: #cbd5e1; }
 `;
-
-// Placeholder veteriner listesi (ileride API ile doldurulacak)
-const ORNEK_VETERINERLER = [
-    { id: '1', isim: 'Dr. Ayşe Yılmaz', klinikAdi: 'Yılmaz Veteriner Kliniği', telefon: '+905551234567', email: 'ayse@vet.com', sehir: 'Ankara' },
-    { id: '2', isim: 'Dr. Mehmet Kaya', klinikAdi: 'Kaya Hayvan Sağlığı', telefon: '+905559876543', email: 'mehmet@vet.com', sehir: 'Ankara' }
-];
+const VetEmpty = styled.div`
+  text-align: center;
+  padding: 48px 24px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+`;
 
 function VeterinerlerPanel() {
+    const [vets, setVets] = useState([]);
+    const [yukleniyor, setYukleniyor] = useState(true);
     const [seciliVet, setSeciliVet] = useState(null);
     const [mesaj, setMesaj] = useState('');
-    const vets = ORNEK_VETERINERLER;
+
+    useEffect(() => {
+        let cancelled = false;
+        api.getVeterinerlerim()
+            .then(res => { if (!cancelled) setVets(Array.isArray(res.data) ? res.data : []); })
+            .catch(() => { if (!cancelled) setVets([]); })
+            .finally(() => { if (!cancelled) setYukleniyor(false); });
+        return () => { cancelled = true; };
+    }, []);
+
+    const telNum = seciliVet?.telefon ? String(seciliVet.telefon).replace(/\D/g, '') : '';
+    const whatsappUrl = telNum
+        ? `https://wa.me/${telNum}?text=${encodeURIComponent(mesaj || 'Merhaba, çiftliğimden danışmak istiyorum.')}`
+        : null;
+
     return (
         <VetPanelWrap>
             <VetPanelTitle>Veterinerler (Acil sağlık danışmanı)</VetPanelTitle>
             <VetPanelSub>
-                Yakın çevrenizdeki veterinerlerle iletişime geçin, danışın veya acil durumlarda hızlıca ulaşın. Sohbet ile mesaj bırakabilir veya doğrudan arayabilirsiniz.
+                Sizi müşteri olarak ekleyen veterinerler burada listelenir. Danışmak için bir veteriner seçin; sağda açılan pencereden mesaj yazıp WhatsApp ile iletebilir veya doğrudan arayabilirsiniz.
             </VetPanelSub>
-            <VetCardGrid>
-                {vets.map(v => (
-                    <VetCard key={v.id}>
-                        <div className="vet-name">{v.isim}</div>
-                        <div className="vet-clinic">{v.klinikAdi}</div>
-                        {v.sehir && <div className="vet-contact">📍 {v.sehir}</div>}
-                        {v.telefon && <div className="vet-contact"><a href={`tel:${v.telefon}`}>{v.telefon}</a></div>}
-                        {v.email && <div className="vet-contact"><a href={`mailto:${v.email}`}>{v.email}</a></div>}
-                        <div className="vet-actions">
-                            <button type="button" className="btn-danis" onClick={() => setSeciliVet(seciliVet?.id === v.id ? null : v)}>
-                                💬 Danış / Sohbet
-                            </button>
-                            <a href={`tel:${v.telefon}`} style={{ textDecoration: 'none' }}>
-                                <button type="button" className="btn-ara">📞 Ara</button>
-                            </a>
-                        </div>
-                        {seciliVet?.id === v.id && (
-                            <SohbetBox>
-                                <div className="sohbet-title">Mesajınızı yazın (isteğe bağlı — arayabilirsiniz)</div>
-                                <textarea value={mesaj} onChange={e => setMesaj(e.target.value)} placeholder="Örn: Merhaba, ineklerimden birinde iştahsızlık var, danışmak isterim..." />
+            {yukleniyor ? (
+                <VetEmpty>Yükleniyor...</VetEmpty>
+            ) : vets.length === 0 ? (
+                <VetEmpty>
+                    Henüz sizi listeleyen veteriner yok. Veterinerinize çiftlik kodunuzu veya hesabınızı vererek sizi &quot;Hastalarım&quot; listesine eklemesini isteyebilirsiniz.
+                </VetEmpty>
+            ) : (
+                <VetLayout>
+                    <VetListCol>
+                        {vets.map(v => (
+                            <VetCard
+                                key={v._id}
+                                $secili={seciliVet?._id === v._id}
+                                onClick={() => setSeciliVet(v)}
+                            >
+                                <div className="vet-name">{v.isim}</div>
+                                {v.klinikAdi && <div className="vet-clinic">{v.klinikAdi}</div>}
+                                {v.telefon && <div className="vet-contact"><a href={`tel:${v.telefon}`} onClick={e => e.stopPropagation()}>{v.telefon}</a></div>}
+                                {v.email && <div className="vet-contact"><a href={`mailto:${v.email}`} onClick={e => e.stopPropagation()}>{v.email}</a></div>}
+                                <div className="vet-actions" onClick={e => e.stopPropagation()}>
+                                    <button type="button" className="btn-danis" onClick={() => setSeciliVet(v)}>💬 Danış / Sohbet</button>
+                                    {v.telefon && (
+                                        <a href={`tel:${v.telefon}`} style={{ textDecoration: 'none' }}>
+                                            <button type="button" className="btn-ara">📞 Ara</button>
+                                        </a>
+                                    )}
+                                </div>
+                            </VetCard>
+                        ))}
+                    </VetListCol>
+                    {seciliVet && (
+                        <DanismaPanel>
+                            <div className="panel-header">
+                                <h4>{seciliVet.isim}</h4>
+                                {seciliVet.klinikAdi && <div className="clinic">{seciliVet.klinikAdi}</div>}
+                                <div className="contacts">
+                                    {seciliVet.telefon && <a href={`tel:${seciliVet.telefon}`}>📞 {seciliVet.telefon}</a>}
+                                    {seciliVet.email && <a href={`mailto:${seciliVet.email}`}>✉️ E-posta</a>}
+                                </div>
+                            </div>
+                            <div className="panel-body">
+                                <div className="sohbet-title">Danışma mesajınızı yazın</div>
+                                <textarea
+                                    value={mesaj}
+                                    onChange={e => setMesaj(e.target.value)}
+                                    placeholder="Örn: Merhaba, ineklerimden birinde iştahsızlık var, danışmak isterim..."
+                                />
                                 <div className="sohbet-actions">
-                                    <a href={`https://wa.me/${v.telefon?.replace(/\D/g, '')}?text=${encodeURIComponent(mesaj || 'Merhaba, çiftliğimden danışmak istiyorum.')}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                                        <button type="button">WhatsApp ile gönder</button>
-                                    </a>
+                                    {whatsappUrl && (
+                                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                                            <button type="button">WhatsApp ile gönder</button>
+                                        </a>
+                                    )}
                                     <button type="button" className="btn-close" onClick={() => setSeciliVet(null)}>Kapat</button>
                                 </div>
-                            </SohbetBox>
-                        )}
-                    </VetCard>
-                ))}
-            </VetCardGrid>
+                            </div>
+                        </DanismaPanel>
+                    )}
+                </VetLayout>
+            )}
         </VetPanelWrap>
     );
 }

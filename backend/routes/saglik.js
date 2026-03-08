@@ -7,7 +7,23 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 const Timeline = require('../models/Timeline');
 const Bildirim = require('../models/Bildirim');
 const Maliyet = require('../models/Maliyet');
+const User = require('../models/User');
 const mongoose = require('mongoose');
+
+// Çiftçinin veterinerleri (beni müşteri olarak ekleyen aktif veterinerler)
+router.get('/veterinerlerim', auth, checkRole(['ciftci']), async (req, res) => {
+    try {
+        const ciftciId = req.userId;
+        const list = await User.find({
+            rol: 'veteriner',
+            musteriler: ciftciId
+        }).select('isim email telefon klinikAdi').lean();
+        res.json(list || []);
+    } catch (error) {
+        console.error('Veterinerlerim hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
 
 // ============================
 //  SAĞLIK KAYITLARI

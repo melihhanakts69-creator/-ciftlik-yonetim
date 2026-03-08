@@ -177,6 +177,7 @@ export const getYaklasanSagliklar = (gun = 7) => api.get(`/saglik/yaklasan?gun=$
 export const createSaglikKaydi = (data) => api.post('/saglik', data);
 export const updateSaglikKaydi = (id, data) => api.put(`/saglik/${id}`, data);
 export const deleteSaglikKaydi = (id) => api.delete(`/saglik/${id}`);
+export const getVeterinerlerim = () => api.get('/saglik/veterinerlerim');
 
 // AŞI TAKVİMİ
 export const getAsiTakvimi = (params = {}) => {
