@@ -172,6 +172,7 @@ const IconWrapper = styled.span`
 
 const Sidebar = ({ onLogout, isOpen, onClose }) => {
   const [okunmamisSayisi, setOkunmamisSayisi] = useState(0);
+  const [abonelik, setAbonelik] = useState(null);
 
   // Okunmamış bildirim sayısını çek
   useEffect(() => {
@@ -185,9 +186,13 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       }
     };
     fetchOkunmamis();
-    // Her 60 saniyede bir kontrol et
     const interval = setInterval(fetchOkunmamis, 60000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Abonelik durumunu çek
+  useEffect(() => {
+    api.getAbonelik().then(r => setAbonelik(r.data)).catch(() => {});
   }, []);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -251,6 +256,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
+      { path: '/karlilik', name: 'Karlılık Analizi', icon: <FaChartPie /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
       { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },
@@ -322,6 +328,20 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       </MenuArea>
 
       <FooterArea>
+        {/* Trial/plan uyarısı */}
+        {abonelik && (
+          abonelik.plan === 'trial' && abonelik.trialKalanGun <= 7 ? (
+            <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+              onClick={() => window.location.href = '/abonelik'}>
+              ⏳ Deneme: {abonelik.trialKalanGun} gün kaldı → Plan seç
+            </div>
+          ) : !abonelik.aktif ? (
+            <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 11, color: '#ef4444', fontWeight: 600, cursor: 'pointer' }}
+              onClick={() => window.location.href = '/abonelik'}>
+              ❌ Abonelik süresi doldu → Yenile
+            </div>
+          ) : null
+        )}
         <LogoutButton onClick={onLogout}>
           <FaSignOutAlt /> Çıkış Yap
         </LogoutButton>

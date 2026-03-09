@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import SatisModal from '../components/modals/SatisModal';
 import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 
@@ -184,6 +184,9 @@ const InekDetay = () => {
     const [sutGrafigi, setSutGrafigi] = useState([]);
     const [timeline, setTimeline] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [aktifSekme, setAktifSekme] = useState('genel');
+    const [laktasyon, setLaktasyon] = useState(null);
+    const [laktasyonYukleniyor, setLaktasyonYukleniyor] = useState(false);
 
     // Modal State
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
@@ -203,6 +206,19 @@ const InekDetay = () => {
     useEffect(() => {
         fetchDetaylar();
     }, [id]);
+
+    const fetchLaktasyon = async () => {
+        if (laktasyon) return;
+        setLaktasyonYukleniyor(true);
+        try {
+            const res = await api.getInekLaktasyon(id);
+            setLaktasyon(res.data);
+        } catch (e) {
+            console.error('Laktasyon verisi alınamadı', e);
+        } finally {
+            setLaktasyonYukleniyor(false);
+        }
+    };
 
     const fetchDetaylar = async () => {
         try {
@@ -307,7 +323,108 @@ const InekDetay = () => {
                 </ActionButtons>
             </Header>
 
-            <Grid>
+            {/* SEKME NAVİGASYONU */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20, background: 'white', padding: '8px', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', width: 'fit-content' }}>
+                {[
+                    { key: 'genel', label: '📋 Genel Bilgi' },
+                    { key: 'laktasyon', label: '📈 Verim Grafiği' },
+                ].map(s => (
+                    <button
+                        key={s.key}
+                        onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}
+                        style={{
+                            padding: '9px 18px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13,
+                            background: aktifSekme === s.key ? '#4CAF50' : 'transparent',
+                            color: aktifSekme === s.key ? 'white' : '#64748b',
+                            transition: 'all 0.2s'
+                        }}
+                    >{s.label}</button>
+                ))}
+            </div>
+
+            {/* LAKTASYON GRAFİĞİ SEKMESİ */}
+            {aktifSekme === 'laktasyon' && (
+                <div>
+                    {laktasyonYukleniyor ? (
+                        <Card><p style={{ textAlign: 'center', color: '#94a3b8' }}>Laktasyon verisi yükleniyor…</p></Card>
+                    ) : laktasyon ? (
+                        <>
+                            {/* Özet Metrik Kartları */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
+                                {[
+                                    { label: 'Toplam Süt', val: `${laktasyon.ozet.toplamSut} L`, bg: '#E3F2FD', col: '#1976D2' },
+                                    { label: 'Günlük Ortalama', val: `${laktasyon.ozet.ortalamaGunluk} L`, bg: '#E8F5E9', col: '#388E3C' },
+                                    { label: 'Kayıtlı Gün', val: `${laktasyon.ozet.gunSayisi} gün`, bg: '#FFF3E0', col: '#EF6C00' },
+                                    { label: 'Zirve Verimi', val: laktasyon.ozet.zirve ? `${laktasyon.ozet.zirve.litre} L` : '—', bg: '#F3E5F5', col: '#7B1FA2' },
+                                ].map((k, i) => (
+                                    <div key={i} style={{ background: 'white', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderLeft: `4px solid ${k.col}` }}>
+                                        <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>{k.label}</div>
+                                        <div style={{ fontSize: 22, fontWeight: 800, color: k.col }}>{k.val}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Gerçek Veri Grafiği */}
+                            <Card>
+                                <CardTitle><FaChartLine style={{ color: '#4CAF50' }} /> Günlük Süt Verimi (Son 305 Gün)</CardTitle>
+                                {laktasyon.gercekVeri.length > 0 ? (
+                                    <div style={{ height: 280 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={laktasyon.gercekVeri}>
+                                                <defs>
+                                                    <linearGradient id="sutGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.15} />
+                                                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                                <XAxis dataKey="tarih" stroke="#94a3b8" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
+                                                <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                                <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                    formatter={(v) => [`${v} L`, 'Günlük Süt']} />
+                                                <Area type="monotone" dataKey="litre" stroke="#4CAF50" strokeWidth={2.5} fill="url(#sutGrad)" dot={false} activeDot={{ r: 5 }} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                ) : (
+                                    <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px 0' }}>Bu inek için henüz bireysel süt kaydı bulunmuyor.<br /><span style={{ fontSize: 13 }}>Toplu süt girişi yapılıyorsa bireysel kayıt oluşmaz.</span></p>
+                                )}
+                            </Card>
+
+                            {/* Wood's Tahmin Eğrisi */}
+                            <Card style={{ marginTop: 20 }}>
+                                <CardTitle>📐 Wood's Laktasyon Tahmin Eğrisi</CardTitle>
+                                <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16, marginTop: -10 }}>
+                                    Türkiye büyükbaş ortalamalarına göre 305 günlük beklenen verim tahmini.
+                                </p>
+                                <div style={{ height: 240 }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={laktasyon.woodTahmini.filter((_, i) => i % 5 === 0)}>
+                                            <defs>
+                                                <linearGradient id="woodGrad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.15} />
+                                                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                            <XAxis dataKey="gun" stroke="#94a3b8" tick={{ fontSize: 11 }} label={{ value: 'Laktasyon Günü', position: 'insideBottom', offset: -5, fontSize: 11 }} />
+                                            <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                            <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                formatter={(v) => [`${v} L`, 'Beklenen Verim']} />
+                                            <Area type="monotone" dataKey="tahminiLitre" stroke="#60a5fa" strokeWidth={2} fill="url(#woodGrad)" dot={false} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Card>
+                        </>
+                    ) : (
+                        <Card><p style={{ textAlign: 'center', color: '#94a3b8' }}>Laktasyon verisi yüklenemedi.</p></Card>
+                    )}
+                </div>
+            )}
+
+            {/* GENEL BİLGİ SEKMESİ */}
+            {aktifSekme === 'genel' && (
                 {/* SOL KOLON */}
                 <div>
                     {/* TEMEL BİLGİLER */}
@@ -456,6 +573,7 @@ const InekDetay = () => {
                     </Card>
                 </div>
             </Grid>
+            )}
 
 
             {/* TOHUMLAMA MODAL */}

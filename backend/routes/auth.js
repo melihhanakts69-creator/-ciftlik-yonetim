@@ -90,6 +90,10 @@ router.post('/register', registerValidation, async (req, res) => {
         slug,
         ownerUser: user._id,
         trialEndsAt,
+        plan: 'trial',
+        planEndsAt: trialEndsAt,
+        hayvanLimiti: null, // Trial süresince sınırsız
+        subscriptionStatus: 'trialing',
       };
       if (rol === 'ciftci') {
         tenantData.ciftlikKodu = await Tenant.generateCiftlikKodu();

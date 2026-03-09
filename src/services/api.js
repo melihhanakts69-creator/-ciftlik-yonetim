@@ -42,6 +42,7 @@ export const deleteInek = (id) => api.delete(`/inekler/${id}`);
 export const inekDogurdu = (id, data) => api.post(`/inekler/${id}/dogurdu`, data);
 export const inekTohumla = (id, data) => api.post(`/inekler/${id}/tohumlama`, data);
 export const deleteInekTohumlama = (id) => api.delete(`/inekler/${id}/tohumlama`);
+export const getInekLaktasyon = (id) => api.get(`/inekler/${id}/laktasyon`);
 
 // BUZAĞILAR
 export const getBuzagilar = () => api.get('/buzagilar');
@@ -151,6 +152,7 @@ export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
 
 // DASHBOARD
 export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
+export const getKarlilik = () => api.get('/dashboard/karlilik');
 
 // YEM YÖNETİM SİSTEMİ (Phase 3.5)
 export const getYemKutuphanesi = () => api.get('/yem-yonetim/kutuphane');
@@ -237,5 +239,11 @@ export const postVeterinerRandevu = (data) => api.post('/veteriner/randevu', dat
 export const patchVeterinerRandevu = (id, data) => api.patch(`/veteriner/randevu/${id}`, data);
 export const getVeterinerZiyaretOnerileri = () => api.get('/veteriner/ziyaret-onerileri');
 export const getVeterinerRaporAylik = () => api.get('/veteriner/rapor/aylik');
+
+// ABONELİK & ÖDEME
+export const getAbonelik = () => api.get('/odeme/abonelik');
+export const getPlanlar = () => api.get('/odeme/planlar');
+export const createCheckout = (data) => api.post('/odeme/checkout', data);
+export const demoAktif = (planKey) => api.get(`/odeme/demo-aktif?planKey=${planKey}`);
 
 export default api;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const planCheck = require('../middleware/planCheck');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');  // ← EKLE
 const Buzagi = require('../models/Buzagi');
@@ -81,7 +82,7 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
 });
 
 // YENİ İNEK EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, planCheck, async (req, res) => {
   try {
     const { isim, yas, kilo, kupeNo, dogumTarihi, buzagiSayisi, notlar } = req.body;
 
@@ -352,6 +353,85 @@ router.get('/:id', auth, async (req, res) => {
     res.json(inekObj);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// LAKTASYON EĞRİSİ — Gerçek veri + Wood's formülü tahmini
+router.get('/:id/laktasyon', auth, async (req, res) => {
+  try {
+    const SutKaydi = require('../models/SutKaydi');
+    const mongoose = require('mongoose');
+
+    const inekFilter = { _id: req.params.id, userId: req.userId };
+    const inek = await Inek.findOne(inekFilter);
+    if (!inek) return res.status(404).json({ message: 'İnek bulunamadı' });
+
+    // Laktasyon başlangıcı: son buzağılama tarihi veya tohumlama + 283 gün - 305 gün
+    const laktasyonBaslangic = inek.sonBuzagilamaTarihi
+      ? new Date(inek.sonBuzagilamaTarihi)
+      : inek.tohumlamaTarihi
+        ? new Date(new Date(inek.tohumlamaTarihi).getTime() + (283 - 305) * 24 * 60 * 60 * 1000)
+        : null;
+
+    // Son 305 gün gerçek veri
+    const bugun = new Date();
+    const baslangic = new Date(bugun);
+    baslangic.setDate(bugun.getDate() - 305);
+    const baslangicStr = baslangic.toISOString().split('T')[0];
+
+    const gercekVeri = await SutKaydi.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.userId),
+          inekId: inek._id.toString(),
+          tarih: { $gte: baslangicStr }
+        }
+      },
+      { $group: { _id: '$tarih', toplam: { $sum: '$litre' } } },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Günlük verilerden laktasyon günü hesapla
+    const gercekGunler = gercekVeri.map(v => {
+      const tarih = new Date(v._id);
+      const gun = laktasyonBaslangic
+        ? Math.max(1, Math.ceil((tarih - laktasyonBaslangic) / (1000 * 60 * 60 * 24)))
+        : null;
+      return { tarih: v._id, litre: v.toplam, gun };
+    });
+
+    // Wood's laktasyon formülü tahmini: y = a * t^b * e^(-c*t)
+    // Türkiye büyükbaş ortalamaları: a=18, b=0.18, c=0.004
+    const a = 18, b = 0.18, c = 0.004;
+    const woodTahmini = [];
+    for (let t = 1; t <= 305; t++) {
+      const tahminiLitre = a * Math.pow(t, b) * Math.exp(-c * t);
+      const tarih = laktasyonBaslangic
+        ? new Date(laktasyonBaslangic.getTime() + (t - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        : null;
+      woodTahmini.push({ gun: t, tahminiLitre: Math.max(0, parseFloat(tahminiLitre.toFixed(2))), tarih });
+    }
+
+    // Özet istatistikler
+    const toplamSut = gercekVeri.reduce((s, v) => s + v.toplam, 0);
+    const gunSayisi = gercekVeri.length;
+    const ortalamaGunluk = gunSayisi > 0 ? toplamSut / gunSayisi : 0;
+    const zirveVeri = gercekVeri.reduce((max, v) => v.toplam > (max?.toplam || 0) ? v : max, null);
+
+    res.json({
+      inek: { isim: inek.isim, kupeNo: inek.kupeNo, laktasyonDonemi: inek.laktasyonDonemi, laktasyonBaslangic },
+      gercekVeri: gercekGunler,
+      woodTahmini,
+      ozet: {
+        toplamSut: parseFloat(toplamSut.toFixed(1)),
+        gunSayisi,
+        ortalamaGunluk: parseFloat(ortalamaGunluk.toFixed(2)),
+        zirve: zirveVeri ? { litre: zirveVeri.toplam, tarih: zirveVeri._id } : null
+      }
+    });
+  } catch (error) {
+    console.error('Laktasyon error:', error);
+    res.status(500).json({ message: 'Laktasyon verisi alınamadı' });
   }
 });
 

@@ -302,6 +302,10 @@ function Bildirimler() {
     switch (tip) {
       case 'asi': return { icon: <FaSyringe />, color: '#E91E63', bg: '#FCE4EC' };
       case 'dogum': return { icon: <FaBaby />, color: '#9C27B0', bg: '#F3E5F5' };
+      case 'dogum_beklenen': return { icon: <FaBaby />, color: '#7B1FA2', bg: '#EDE7F6' };
+      case 'kizginlik': return { icon: <FaExclamationTriangle />, color: '#D32F2F', bg: '#FFEBEE' };
+      case 'kuruya_alma':
+      case 'kuru_donem': return { icon: <FaExclamationTriangle />, color: '#E65100', bg: '#FFF3E0' };
       case 'muayene':
       case 'tedavi':
       case 'hastalik':
@@ -332,9 +336,9 @@ function Bildirimler() {
     if (aktifFiltre === 'randevu') return b.tip === 'randevu';
     if (aktifFiltre === 'mesajlar') return b.tip === 'danisma';
     if (aktifFiltre === 'saglik') return ['asi', 'muayene', 'hastalik', 'tedavi', 'saglik'].includes(b.tip);
-    if (aktifFiltre === 'ureme') return ['dogum', 'tohumlama', 'kizginlik'].includes(b.tip);
+    if (aktifFiltre === 'ureme') return ['dogum', 'dogum_beklenen', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem'].includes(b.tip);
     if (aktifFiltre === 'stok') return ['yem', 'stok'].includes(b.tip);
-    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'saglik', 'dogum', 'tohumlama', 'kizginlik', 'yem', 'stok', 'randevu', 'danisma'].includes(b.tip);
+    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'saglik', 'dogum', 'dogum_beklenen', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem', 'yem', 'stok', 'randevu', 'danisma', 'odeme'].includes(b.tip);
     return true;
   });
 

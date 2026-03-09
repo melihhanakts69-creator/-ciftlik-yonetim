@@ -37,6 +37,8 @@ import Danismalar from './pages/Danismalar';
 import VeterinerFinans from './pages/VeterinerFinans';
 import VeterinerTakvim from './pages/VeterinerTakvim';
 import VeterinerRapor from './pages/VeterinerRapor';
+import Karlilik from './pages/Karlilik';
+import Abonelik from './pages/Abonelik';
 
 function App() {
   const [girisYapildi, setGirisYapildi] = useState(false);
@@ -144,6 +146,7 @@ function App() {
           {/* Sadece çiftçi (patron) — işçinin görmemesi gereken */}
           {rol === 'ciftci' && <>
             <Route path="/finansal" element={<Finansal />} />
+            <Route path="/karlilik" element={<Karlilik />} />
           </>}
 
           {/* Veteriner özel route'lar */}
@@ -164,6 +167,7 @@ function App() {
           </>}
 
           <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/abonelik" element={<Abonelik />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

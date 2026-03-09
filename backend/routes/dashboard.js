@@ -441,125 +441,154 @@ async function otomatikGorevleriKontrolEt(userId) {
     const yediGunSonra = new Date();
     yediGunSonra.setDate(bugun.getDate() + 7);
 
-    // 1. DOĞUM KONTROLÜ (7 gün kalanlar)
+    // 1. DOĞUM YAKLAŞIYOR (7 gün içinde)
     const gebeler = await Promise.all([
       Inek.find({ userId, gebelikDurumu: 'Gebe' }),
       Duve.find({ userId, gebelikDurumu: 'Gebe' })
     ]);
-
     const tumGebeler = [...gebeler[0], ...gebeler[1]];
 
     for (const hayvan of tumGebeler) {
       if (!hayvan.tohumlamaTarihi) continue;
-
       const tohumlama = new Date(hayvan.tohumlamaTarihi);
       const dogum = new Date(tohumlama);
-      dogum.setDate(dogum.getDate() + 283); // Tahmini doğum
+      dogum.setDate(dogum.getDate() + 283);
 
-      // Eğer doğum yaklaştıysa (0-7 gün kaldıysa)
       if (dogum >= bugun && dogum <= yediGunSonra) {
-        // Zaten bildirim var mı? (Tamamlanmış olsa bile tekrar oluşturma - Bu gebelik için)
-        // Bildirim oluşturulma tarihi tohumlamadan sonra olmalı
         const varMi = await Bildirim.findOne({
           userId,
-          tip: 'dogum',
+          tip: 'dogum_beklenen',
           hayvanId: hayvan._id,
-          createdAt: { $gte: tohumlama } // Tohumlamadan sonra oluşturulmuş bir bildirim var mı?
+          createdAt: { $gte: tohumlama }
         });
-
         if (!varMi) {
           const kalanGun = Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
-          const hayvanTipi = hayvan instanceof Inek ? 'inek' : 'duve';
-
           await Bildirim.create({
             userId,
-            tip: 'dogum',
+            tip: 'dogum_beklenen',
             baslik: `Doğum Yaklaşıyor: ${hayvan.isim || hayvan.kupeNo}`,
-            mesaj: `Tahmini doğuma ${kalanGun} gün kaldı. Hazırlıkları kontrol et.`,
+            mesaj: `Tahmini doğuma ${kalanGun} gün kaldı. Doğum hazırlıklarını tamamlayın.`,
             hayvanId: hayvan._id,
-            hayvanTipi,
+            hayvanTipi: hayvan instanceof Inek ? 'inek' : 'duve',
             kupe_no: hayvan.kupeNo,
             oncelik: 'yuksek',
-            hatirlatmaTarihi: bugun
+            hatirlatmaTarihi: bugun,
+            metadata: { tahminiDogum: dogum, kalanGun }
           });
         }
       }
+
+      // Eski tip ile de kontrol et (geriye uyumluluk)
+      const eskiVarMi = await Bildirim.findOne({
+        userId, tip: 'dogum', hayvanId: hayvan._id, createdAt: { $gte: tohumlama }
+      });
+      if (!eskiVarMi && dogum >= bugun && dogum <= yediGunSonra) {
+        // dogum_beklenen zaten oluşturulmuşsa atlıyoruz (yukarıdaki kontrol handle etti)
+      }
     }
 
-    // 2. KURU DÖNEM KONTROLÜ (Doğuma 60 gün kala)
-    // Tohumlama + 223 gün = Kuruya ayırma zamanı (283 - 60)
+    // 2. KURUYA ALMA ZAMANI (doğuma 60 gün kala — tohumlama + 223 gün)
     for (const hayvan of tumGebeler) {
       if (!hayvan.tohumlamaTarihi) continue;
-
       const tohumlama = new Date(hayvan.tohumlamaTarihi);
       const kuruTarihi = new Date(tohumlama);
       kuruTarihi.setDate(kuruTarihi.getDate() + 223);
 
-      // Kuruya ayrılma zamanı geldi mi? (bugün ile +7 gün arası)
       if (kuruTarihi >= bugun && kuruTarihi <= yediGunSonra) {
-        // Zaten bildirim var mı? (Bu gebelik için)
         const varMi = await Bildirim.findOne({
           userId,
-          tip: 'kuru_donem',
+          tip: { $in: ['kuruya_alma', 'kuru_donem'] },
           hayvanId: hayvan._id,
           createdAt: { $gte: tohumlama }
         });
-
         if (!varMi) {
           const kalanGun = Math.ceil((kuruTarihi - bugun) / (1000 * 60 * 60 * 24));
-          const hayvanTipi = hayvan instanceof Inek ? 'inek' : 'duve';
-
           await Bildirim.create({
             userId,
-            tip: 'kuru_donem',
+            tip: 'kuruya_alma',
             baslik: `Kuruya Ayırma: ${hayvan.isim || hayvan.kupeNo}`,
-            mesaj: `Doğuma 60 gün kaldı. Hayvanı kuruya ayırma vakti geldi (${kalanGun} gün).`,
+            mesaj: `Doğuma 60 gün kaldı. ${kalanGun > 0 ? `${kalanGun} gün içinde` : 'Bu hafta'} hayvanı kuruya ayırın.`,
             hayvanId: hayvan._id,
-            hayvanTipi,
+            hayvanTipi: hayvan instanceof Inek ? 'inek' : 'duve',
             kupe_no: hayvan.kupeNo,
             oncelik: 'yuksek',
-            hatirlatmaTarihi: bugun
+            hatirlatmaTarihi: bugun,
+            metadata: { kuruTarihi, kalanGun }
           });
         }
       }
     }
 
-    // 3. SÜTTEN KESME KONTROLÜ (2.5 - 3 ay arası buzağılar)
-    const buzagilar = await Buzagi.find({
+    // 3. KIZGINLIK KONTROLÜ (21 günlük döngü — tohumlanmamış veya 'Gebe Değil' inekler)
+    const kizginlikAdaylari = await Inek.find({
       userId,
-      cinsiyet: { $exists: true } // Hepsi
+      durum: 'Aktif',
+      gebelikDurumu: { $in: ['Gebe Değil', 'Belirsiz'] }
     });
 
-    for (const buzagi of buzagilar) {
-      if (buzagi.dogumTarihi) {
-        const dogum = new Date(buzagi.dogumTarihi);
-        const gunFarki = Math.floor((bugun - dogum) / (1000 * 60 * 60 * 24));
+    for (const inek of kizginlikAdaylari) {
+      // Son buzağılamadan veya son tohumlamadan 21 gün sonrasını hesapla
+      const referansTarih = inek.sonBuzagilamaTarihi || inek.tohumlamaTarihi;
+      if (!referansTarih) continue;
 
-        // 75-90 gün arası (2.5 - 3 ay) ve henüz sütten kesilmemişse
-        // Not: Buzagi modelinde 'durum' veya 'suttenKesildi' alanı varsa kontrol edilmeli.
-        // Şimdilik sadece gününe bakıyoruz ve bildirim yoksa ekliyoruz.
-        if (gunFarki >= 75 && gunFarki <= 95) {
-          const varMi = await Bildirim.findOne({
+      const ref = new Date(referansTarih);
+      // 21 günlük kızgınlık döngüsü — bir sonraki beklenen tarih
+      const gecenGun = Math.floor((bugun - ref) / (1000 * 60 * 60 * 24));
+      const kalanGunDongu = 21 - (gecenGun % 21);
+
+      if (kalanGunDongu <= 3) {
+        // 3 gün içinde kızgınlık bekleniyor
+        const sonrakiKizginlik = new Date(bugun);
+        sonrakiKizginlik.setDate(bugun.getDate() + kalanGunDongu);
+
+        const varMi = await Bildirim.findOne({
+          userId,
+          tip: 'kizginlik',
+          hayvanId: inek._id,
+          hatirlatmaTarihi: { $gte: new Date(bugun.getTime() - 3 * 24 * 60 * 60 * 1000) }
+        });
+        if (!varMi) {
+          await Bildirim.create({
             userId,
-            // tip: 'diger', // İptal, tip ile değil ID ile bakacağız
-            hayvanId: buzagi._id,
-            baslik: { $regex: 'Sütten Kesme' }
-            // Tamamlanmış olsa bile tekrar sorma
+            tip: 'kizginlik',
+            baslik: `Kızgınlık Dönemi: ${inek.isim || inek.kupeNo}`,
+            mesaj: `${inek.isim || inek.kupeNo} ${kalanGunDongu <= 0 ? 'bugün' : `${kalanGunDongu} gün içinde`} kızgınlık dönemine girecek. Tohumlama planı yapın.`,
+            hayvanId: inek._id,
+            hayvanTipi: 'inek',
+            kupe_no: inek.kupeNo,
+            oncelik: kalanGunDongu <= 1 ? 'acil' : 'yuksek',
+            hatirlatmaTarihi: sonrakiKizginlik,
+            metadata: { kalanGun: kalanGunDongu, sonrakiKizginlik }
           });
+        }
+      }
+    }
 
-          if (!varMi) {
-            await Bildirim.create({
-              userId,
-              tip: 'diger',
-              baslik: `Sütten Kesme: ${buzagi.kupeNo}`,
-              mesaj: `Buzağı ${Math.floor(gunFarki / 30)} aylık oldu. Sütten kesmeyi planla.`,
-              hayvanId: buzagi._id,
-              hayvanTipi: 'buzagi',
-              kupe_no: buzagi.kupeNo,
-              oncelik: 'normal',
-              hatirlatmaTarihi: bugun
-            });
-          }
+    // 4. SÜTTEN KESME (2.5-3 ay arası buzağılar — 75-95 gün)
+    const buzagilar = await Buzagi.find({ userId });
+    for (const buzagi of buzagilar) {
+      if (!buzagi.dogumTarihi) continue;
+      const dogum = new Date(buzagi.dogumTarihi);
+      const gunFarki = Math.floor((bugun - dogum) / (1000 * 60 * 60 * 24));
+
+      if (gunFarki >= 75 && gunFarki <= 95) {
+        const varMi = await Bildirim.findOne({
+          userId,
+          hayvanId: buzagi._id,
+          baslik: { $regex: 'Sütten Kesme' }
+        });
+        if (!varMi) {
+          await Bildirim.create({
+            userId,
+            tip: 'diger',
+            baslik: `Sütten Kesme: ${buzagi.kupeNo}`,
+            mesaj: `Buzağı ${Math.floor(gunFarki / 30)} aylık oldu. Sütten kesmeyi planlayın.`,
+            hayvanId: buzagi._id,
+            hayvanTipi: 'buzagi',
+            kupe_no: buzagi.kupeNo,
+            oncelik: 'normal',
+            hatirlatmaTarihi: bugun
+          });
         }
       }
     }
@@ -569,7 +598,103 @@ async function otomatikGorevleriKontrolEt(userId) {
   }
 }
 
-// YARDIMCI: Trend Hesaplama (Son 30 gün vs Önceki 30 gün)
+// Karlılık / Baş Başına Maliyet Dashboard
+router.get('/karlilik', auth, async (req, res) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.userId);
+    const Finansal = require('../models/Finansal');
+    const SaglikKaydi = require('../models/SaglikKaydi');
+    const TopluSutGirisi = require('../models/TopluSutGirisi');
+
+    const bugun = new Date();
+    const ayBaslangic = new Date(bugun.getFullYear(), bugun.getMonth(), 1);
+    const oncekiAyBas = new Date(bugun.getFullYear(), bugun.getMonth() - 1, 1);
+    const oncekiAyBit = new Date(bugun.getFullYear(), bugun.getMonth(), 0, 23, 59, 59);
+
+    // Toplam aktif inek sayısı
+    const inekSayisi = await Inek.countDocuments({ userId: uid, durum: 'Aktif' });
+
+    // Bu ayın finansal giderleri (yem, veteriner, ilaç, diğer)
+    const giderler = await Finansal.aggregate([
+      { $match: { userId: uid, tip: 'gider', tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $group: { _id: '$kategori', toplam: { $sum: '$miktar' } } }
+    ]);
+
+    // Bu ayın geliri (süt satışı + hayvan satışı)
+    const gelirler = await Finansal.aggregate([
+      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $group: { _id: '$kategori', toplam: { $sum: '$miktar' } } }
+    ]);
+
+    const toplamGider = giderler.reduce((s, g) => s + g.toplam, 0);
+    const toplamGelir = gelirler.reduce((s, g) => s + g.toplam, 0);
+    const netKar = toplamGelir - toplamGider;
+    const basBasinaMaliyet = inekSayisi > 0 ? toplamGider / inekSayisi : 0;
+    const basBasinaGelir = inekSayisi > 0 ? toplamGelir / inekSayisi : 0;
+
+    // Bu ay toplam süt
+    const sutKayitlari = await SutKaydi.aggregate([
+      { $match: { userId: uid, tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $group: { _id: null, toplam: { $sum: '$litre' } } }
+    ]);
+    const toplamSut = sutKayitlari[0]?.toplam || 0;
+
+    // Önceki ay kar karşılaştırması
+    const oncekiGider = await Finansal.aggregate([
+      { $match: { userId: uid, tip: 'gider', tarih: { $gte: oncekiAyBas.toISOString().slice(0, 10), $lte: oncekiAyBit.toISOString().slice(0, 10) } } },
+      { $group: { _id: null, toplam: { $sum: '$miktar' } } }
+    ]);
+    const oncekiGelir = await Finansal.aggregate([
+      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: oncekiAyBas.toISOString().slice(0, 10), $lte: oncekiAyBit.toISOString().slice(0, 10) } } },
+      { $group: { _id: null, toplam: { $sum: '$miktar' } } }
+    ]);
+    const oncekiNetKar = (oncekiGelir[0]?.toplam || 0) - (oncekiGider[0]?.toplam || 0);
+    const karDegisim = oncekiNetKar !== 0 ? ((netKar - oncekiNetKar) / Math.abs(oncekiNetKar)) * 100 : 0;
+
+    // En iyi performanslı inekler (süt veriminden karlılık tahmini)
+    const topInekler = await SutKaydi.aggregate([
+      { $match: { userId: uid, tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
+      { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
+      { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
+      { $unwind: { path: '$inek', preserveNullAndEmptyArrays: true } },
+      { $project: { isim: '$inek.isim', kupeNo: '$inek.kupeNo', toplamSut: 1, ortalama: { $divide: ['$toplamSut', { $max: ['$gunSayisi', 1] }] } } },
+      { $sort: { ortalama: -1 } },
+      { $limit: 5 }
+    ]);
+
+    // Son 6 ay aylık trend
+    const altıAyOnce = new Date(bugun.getFullYear(), bugun.getMonth() - 5, 1);
+    const aylikTrend = await Finansal.aggregate([
+      { $match: { userId: uid, tarih: { $gte: altıAyOnce.toISOString().slice(0, 10) } } },
+      { $addFields: { ay: { $substr: ['$tarih', 0, 7] } } },
+      { $group: { _id: { ay: '$ay', tip: '$tip' }, toplam: { $sum: '$miktar' } } },
+      { $sort: { '_id.ay': 1 } }
+    ]);
+
+    const aylarMap = {};
+    aylikTrend.forEach(item => {
+      const ay = item._id.ay;
+      if (!aylarMap[ay]) aylarMap[ay] = { ay, gelir: 0, gider: 0 };
+      if (item._id.tip === 'gelir') aylarMap[ay].gelir = item.toplam;
+      else if (item._id.tip === 'gider') aylarMap[ay].gider = item.toplam;
+    });
+    const aylikTrendArr = Object.values(aylarMap).map(a => ({ ...a, net: a.gelir - a.gider }));
+
+    res.json({
+      ozet: { toplamGelir, toplamGider, netKar, basBasinaMaliyet, basBasinaGelir, inekSayisi, toplamSut, karDegisim: karDegisim.toFixed(1) },
+      giderKategoriler: giderler,
+      gelirKategoriler: gelirler,
+      topInekler,
+      aylikTrend: aylikTrendArr
+    });
+  } catch (error) {
+    console.error('Karlılık error:', error);
+    res.status(500).json({ message: 'Karlılık verisi alınamadı', detail: error.message });
+  }
+});
+
+// YARDIMCI: Trend Hesaplama
 async function calculateTrends(uid) {
   try {
     const today = new Date();

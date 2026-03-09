@@ -640,4 +640,67 @@ router.get('/rapor/aylik', async (req, res) => {
     }
 });
 
+// ========== MANUEL FATURA KESME ==========
+router.post('/finans/fatura', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId, aciklama, vadeTarihi, hizmetler } = req.body;
+
+        if (!ciftciId || !Array.isArray(hizmetler) || hizmetler.length === 0) {
+            return res.status(400).json({ message: 'Çiftlik ve en az bir hizmet kalemi gerekli.' });
+        }
+
+        const veteriner = await User.findById(vetId).select('musteriler isim klinikAdi').lean();
+        if (!veteriner || !(veteriner.musteriler || []).map(m => m.toString()).includes(ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftçi müşteriniz değil.' });
+        }
+
+        const tutar = hizmetler.reduce((s, h) => s + (parseFloat(h.birimFiyat) || 0) * (parseFloat(h.miktar) || 1), 0);
+        if (!(tutar > 0)) return res.status(400).json({ message: 'Toplam tutar sıfırdan büyük olmalı.' });
+
+        const tarihStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const fatura_no = `FTR-${tarihStr}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+        const doc = await VeterinerCari.create({
+            veterinerId: vetId,
+            ciftciId,
+            tutar,
+            aciklama: (aciklama || '').trim(),
+            vadeTarihi: vadeTarihi ? new Date(vadeTarihi) : null,
+            hizmetler: hizmetler.map(h => ({
+                ad: (h.ad || '').trim(),
+                miktar: parseFloat(h.miktar) || 1,
+                birimFiyat: parseFloat(h.birimFiyat) || 0,
+            })),
+            tip: 'manuel',
+            fatura_no,
+            durum: 'acik',
+        });
+
+        const vetAd = veteriner.klinikAdi || veteriner.isim || 'Veteriner';
+        await Bildirim.create({
+            userId: ciftciId,
+            tip: 'odeme',
+            baslik: 'Yeni fatura',
+            mesaj: `${vetAd} size ${tutar.toFixed(2)} TL tutarında fatura kesti. (${fatura_no})${aciklama ? ` — ${aciklama}` : ''}`,
+            oncelik: 'normal',
+            metadata: { faturaId: doc._id, fatura_no, tutar },
+        });
+
+        await Finansal.create({
+            userId: ciftciId,
+            tip: 'gider',
+            kategori: 'veteriner',
+            miktar: tutar,
+            tarih: new Date().toISOString().split('T')[0],
+            aciklama: `Veteriner fatura: ${vetAd} — ${fatura_no}`,
+        });
+
+        res.status(201).json(doc);
+    } catch (error) {
+        console.error('Manuel fatura error:', error);
+        res.status(500).json({ message: 'Fatura oluşturulamadı.' });
+    }
+});
+
 module.exports = router;

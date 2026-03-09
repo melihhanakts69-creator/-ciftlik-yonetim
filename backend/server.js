@@ -86,6 +86,7 @@ app.use('/api/ai', require('./routes/ai')); // 🤖 Gemini AI Danışman
 app.use('/api/veteriner', require('./routes/veterinerMusteri')); // Veteriner Modülü
 app.use('/api/danismalar', require('./routes/danisma')); // Çiftçi–Veteriner danışma mesajları
 app.use('/api/toplayici', require('./routes/toplayici')); // Süt toplayıcı modülü
+app.use('/api/odeme', require('./routes/odeme')); // Abonelik & Ödeme modülü
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);

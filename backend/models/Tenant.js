@@ -17,16 +17,34 @@ const tenantSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    // Abonelik / plan bilgileri - şimdilik basit tutuyoruz
+    // Abonelik / plan bilgileri
     plan: {
       type: String,
-      enum: ['free', 'basic', 'pro'],
-      default: 'basic',
+      enum: ['free', 'trial', 'pro', 'vet_pro', 'isletme'],
+      default: 'trial',
+    },
+    planEndsAt: {
+      type: Date,
+      default: null,
+    },
+    hayvanLimiti: {
+      type: Number,
+      default: 20, // free plan: 20 hayvan, pro: sınırsız (null)
     },
     subscriptionStatus: {
       type: String,
       enum: ['trialing', 'active', 'past_due', 'canceled'],
       default: 'trialing',
+    },
+    iyzipayCustomerId: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    iyzipaySubscriptionId: {
+      type: String,
+      trim: true,
+      default: null,
     },
     stripeCustomerId: {
       type: String,

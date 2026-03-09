@@ -14,6 +14,8 @@ const bildirimSchema = new mongoose.Schema({
       'asi',             // Aşı zamanı
       'muayene',         // Muayene zamanı
       'kizginlik',       // Kızgınlık döngüsü
+      'dogum_beklenen',  // Tahmini doğum yaklaşıyor (gebelik takibi)
+      'kuruya_alma',     // Kuruya alma zamanı (doğum 60 gün öncesi)
       'kuru_donem',      // Kuru döneme geçiş
       'sagim',           // Sağım hatırlatması
       'yem',             // Yem stoku azaldı
