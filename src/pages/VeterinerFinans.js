@@ -323,9 +323,11 @@ const ModalFooter = styled.div`
 
 // ─── Kötü Polis Styled ────────────────────────────────────────────────────────
 const KotuPolisPanel = styled.div`
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: #fff;
+  border: 1.5px solid #fecaca;
+  border-left: 5px solid #ef4444;
   border-radius: 16px;
-  padding: 20px 24px;
+  padding: 18px 22px;
   margin-bottom: 22px;
   display: flex;
   align-items: center;
@@ -333,48 +335,50 @@ const KotuPolisPanel = styled.div`
   flex-wrap: wrap;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(239,68,68,0.08);
 
   &::before {
     content: '';
-    position: absolute; top: -20px; right: -20px;
-    width: 120px; height: 120px; border-radius: 50%;
-    background: rgba(239,68,68,0.08);
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 220px;
+    background: linear-gradient(90deg, transparent, rgba(254,226,226,0.4));
+    pointer-events: none;
   }
 
-  .kp-icon { font-size: 32px; flex-shrink: 0; z-index: 1; }
+  .kp-icon { font-size: 30px; flex-shrink: 0; z-index: 1; }
 
   .kp-texts { flex: 1; z-index: 1; }
-  .kp-title { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 2px; }
-  .kp-sub   { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .kp-title { font-size: 15px; font-weight: 900; color: #991b1b; margin-bottom: 2px; }
+  .kp-sub   { font-size: 12px; color: #b91c1c; opacity: 0.7; }
 
   .kp-config { display: flex; align-items: center; gap: 8px; z-index: 1; }
-  .kp-config label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+  .kp-config label { font-size: 12px; color: #64748b; white-space: nowrap; font-weight: 600; }
   .kp-config select {
-    padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 7px 10px; border-radius: 8px; border: 1.5px solid #fecaca;
+    background: #fff7f7; color: #991b1b; font-size: 13px; font-weight: 700;
     cursor: pointer;
-    option { background: #1e293b; }
+    &:focus { outline: none; border-color: #ef4444; }
   }
 
-  .kp-stats { display: flex; gap: 16px; z-index: 1; }
+  .kp-stats { display: flex; gap: 20px; z-index: 1; }
   .kp-stat { text-align: center; }
-  .kp-stat-val { font-size: 18px; font-weight: 900; color: #f87171; }
-  .kp-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; }
+  .kp-stat-val { font-size: 20px; font-weight: 900; color: #dc2626; }
+  .kp-stat-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
 
   .kp-btn {
     padding: 10px 18px; border-radius: 10px; border: none;
-    background: #ef4444; color: #fff;
-    font-size: 13px; font-weight: 800; cursor: pointer;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff; font-size: 13px; font-weight: 800; cursor: pointer;
     transition: all 0.2s; white-space: nowrap; z-index: 1;
-    box-shadow: 0 4px 14px rgba(239,68,68,0.35);
-    &:hover:not(:disabled) { background: #dc2626; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.45); }
-    &:disabled { opacity: 0.6; cursor: not-allowed; }
+    box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+    &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.45); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
   .kp-ok-banner {
     width: 100%; padding: 10px 14px; border-radius: 10px;
-    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.25);
-    color: #4ade80; font-size: 12px; font-weight: 700;
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+    color: #15803d; font-size: 12px; font-weight: 700;
     text-align: center; z-index: 1;
   }
 `;
