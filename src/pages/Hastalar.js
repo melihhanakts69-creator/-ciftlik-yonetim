@@ -267,7 +267,9 @@ const ModalOverlay = styled.div`
 
 const ModalBox = styled.div`
   background: #fff; width: 100%; max-width: 520px; border-radius: 14px; box-shadow: 0 24px 48px rgba(0,0,0,0.18);
-  overflow: hidden;
+  max-height: 92vh; overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
   .modal-header { background: #f8fafc; padding: 18px 24px; border-bottom: 1px solid #e5e7eb; }
   .modal-header h2 { margin: 0; font-size: 17px; font-weight: 700; color: #111827; }
   .modal-header .sub { font-size: 13px; color: #6b7280; margin-top: 4px; }
@@ -359,6 +361,77 @@ const AsiModal = styled.div`
   .asi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 `;
 
+const FaturaBolumu = styled.div`
+  margin-top: 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &.active { border-color: #2563eb; }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    background: #f8fafc;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .toggle-row:hover { background: #f1f5f9; }
+
+  .toggle-icon { font-size: 18px; flex-shrink: 0; }
+  .toggle-texts { flex: 1; }
+  .toggle-title { font-size: 13px; font-weight: 800; color: #374151; }
+  .toggle-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .toggle-arrow {
+    font-size: 13px; font-weight: 900;
+    color: ${p => p.$active ? '#2563eb' : '#94a3b8'};
+    background: ${p => p.$active ? '#eff6ff' : '#f1f5f9'};
+    border-radius: 50%; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s;
+  }
+
+  .fatura-body {
+    padding: 16px;
+    border-top: 1.5px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #fff;
+  }
+
+  .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .f-field label {
+    display: block; font-size: 11px; font-weight: 700;
+    color: #6b7280; margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .f-field input, .f-field select {
+    width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0;
+    border-radius: 8px; font-size: 13px; box-sizing: border-box;
+    background: #fafbfc; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .f-field input:focus, .f-field select:focus {
+    outline: none; border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+
+  .pesin-badge {
+    background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;
+    border-radius: 8px; padding: 9px 14px; font-size: 12px; font-weight: 700;
+  }
+  .vadeli-badge {
+    background: #fef9c3; color: #854d0e; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 9px 14px; font-size: 12px; font-weight: 700;
+  }
+`;
+
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
 export default function Hastalar() {
@@ -400,6 +473,10 @@ export default function Hastalar() {
   // Protokol yönetim modal
   const [protokolModalOpen, setProtokolModalOpen] = useState(false);
   const [yeniProtokol, setYeniProtokol] = useState({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '' }] });
+
+  // Fatura Kes (işlem modallarında ortak)
+  const initFatura = { enabled: false, tutar: '', odemeTipi: 'pesin', vadeTarihi: '' };
+  const [faturaData, setFaturaData] = useState(initFatura);
 
   const filteredMusteriler = useMemo(() => {
     if (!arama.trim()) return musteriler;
@@ -545,10 +622,32 @@ export default function Hastalar() {
   const openModal = (tip, hayvan) => {
     setIslemTipi(tip);
     setSecilenHayvan(hayvan);
-    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
+    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '' });
     setAnamnez({ sikayet: '', suresi: '', atesli: '', istah: '', bulgular: '' });
     setSecilenProtokol('');
+    setFaturaData(initFatura);
     setModalOpen(true);
+  };
+
+  const submitFatura = async (aciklama, hizmetAd) => {
+    if (!faturaData.enabled) return;
+    const tutar = parseFloat(String(faturaData.tutar).replace(',', '.'));
+    if (!(tutar > 0)) return;
+    await api.postVeterinerFatura({
+      ciftciId: selectedId,
+      aciklama,
+      hizmetler: [{ ad: hizmetAd, miktar: 1, birimFiyat: tutar }],
+      ...(faturaData.odemeTipi === 'vadeli' && faturaData.vadeTarihi
+        ? { vadeTarihi: faturaData.vadeTarihi }
+        : {}),
+    });
+    if (faturaData.odemeTipi === 'pesin') {
+      await api.postVeterinerTahsilat({
+        ciftciId: selectedId,
+        tutar,
+        aciklama: `Peşin tahsilat — ${aciklama}`,
+      });
+    }
   };
 
   const handleProtokolSec = async (protokolId) => {
@@ -570,9 +669,6 @@ export default function Hastalar() {
     e.preventDefault();
     if (!selectedId || !secilenHayvan) return;
     try {
-      const maliyetNum = formData.maliyet ? parseFloat(String(formData.maliyet).replace(',', '.')) : 0;
-
-      // Anamnez bilgilerini notlara ekle
       let anamnezNot = '';
       if (anamnez.sikayet) anamnezNot += `Şikayet: ${anamnez.sikayet}. `;
       if (anamnez.suresi) anamnezNot += `Süre: ${anamnez.suresi} gün. `;
@@ -590,11 +686,23 @@ export default function Hastalar() {
         tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
         ilaclar: formData.ilacAd ? formData.ilacAd.split(',').map(x => ({ ilacAdi: x.trim() })).filter(x => x.ilacAdi) : [],
         notlar: birlesikNot,
-        ...(maliyetNum > 0 && { maliyet: maliyetNum })
       };
       await api.postMusteriHayvanSaglik(selectedId, secilenHayvan._id, payload);
-      toast.success('Kayıt eklendi, çiftçiye bildirildi.');
+
+      const hizmetAd = islemTipi === 'tohumlama'
+        ? `Suni Tohumlama — ${secilenHayvan.kupeNo || secilenHayvan.isim || 'Hayvan'}`
+        : `Veteriner Muayenesi — ${formData.tani || 'Sağlık kaydı'} (${secilenHayvan.kupeNo || secilenHayvan.isim || 'Hayvan'})`;
+      const aciklama = islemTipi === 'tohumlama'
+        ? `Suni tohumlama: ${secilenHayvan.kupeNo || secilenHayvan.isim || ''} (${formData.ilacAd || ''})`
+        : `Muayene: ${formData.tani || ''} — ${secilenHayvan.kupeNo || secilenHayvan.isim || ''}`;
+      await submitFatura(aciklama.trim(), hizmetAd.trim());
+
+      const faturaMsg = faturaData.enabled && parseFloat(faturaData.tutar) > 0
+        ? faturaData.odemeTipi === 'pesin' ? ' Fatura kesildi, peşin tahsilat kaydedildi.' : ' Vadeli fatura kesildi.'
+        : '';
+      toast.success(`Kayıt eklendi, çiftçiye bildirildi.${faturaMsg}`);
       setModalOpen(false);
+      setFaturaData(initFatura);
       const sRes = await api.getVeterinerMusteriSaglikKayitlari(selectedId);
       setSaglikKayitlari(sRes.data || []);
     } catch (err) {
@@ -615,10 +723,19 @@ export default function Hastalar() {
         hayvanKupeNo: asiHayvan?.kupeNo || '',
         ...asiForm
       });
-      toast.success('Aşı kaydı eklendi, çiftçiye bildirildi.');
+
+      const hizmetAd = `Aşı Uygulaması — ${asiForm.asiAdi}${asiHayvan ? ` (${asiHayvan.kupeNo || asiHayvan.isim})` : ' (Sürü)'}`;
+      const aciklama = `Aşı: ${asiForm.asiAdi}${asiHayvan ? ` — ${asiHayvan.kupeNo || asiHayvan.isim}` : ' — Sürü'}`;
+      await submitFatura(aciklama.trim(), hizmetAd.trim());
+
+      const faturaMsg = faturaData.enabled && parseFloat(faturaData.tutar) > 0
+        ? faturaData.odemeTipi === 'pesin' ? ' Fatura kesildi, peşin tahsilat kaydedildi.' : ' Vadeli fatura kesildi.'
+        : '';
+      toast.success(`Aşı kaydı eklendi, çiftçiye bildirildi.${faturaMsg}`);
       setAsiModalOpen(false);
       setAsiForm({ asiAdi: '', uygulamaTarihi: '', sonrakiTarih: '', doz: '', notlar: '' });
       setAsiHayvan(null);
+      setFaturaData(initFatura);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Aşı eklenemedi.');
     } finally {
@@ -808,7 +925,7 @@ export default function Hastalar() {
                           {(h.tip === 'inek' || h.tip === 'duve') && (
                             <button type="button" className="btn-tohum" onClick={() => openModal('tohumlama', h)}>+ Tohumlama</button>
                           )}
-                          <button type="button" style={{ padding: '10px 14px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer', background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: '#fff', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }} onClick={() => { setAsiHayvan(h); setAsiModalOpen(true); }}>+ Aşı</button>
+                          <button type="button" style={{ padding: '10px 14px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer', background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: '#fff', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }} onClick={() => { setAsiHayvan(h); setFaturaData(initFatura); setAsiModalOpen(true); }}>+ Aşı</button>
                         </div>
                       </AnimalCard>
                     ))}
@@ -847,8 +964,8 @@ export default function Hastalar() {
 
       {/* AŞI EKLEME MODAL */}
       {asiModalOpen && (
-        <ModalOverlay onClick={() => setAsiModalOpen(false)}>
-          <ModalBox onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+        <ModalOverlay onClick={() => { setAsiModalOpen(false); setFaturaData(initFatura); }}>
+          <ModalBox onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
             <div className="modal-header">
               <h2>💉 Aşı Kaydı Ekle</h2>
               <p className="sub">{asiHayvan ? `${asiHayvan.kupeNo || asiHayvan.isim} — ${asiHayvan.tip}` : 'Sürü genelinde aşı'}</p>
@@ -883,9 +1000,58 @@ export default function Hastalar() {
                     </div>
                   </div>
                 </AsiModal>
+
+                {/* FATURA KES BÖLÜMÜ */}
+                <FaturaBolumu $active={faturaData.enabled} style={{ marginTop: 16 }}>
+                  <div className="toggle-row" onClick={() => setFaturaData(f => ({ ...f, enabled: !f.enabled }))}>
+                    <span className="toggle-icon">🧾</span>
+                    <div className="toggle-texts">
+                      <div className="toggle-title">Fatura Kes</div>
+                      <div className="toggle-sub">Bu aşı için fatura oluştur ve çiftçiye bildir</div>
+                    </div>
+                    <span className="toggle-arrow">{faturaData.enabled ? '✓' : '+'}</span>
+                  </div>
+                  {faturaData.enabled && (
+                    <div className="fatura-body">
+                      <div className="f-row">
+                        <div className="f-field">
+                          <label>Tutar (₺) *</label>
+                          <input
+                            type="number" min="0.01" step="0.01"
+                            value={faturaData.tutar}
+                            onChange={e => setFaturaData(f => ({ ...f, tutar: e.target.value }))}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div className="f-field">
+                          <label>Ödeme Tipi</label>
+                          <select
+                            value={faturaData.odemeTipi}
+                            onChange={e => setFaturaData(f => ({ ...f, odemeTipi: e.target.value, vadeTarihi: '' }))}
+                          >
+                            <option value="pesin">Peşin Alındı</option>
+                            <option value="vadeli">Vadeli (Sonradan)</option>
+                          </select>
+                        </div>
+                      </div>
+                      {faturaData.odemeTipi === 'pesin' ? (
+                        <div className="pesin-badge">✅ Ödeme peşin alındı — fatura anında kapatılacak</div>
+                      ) : (
+                        <div className="f-field">
+                          <label>Son Ödeme Tarihi (Vade)</label>
+                          <input
+                            type="date"
+                            value={faturaData.vadeTarihi}
+                            onChange={e => setFaturaData(f => ({ ...f, vadeTarihi: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </FaturaBolumu>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn-cancel" onClick={() => { setAsiModalOpen(false); setAsiHayvan(null); }}>İptal</button>
+                <button type="button" className="btn-cancel" onClick={() => { setAsiModalOpen(false); setAsiHayvan(null); setFaturaData(initFatura); }}>İptal</button>
                 <button type="submit" className="btn-submit" disabled={asiGonderiyor} style={{ background: '#7c3aed' }}>{asiGonderiyor ? 'Kaydediliyor…' : 'Kaydet ve bildir'}</button>
               </div>
             </form>
@@ -1023,10 +1189,6 @@ export default function Hastalar() {
                         <label>İlaçlar (virgülle ayırın)</label>
                         <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Penstrep, Metacam, Dexafort" />
                       </div>
-                      <div className="form-group">
-                        <label>Tutar (₺) — Cari alacak oluşur</label>
-                        <input type="number" min="0" step="0.01" value={formData.maliyet} onChange={e => setFormData({ ...formData, maliyet: e.target.value })} placeholder="0" />
-                      </div>
                     </div>
                   </>
                 ) : (
@@ -1044,6 +1206,55 @@ export default function Hastalar() {
                     <textarea value={formData.notlar} onChange={e => setFormData({ ...formData, notlar: e.target.value })} placeholder="Ek not veya öneri..." rows={2} />
                   </div>
                 </div>
+
+                {/* FATURA KES BÖLÜMÜ */}
+                <FaturaBolumu $active={faturaData.enabled}>
+                  <div className="toggle-row" onClick={() => setFaturaData(f => ({ ...f, enabled: !f.enabled }))}>
+                    <span className="toggle-icon">🧾</span>
+                    <div className="toggle-texts">
+                      <div className="toggle-title">Fatura Kes</div>
+                      <div className="toggle-sub">Bu işlem için fatura oluştur ve çiftçiye bildir</div>
+                    </div>
+                    <span className="toggle-arrow">{faturaData.enabled ? '✓' : '+'}</span>
+                  </div>
+                  {faturaData.enabled && (
+                    <div className="fatura-body">
+                      <div className="f-row">
+                        <div className="f-field">
+                          <label>Tutar (₺) *</label>
+                          <input
+                            type="number" min="0.01" step="0.01"
+                            value={faturaData.tutar}
+                            onChange={e => setFaturaData(f => ({ ...f, tutar: e.target.value }))}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div className="f-field">
+                          <label>Ödeme Tipi</label>
+                          <select
+                            value={faturaData.odemeTipi}
+                            onChange={e => setFaturaData(f => ({ ...f, odemeTipi: e.target.value, vadeTarihi: '' }))}
+                          >
+                            <option value="pesin">Peşin Alındı</option>
+                            <option value="vadeli">Vadeli (Sonradan)</option>
+                          </select>
+                        </div>
+                      </div>
+                      {faturaData.odemeTipi === 'pesin' ? (
+                        <div className="pesin-badge">✅ Ödeme peşin alındı — fatura anında kapatılacak</div>
+                      ) : (
+                        <div className="f-field">
+                          <label>Son Ödeme Tarihi (Vade)</label>
+                          <input
+                            type="date"
+                            value={faturaData.vadeTarihi}
+                            onChange={e => setFaturaData(f => ({ ...f, vadeTarihi: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </FaturaBolumu>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setModalOpen(false)}>İptal</button>
