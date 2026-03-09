@@ -425,6 +425,7 @@ const InekDetay = () => {
 
             {/* GENEL BİLGİ SEKMESİ */}
             {aktifSekme === 'genel' && (
+                <Grid>
                 {/* SOL KOLON */}
                 <div>
                     {/* TEMEL BİLGİLER */}
