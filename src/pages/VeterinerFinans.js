@@ -321,7 +321,67 @@ const ModalFooter = styled.div`
   .save:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
+// ─── Kötü Polis Styled ────────────────────────────────────────────────────────
+const KotuPolisPanel = styled.div`
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute; top: -20px; right: -20px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(239,68,68,0.08);
+  }
+
+  .kp-icon { font-size: 32px; flex-shrink: 0; z-index: 1; }
+
+  .kp-texts { flex: 1; z-index: 1; }
+  .kp-title { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 2px; }
+  .kp-sub   { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  .kp-config { display: flex; align-items: center; gap: 8px; z-index: 1; }
+  .kp-config label { font-size: 12px; color: rgba(255,255,255,0.6); white-space: nowrap; }
+  .kp-config select {
+    padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    option { background: #1e293b; }
+  }
+
+  .kp-stats { display: flex; gap: 16px; z-index: 1; }
+  .kp-stat { text-align: center; }
+  .kp-stat-val { font-size: 18px; font-weight: 900; color: #f87171; }
+  .kp-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .kp-btn {
+    padding: 10px 18px; border-radius: 10px; border: none;
+    background: #ef4444; color: #fff;
+    font-size: 13px; font-weight: 800; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap; z-index: 1;
+    box-shadow: 0 4px 14px rgba(239,68,68,0.35);
+    &:hover:not(:disabled) { background: #dc2626; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.45); }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  .kp-ok-banner {
+    width: 100%; padding: 10px 14px; border-radius: 10px;
+    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.25);
+    color: #4ade80; font-size: 12px; font-weight: 700;
+    text-align: center; z-index: 1;
+  }
+`;
+
 // ─── Component ────────────────────────────────────────────────────────────────
+const OTOMATIK_GUN_KEY = 'vet_otomatik_hatirlatma_gun';
+
 export default function VeterinerFinans() {
   const [cari, setCari] = useState({ list: [], toplamBakiye: 0 });
   const [loading, setLoading] = useState(true);
@@ -339,6 +399,25 @@ export default function VeterinerFinans() {
   const [fModal, setFModal] = useState({ aciklama: '', vadeTarihi: '' });
   const [hizmetler, setHizmetler] = useState([{ ad: '', miktar: 1, birimFiyat: '' }]);
   const [faturaYukleniyor, setFaturaYukleniyor] = useState(false);
+
+  // Kötü Polis
+  const [topluGonderiyor, setTopluGonderiyor] = useState(false);
+  const [otomatikGun, setOtomatikGun] = useState(() => {
+    try { return parseInt(localStorage.getItem(OTOMATIK_GUN_KEY) || '15', 10); } catch { return 15; }
+  });
+  const [topluGonderildi, setTopluGonderildi] = useState(false);
+
+  // Otomatik hatırlatma: bugün ayarlanmış günse sayfa açıldığında bildir
+  useEffect(() => {
+    const bugunGun = new Date().getDate();
+    if (bugunGun === otomatikGun) {
+      const bugunKey = `vet_hatirlatma_${new Date().toISOString().slice(0,10)}`;
+      if (!localStorage.getItem(bugunKey)) {
+        toast.info(`📅 Bugün otomatik hatırlatma günü (ayın ${otomatikGun}.)! Borçlu çiftçilere mesaj göndermek için "Tümüne Gönder" butonuna basın.`, { autoClose: 8000 });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchCari = useCallback(() => {
     api.getVeterinerCari()
@@ -381,6 +460,33 @@ export default function VeterinerFinans() {
       await api.postVeterinerHatirlatma(id);
       toast.success(`📬 Borç hatırlatması "${ad}" çiftliğine gönderildi.`);
     } catch (err) { toast.error(err.response?.data?.message || 'Gönderilemedi.'); }
+  };
+
+  const handleTopluHatirlatma = async () => {
+    const borcluList = cari.list.filter(r => (r.bakiye || 0) > 0);
+    if (borcluList.length === 0) { toast.info('Borçlu çiftlik yok.'); return; }
+    if (!window.confirm(`${borcluList.length} borçlu çiftliğe otomatik hatırlatma mesajı gönderilecek. Onaylıyor musunuz?`)) return;
+    setTopluGonderiyor(true);
+    let basarili = 0;
+    let hatali = 0;
+    for (const row of borcluList) {
+      try {
+        await api.postVeterinerHatirlatma(row.ciftciId);
+        basarili++;
+      } catch { hatali++; }
+    }
+    setTopluGonderiyor(false);
+    setTopluGonderildi(true);
+    const bugunKey = `vet_hatirlatma_${new Date().toISOString().slice(0,10)}`;
+    localStorage.setItem(bugunKey, '1');
+    toast.success(`📬 ${basarili} çiftliğe mesaj gönderildi.${hatali > 0 ? ` ${hatali} gönderilemedi.` : ''}`);
+    setTimeout(() => setTopluGonderildi(false), 10000);
+  };
+
+  const handleOtomatikGunChange = (gun) => {
+    setOtomatikGun(gun);
+    localStorage.setItem(OTOMATIK_GUN_KEY, String(gun));
+    toast.success(`Otomatik hatırlatma günü ayarlandı: Her ayın ${gun}.`);
   };
 
   const addHizmet = () => setHizmetler(prev => [...prev, { ad: '', miktar: 1, birimFiyat: '' }]);
@@ -427,6 +533,57 @@ export default function VeterinerFinans() {
           <p className="desc">Müşteri bazında fatura kesilebilir; alacak ve verecek takibi yapılabilir. {buAy}</p>
         </div>
       </PageHeader>
+
+      {/* ─── KÖTÜ POLİS MODÜLÜ ─── */}
+      {(() => {
+        const borcluSayisi = cari.list.filter(r => (r.bakiye || 0) > 0).length;
+        const toplamBorc = cari.list.filter(r => (r.bakiye || 0) > 0).reduce((s, r) => s + (r.bakiye || 0), 0);
+        return (
+          <KotuPolisPanel>
+            <span className="kp-icon">🚨</span>
+            <div className="kp-texts">
+              <div className="kp-title">Kötü Polis — Otomatik Tahsilat Modülü</div>
+              <div className="kp-sub">
+                Sistem sizin adınıza borçlu çiftçilere kibarca mesaj atar. Yüz yüze bakmanıza gerek yok.
+              </div>
+            </div>
+            <div className="kp-stats">
+              <div className="kp-stat">
+                <div className="kp-stat-val">{borcluSayisi}</div>
+                <div className="kp-stat-lbl">Borçlu</div>
+              </div>
+              <div className="kp-stat">
+                <div className="kp-stat-val">{toplamBorc.toLocaleString('tr-TR',{maximumFractionDigits:0})}₺</div>
+                <div className="kp-stat-lbl">Toplam Borç</div>
+              </div>
+            </div>
+            <div className="kp-config">
+              <label>Her ayın</label>
+              <select
+                value={otomatikGun}
+                onChange={e => handleOtomatikGunChange(Number(e.target.value))}
+              >
+                {[1,5,10,15,20,25].map(g => (
+                  <option key={g} value={g}>{g}. günü</option>
+                ))}
+              </select>
+              <label>oto. gönder</label>
+            </div>
+            <button
+              className="kp-btn"
+              onClick={handleTopluHatirlatma}
+              disabled={topluGonderiyor || borcluSayisi === 0}
+            >
+              {topluGonderiyor ? '📤 Gönderiliyor…' : `📬 ${borcluSayisi} Kişiye Gönder`}
+            </button>
+            {topluGonderildi && (
+              <div className="kp-ok-banner">
+                ✅ Hatırlatmalar gönderildi — çiftçiler bilgilendirildi. Bir sonraki gönderim: ayın {otomatikGun}.
+              </div>
+            )}
+          </KotuPolisPanel>
+        );
+      })()}
 
       <MetricRow>
         <MetricCard $primary>

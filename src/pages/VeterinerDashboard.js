@@ -19,7 +19,7 @@ const Page = styled.div`
 
 // ─── Üst Hero Bar ─────────────────────────────────────────────────────────────
 const HeroBar = styled.div`
-  background: linear-gradient(135deg, #0f172a 0%, #1e3360 55%, #1e40af 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
   padding: 0 28px;
   height: 72px;
   display: flex;

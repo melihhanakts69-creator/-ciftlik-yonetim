@@ -361,6 +361,83 @@ const AsiModal = styled.div`
   .asi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 `;
 
+const ArinmaBox = styled.div`
+  border: 1.5px solid #fde68a;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+
+  &.aktif { border-color: #f59e0b; }
+
+  .ar-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; background: #fffbeb;
+    cursor: pointer; user-select: none;
+    transition: background 0.15s;
+  }
+  .ar-toggle:hover { background: #fef3c7; }
+  .ar-icon { font-size: 17px; flex-shrink: 0; }
+  .ar-texts { flex: 1; }
+  .ar-title { font-size: 13px; font-weight: 800; color: #92400e; }
+  .ar-sub   { font-size: 11px; color: #b45309; margin-top: 1px; }
+  .ar-chk   {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid ${p => p.$aktif ? '#f59e0b' : '#d1d5db'};
+    background: ${p => p.$aktif ? '#f59e0b' : '#fff'};
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s; color: #fff; font-size: 12px; font-weight: 900;
+  }
+
+  .ar-body {
+    padding: 14px 16px;
+    border-top: 1.5px solid #fde68a;
+    background: #fffbeb;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .ar-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ar-field label {
+    display: block; font-size: 11px; font-weight: 700;
+    color: #92400e; margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .ar-field input {
+    width: 100%; padding: 9px 12px; border: 1.5px solid #fde68a;
+    border-radius: 8px; font-size: 13px; box-sizing: border-box;
+    background: #fff; font-family: inherit;
+  }
+  .ar-field input:focus { outline: none; border-color: #f59e0b; }
+  .ar-warning {
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 8px; padding: 9px 12px;
+    font-size: 12px; font-weight: 600; color: #b91c1c;
+    line-height: 1.5;
+  }
+`;
+
+const ArinmaUyariPanel = styled.div`
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px solid #f59e0b;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+
+  .au-title {
+    font-size: 13px; font-weight: 900; color: #92400e;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .au-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; background: #fff; border-radius: 10px;
+    border: 1px solid #fde68a; margin-bottom: 8px;
+  }
+  .au-item:last-child { margin-bottom: 0; }
+  .au-dot { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .au-texts { flex: 1; min-width: 0; }
+  .au-hayvan { font-size: 13px; font-weight: 800; color: #0f172a; }
+  .au-detail { font-size: 12px; color: #92400e; margin-top: 2px; }
+  .au-kalan { font-size: 11px; font-weight: 700; color: #b91c1c; white-space: nowrap; flex-shrink: 0; }
+`;
+
 const FaturaBolumu = styled.div`
   margin-top: 8px;
   border: 1.5px solid #e2e8f0;
@@ -477,6 +554,37 @@ export default function Hastalar() {
   // Fatura Kes (işlem modallarında ortak)
   const initFatura = { enabled: false, tutar: '', odemeTipi: 'pesin', vadeTarihi: '' };
   const [faturaData, setFaturaData] = useState(initFatura);
+
+  // Arınma Süresi Kalkanı
+  const initArinma = { aktif: false, sut: '', et: '' };
+  const [arinma, setArinma] = useState(initArinma);
+
+  // Aktif arınma uyarıları — saglikKayitlari'ndan hesapla
+  const aktifArinmalar = useMemo(() => {
+    const bugun = new Date();
+    return saglikKayitlari
+      .filter(k => k.arinmaSuresiSut > 0 || k.arinmaSuresiEt > 0)
+      .map(k => {
+        const baslangic = k.tarih ? new Date(k.tarih) : new Date();
+        const sutBitis = k.arinmaSuresiSut > 0
+          ? new Date(baslangic.getTime() + k.arinmaSuresiSut * 86400000)
+          : null;
+        const etBitis = k.arinmaSuresiEt > 0
+          ? new Date(baslangic.getTime() + k.arinmaSuresiEt * 86400000)
+          : null;
+        return {
+          hayvan: k.hayvanKupeNo || k.hayvanIsim || 'Hayvan',
+          tani: k.tani || '',
+          sutAktif: sutBitis && sutBitis > bugun,
+          sutBitis,
+          sutGun: k.arinmaSuresiSut,
+          etAktif: etBitis && etBitis > bugun,
+          etBitis,
+          etGun: k.arinmaSuresiEt,
+        };
+      })
+      .filter(x => x.sutAktif || x.etAktif);
+  }, [saglikKayitlari]);
 
   const filteredMusteriler = useMemo(() => {
     if (!arama.trim()) return musteriler;
@@ -626,6 +734,7 @@ export default function Hastalar() {
     setAnamnez({ sikayet: '', suresi: '', atesli: '', istah: '', bulgular: '' });
     setSecilenProtokol('');
     setFaturaData(initFatura);
+    setArinma(initArinma);
     setModalOpen(true);
   };
 
@@ -677,6 +786,20 @@ export default function Hastalar() {
       if (anamnez.bulgular) anamnezNot += `Bulgular: ${anamnez.bulgular}. `;
       const birlesikNot = [anamnezNot.trim(), formData.notlar].filter(Boolean).join('\n');
 
+      // Arınma süresi — notlara ekle ve payload'a ekle
+      let arinmaNotStr = '';
+      if (islemTipi === 'hastalik' && arinma.aktif && arinma.sut) {
+        const baslangic = new Date();
+        const sutBitisTarih = new Date(baslangic.getTime() + Number(arinma.sut) * 86400000);
+        const sutBitisStr = sutBitisTarih.toLocaleDateString('tr-TR');
+        arinmaNotStr = `⚠️ ARINMA SÜRESİ: Süt ${arinma.sut} gün boyunca tanka karıştırılmamalıdır (bitiş: ${sutBitisStr})`;
+        if (arinma.et) {
+          const etBitisTarih = new Date(baslangic.getTime() + Number(arinma.et) * 86400000);
+          arinmaNotStr += ` | Et arınma: ${arinma.et} gün (bitiş: ${etBitisTarih.toLocaleDateString('tr-TR')})`;
+        }
+      }
+      const tumNotlar = [birlesikNot, arinmaNotStr].filter(Boolean).join('\n');
+
       const payload = {
         hayvanTipi: secilenHayvan.tip,
         hayvanIsim: secilenHayvan.isim || '',
@@ -685,7 +808,10 @@ export default function Hastalar() {
         tani: islemTipi === 'tohumlama' ? 'Suni Tohumlama' : formData.tani,
         tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
         ilaclar: formData.ilacAd ? formData.ilacAd.split(',').map(x => ({ ilacAdi: x.trim() })).filter(x => x.ilacAdi) : [],
-        notlar: birlesikNot,
+        notlar: tumNotlar,
+        ...(islemTipi === 'hastalik' && arinma.aktif && arinma.sut
+          ? { arinmaSuresiSut: Number(arinma.sut), ...(arinma.et ? { arinmaSuresiEt: Number(arinma.et) } : {}) }
+          : {}),
       };
       await api.postMusteriHayvanSaglik(selectedId, secilenHayvan._id, payload);
 
@@ -700,9 +826,12 @@ export default function Hastalar() {
       const faturaMsg = faturaData.enabled && parseFloat(faturaData.tutar) > 0
         ? faturaData.odemeTipi === 'pesin' ? ' Fatura kesildi, peşin tahsilat kaydedildi.' : ' Vadeli fatura kesildi.'
         : '';
-      toast.success(`Kayıt eklendi, çiftçiye bildirildi.${faturaMsg}`);
+      const arinmaMsg = islemTipi === 'hastalik' && arinma.aktif && arinma.sut
+        ? ` 🛡️ Arınma uyarısı çiftçiye bildirildi.` : '';
+      toast.success(`Kayıt eklendi, çiftçiye bildirildi.${faturaMsg}${arinmaMsg}`);
       setModalOpen(false);
       setFaturaData(initFatura);
+      setArinma(initArinma);
       const sRes = await api.getVeterinerMusteriSaglikKayitlari(selectedId);
       setSaglikKayitlari(sRes.data || []);
     } catch (err) {
@@ -883,6 +1012,40 @@ export default function Hastalar() {
                 </PdfRaporBtn>
               </div>
             </DetailHeader>
+
+            {/* AKTİF ARINMA UYARILARI */}
+            {aktifArinmalar.length > 0 && (
+              <ArinmaUyariPanel>
+                <div className="au-title">
+                  🛡️ Aktif Arınma Süreleri — {aktifArinmalar.length} hayvan
+                </div>
+                {aktifArinmalar.map((a, i) => {
+                  const bugun = new Date();
+                  const sutKalan = a.sutAktif
+                    ? Math.ceil((a.sutBitis - bugun) / 86400000)
+                    : null;
+                  const etKalan = a.etAktif
+                    ? Math.ceil((a.etBitis - bugun) / 86400000)
+                    : null;
+                  return (
+                    <div key={i} className="au-item">
+                      <span className="au-dot">🐄</span>
+                      <div className="au-texts">
+                        <div className="au-hayvan">{a.hayvan} {a.tani ? `— ${a.tani}` : ''}</div>
+                        <div className="au-detail">
+                          {a.sutAktif && `🥛 Süt tanka karıştırılmamalı (${a.sutGun} gün, bitiş: ${a.sutBitis?.toLocaleDateString('tr-TR')})`}
+                          {a.sutAktif && a.etAktif && ' · '}
+                          {a.etAktif && `🥩 Et arınma (${a.etGun} gün, bitiş: ${a.etBitis?.toLocaleDateString('tr-TR')})`}
+                        </div>
+                      </div>
+                      <div className="au-kalan">
+                        {sutKalan !== null ? `${sutKalan} gün kaldı` : `${etKalan} gün kaldı`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </ArinmaUyariPanel>
+            )}
 
             <Block>
               <h4>Hayvanlar</h4>
@@ -1190,6 +1353,50 @@ export default function Hastalar() {
                         <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Penstrep, Metacam, Dexafort" />
                       </div>
                     </div>
+
+                    {/* ARINMA SÜRESİ KALKANI */}
+                    <ArinmaBox $aktif={arinma.aktif} className={arinma.aktif ? 'aktif' : ''}>
+                      <div className="ar-toggle" onClick={() => setArinma(a => ({ ...a, aktif: !a.aktif }))}>
+                        <span className="ar-icon">🛡️</span>
+                        <div className="ar-texts">
+                          <div className="ar-title">Süt / Et Arınma Süresi</div>
+                          <div className="ar-sub">Etkinleştir → çiftçiye otomatik tank uyarısı gönderilir</div>
+                        </div>
+                        <span className="ar-chk">{arinma.aktif ? '✓' : ''}</span>
+                      </div>
+                      {arinma.aktif && (
+                        <div className="ar-body">
+                          <div className="ar-row">
+                            <div className="ar-field">
+                              <label>🥛 Süt Arınma (gün) *</label>
+                              <input
+                                type="number" min="1" max="30"
+                                value={arinma.sut}
+                                onChange={e => setArinma(a => ({ ...a, sut: e.target.value }))}
+                                placeholder="Örn: 4"
+                              />
+                            </div>
+                            <div className="ar-field">
+                              <label>🥩 Et Arınma (gün)</label>
+                              <input
+                                type="number" min="1" max="60"
+                                value={arinma.et}
+                                onChange={e => setArinma(a => ({ ...a, et: e.target.value }))}
+                                placeholder="Opsiyonel"
+                              />
+                            </div>
+                          </div>
+                          {arinma.sut && (
+                            <div className="ar-warning">
+                              ⚠️ Çiftçiye bildirim gönderilecek: <strong>{secilenHayvan?.kupeNo || 'Hayvan'}</strong> için süt{' '}
+                              <strong>{arinma.sut} gün</strong> boyunca sağım tankına kesinlikle karıştırılmamalıdır.
+                              {arinma.et && ` Et arınma süresi: ${arinma.et} gün.`}{' '}
+                              Bu kayıt yasal kanıt olarak tutulur.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </ArinmaBox>
                   </>
                 ) : (
                   <div className="form-section">
