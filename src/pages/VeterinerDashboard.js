@@ -246,6 +246,7 @@ export default function VeterinerDashboard({ kullanici }) {
   const [ozet, setOzet] = useState(null);
   const [musteriler, setMusteriler] = useState([]);
   const [sonSaglik, setSonSaglik] = useState([]);
+  const [saglikSkorlar, setSaglikSkorlar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [kupeArama, setKupeArama] = useState('');
   const [kupeSonuc, setKupeSonuc] = useState([]);
@@ -257,17 +258,20 @@ export default function VeterinerDashboard({ kullanici }) {
     Promise.all([
       api.getVeterinerOzet(),
       api.getVeterinerMusteriler(),
-      api.getVeterinerSonSaglikKayitlari()
+      api.getVeterinerSonSaglikKayitlari(),
+      api.getVeterinerSaglikSkoru()
     ])
-      .then(([oRes, mRes, sRes]) => {
+      .then(([oRes, mRes, sRes, skRes]) => {
         setOzet(oRes.data || null);
         setMusteriler(mRes.data || []);
         setSonSaglik(sRes.data || []);
+        setSaglikSkorlar(skRes.data || []);
       })
       .catch(() => {
         setOzet(null);
         setMusteriler([]);
         setSonSaglik([]);
+        setSaglikSkorlar([]);
       })
       .finally(() => setLoading(false));
   };
@@ -418,6 +422,25 @@ export default function VeterinerDashboard({ kullanici }) {
               <span className="arrow">→</span>
             </LinkRow>
           </Section>
+
+        {/* En Riskli Çiftlikler */}
+          {saglikSkorlar.length > 0 && (
+            <Section>
+              <h3>⚠️ En Riskli Çiftlikler</h3>
+              {saglikSkorlar.slice(0, 5).map(s => (
+                <FarmRow key={s.ciftciId} onClick={() => navigate(`/hastalar/${s.ciftciId}`)}>
+                  <div>
+                    <div className="name">{s.isletmeAdi || s.isim || 'Çiftlik'}</div>
+                    <div className="sub">
+                      {s.devamEdenTedavi > 0 && `${s.devamEdenTedavi} devam eden tedavi · `}
+                      {s.gecikmisAsiSayisi > 0 && `${s.gecikmisAsiSayisi} gecikmiş aşı`}
+                    </div>
+                  </div>
+                  <span style={{ padding: '5px 12px', borderRadius: 20, fontWeight: 800, fontSize: 13, background: s.skor >= 80 ? '#dcfce7' : s.skor >= 50 ? '#fef9c3' : '#fee2e2', color: s.skor >= 80 ? '#15803d' : s.skor >= 50 ? '#854d0e' : '#b91c1c' }}>{s.skor}/100</span>
+                </FarmRow>
+              ))}
+            </Section>
+          )}
 
           {sonSaglik.length > 0 && (
             <Section>

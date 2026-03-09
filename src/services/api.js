@@ -240,6 +240,26 @@ export const patchVeterinerRandevu = (id, data) => api.patch(`/veteriner/randevu
 export const getVeterinerZiyaretOnerileri = () => api.get('/veteriner/ziyaret-onerileri');
 export const getVeterinerRaporAylik = () => api.get('/veteriner/rapor/aylik');
 
+// Sürü Sağlık Skoru
+export const getVeterinerSaglikSkoru = () => api.get('/veteriner/saglik-skoru');
+
+// Hastalık Dağılım Haritası
+export const getVeterinerHastalikDagilimi = () => api.get('/veteriner/rapor/hastalik-dagilimi');
+
+// Tedavi Protokol Şablonları
+export const getVeterinerProtokoller = () => api.get('/veteriner/protokoller');
+export const postVeterinerProtokol = (data) => api.post('/veteriner/protokoller', data);
+export const deleteVeterinerProtokol = (id) => api.delete(`/veteriner/protokoller/${id}`);
+export const patchVeterinerProtokolKullan = (id) => api.patch(`/veteriner/protokoller/${id}/kullan`);
+
+// Vet tarafı Aşı Takvimi (müşteri çiftlikleri için)
+export const getVeterinerAsiTakvimi = (ciftciId) => api.get(`/veteriner/asi-takvimi/${ciftciId}`);
+export const postVeterinerAsiTakvimi = (data) => api.post('/veteriner/asi-takvimi', data);
+export const putVeterinerAsiTamamla = (id) => api.put(`/veteriner/asi-takvimi/${id}/tamamla`);
+
+// Çiftlik Aylık Sağlık Raporu
+export const getVeterinerCiftlikRaporu = (ciftciId) => api.get(`/veteriner/hastalar/${ciftciId}/saglik-raporu`);
+
 // ABONELİK & ÖDEME
 export const getAbonelik = () => api.get('/odeme/abonelik');
 export const getPlanlar = () => api.get('/odeme/planlar');

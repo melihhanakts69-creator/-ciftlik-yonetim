@@ -159,11 +159,18 @@ const FarmRankItem = styled.li`
 export default function VeterinerRapor() {
   const [rapor, setRapor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hastalikDagilimi, setHastalikDagilimi] = useState([]);
 
   useEffect(() => {
-    api.getVeterinerRaporAylik()
-      .then(res => setRapor(res.data))
-      .catch(() => setRapor(null))
+    Promise.all([
+      api.getVeterinerRaporAylik(),
+      api.getVeterinerHastalikDagilimi()
+    ])
+      .then(([rRes, hRes]) => {
+        setRapor(rRes.data);
+        setHastalikDagilimi(hRes.data || []);
+      })
+      .catch(() => { setRapor(null); setHastalikDagilimi([]); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -303,6 +310,48 @@ export default function VeterinerRapor() {
           </RankList>
         )}
       </SectionCard>
+
+      {/* HASTALIK DAĞILIM HARİTASI — Son 3 ay */}
+      {hastalikDagilimi.length > 0 && (
+        <SectionCard style={{ marginTop: 24 }}>
+          <SectionHead>
+            <span className="icon">🗺️</span>
+            <h2>Hastalık Dağılım Haritası</h2>
+            <span className="count">Son 3 ay · {hastalikDagilimi.length} farklı tanı</span>
+          </SectionHead>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {hastalikDagilimi.map((h, i) => {
+              const max = hastalikDagilimi[0]?.toplamSayi || 1;
+              const renkler = ['#8b5cf6','#0ea5e9','#f59e0b','#10b981','#ef4444','#6366f1','#ec4899','#84cc16','#14b8a6','#f97316'];
+              const renk = renkler[i % renkler.length];
+              return (
+                <div key={i} style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 16px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>{h.tani}</span>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: renk }}>{h.toplamSayi} vaka</span>
+                  </div>
+                  {/* Çiftlik bazında dağılım barları */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {h.ciftlikler.slice(0, 5).map((c, j) => (
+                      <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, width: 110, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.ciftlik}</span>
+                        <div style={{ flex: 1, background: '#e2e8f0', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.round((c.sayi / h.toplamSayi) * 100)}%`, height: '100%', background: renk, borderRadius: 4, transition: 'width 0.5s ease' }} />
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: renk, minWidth: 16 }}>{c.sayi}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Genel bar */}
+                  <div style={{ marginTop: 8, background: '#e2e8f0', borderRadius: 6, height: 6 }}>
+                    <div style={{ width: `${Math.round((h.toplamSayi / max) * 100)}%`, height: '100%', background: renk, borderRadius: 6 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </SectionCard>
+      )}
     </Page>
   );
 }

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 import { indirRecetePdf } from '../utils/recetePdf';
+import { indirCiftlikSaglikRaporu } from '../utils/ciftlikSaglikRaporu';
 
 const Page = styled.div`
   display: flex;
@@ -288,6 +289,76 @@ const ModalBox = styled.div`
   .btn-cancel:hover { background: #e5e7eb; }
 `;
 
+const ScoreBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  background: ${p => p.$bg || '#f1f5f9'};
+  color: ${p => p.$color || '#64748b'};
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+
+const ModalSelect = styled.select`
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  cursor: pointer;
+  &:focus { outline: none; border-color: #2563eb; }
+`;
+
+const ProtocolHint = styled.div`
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #1e40af;
+  margin-bottom: 12px;
+  strong { font-weight: 700; }
+`;
+
+const AnamnezGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+`;
+
+const PdfRaporBtn = styled.button`
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #e0f2fe;
+  background: #f0f9ff;
+  color: #0284c7;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  &:hover { background: #bae6fd; border-color: #0ea5e9; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
+
+const AsiModal = styled.div`
+  .asi-form { display: flex; flex-direction: column; gap: 12px; }
+  .asi-form input, .asi-form select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; box-sizing: border-box; }
+  .asi-form input:focus, .asi-form select:focus { outline: none; border-color: #2563eb; }
+  .asi-form label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; display: block; }
+  .asi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+`;
+
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
 export default function Hastalar() {
@@ -311,6 +382,24 @@ export default function Hastalar() {
   const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
   const [hayvanKategori, setHayvanKategori] = useState('');
   const [hayvanKupeArama, setHayvanKupeArama] = useState('');
+
+  // Sağlık skoru
+  const [saglikSkorlar, setSaglikSkorlar] = useState({});
+  // Protokoller
+  const [protokoller, setProtokoller] = useState([]);
+  const [secilenProtokol, setSecilenProtokol] = useState('');
+  // Anamnez alanları
+  const [anamnez, setAnamnez] = useState({ sikayet: '', suresi: '', atesli: '', istah: '', bulgular: '' });
+  // Aşı modal
+  const [asiModalOpen, setAsiModalOpen] = useState(false);
+  const [asiHayvan, setAsiHayvan] = useState(null);
+  const [asiForm, setAsiForm] = useState({ asiAdi: '', uygulamaTarihi: '', sonrakiTarih: '', doz: '', notlar: '' });
+  const [asiGonderiyor, setAsiGonderiyor] = useState(false);
+  // PDF rapor
+  const [raporYukleniyor, setRaporYukleniyor] = useState(false);
+  // Protokol yönetim modal
+  const [protokolModalOpen, setProtokolModalOpen] = useState(false);
+  const [yeniProtokol, setYeniProtokol] = useState({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '' }] });
 
   const filteredMusteriler = useMemo(() => {
     if (!arama.trim()) return musteriler;
@@ -345,7 +434,27 @@ export default function Hastalar() {
     }
   };
 
-  useEffect(() => { fetchMusteriler(); }, []);
+  const fetchSaglikSkorlar = async () => {
+    try {
+      const res = await api.getVeterinerSaglikSkoru();
+      const map = {};
+      (res.data || []).forEach(s => { map[s.ciftciId] = s; });
+      setSaglikSkorlar(map);
+    } catch (_) {}
+  };
+
+  const fetchProtokoller = async () => {
+    try {
+      const res = await api.getVeterinerProtokoller();
+      setProtokoller(res.data || []);
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    fetchMusteriler();
+    fetchSaglikSkorlar();
+    fetchProtokoller();
+  }, []);
 
   useEffect(() => {
     if (urlId && urlId !== selectedId) setSelectedId(urlId);
@@ -437,7 +546,24 @@ export default function Hastalar() {
     setIslemTipi(tip);
     setSecilenHayvan(hayvan);
     setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
+    setAnamnez({ sikayet: '', suresi: '', atesli: '', istah: '', bulgular: '' });
+    setSecilenProtokol('');
     setModalOpen(true);
+  };
+
+  const handleProtokolSec = async (protokolId) => {
+    setSecilenProtokol(protokolId);
+    if (!protokolId) return;
+    const p = protokoller.find(x => x._id === protokolId);
+    if (!p) return;
+    setFormData(prev => ({
+      ...prev,
+      tani: p.tani || prev.tani,
+      tedavi: p.tedaviNotu || prev.tedavi,
+      ilacAd: (p.ilaclar || []).map(x => x.ilacAdi).filter(Boolean).join(', ') || prev.ilacAd
+    }));
+    // Kullanım sayacını artır (fire and forget)
+    api.patchVeterinerProtokolKullan(protokolId).catch(() => {});
   };
 
   const handleKayitSubmit = async (e) => {
@@ -445,6 +571,16 @@ export default function Hastalar() {
     if (!selectedId || !secilenHayvan) return;
     try {
       const maliyetNum = formData.maliyet ? parseFloat(String(formData.maliyet).replace(',', '.')) : 0;
+
+      // Anamnez bilgilerini notlara ekle
+      let anamnezNot = '';
+      if (anamnez.sikayet) anamnezNot += `Şikayet: ${anamnez.sikayet}. `;
+      if (anamnez.suresi) anamnezNot += `Süre: ${anamnez.suresi} gün. `;
+      if (anamnez.atesli) anamnezNot += `Ateş: ${anamnez.atesli}. `;
+      if (anamnez.istah) anamnezNot += `İştah: ${anamnez.istah}. `;
+      if (anamnez.bulgular) anamnezNot += `Bulgular: ${anamnez.bulgular}. `;
+      const birlesikNot = [anamnezNot.trim(), formData.notlar].filter(Boolean).join('\n');
+
       const payload = {
         hayvanTipi: secilenHayvan.tip,
         hayvanIsim: secilenHayvan.isim || '',
@@ -452,8 +588,8 @@ export default function Hastalar() {
         tip: islemTipi === 'tohumlama' ? 'muayene' : 'hastalik',
         tani: islemTipi === 'tohumlama' ? 'Suni Tohumlama' : formData.tani,
         tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
-        ilaclar: formData.ilacAd ? [{ ilacAdi: formData.ilacAd }] : [],
-        notlar: formData.notlar,
+        ilaclar: formData.ilacAd ? formData.ilacAd.split(',').map(x => ({ ilacAdi: x.trim() })).filter(x => x.ilacAdi) : [],
+        notlar: birlesikNot,
         ...(maliyetNum > 0 && { maliyet: maliyetNum })
       };
       await api.postMusteriHayvanSaglik(selectedId, secilenHayvan._id, payload);
@@ -463,6 +599,68 @@ export default function Hastalar() {
       setSaglikKayitlari(sRes.data || []);
     } catch (err) {
       toast.error(err.response?.data?.message || 'İşlem başarısız.');
+    }
+  };
+
+  const handleAsiSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedId || !asiForm.asiAdi || !asiForm.uygulamaTarihi) return;
+    setAsiGonderiyor(true);
+    try {
+      await api.postVeterinerAsiTakvimi({
+        ciftciId: selectedId,
+        hayvanId: asiHayvan?._id || null,
+        hayvanTipi: asiHayvan?.tip || 'hepsi',
+        hayvanIsim: asiHayvan?.isim || '',
+        hayvanKupeNo: asiHayvan?.kupeNo || '',
+        ...asiForm
+      });
+      toast.success('Aşı kaydı eklendi, çiftçiye bildirildi.');
+      setAsiModalOpen(false);
+      setAsiForm({ asiAdi: '', uygulamaTarihi: '', sonrakiTarih: '', doz: '', notlar: '' });
+      setAsiHayvan(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Aşı eklenemedi.');
+    } finally {
+      setAsiGonderiyor(false);
+    }
+  };
+
+  const handlePdfRapor = async () => {
+    if (!selectedId) return;
+    setRaporYukleniyor(true);
+    try {
+      const res = await api.getVeterinerCiftlikRaporu(selectedId);
+      indirCiftlikSaglikRaporu(res.data);
+      toast.success('Rapor oluşturuldu.');
+    } catch (err) {
+      toast.error('Rapor oluşturulamadı.');
+    } finally {
+      setRaporYukleniyor(false);
+    }
+  };
+
+  const handleProtokolKaydet = async (e) => {
+    e.preventDefault();
+    try {
+      await api.postVeterinerProtokol(yeniProtokol);
+      toast.success('Protokol kaydedildi.');
+      setProtokolModalOpen(false);
+      setYeniProtokol({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '' }] });
+      fetchProtokoller();
+    } catch (err) {
+      toast.error('Protokol kaydedilemedi.');
+    }
+  };
+
+  const handleProtokolSil = async (id) => {
+    if (!window.confirm('Bu protokolü silmek istiyor musunuz?')) return;
+    try {
+      await api.deleteVeterinerProtokol(id);
+      toast.success('Protokol silindi.');
+      fetchProtokoller();
+    } catch (_) {
+      toast.error('Silinemedi.');
     }
   };
 
@@ -487,12 +685,27 @@ export default function Hastalar() {
               {arama.trim() ? 'Eşleşme yok.' : 'Henüz çiftlik eklenmedi.'}
             </div>
           ) : (
-            filteredMusteriler.map(m => (
-              <FarmItem key={m._id} $active={selectedId === m._id} onClick={() => selectFarm(m._id)}>
-                <div className="name">{m.isletmeAdi || m.isim || 'İsimsiz'}</div>
-                <div className="sub">{m.isim} {m.sehir ? `· ${m.sehir}` : ''}</div>
-              </FarmItem>
-            ))
+            filteredMusteriler.map(m => {
+              const skor = saglikSkorlar[m._id];
+              return (
+                <FarmItem key={m._id} $active={selectedId === m._id} onClick={() => selectFarm(m._id)}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                    <div>
+                      <div className="name">{m.isletmeAdi || m.isim || 'İsimsiz'}</div>
+                      <div className="sub">{m.isim} {m.sehir ? `· ${m.sehir}` : ''}</div>
+                    </div>
+                    {skor && (
+                      <ScoreBadge
+                        $bg={skor.skor >= 80 ? '#dcfce7' : skor.skor >= 50 ? '#fef9c3' : '#fee2e2'}
+                        $color={skor.skor >= 80 ? '#15803d' : skor.skor >= 50 ? '#854d0e' : '#b91c1c'}
+                      >
+                        {skor.skor}
+                      </ScoreBadge>
+                    )}
+                  </div>
+                </FarmItem>
+              );
+            })
           )}
         </FarmList>
         <AddFarmBlock>
@@ -531,8 +744,27 @@ export default function Hastalar() {
         ) : (
           <>
             <DetailHeader>
-              <h1 className="farm-name">{selectedMusteri?.isletmeAdi || selectedMusteri?.isim || 'Çiftlik'}</h1>
-              <p className="farm-sub">Çiftçi: {selectedMusteri?.isim} {selectedMusteri?.sehir ? `· ${selectedMusteri.sehir}` : ''}</p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                <div>
+                  <h1 className="farm-name">{selectedMusteri?.isletmeAdi || selectedMusteri?.isim || 'Çiftlik'}</h1>
+                  <p className="farm-sub">Çiftçi: {selectedMusteri?.isim} {selectedMusteri?.sehir ? `· ${selectedMusteri.sehir}` : ''}</p>
+                  {saglikSkorlar[selectedId] && (() => {
+                    const s = saglikSkorlar[selectedId];
+                    return (
+                      <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+                        <span style={{ padding: '5px 14px', borderRadius: 20, background: s.skor >= 80 ? '#dcfce7' : s.skor >= 50 ? '#fef9c3' : '#fee2e2', color: s.skor >= 80 ? '#15803d' : s.skor >= 50 ? '#854d0e' : '#b91c1c', fontSize: 13, fontWeight: 800 }}>
+                          🛡️ Sağlık Skoru: {s.skor}/100
+                        </span>
+                        {s.devamEdenTedavi > 0 && <span style={{ padding: '5px 14px', borderRadius: 20, background: '#fff7ed', color: '#c2410c', fontSize: 12, fontWeight: 700 }}>⚠️ {s.devamEdenTedavi} devam eden tedavi</span>}
+                        {s.gecikmisAsiSayisi > 0 && <span style={{ padding: '5px 14px', borderRadius: 20, background: '#fef2f2', color: '#b91c1c', fontSize: 12, fontWeight: 700 }}>💉 {s.gecikmisAsiSayisi} gecikmiş aşı</span>}
+                      </div>
+                    );
+                  })()}
+                </div>
+                <PdfRaporBtn onClick={handlePdfRapor} disabled={raporYukleniyor}>
+                  {raporYukleniyor ? '⏳ Hazırlanıyor…' : '📄 Aylık Sağlık Raporu'}
+                </PdfRaporBtn>
+              </div>
             </DetailHeader>
 
             <Block>
@@ -576,6 +808,7 @@ export default function Hastalar() {
                           {(h.tip === 'inek' || h.tip === 'duve') && (
                             <button type="button" className="btn-tohum" onClick={() => openModal('tohumlama', h)}>+ Tohumlama</button>
                           )}
+                          <button type="button" style={{ padding: '10px 14px', borderRadius: 10, border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer', background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: '#fff', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6 }} onClick={() => { setAsiHayvan(h); setAsiModalOpen(true); }}>+ Aşı</button>
                         </div>
                       </AnimalCard>
                     ))}
@@ -588,7 +821,10 @@ export default function Hastalar() {
             </Block>
 
             <Block>
-              <h4>Geçmiş sağlık kayıtları</h4>
+              <h4 style={{ justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Geçmiş Sağlık Kayıtları</span>
+                <button type="button" onClick={() => setProtokolModalOpen(true)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e0e7ff', background: '#eef2ff', color: '#4338ca', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Protokol Ekle</button>
+              </h4>
               {saglikKayitlari.length === 0 ? (
                 <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Henüz kayıt yok.</p>
               ) : (
@@ -609,6 +845,96 @@ export default function Hastalar() {
         )}
       </DetailPanel>
 
+      {/* AŞI EKLEME MODAL */}
+      {asiModalOpen && (
+        <ModalOverlay onClick={() => setAsiModalOpen(false)}>
+          <ModalBox onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className="modal-header">
+              <h2>💉 Aşı Kaydı Ekle</h2>
+              <p className="sub">{asiHayvan ? `${asiHayvan.kupeNo || asiHayvan.isim} — ${asiHayvan.tip}` : 'Sürü genelinde aşı'}</p>
+            </div>
+            <form onSubmit={handleAsiSubmit}>
+              <div className="modal-body">
+                <AsiModal>
+                  <div className="asi-form">
+                    <div>
+                      <label>Aşı Adı *</label>
+                      <input required value={asiForm.asiAdi} onChange={e => setAsiForm({ ...asiForm, asiAdi: e.target.value })} placeholder="Örn: Şap aşısı, Brucella" />
+                    </div>
+                    <div className="asi-row">
+                      <div>
+                        <label>Uygulama Tarihi *</label>
+                        <input required type="date" value={asiForm.uygulamaTarihi} onChange={e => setAsiForm({ ...asiForm, uygulamaTarihi: e.target.value })} />
+                      </div>
+                      <div>
+                        <label>Sonraki Aşı Tarihi</label>
+                        <input type="date" value={asiForm.sonrakiTarih} onChange={e => setAsiForm({ ...asiForm, sonrakiTarih: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="asi-row">
+                      <div>
+                        <label>Doz</label>
+                        <input value={asiForm.doz} onChange={e => setAsiForm({ ...asiForm, doz: e.target.value })} placeholder="Örn: 2ml IM" />
+                      </div>
+                      <div>
+                        <label>Not</label>
+                        <input value={asiForm.notlar} onChange={e => setAsiForm({ ...asiForm, notlar: e.target.value })} placeholder="Opsiyonel not" />
+                      </div>
+                    </div>
+                  </div>
+                </AsiModal>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => { setAsiModalOpen(false); setAsiHayvan(null); }}>İptal</button>
+                <button type="submit" className="btn-submit" disabled={asiGonderiyor} style={{ background: '#7c3aed' }}>{asiGonderiyor ? 'Kaydediliyor…' : 'Kaydet ve bildir'}</button>
+              </div>
+            </form>
+          </ModalBox>
+        </ModalOverlay>
+      )}
+
+      {/* PROTOKOL YÖNETİM MODAL */}
+      {protokolModalOpen && (
+        <ModalOverlay onClick={() => setProtokolModalOpen(false)}>
+          <ModalBox onClick={e => e.stopPropagation()} style={{ maxWidth: 560 }}>
+            <div className="modal-header">
+              <h2>📋 Yeni Tedavi Protokolü</h2>
+              <p className="sub">Sık kullandığınız tanı + ilaç kombinasyonlarını şablon olarak kaydedin.</p>
+            </div>
+            <form onSubmit={handleProtokolKaydet}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Protokol Adı *</label>
+                  <input required value={yeniProtokol.ad} onChange={e => setYeniProtokol({ ...yeniProtokol, ad: e.target.value })} placeholder="Örn: Mastitis Standart Protokolü" />
+                </div>
+                <div className="form-group">
+                  <label>Tanı / Teşhis *</label>
+                  <input required value={yeniProtokol.tani} onChange={e => setYeniProtokol({ ...yeniProtokol, tani: e.target.value })} placeholder="Örn: Mastitis" />
+                </div>
+                <div className="form-group">
+                  <label>Tedavi Notu</label>
+                  <input value={yeniProtokol.tedaviNotu} onChange={e => setYeniProtokol({ ...yeniProtokol, tedaviNotu: e.target.value })} placeholder="Örn: 5 gün antibiyotik, günde 2 kez" />
+                </div>
+                <div className="form-section-title" style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '16px 0 10px' }}>İlaçlar</div>
+                {yeniProtokol.ilaclar.map((il, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px auto', gap: 8, marginBottom: 8 }}>
+                    <input placeholder="İlaç adı" value={il.ilacAdi} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], ilacAdi: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+                    <input placeholder="Doz" value={il.doz} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], doz: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+                    <input placeholder="Süre" value={il.sure} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], sure: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+                    <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: yeniProtokol.ilaclar.filter((_, j) => j !== i) })} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: '#fee2e2', color: '#b91c1c', cursor: 'pointer' }}>✕</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: [...yeniProtokol.ilaclar, { ilacAdi: '', doz: '', sure: '' }] })} style={{ padding: '8px 14px', border: '1px dashed #d1d5db', borderRadius: 8, background: '#f9fafb', color: '#374151', fontSize: 13, cursor: 'pointer', marginTop: 4 }}>+ İlaç Ekle</button>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setProtokolModalOpen(false)}>İptal</button>
+                <button type="submit" className="btn-submit">Kaydet</button>
+              </div>
+            </form>
+          </ModalBox>
+        </ModalOverlay>
+      )}
+
       {modalOpen && secilenHayvan && (
         <ModalOverlay onClick={() => setModalOpen(false)}>
           <ModalBox onClick={e => e.stopPropagation()}>
@@ -625,23 +951,81 @@ export default function Hastalar() {
                 </div>
                 {islemTipi === 'hastalik' ? (
                   <>
+                    {/* Protokol Seç */}
+                    {protokoller.length > 0 && (
+                      <div className="form-section">
+                        <div className="form-section-title">⚡ Hızlı Protokol Şablonu</div>
+                        <ModalSelect value={secilenProtokol} onChange={e => handleProtokolSec(e.target.value)}>
+                          <option value="">— Protokol seç (opsiyonel) —</option>
+                          {protokoller.map(p => (
+                            <option key={p._id} value={p._id}>{p.ad} {p.kullanilmaSayisi > 0 ? `(${p.kullanilmaSayisi}x)` : ''}</option>
+                          ))}
+                        </ModalSelect>
+                        {secilenProtokol && (
+                          <ProtocolHint>
+                            Seçilen şablon alanları otomatik doldurdu. Üzerine yazarak değiştirebilirsiniz.
+                          </ProtocolHint>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Anamnez / Hikaye */}
                     <div className="form-section">
-                      <div className="form-section-title">Klinik bilgiler</div>
+                      <div className="form-section-title">🩺 Anamnez / Hasta Hikayesi</div>
+                      <div className="form-group">
+                        <label>Şikayet / Semptomlar</label>
+                        <input value={anamnez.sikayet} onChange={e => setAnamnez({ ...anamnez, sikayet: e.target.value })} placeholder="Örn: İştahsızlık, topallık, şişlik" />
+                      </div>
+                      <AnamnezGrid>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label>Şikayet Süresi (gün)</label>
+                          <input type="number" min="0" value={anamnez.suresi} onChange={e => setAnamnez({ ...anamnez, suresi: e.target.value })} placeholder="Örn: 3" />
+                        </div>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label>İştah Durumu</label>
+                          <ModalSelect value={anamnez.istah} onChange={e => setAnamnez({ ...anamnez, istah: e.target.value })}>
+                            <option value="">Seçin</option>
+                            <option>Normal</option>
+                            <option>Azalmış</option>
+                            <option>Yok</option>
+                            <option>Artmış</option>
+                          </ModalSelect>
+                        </div>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label>Ateş</label>
+                          <ModalSelect value={anamnez.atesli} onChange={e => setAnamnez({ ...anamnez, atesli: e.target.value })}>
+                            <option value="">Seçin</option>
+                            <option>Normal (38-39°C)</option>
+                            <option>Düşük (&lt;38°C)</option>
+                            <option>Yüksek (39-40°C)</option>
+                            <option>Çok Yüksek (&gt;40°C)</option>
+                          </ModalSelect>
+                        </div>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label>Klinik Bulgular</label>
+                          <input value={anamnez.bulgular} onChange={e => setAnamnez({ ...anamnez, bulgular: e.target.value })} placeholder="Gözlem notları" />
+                        </div>
+                      </AnamnezGrid>
+                    </div>
+
+                    {/* Klinik Bilgiler */}
+                    <div className="form-section">
+                      <div className="form-section-title">Tanı ve Tedavi</div>
                       <div className="form-group">
                         <label>Tanı / Teşhis *</label>
                         <input required value={formData.tani} onChange={e => setFormData({ ...formData, tani: e.target.value })} placeholder="Örn: Mastitis, Süt humması" />
                       </div>
                       <div className="form-group">
-                        <label>Uygulanan tedavi *</label>
-                        <input required value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Örn: 1 hafta gözlem, antibiyotik" />
+                        <label>Uygulanan tedavi</label>
+                        <input value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Örn: Antibiyotik, dinlenme" />
                       </div>
                       <div className="form-group">
-                        <label>İlaç / Aşı</label>
-                        <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Reçete edilen ilaç (opsiyonel)" />
+                        <label>İlaçlar (virgülle ayırın)</label>
+                        <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Penstrep, Metacam, Dexafort" />
                       </div>
                       <div className="form-group">
-                        <label>Tutar (TL) — Cari alacak</label>
-                        <input type="number" min="0" step="0.01" value={formData.maliyet} onChange={e => setFormData({ ...formData, maliyet: e.target.value })} placeholder="Örn: 5000" />
+                        <label>Tutar (₺) — Cari alacak oluşur</label>
+                        <input type="number" min="0" step="0.01" value={formData.maliyet} onChange={e => setFormData({ ...formData, maliyet: e.target.value })} placeholder="0" />
                       </div>
                     </div>
                   </>
@@ -655,9 +1039,9 @@ export default function Hastalar() {
                   </div>
                 )}
                 <div className="form-section">
-                  <div className="form-section-title">Not (çiftçiye iletilecek)</div>
+                  <div className="form-section-title">Ek Not (çiftçiye iletilecek)</div>
                   <div className="form-group">
-                    <textarea value={formData.notlar} onChange={e => setFormData({ ...formData, notlar: e.target.value })} placeholder="Ek not veya öneri..." rows={3} />
+                    <textarea value={formData.notlar} onChange={e => setFormData({ ...formData, notlar: e.target.value })} placeholder="Ek not veya öneri..." rows={2} />
                   </div>
                 </div>
               </div>

@@ -11,6 +11,7 @@ const VeterinerCari = require('../models/VeterinerCari');
 const VeterinerRandevu = require('../models/VeterinerRandevu');
 const Finansal = require('../models/Finansal');
 const AsiTakvimi = require('../models/AsiTakvimi');
+const TedaviProtokol = require('../models/TedaviProtokol');
 const Tenant = require('../models/Tenant');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
@@ -700,6 +701,329 @@ router.post('/finans/fatura', async (req, res) => {
     } catch (error) {
         console.error('Manuel fatura error:', error);
         res.status(500).json({ message: 'Fatura oluşturulamadı.' });
+    }
+});
+
+// ========== SÜRÜ SAĞLIK SKORU ==========
+// Her müşteri çiftliği için 0-100 arası sağlık puanı hesaplar
+router.get('/saglik-skoru', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const veteriner = await User.findById(vetId).select('musteriler').lean();
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) return res.json([]);
+
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const otuzGunOnce = new Date();
+        otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+
+        // Son 30 günlük sağlık kayıtları çiftlik bazında say
+        const saglikSayilari = await SaglikKaydi.aggregate([
+            { $match: { userId: { $in: objIds }, tarih: { $gte: otuzGunOnce } } },
+            { $group: { _id: '$userId', sayi: { $sum: 1 }, devamEden: { $sum: { $cond: [{ $eq: ['$durum', 'devam_ediyor'] }, 1, 0] } } } }
+        ]);
+
+        // Gecikmiş aşılar çiftlik bazında
+        const asiSayilari = await AsiTakvimi.aggregate([
+            { $match: { userId: { $in: objIds }, sonrakiTarih: { $lt: new Date() }, durum: 'bekliyor' } },
+            { $group: { _id: '$userId', sayi: { $sum: 1 } } }
+        ]);
+
+        const saglikMap = {};
+        saglikSayilari.forEach(s => { saglikMap[s._id.toString()] = s; });
+        const asiMap = {};
+        asiSayilari.forEach(a => { asiMap[a._id.toString()] = a.sayi; });
+
+        const ciftciler = await User.find({ _id: { $in: objIds } }).select('isim isletmeAdi').lean();
+
+        const skorlar = ciftciler.map(c => {
+            const cid = c._id.toString();
+            const saglik = saglikMap[cid] || { sayi: 0, devamEden: 0 };
+            const gecikmisAsi = asiMap[cid] || 0;
+
+            let skor = 100;
+            skor -= Math.min(saglik.sayi * 4, 30);      // Her kayıt -4 puan, max -30
+            skor -= Math.min(saglik.devamEden * 8, 32); // Her devam eden tedavi -8, max -32
+            skor -= Math.min(gecikmisAsi * 7, 28);      // Her gecikmiş aşı -7, max -28
+            skor = Math.max(0, Math.round(skor));
+
+            let renk = '#22c55e'; // yeşil
+            if (skor < 80) renk = '#f59e0b'; // sarı
+            if (skor < 50) renk = '#ef4444'; // kırmızı
+
+            return {
+                ciftciId: cid,
+                isim: c.isim,
+                isletmeAdi: c.isletmeAdi,
+                skor,
+                renk,
+                saglikKaydiSayisi: saglik.sayi,
+                devamEdenTedavi: saglik.devamEden,
+                gecikmisAsiSayisi: gecikmisAsi
+            };
+        });
+
+        // Skora göre sırala (en kötü önce)
+        skorlar.sort((a, b) => a.skor - b.skor);
+        res.json(skorlar);
+    } catch (err) {
+        console.error('Saglik skoru error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// ========== AŞI TAKVİMİ (VET TARAFINDAN MÜŞTERİ İÇİN) ==========
+router.get('/asi-takvimi/:ciftciId', async (req, res) => {
+    try {
+        const { ciftciId } = req.params;
+        const vetId = req.originalUserId;
+        const veteriner = await User.findById(vetId).select('musteriler').lean();
+        if (!(veteriner.musteriler || []).some(m => m.toString() === ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftliğe erişim izniniz yok.' });
+        }
+        const kayitlar = await AsiTakvimi.find({ userId: ciftciId })
+            .sort({ sonrakiTarih: 1 })
+            .lean();
+        res.json(kayitlar);
+    } catch (err) {
+        console.error('Vet asi takvimi error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+router.post('/asi-takvimi', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId, asiAdi, hayvanId, hayvanTipi, hayvanIsim, hayvanKupeNo, uygulamaTarihi, sonrakiTarih, tekrarPeriyodu, doz, notlar, maliyet } = req.body;
+        if (!ciftciId || !asiAdi || !uygulamaTarihi) {
+            return res.status(400).json({ message: 'Çiftlik, aşı adı ve tarih zorunlu.' });
+        }
+        const veteriner = await User.findById(vetId).select('musteriler isim').lean();
+        if (!(veteriner.musteriler || []).some(m => m.toString() === ciftciId)) {
+            return res.status(403).json({ message: 'Bu çiftliğe erişim izniniz yok.' });
+        }
+
+        const kayit = await AsiTakvimi.create({
+            userId: ciftciId,
+            hayvanId: hayvanId || null,
+            hayvanTipi: hayvanTipi || 'hepsi',
+            hayvanIsim: hayvanIsim || '',
+            hayvanKupeNo: hayvanKupeNo || '',
+            asiAdi,
+            uygulamaTarihi: new Date(uygulamaTarihi),
+            sonrakiTarih: sonrakiTarih ? new Date(sonrakiTarih) : null,
+            tekrarPeriyodu: tekrarPeriyodu || 0,
+            uygulayan: `Dr. ${veteriner.isim}`,
+            doz: doz || '',
+            notlar: notlar || '',
+            maliyet: parseFloat(maliyet) || 0,
+            durum: 'yapildi'
+        });
+
+        // Çiftçiye bildirim
+        await Bildirim.create({
+            userId: ciftciId,
+            baslik: 'Yeni Aşı Kaydı',
+            mesaj: `Dr. ${veteriner.isim} tarafından ${hayvanKupeNo || hayvanIsim || 'hayvanınıza'} ${asiAdi} aşısı uygulandı.`,
+            tip: 'saglik',
+            hayvanId: hayvanId || undefined,
+            hayvanTipi: hayvanTipi || 'genel'
+        });
+
+        res.status(201).json(kayit);
+    } catch (err) {
+        console.error('Vet asi ekle error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+router.put('/asi-takvimi/:id/tamamla', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const kayit = await AsiTakvimi.findById(req.params.id);
+        if (!kayit) return res.status(404).json({ message: 'Kayıt bulunamadı.' });
+        const veteriner = await User.findById(vetId).select('musteriler').lean();
+        if (!(veteriner.musteriler || []).some(m => m.toString() === kayit.userId.toString())) {
+            return res.status(403).json({ message: 'Yetkisiz.' });
+        }
+        kayit.durum = 'yapildi';
+        if (kayit.tekrarPeriyodu > 0) {
+            const yeni = new Date();
+            yeni.setDate(yeni.getDate() + kayit.tekrarPeriyodu);
+            kayit.sonrakiTarih = yeni;
+        }
+        await kayit.save();
+        res.json(kayit);
+    } catch (err) {
+        console.error('Asi tamamla error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// ========== HASTALIK DAĞILIM HARİTASI ==========
+router.get('/rapor/hastalik-dagilimi', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const veteriner = await User.findById(vetId).select('musteriler').lean();
+        const musteriIds = (veteriner.musteriler || []).map(m => m.toString());
+        if (musteriIds.length === 0) return res.json([]);
+
+        const objIds = musteriIds.map(id => new mongoose.Types.ObjectId(id));
+        const ucAyOnce = new Date();
+        ucAyOnce.setMonth(ucAyOnce.getMonth() - 3);
+
+        const kayitlar = await SaglikKaydi.find({
+            userId: { $in: objIds },
+            tarih: { $gte: ucAyOnce },
+            tani: { $exists: true, $ne: '' }
+        }).select('userId tani tip tarih').lean();
+
+        const ciftciler = await User.find({ _id: { $in: objIds } }).select('isim isletmeAdi').lean();
+        const ciftciMap = {};
+        ciftciler.forEach(c => { ciftciMap[c._id.toString()] = c.isletmeAdi || c.isim || 'Çiftlik'; });
+
+        // Hastalık x Çiftlik matrisi
+        const matris = {}; // { tani: { ciftlikAdi: count } }
+        const hastaliklardanSayi = {};
+
+        kayitlar.forEach(k => {
+            const tani = (k.tani || k.tip || 'Diğer').trim().slice(0, 30);
+            const ciftlik = ciftciMap[k.userId?.toString()] || 'Çiftlik';
+            if (!matris[tani]) matris[tani] = {};
+            matris[tani][ciftlik] = (matris[tani][ciftlik] || 0) + 1;
+            hastaliklardanSayi[tani] = (hastaliklardanSayi[tani] || 0) + 1;
+        });
+
+        // En sık 10 hastalık
+        const enSikHastaliklar = Object.entries(hastaliklardanSayi)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([tani, toplamSayi]) => ({
+                tani,
+                toplamSayi,
+                ciftlikler: Object.entries(matris[tani] || {}).map(([ciftlik, sayi]) => ({ ciftlik, sayi }))
+            }));
+
+        res.json(enSikHastaliklar);
+    } catch (err) {
+        console.error('Hastalik dagilim error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// ========== TEDAVİ PROTOKOL ŞABLONLARI ==========
+router.get('/protokoller', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const protokoller = await TedaviProtokol.find({ veterinerId: vetId }).sort({ kullanilmaSayisi: -1 }).lean();
+        res.json(protokoller);
+    } catch (err) {
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+router.post('/protokoller', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ad, hastalik, tip, tani, tedaviNotu, ilaclar } = req.body;
+        if (!ad || !tani) return res.status(400).json({ message: 'Protokol adı ve tanı zorunlu.' });
+        const protokol = await TedaviProtokol.create({
+            veterinerId: vetId,
+            ad: ad.trim(),
+            hastalik: hastalik?.trim() || '',
+            tip: tip || 'hastalik',
+            tani: tani.trim(),
+            tedaviNotu: tedaviNotu?.trim() || '',
+            ilaclar: Array.isArray(ilaclar) ? ilaclar : []
+        });
+        res.status(201).json(protokol);
+    } catch (err) {
+        console.error('Protokol ekle error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+router.delete('/protokoller/:id', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const p = await TedaviProtokol.findOne({ _id: req.params.id, veterinerId: vetId });
+        if (!p) return res.status(404).json({ message: 'Protokol bulunamadı.' });
+        await p.deleteOne();
+        res.json({ message: 'Silindi.' });
+    } catch (err) {
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// Protokol kullanıldığında sayacı artır
+router.patch('/protokoller/:id/kullan', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        await TedaviProtokol.findOneAndUpdate(
+            { _id: req.params.id, veterinerId: vetId },
+            { $inc: { kullanilmaSayisi: 1 } }
+        );
+        res.json({ ok: true });
+    } catch (_) {
+        res.json({ ok: false });
+    }
+});
+
+// ========== ÇİFTLİK AYLIK SAĞLIK RAPORU (PDF için) ==========
+router.get('/hastalar/:ciftciId/saglik-raporu', async (req, res) => {
+    try {
+        const vetId = req.originalUserId;
+        const { ciftciId } = req.params;
+        const veteriner = await User.findById(vetId).select('musteriler isim klinikAdi').lean();
+        if (!(veteriner.musteriler || []).some(m => m.toString() === ciftciId)) {
+            return res.status(403).json({ message: 'Erişim izniniz yok.' });
+        }
+
+        const ciftci = await User.findById(ciftciId).select('isim isletmeAdi sehir telefon').lean();
+        if (!ciftci) return res.status(404).json({ message: 'Çiftlik bulunamadı.' });
+
+        const buAyBaslangic = new Date();
+        buAyBaslangic.setDate(1);
+        buAyBaslangic.setHours(0, 0, 0, 0);
+
+        const [inekSayisi, kayitlar, asilar] = await Promise.all([
+            Inek.countDocuments({ userId: ciftciId }),
+            SaglikKaydi.find({ userId: ciftciId, tarih: { $gte: buAyBaslangic } }).sort({ tarih: -1 }).lean(),
+            AsiTakvimi.find({ userId: ciftciId, uygulamaTarihi: { $gte: buAyBaslangic } }).lean()
+        ]);
+
+        // Toplam maliyet
+        const toplamMaliyet = kayitlar.reduce((s, k) => s + (k.maliyet || 0), 0);
+
+        // Hastalık dağılımı
+        const taniSayisi = {};
+        kayitlar.forEach(k => {
+            const t = (k.tani || k.tip || 'Diğer').trim();
+            taniSayisi[t] = (taniSayisi[t] || 0) + 1;
+        });
+        const hastalikDagilimi = Object.entries(taniSayisi)
+            .sort((a, b) => b[1] - a[1])
+            .map(([ad, sayi]) => ({ ad, sayi }));
+
+        // Devam eden tedaviler
+        const devamEdenler = kayitlar.filter(k => k.durum === 'devam_ediyor');
+
+        res.json({
+            donem: buAyBaslangic.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' }),
+            ciftci,
+            veteriner: { isim: veteriner.isim, klinikAdi: veteriner.klinikAdi },
+            inekSayisi,
+            toplamKayit: kayitlar.length,
+            toplamAsi: asilar.length,
+            toplamMaliyet,
+            hastalikDagilimi,
+            devamEdenTedavi: devamEdenler.length,
+            kayitlar: kayitlar.slice(0, 50), // Max 50 kayıt PDF'e
+            asilar
+        });
+    } catch (err) {
+        console.error('Saglik raporu error:', err);
+        res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });
 
