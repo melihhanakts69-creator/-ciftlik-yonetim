@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -43,26 +43,60 @@ const Sidebar = styled.aside`
 `;
 
 const SidebarHeader = styled.div`
-  padding: 24px 20px 20px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   background: #ffffff;
-  .title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0 0 6px; letter-spacing: -0.01em; }
-  .title-sub { font-size: 13px; color: #3b82f6; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .bubble {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0ea5e9 100%);
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute; right: -20px; top: -20px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+  }
+
+  .bubble-icon {
+    font-size: 30px; flex-shrink: 0; z-index: 1;
+  }
+
+  .bubble-texts { z-index: 1; }
+
+  .bubble-title {
+    font-size: 13px; font-weight: 900; color: #fff;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .bubble-sub {
+    font-size: 11px; color: rgba(255,255,255,0.65);
+    font-weight: 600; letter-spacing: 0.02em;
+  }
+
+  .search-wrap {
+    padding: 14px 18px 16px;
+  }
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 11px 14px 11px 38px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 500;
   box-sizing: border-box;
   background: #f8fafc;
-  margin-top: 16px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  &:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
-  &::placeholder { color: #94a3b8; font-weight: 500;}
+  transition: all 0.2s;
+  &:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+  &::placeholder { color: #94a3b8; }
 `;
 
 const FarmList = styled.div`
@@ -106,17 +140,50 @@ const FarmItem = styled.div`
 `;
 
 const AddFarmBlock = styled.div`
-  padding: 18px 22px;
-  border-top: 1px solid #e0f2fe;
-  background: #fafafa;
-  .btn { width: 100%; padding: 12px 16px; border: 1px dashed #bae6fd; border-radius: 10px; background: #fff; color: #0369a1; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
-  .btn:last-child { margin-bottom: 0; }
-  .btn:hover { border-color: #0ea5e9; color: #0c4a6e; background: #f0f9ff; }
-  .btnRow { display: flex; flex-direction: column; gap: 8px; }
-  form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-  form input { flex: 1; min-width: 120px; padding: 10px 12px; border: 1px solid #e0f2fe; border-radius: 10px; font-size: 13px; }
-  form button { padding: 10px 16px; border-radius: 10px; border: none; background: #0ea5e9; color: white; font-weight: 600; font-size: 13px; cursor: pointer; }
-  .formLabel { font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: 600; }
+  padding: 14px 18px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfd;
+
+  .add-main-btn {
+    width: 100%; padding: 11px 16px;
+    border: 1.5px dashed #bfdbfe; border-radius: 10px;
+    background: #fff; color: #2563eb;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
+    &:hover { border-color: #2563eb; background: #eff6ff; }
+  }
+
+  .form-label {
+    font-size: 11px; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .id-input {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; box-sizing: border-box; margin-bottom: 8px;
+    &:focus { outline: none; border-color: #2563eb; }
+  }
+
+  .btn-row { display: flex; gap: 8px; }
+
+  .submit-btn {
+    flex: 2; padding: 10px 14px; border-radius: 8px;
+    border: none; background: #2563eb; color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+    &:hover:not(:disabled) { background: #1d4ed8; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .cancel-btn {
+    flex: 1; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid #e2e8f0; background: #fff;
+    color: #64748b; font-size: 13px; font-weight: 600; cursor: pointer;
+    &:hover { background: #f1f5f9; }
+  }
 `;
 
 const DetailPanel = styled.div`
@@ -511,6 +578,90 @@ const FaturaBolumu = styled.div`
 
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
+const StokDropdown = styled.ul`
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  margin: 0; padding: 6px; list-style: none;
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+  max-height: 210px; overflow-y: auto;
+
+  li {
+    padding: 9px 12px; border-radius: 7px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.12s;
+    &:hover { background: #eff6ff; }
+  }
+  .sd-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+  .sd-meta { font-size: 11px; color: #94a3b8; font-weight: 500; }
+`;
+
+function StokAutocomplete({ value, onChange, placeholder, stoklar, kategoriler, multiWord = false, inputStyle = {} }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const currentWord = multiWord
+    ? (value || '').split(',').pop().trim()
+    : (value || '').trim();
+
+  const filtered = useMemo(() => {
+    if (!currentWord || currentWord.length < 1) return [];
+    const q = currentWord.toLowerCase();
+    return stoklar
+      .filter(s => !kategoriler || kategoriler.includes(s.kategori))
+      .filter(s => (s.urunAdi || '').toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [stoklar, currentWord, kategoriler]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleSelect = (name) => {
+    let newValue;
+    if (multiWord) {
+      const parts = (value || '').split(',');
+      parts[parts.length - 1] = ' ' + name;
+      newValue = parts.join(',').replace(/^,\s*/, '').trimStart();
+    } else {
+      newValue = name;
+    }
+    onChange(newValue);
+    setOpen(false);
+  };
+
+  return (
+    <div style={{ position: 'relative' }} ref={ref}>
+      <input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => currentWord.length >= 1 && setOpen(true)}
+        placeholder={placeholder}
+        style={{
+          width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb',
+          borderRadius: 8, fontSize: 13, boxSizing: 'border-box',
+          fontFamily: 'inherit', transition: 'border-color 0.2s',
+          ...inputStyle,
+        }}
+        onBlur={e => { if (!ref.current?.contains(e.relatedTarget)) setOpen(false); }}
+      />
+      {open && filtered.length > 0 && (
+        <StokDropdown>
+          {filtered.map((s, i) => (
+            <li key={s._id || i} onMouseDown={() => handleSelect(s.urunAdi)}>
+              <span className="sd-name">{s.urunAdi}</span>
+              <span className="sd-meta">{s.kategori} · {s.miktar ?? ''} {s.birim ?? ''}</span>
+            </li>
+          ))}
+        </StokDropdown>
+      )}
+    </div>
+  );
+}
+
 export default function Hastalar() {
   const { id: urlId } = useParams();
   const navigate = useNavigate();
@@ -522,9 +673,8 @@ export default function Hastalar() {
   const [saglikKayitlari, setSaglikKayitlari] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showAddFarm, setShowAddFarm] = useState(false);
-  const [addMode, setAddMode] = useState('kod');
-  const [addKod, setAddKod] = useState('');
   const [addId, setAddId] = useState('');
+  const [stoklar, setStoklar] = useState([]);
   const [adding, setAdding] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [secilenHayvan, setSecilenHayvan] = useState(null);
@@ -619,6 +769,14 @@ export default function Hastalar() {
     }
   };
 
+  const fetchStoklar = async () => {
+    try {
+      const res = await api.getStoklar();
+      const items = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setStoklar((items || []).filter(s => s.kategori !== 'Yem'));
+    } catch (_) {}
+  };
+
   const fetchSaglikSkorlar = async () => {
     try {
       const res = await api.getVeterinerSaglikSkoru();
@@ -639,6 +797,7 @@ export default function Hastalar() {
     fetchMusteriler();
     fetchSaglikSkorlar();
     fetchProtokoller();
+    fetchStoklar();
   }, []);
 
   useEffect(() => {
@@ -685,26 +844,8 @@ export default function Hastalar() {
       .finally(() => setDetailLoading(false));
   }, [selectedId]);
 
-  const handleAddFarmByKod = async (e) => {
-    e.preventDefault();
-    const kod = addKod.trim().toUpperCase();
-    if (!kod) { toast.warning('Çiftlik kodu girin.'); return; }
-    setAdding(true);
-    try {
-      await api.veterinerMusteriEkleKod(kod);
-      toast.success('Çiftlik eklendi.');
-      setAddKod('');
-      setShowAddFarm(false);
-      fetchMusteriler();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Eklenemedi.');
-    } finally {
-      setAdding(false);
-    }
-  };
-
   const handleAddFarmById = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const id = addId.trim();
     if (!id) { toast.warning('Çiftçi ID girin.'); return; }
     setAdding(true);
@@ -723,7 +864,6 @@ export default function Hastalar() {
 
   const closeAddFarm = () => {
     setShowAddFarm(false);
-    setAddKod('');
     setAddId('');
   };
 
@@ -914,14 +1054,24 @@ export default function Hastalar() {
     <Page>
       <Sidebar>
         <SidebarHeader>
-          <h2 className="title">Hastalar</h2>
-          <p className="title-sub">Çiftlikler & müşteri yönetimi</p>
-          <SearchInput
-            type="text"
-            value={arama}
-            onChange={e => setArama(e.target.value)}
-            placeholder="İsim veya çiftlik ara..."
-          />
+          <div className="bubble">
+            <span className="bubble-icon">🏥</span>
+            <div className="bubble-texts">
+              <div className="bubble-title">Hastalar</div>
+              <div className="bubble-sub">Çiftlikler &amp; Müşteri Yönetimi</div>
+            </div>
+          </div>
+          <div className="search-wrap">
+            <div style={{ position: 'relative' }}>
+              <svg style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <SearchInput
+                type="text"
+                value={arama}
+                onChange={e => setArama(e.target.value)}
+                placeholder="İsim veya çiftlik ara..."
+              />
+            </div>
+          </div>
         </SidebarHeader>
         <FarmList>
           {loading ? (
@@ -956,27 +1106,23 @@ export default function Hastalar() {
         </FarmList>
         <AddFarmBlock>
           {!showAddFarm ? (
-            <div className="btnRow">
-              <button type="button" className="btn" onClick={() => { setAddMode('kod'); setShowAddFarm(true); }}>+ Çiftlik kodu ile ekle</button>
-              <button type="button" className="btn" onClick={() => { setAddMode('id'); setShowAddFarm(true); }}>+ Çiftçi ID ile ekle</button>
-            </div>
-          ) : addMode === 'kod' ? (
-            <>
-              <button type="button" className="btn" onClick={closeAddFarm}>İptal</button>
-              <div className="formLabel">Çiftlik kodu</div>
-              <form onSubmit={handleAddFarmByKod}>
-                <input value={addKod} onChange={e => setAddKod(e.target.value.toUpperCase())} placeholder="Örn: ABC12XYZ" maxLength={12} />
-                <button type="submit" disabled={adding}>{adding ? '…' : 'Ekle'}</button>
-              </form>
-            </>
+            <button type="button" className="add-main-btn" onClick={() => setShowAddFarm(true)}>
+              <span>＋</span> Yeni Çiftlik Ekle
+            </button>
           ) : (
             <>
-              <button type="button" className="btn" onClick={closeAddFarm}>İptal</button>
-              <div className="formLabel">Çiftçi ID (24 karakter)</div>
-              <form onSubmit={handleAddFarmById}>
-                <input value={addId} onChange={e => setAddId(e.target.value.trim())} placeholder="MongoDB ObjectId" />
-                <button type="submit" disabled={adding}>{adding ? '…' : 'Ekle'}</button>
-              </form>
+              <div className="form-label">Çiftçi ID</div>
+              <input
+                className="id-input"
+                value={addId}
+                onChange={e => setAddId(e.target.value.trim())}
+                placeholder="MongoDB ID (24 karakter)"
+                autoFocus
+              />
+              <div className="btn-row">
+                <button type="button" className="submit-btn" disabled={adding} onClick={handleAddFarmById}>{adding ? '…' : 'Ekle'}</button>
+                <button type="button" className="cancel-btn" onClick={closeAddFarm}>İptal</button>
+              </div>
             </>
           )}
         </AddFarmBlock>
@@ -984,7 +1130,7 @@ export default function Hastalar() {
 
       <DetailPanel>
         {!selectedId ? (
-          <EmptyDetail>Sol listeden bir çiftlik seçin veya çiftlik kodu ile yeni ekleyin.</EmptyDetail>
+          <EmptyDetail>Sol listeden bir çiftlik seçin veya ID ile yeni çiftlik ekleyin.</EmptyDetail>
         ) : detailLoading ? (
           <EmptyDetail>Yükleniyor…</EmptyDetail>
         ) : (
@@ -1139,7 +1285,13 @@ export default function Hastalar() {
                   <div className="asi-form">
                     <div>
                       <label>Aşı Adı *</label>
-                      <input required value={asiForm.asiAdi} onChange={e => setAsiForm({ ...asiForm, asiAdi: e.target.value })} placeholder="Örn: Şap aşısı, Brucella" />
+                      <StokAutocomplete
+                        value={asiForm.asiAdi}
+                        onChange={v => setAsiForm({ ...asiForm, asiAdi: v })}
+                        placeholder="Örn: Şap aşısı, Brucella — yazın veya listeden seçin"
+                        stoklar={stoklar}
+                        kategoriler={['Aşı', 'Biyolojik']}
+                      />
                     </div>
                     <div className="asi-row">
                       <div>
@@ -1247,7 +1399,13 @@ export default function Hastalar() {
                 <div className="form-section-title" style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '16px 0 10px' }}>İlaçlar</div>
                 {yeniProtokol.ilaclar.map((il, i) => (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px auto', gap: 8, marginBottom: 8 }}>
-                    <input placeholder="İlaç adı" value={il.ilacAdi} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], ilacAdi: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+                    <StokAutocomplete
+                      value={il.ilacAdi}
+                      onChange={v => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], ilacAdi: v }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }}
+                      placeholder="İlaç adı — yazın veya seçin"
+                      stoklar={stoklar}
+                      kategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
+                    />
                     <input placeholder="Doz" value={il.doz} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], doz: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
                     <input placeholder="Süre" value={il.sure} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], sure: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
                     <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: yeniProtokol.ilaclar.filter((_, j) => j !== i) })} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: '#fee2e2', color: '#b91c1c', cursor: 'pointer' }}>✕</button>
@@ -1349,8 +1507,15 @@ export default function Hastalar() {
                         <input value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Örn: Antibiyotik, dinlenme" />
                       </div>
                       <div className="form-group">
-                        <label>İlaçlar (virgülle ayırın)</label>
-                        <input value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Penstrep, Metacam, Dexafort" />
+                        <label>İlaçlar <span style={{ fontWeight: 500, color: '#94a3b8' }}>(virgülle birden fazla ekle)</span></label>
+                        <StokAutocomplete
+                          value={formData.ilacAd}
+                          onChange={v => setFormData({ ...formData, ilacAd: v })}
+                          placeholder="Örn: Penstrep, Metacam — yazın veya listeden seçin"
+                          stoklar={stoklar}
+                          kategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
+                          multiWord
+                        />
                       </div>
                     </div>
 
@@ -1403,7 +1568,13 @@ export default function Hastalar() {
                     <div className="form-section-title">Tohumlama bilgisi</div>
                     <div className="form-group">
                       <label>Tohum (sperma) cinsi *</label>
-                      <input required value={formData.ilacAd} onChange={e => setFormData({ ...formData, ilacAd: e.target.value })} placeholder="Örn: Holstein, Simental" />
+                      <StokAutocomplete
+                        value={formData.ilacAd}
+                        onChange={v => setFormData({ ...formData, ilacAd: v })}
+                        placeholder="Örn: Holstein, Simental — yazın veya listeden seçin"
+                        stoklar={stoklar}
+                        kategoriler={['Tohum', 'Sperma', 'Tohumlama']}
+                      />
                     </div>
                   </div>
                 )}
