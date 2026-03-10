@@ -501,29 +501,46 @@ const InekDetay = () => {
                                     <FaTrash /> Sil
                                 </button>
                             </CardTitle>
-                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
                                 <div style={{
                                     padding: '15px',
                                     backgroundColor: '#f1f8e9',
                                     borderRadius: '12px',
-                                    flex: 1
+                                    flex: 1, minWidth: 120
                                 }}>
                                     <Label>Tohumlama Tarihi</Label>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#33691e', marginTop: '5px' }}>
-                                        {new Date(inek.tohumlamaTarihi).toLocaleDateString()}
+                                        {new Date(inek.tohumlamaTarihi).toLocaleDateString('tr-TR')}
                                     </div>
                                 </div>
                                 <div style={{
                                     padding: '15px',
                                     backgroundColor: '#e3f2fd',
                                     borderRadius: '12px',
-                                    flex: 1
+                                    flex: 1, minWidth: 120
                                 }}>
-                                    <Label>Gebelik Kontrolü</Label>
+                                    <Label>Gebelik Durumu</Label>
                                     <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0d47a1', marginTop: '5px' }}>
                                         {inek.gebelikDurumu}
                                     </div>
                                 </div>
+                                {inek.gebelikDurumu === 'Gebe' && (() => {
+                                    const tahmini = new Date(new Date(inek.tohumlamaTarihi).getTime() + 283 * 86400000);
+                                    const kalanGun = Math.round((tahmini - new Date()) / 86400000);
+                                    const renk = kalanGun < 0 ? '#b91c1c' : kalanGun <= 7 ? '#ea580c' : kalanGun <= 14 ? '#ca8a04' : '#15803d';
+                                    const bg   = kalanGun < 0 ? '#fef2f2' : kalanGun <= 7 ? '#fff7ed' : kalanGun <= 14 ? '#fefce8' : '#f0fdf4';
+                                    return (
+                                        <div style={{ padding: '15px', backgroundColor: bg, borderRadius: '12px', flex: 1, minWidth: 120 }}>
+                                            <Label>Beklenen Doğum</Label>
+                                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: renk, marginTop: '5px' }}>
+                                                {tahmini.toLocaleDateString('tr-TR')}
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: renk, fontWeight: 700, marginTop: 3 }}>
+                                                {kalanGun < 0 ? `${Math.abs(kalanGun)} gün gecikti!` : kalanGun === 0 ? 'Bugün!' : `${kalanGun} gün kaldı`}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </Card>
                     )}

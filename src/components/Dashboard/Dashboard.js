@@ -8,6 +8,7 @@ import YapilacaklarCard from './YapilacaklarCard';
 import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
 import SaglikUyariCard from './SaglikUyariCard';
+import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell } from 'react-icons/fa';
 
@@ -485,7 +486,10 @@ const Dashboard = ({ kullanici }) => {
           bg={colors.bg.purple}
           description="Önümüzdeki 30 gün"
           clickable
-          onClick={() => navigate('/duveler')}
+          onClick={() => {
+            const el = document.getElementById('dogum-takvimi');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
         />
       </Grid>
 
@@ -581,6 +585,14 @@ const Dashboard = ({ kullanici }) => {
         </AnimatedGridItem>
         <AnimatedGridItem span={8} delay="0.15s">
           <AktivitelerCard aktiviteler={data.aktiviteler} />
+        </AnimatedGridItem>
+      </Grid>
+
+      {/* --- YAKLAŞAN DOĞUMLAR --- */}
+      <SectionTitle id="dogum-takvimi">🤰 Doğum Takvimi</SectionTitle>
+      <Grid>
+        <AnimatedGridItem span={12} delay="0.1s">
+          <YaklasanDogumlar />
         </AnimatedGridItem>
       </Grid>
 
