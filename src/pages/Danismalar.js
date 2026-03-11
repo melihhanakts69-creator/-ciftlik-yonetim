@@ -1,280 +1,200 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 
+const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
+const msgIn = keyframes`from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}`;
+
 const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
-  color: #0f172a;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 70px);
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: 
-      radial-gradient(circle at 15% 30%, rgba(56, 189, 248, 0.04), transparent 25%),
-      radial-gradient(circle at 85% 70%, rgba(99, 102, 241, 0.05), transparent 25%);
-    background-color: #f8fafc;
-    z-index: -1;
-  }
+  padding: 24px 20px 0;
+  min-height: calc(100vh - 80px);
+  display: flex; flex-direction: column;
+  background: #f1f5f9;
+  animation: ${fadeUp} 0.4s ease;
 `;
 
-const Header = styled.header`
-  margin-bottom: 24px;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border-radius: 20px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
-  position: relative;
-  overflow: hidden;
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+const Hero = styled.div`
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+  border-radius: 22px;
+  padding: 26px 36px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  position: relative; overflow: hidden;
+  flex-shrink: 0;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 6px; height: 100%;
-    background: linear-gradient(180deg, #0ea5e9, #2563eb);
-    border-radius: 10px 0 0 10px;
-  }
+  &::before { content: ''; position: absolute; top: -80px; right: -50px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%); }
+  &::after { content: ''; position: absolute; bottom: -40px; left: 35%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(14,165,233,0.12), transparent 70%); }
 
-  .title { font-size: 13px; font-weight: 900; color: #0ea5e9; letter-spacing: 0.1em; margin: 0 0 8px; text-transform: uppercase; }
-  .name { font-size: 28px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.01em; line-height: 1.1;}
-  .desc { font-size: 14px; color: #64748b; margin-top: 8px; line-height: 1.5; font-weight: 500;}
+  .h-left { z-index: 1; }
+  .h-badge { font-size: 11px; font-weight: 800; color: rgba(165,180,252,0.9); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .h-title { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.03em; margin: 0 0 5px; }
+  .h-sub { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 500; }
+  .h-badge-count { z-index: 1; display: flex; gap: 10px; flex-wrap: wrap; }
+  .h-pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; padding: 8px 16px; font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; }
 `;
 
+// ─── Layout ───────────────────────────────────────────────────────────────────
 const Layout = styled.div`
   display: flex;
-  gap: 24px;
+  gap: 18px;
   flex: 1;
-  height: 650px;
-  max-height: 80vh;
-  @media (max-width: 1024px) { flex-direction: column; height: auto; max-height: none; }
+  min-height: 0;
+  height: calc(100vh - 230px);
+  padding-bottom: 24px;
+  @media(max-width: 1024px) { flex-direction: column; height: auto; }
 `;
 
+// ─── Thread List ──────────────────────────────────────────────────────────────
 const ThreadList = styled.div`
-  width: 320px;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  width: 300px; flex-shrink: 0;
+  background: #fff;
   border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
-  @media (max-width: 1024px) { width: 100%; max-height: 320px; }
+  display: flex; flex-direction: column;
+  @media(max-width: 1024px) { width: 100%; max-height: 280px; }
 `;
 
-const ThreadListHeader = styled.div`
-  padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;
+const TLHead = styled.div`
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
   display: flex; align-items: center; justify-content: space-between;
+  .tl-title { font-size: 15px; font-weight: 800; color: #0f172a; }
+  .tl-count { font-size: 11px; color: #94a3b8; font-weight: 700; }
 `;
 
-const ThreadListScroll = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+const TLScroll = styled.div`
+  flex: 1; overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 `;
 
 const ThreadItem = styled.div`
-  padding: 18px 24px;
+  padding: 15px 20px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-bottom: 1px solid #f8fafc;
+  transition: all 0.15s;
   position: relative;
-  background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.08) 0%, rgba(255,255,255,0) 100%)' : 'transparent'};
-  
-  &:hover { 
-    background: ${p => p.$active ? 'linear-gradient(90deg, rgba(14,165,233,0.08) 0%, rgba(255,255,255,0) 100%)' : 'rgba(248, 250, 252, 0.6)'}; 
-    padding-left: ${p => p.$active ? '24px' : '28px'};
-  }
-  
-  ${p => p.$active && `
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 4px;
-      background: linear-gradient(180deg, #0ea5e9, #2563eb);
-      border-radius: 0 4px 4px 0;
-    }
-  `}
+  background: ${p => p.$active ? 'linear-gradient(90deg,rgba(67,56,202,0.07),transparent)' : 'transparent'};
+  ${p => p.$active ? `
+    &::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg,#6366f1,#4338ca); border-radius: 0 3px 3px 0; }
+  ` : ''}
+  &:hover { background: ${p => p.$active ? 'linear-gradient(90deg,rgba(67,56,202,0.07),transparent)' : '#fafbfd'}; }
+  &:last-child { border-bottom: none; }
 
-  .header-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-  .name { font-size: 15px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em;}
-  .time { font-size: 12px; color: #94a3b8; font-weight: 600; }
-  .preview-row { display: flex; justify-content: space-between; align-items: center; gap: 8px;}
-  .preview { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; font-weight: ${p => p.$hasUnread ? '700' : '500'};}
-  .unread { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; background: #ef4444; color: #fff; font-size: 11px; font-weight: 800; border-radius: 10px; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
+  .ti-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .ti-name { font-size: 14px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
+  .ti-time { font-size: 11px; color: #94a3b8; font-weight: 600; flex-shrink: 0; margin-left: 8px; }
+  .ti-bot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .ti-preview { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: ${p => p.$hasUnread ? '700' : '500'}; }
+  .ti-unread { min-width: 20px; height: 20px; padding: 0 6px; background: linear-gradient(135deg,#6366f1,#4338ca); color: #fff; font-size: 11px; font-weight: 800; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(99,102,241,0.35); flex-shrink: 0; }
+
+  .ti-avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#e0e7ff,#c7d2fe); color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; flex-shrink: 0; margin-bottom: 8px; }
 `;
 
+// ─── Chat Panel ───────────────────────────────────────────────────────────────
 const ChatPanel = styled.div`
   flex: 1;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
+  background: #fff;
   border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  box-shadow: 0 8px 30px -10px rgba(0,0,0,0.05);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex; flex-direction: column;
+  overflow: hidden; min-width: 0;
 `;
 
 const ChatHeader = styled.div`
-  padding: 20px 28px;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  z-index: 10;
-  
-  .avatar {
-    width: 48px; height: 48px; border-radius: 12px;
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-    color: #0284c7;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 900; text-transform: uppercase;
-  }
-  .info { flex: 1; }
-  .name { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 2px; letter-spacing: -0.01em;}
-  .sub { font-size: 13px; color: #64748b; font-weight: 600;}
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #f8f9ff, #fff);
+  flex-shrink: 0;
+
+  .ch-avatar { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg,#e0e7ff,#c7d2fe); color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
+  .ch-info { flex: 1; }
+  .ch-name { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 2px; letter-spacing: -0.01em; }
+  .ch-sub { font-size: 12px; color: #64748b; font-weight: 600; }
+  .ch-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; font-weight: 600; }
+  .ch-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
 `;
 
 const MsgList = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  background: rgba(248, 250, 252, 0.6);
-  scroll-behavior: smooth;
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: #f8fafc;
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 `;
 
 const BubbleWrap = styled.div`
   display: flex;
   flex-direction: column;
   align-items: ${p => p.$ben ? 'flex-end' : 'flex-start'};
-  max-width: 100%;
-  animation: fadeIn 0.2s ease;
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  animation: ${msgIn} 0.2s ease;
+  gap: 4px;
+
+  .bw-sender { font-size: 11px; font-weight: 700; color: #94a3b8; padding: 0 14px; }
 `;
 
-const MsgBubble = styled.div`
-  max-width: 70%;
+const Bubble = styled.div`
+  max-width: 68%;
   padding: 12px 16px;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 14px; line-height: 1.55; font-weight: 500;
   word-break: break-word;
-  border: ${p => p.$ben ? 'none' : '1px solid rgba(226, 232, 240, 0.8)'};
-  box-shadow: ${p => p.$ben ? '0 4px 12px rgba(14,165,233,0.15)' : '0 4px 12px rgba(0,0,0,0.03)'};
+  border-radius: ${p => p.$ben ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
   ${p => p.$ben
-    ? 'background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border-radius: 16px 16px 4px 16px;'
-    : 'background: #fff; color: #1e293b; border-radius: 16px 16px 16px 4px;'}
-  
-  .time { font-size: 11px; margin-top: 6px; text-align: right; font-weight: 500;}
-  ${p => p.$ben && '.time { color: rgba(255,255,255,0.7); }'}
-  ${p => !p.$ben && '.time { color: #94a3b8; }'}
+    ? 'background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.25);'
+    : 'background: #fff; color: #1e293b; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'}
+
+  .b-time { font-size: 11px; margin-top: 6px; text-align: right; font-weight: 500; color: ${p => p.$ben ? 'rgba(255,255,255,0.65)' : '#94a3b8'}; }
 `;
 
 const ChatInput = styled.div`
-  padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(226, 232, 240, 0.8);
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  
-  .input-wrapper {
-    flex: 1;
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 12px 16px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    &:focus-within {
-      border-color: #0ea5e9;
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(14,165,233,0.1);
-    }
-  }
+  padding: 16px 20px;
+  background: #fff;
+  border-top: 1px solid #f1f5f9;
+  display: flex; gap: 12px; align-items: flex-end;
+  flex-shrink: 0;
 
-  textarea {
-    width: 100%;
-    min-height: 20px;
-    max-height: 100px;
-    font-size: 14px;
-    font-weight: 500;
-    resize: none;
-    font-family: inherit;
-    background: transparent;
-    border: none;
-    color: #0f172a;
-    line-height: 1.5;
-    outline: none;
-    &::placeholder { color: #94a3b8; }
+  .inp-wrap {
+    flex: 1; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 16px;
+    transition: all 0.2s;
+    &:focus-within { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
   }
+  textarea { width: 100%; min-height: 20px; max-height: 120px; font-size: 14px; font-weight: 500; resize: none; font-family: inherit; background: transparent; border: none; color: #0f172a; line-height: 1.5; outline: none; &::placeholder { color: #94a3b8; } }
   
-  button {
-    width: 48px; height: 48px;
-    border-radius: 12px;
+  .send-btn {
+    width: 46px; height: 46px; border-radius: 14px; border: none; cursor: pointer; flex-shrink: 0; margin-bottom: 2px;
+    background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    border: none; cursor: pointer;
-    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: #fff;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 16px -4px rgba(14,165,233,0.25);
-    flex-shrink: 0;
-    margin-bottom: 2px;
+    box-shadow: 0 6px 18px rgba(99,102,241,0.3); transition: all 0.2s;
+    &:hover:not(:disabled) { transform: translateY(-2px) scale(1.05); box-shadow: 0 8px 22px rgba(99,102,241,0.4); }
+    &:disabled { background: #e2e8f0; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
   }
-  button:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 20px -4px rgba(14,165,233,0.3); }
-  button:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #f1f5f9;}
 `;
 
-const EmptyState = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px;
-  text-align: center;
-  color: #64748b;
-  background: #f8fafc;
-  
-  .icon-wrap {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: #e2e8f0;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 20px;
-    font-size: 32px;
-  }
-  
-  h3 { font-size: 20px; font-weight: 800; color: #1e293b; margin: 0 0 10px; }
-  p { font-size: 15px; line-height: 1.6; max-width: 320px; }
+const EmptyChat = styled.div`
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px; text-align: center; background: #f8fafc;
+  .ec-icon { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg,#e0e7ff,#c7d2fe); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px; }
+  .ec-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
+  .ec-sub { font-size: 14px; color: #94a3b8; line-height: 1.6; max-width: 300px; }
 `;
 
+const DateDivider = styled.div`
+  text-align: center; position: relative; margin: 8px 0;
+  &::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e2e8f0; }
+  span { position: relative; background: #f8fafc; padding: 0 12px; font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.06em; }
+`;
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function Danismalar() {
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -284,6 +204,8 @@ export default function Danismalar() {
   const [mesajMetin, setMesajMetin] = useState('');
   const [gonderiyor, setGonderiyor] = useState(false);
   const [benimId, setBenimId] = useState(null);
+  const msgEndRef = useRef(null);
+  const taRef = useRef(null);
 
   const selectedThread = threads.find(t => (t.otherUser?._id || t.otherUser) === selectedId);
   const selectedUser = selectedThread?.otherUser;
@@ -294,7 +216,7 @@ export default function Danismalar() {
       if (!cancelled && res?.data) {
         setBenimId(res.data.user?.parentUserId || res.data.user?._id || res.data.parentUserId || res.data._id);
       }
-    }).catch(() => { });
+    }).catch(() => {});
     api.getDanismaThreads()
       .then(res => { if (!cancelled) setThreads(Array.isArray(res.data) ? res.data : []); })
       .catch(() => { if (!cancelled) setThreads([]); })
@@ -311,18 +233,25 @@ export default function Danismalar() {
       .finally(() => setMesajYukleniyor(false));
   }, [selectedId]);
 
+  useEffect(() => {
+    msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [mesajlar]);
+
   const handleGonder = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     const metin = (mesajMetin || '').trim();
     if (!metin || !selectedId || gonderiyor) return;
     setGonderiyor(true);
     try {
       await api.postDanismaMesaj(selectedId, metin);
       setMesajMetin('');
-      const res = await api.getDanismaMesajlar(selectedId);
-      setMesajlar(Array.isArray(res.data) ? res.data : []);
-      const listRes = await api.getDanismaThreads();
-      setThreads(Array.isArray(listRes.data) ? listRes.data : []);
+      if (taRef.current) { taRef.current.style.height = 'auto'; }
+      const [mRes, tRes] = await Promise.all([
+        api.getDanismaMesajlar(selectedId),
+        api.getDanismaThreads()
+      ]);
+      setMesajlar(Array.isArray(mRes.data) ? mRes.data : []);
+      setThreads(Array.isArray(tRes.data) ? tRes.data : []);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Mesaj gönderilemedi.');
     } finally {
@@ -330,99 +259,156 @@ export default function Danismalar() {
     }
   };
 
+  const totalUnread = threads.reduce((s, t) => s + (t.unreadCount || 0), 0);
+
+  // Mesajları tarihe göre grupla
+  const groupedMsgs = (() => {
+    const groups = [];
+    let lastDate = '';
+    mesajlar.forEach(m => {
+      const dateStr = m.createdAt ? new Date(m.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      if (dateStr !== lastDate) { groups.push({ type: 'date', label: dateStr }); lastDate = dateStr; }
+      groups.push({ type: 'msg', data: m });
+    });
+    return groups;
+  })();
+
   return (
     <Page>
-      <Header>
-        <p className="title">Danışmalar</p>
-        <h1 className="name">Danışma talepleri</h1>
-        <p className="desc">Kayıtlı çiftliklerden gelen mesajlar burada listelenir. Yanıtlayabilirsiniz.</p>
-      </Header>
+      <Hero>
+        <div className="h-left">
+          <div className="h-badge">💬 Danışmalar</div>
+          <div className="h-title">Danışma & Mesajlaşma Merkezi</div>
+          <div className="h-sub">Kayıtlı çiftliklerden gelen mesajları yanıtlayın</div>
+        </div>
+        <div className="h-badge-count">
+          <div className="h-pill">👥 {threads.length} Konuşma</div>
+          {totalUnread > 0 && <div className="h-pill" style={{ background: 'rgba(239,68,68,0.85)', borderColor: 'rgba(239,68,68,0.5)' }}>🔴 {totalUnread} Okunmamış</div>}
+        </div>
+      </Hero>
 
       <Layout>
+        {/* Thread List */}
         <ThreadList>
-          <ThreadListHeader>Konuşmalar</ThreadListHeader>
-          <ThreadListScroll>
+          <TLHead>
+            <span className="tl-title">Konuşmalar</span>
+            <span className="tl-count">{threads.length}</span>
+          </TLHead>
+          <TLScroll>
             {loading ? (
-              <div style={{ padding: 24, fontSize: 14, color: '#64748b', textAlign: 'center' }}>Yükleniyor…</div>
+              <div style={{ padding: 24, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Yükleniyor…</div>
             ) : threads.length === 0 ? (
-              <div style={{ padding: 24, fontSize: 14, color: '#94a3b8', textAlign: 'center' }}>Henüz konuşma yok.</div>
-            ) : (
-              threads.map(t => {
-                const ou = t.otherUser || {};
-                const oid = ou._id || ou;
-                const name = ou.isletmeAdi || ou.isim || 'Çiftlik';
-                return (
-                  <ThreadItem
-                    key={oid}
-                    $active={selectedId === oid}
-                    $hasUnread={t.unreadCount > 0}
-                    onClick={() => setSelectedId(oid)}
-                  >
-                    <div className="header-row">
-                      <div className="name">{name}</div>
-                      <div className="time">{t.lastAt ? new Date(t.lastAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+              <div style={{ padding: 32, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>💬</div>
+                Henüz konuşma yok.
+              </div>
+            ) : threads.map(t => {
+              const ou = t.otherUser || {};
+              const oid = ou._id || ou;
+              const name = ou.isletmeAdi || ou.isim || 'Çiftlik';
+              const initial = name.charAt(0).toUpperCase();
+              return (
+                <ThreadItem key={oid} $active={selectedId === oid} $hasUnread={t.unreadCount > 0} onClick={() => setSelectedId(oid)}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div className="ti-avatar">{initial}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="ti-top">
+                        <div className="ti-name">{name}</div>
+                        <div className="ti-time">{t.lastAt ? new Date(t.lastAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                      </div>
+                      <div className="ti-bot">
+                        {t.lastMessage && <div className="ti-preview">{t.lastMessage}</div>}
+                        {t.unreadCount > 0 && <span className="ti-unread">{t.unreadCount}</span>}
+                      </div>
                     </div>
-                    <div className="preview-row">
-                      {t.lastMessage && <div className="preview">{t.lastMessage}</div>}
-                      {t.unreadCount > 0 && <span className="unread">{t.unreadCount}</span>}
-                    </div>
-                  </ThreadItem>
-                );
-              })
-            )}
-          </ThreadListScroll>
+                  </div>
+                </ThreadItem>
+              );
+            })}
+          </TLScroll>
         </ThreadList>
 
+        {/* Chat Panel */}
         <ChatPanel>
           {!selectedId ? (
-            <EmptyState>Sol listeden bir konuşma seçin veya çiftlikler size mesaj gönderdiğinde burada görünecek.</EmptyState>
+            <EmptyChat>
+              <div className="ec-icon">💬</div>
+              <div className="ec-title">Konuşma Seçin</div>
+              <div className="ec-sub">Sol listeden bir konuşma seçin. Çiftlikler size mesaj gönderdiğinde burada görünecek.</div>
+            </EmptyChat>
           ) : (
             <>
               <ChatHeader>
-                <div className="avatar">
-                  {(selectedUser?.isletmeAdi || selectedUser?.isim || 'Ç').charAt(0)}
+                <div className="ch-avatar">{(selectedUser?.isletmeAdi || selectedUser?.isim || 'Ç').charAt(0)}</div>
+                <div className="ch-info">
+                  <div className="ch-name">{selectedUser?.isletmeAdi || selectedUser?.isim || 'Çiftlik'}</div>
+                  <div className="ch-sub">{selectedUser?.isim}{selectedUser?.isletmeAdi ? ` · ${selectedUser.isletmeAdi}` : ''}</div>
                 </div>
-                <div className="info">
-                  <div className="name">{selectedUser?.isletmeAdi || selectedUser?.isim || 'Çiftlik Profil'}</div>
-                  <div className="sub">{selectedUser?.isim}{selectedUser?.isletmeAdi ? ` · ${selectedUser.isletmeAdi}` : ''}</div>
+                <div className="ch-status">
+                  <div className="ch-dot" />
+                  Aktif
                 </div>
               </ChatHeader>
+
               <MsgList>
                 {mesajYukleniyor ? (
-                  <div style={{ textAlign: 'center', color: '#6b7280', fontSize: 13 }}>Yükleniyor…</div>
+                  <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13, padding: 32 }}>Yükleniyor…</div>
                 ) : mesajlar.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Henüz mesaj yok.</div>
-                ) : (
-                  mesajlar.map(m => {
-                    const gonderenId = (m.gonderenId && (m.gonderenId._id || m.gonderenId)) || '';
-                    const benim = String(gonderenId) === String(benimId);
-                    return (
-                      <BubbleWrap key={m._id} $ben={benim}>
-                        <MsgBubble $ben={benim}>
-                          <div>{m.mesaj}</div>
-                          <div className="time">{m.createdAt ? new Date(m.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-                        </MsgBubble>
-                      </BubbleWrap>
-                    );
-                  })
-                )}
+                  <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13, padding: 32 }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
+                    Henüz mesaj yok. İlk mesajı siz gönderin!
+                  </div>
+                ) : groupedMsgs.map((item, idx) => {
+                  if (item.type === 'date') {
+                    return <DateDivider key={`d-${idx}`}><span>{item.label}</span></DateDivider>;
+                  }
+                  const m = item.data;
+                  const gonderenId = (m.gonderenId && (m.gonderenId._id || m.gonderenId)) || '';
+                  const benim = String(gonderenId) === String(benimId);
+                  return (
+                    <BubbleWrap key={m._id} $ben={benim}>
+                      {!benim && <span className="bw-sender">{selectedUser?.isim || 'Çiftlik'}</span>}
+                      <Bubble $ben={benim}>
+                        {m.mesaj}
+                        <div className="b-time">
+                          {m.createdAt ? new Date(m.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </div>
+                      </Bubble>
+                    </BubbleWrap>
+                  );
+                })}
+                <div ref={msgEndRef} />
               </MsgList>
+
               <ChatInput>
-                <div className="input-wrapper">
+                <div className="inp-wrap">
                   <textarea
+                    ref={taRef}
                     value={mesajMetin}
                     onChange={e => {
                       setMesajMetin(e.target.value);
                       e.target.style.height = 'auto';
                       e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                     }}
-                    placeholder="Yanıtınızı yazın..."
+                    placeholder="Yanıtınızı yazın… (Enter = gönder, Shift+Enter = yeni satır)"
                     rows={1}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGonder(e); e.target.style.height = 'auto'; } }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleGonder(e);
+                        if (taRef.current) taRef.current.style.height = 'auto';
+                      }
+                    }}
                   />
                 </div>
-                <button type="button" onClick={handleGonder} disabled={!mesajMetin.trim() || gonderiyor}>
-                  {gonderiyor ? '…' : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
+                <button className="send-btn" type="button" onClick={handleGonder} disabled={!mesajMetin.trim() || gonderiyor}>
+                  {gonderiyor ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  )}
                 </button>
               </ChatInput>
             </>
