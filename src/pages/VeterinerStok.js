@@ -314,7 +314,7 @@ const KATEGORI_LISTE = {
 };
 const BIRIM_LISTE = { 'İlaç': 'şişe', 'Antibiyotik': 'kutu', 'Vitamin': 'şişe', 'Anti-inflamatuar': 'kutu', 'Aşı': 'doz', 'Biyolojik': 'doz', 'Paraziter': 'şişe', 'Tohum': 'pipet', 'Sperma': 'pipet', 'Ekipman': 'adet' };
 const KAT_LISTESI = ['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Aşı', 'Biyolojik', 'Paraziter', 'Tohum', 'Sperma', 'Ekipman'];
-const ALL_BIRIMLER = ['adet', 'kutu', 'şişe', 'doz', 'ml', 'gram', 'pipet', 'litre'];
+const ALL_BIRIMLER = ['adet', 'kutu', 'şişe', 'doz', 'ml', 'gram', 'litre', 'pipet', 'kg', 'lt', 'torba'];
 
 // ─── StokCombo ────────────────────────────────────────────────────────────────
 function StokCombo({ value, onChange, kategori, placeholder }) {

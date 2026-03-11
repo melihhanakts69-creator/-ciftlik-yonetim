@@ -13,7 +13,7 @@ const stokSchema = new mongoose.Schema({
     },
     kategori: {
         type: String,
-        enum: ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'],
+        enum: ['Yem', 'İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Aşı', 'Biyolojik', 'Paraziter', 'Tohum', 'Sperma', 'Ekipman', 'Diğer'],
         default: 'Diğer'
     },
     miktar: {
@@ -23,7 +23,7 @@ const stokSchema = new mongoose.Schema({
     },
     birim: {
         type: String,
-        enum: ['kg', 'lt', 'adet', 'torba', 'kutu', 'doz'],
+        enum: ['kg', 'lt', 'ml', 'litre', 'gram', 'adet', 'torba', 'kutu', 'doz', 'şişe', 'pipet'],
         default: 'adet'
     },
     kritikSeviye: {
