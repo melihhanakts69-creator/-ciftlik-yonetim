@@ -4,7 +4,6 @@ import { toast } from 'react-toastify';
 import * as api from '../services/api';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
-const pulse = keyframes`0%,100%{opacity:1;}50%{opacity:.6;}`;
 
 const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
@@ -118,7 +117,7 @@ const CardHead = styled.div`
   .ch-count { font-size: 11px; color: #94a3b8; font-weight: 700; }
 `;
 
-const FormBody = styled.div`
+const FormBody = styled.form`
   padding: 20px;
   display: flex; flex-direction: column; gap: 14px;
 `;
@@ -390,7 +389,7 @@ export default function VeterinerTakvim() {
               <span className="ch-icon">➕</span>
               <span className="ch-title">Yeni Randevu Ekle</span>
             </CardHead>
-            <FormBody as="form" onSubmit={handleRandevuEkle}>
+            <FormBody onSubmit={handleRandevuEkle}>
               <Field>
                 <label>Çiftlik / Müşteri</label>
                 <select value={form.ciftciId} onChange={e => setForm({ ...form, ciftciId: e.target.value })} required>
@@ -459,7 +458,7 @@ export default function VeterinerTakvim() {
               <span className="ch-count">{sorted.filter(r => r.durum !== 'iptal').length} aktif</span>
             </CardHead>
             {loading ? (
-              <Empty><span className="e-icon" style={{ animation: `${pulse} 1.5s infinite` }}>⏳</span><span className="e-text">Yükleniyor…</span></Empty>
+              <Empty><span className="e-icon">⏳</span><span className="e-text">Yükleniyor…</span></Empty>
             ) : sorted.length === 0 ? (
               <Empty><span className="e-icon">🗓️</span><span className="e-text">Henüz randevu yok. Soldan ekleyebilirsiniz.</span></Empty>
             ) : (
