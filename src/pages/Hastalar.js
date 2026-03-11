@@ -665,6 +665,153 @@ const FaturaBolumu = styled.div`
 
 const tipEtiket = { hastalik: 'Hastalık', tedavi: 'Tedavi', asi: 'Aşı', muayene: 'Muayene', ameliyat: 'Ameliyat', dogum_komplikasyonu: 'Doğum' };
 
+// ─── Sabit Veteriner Listeleri ────────────────────────────────────────────────
+const SIK_HASTALIKLAR = [
+  'Mastitis', 'Süt Humması', 'Ketozis', 'Rumen Asidozu', 'Şap',
+  'Brucella', 'Topallık', 'Döl Tutmaması', 'Doğum Felci', 'Metritis',
+  'Pnömoni', 'İshal', 'Karın Şişkinliği (Timpani)', 'Göz İltihabı',
+  'Yavru Atma', 'Ağız Yarası', 'Parazitoz', 'Hipomagnezemi',
+  'Karaciğer Yağlanması', 'Laminitis', 'Yanık Hastalığı', 'Nekrobazilloz',
+];
+
+const INEK_IRKLARI = [
+  'Holstein', 'Simental', 'Montofon', 'Jersey', 'Brown Swiss',
+  'Esmer', 'Yerli Kara', 'Doğu Anadolu Kırmızısı', 'Boz Irk',
+  'Kangal', 'Şarole', 'Limuzin', 'Angus', 'Hereford',
+];
+
+const TOHUM_CINSLERI = [
+  'Holstein', 'Simental', 'Montofon', 'Jersey', 'Brown Swiss',
+  'Angus', 'Hereford', 'Limuzin', 'Şarole', 'Esmer',
+  'Sexed (Dişi Cinsiyet Ayrımlı)', 'Yerli Irk',
+];
+
+const SIK_ILACLAR = [
+  // Antibiyotikler
+  'Penstrep', 'Amoxicillin', 'Enrofloksasin', 'Oxytetrasiklin',
+  'Tylosin', 'Seftiofur', 'Florfenikol', 'Ampisilin',
+  // Anti-inflam
+  'Metacam (Meloxicam)', 'Flunixin', 'Ketoprofen', 'Deksametazon',
+  // Vitamin / Mineral
+  'Ca-Mg-P Solüsyonu', 'Vitamin AD3E', 'Selen + Vit E', 'B12 Vitamini',
+  'Kalsiyum Boroglükonat',
+  // Paraziter
+  'İvermektin', 'Albendazol', 'Fenbendazol',
+  // Diğer
+  'Oksitoksin', 'Progesteron', 'GnRH (Buserelin)',
+];
+
+const SIK_TOHUMLAR = [
+  'Semen (Holstein)', 'Semen (Simental)', 'Semen (Montofon)',
+  'Semen (Jersey)', 'Semen (Brown Swiss)', 'Semen (Angus)',
+  'Semen (Hereford)', 'Semen (Limuzin)', 'Semen (Şarole)',
+  'Sexed Semen (Holstein Dişi)', 'Sexed Semen (Simental Dişi)',
+];
+
+// ─── ComboSelect: Stok + Sabit Liste Birleşimi ───────────────────────────────
+const ComboDropdown = styled.div`
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+  max-height: 240px; overflow-y: auto;
+
+  .combo-section { padding: 5px 0; }
+  .combo-label {
+    padding: 4px 12px; font-size: 10px; font-weight: 800;
+    color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .combo-item {
+    padding: 8px 12px; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: #0f172a; display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.1s; border-radius: 0;
+    &:hover { background: #eff6ff; color: #2563eb; }
+  }
+  .combo-badge { font-size: 10px; color: #94a3b8; font-weight: 500; }
+`;
+
+function ComboSelect({ value, onChange, placeholder, sabitListe, stoklar = [], stokKategoriler = [], multiWord = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const currentWord = multiWord
+    ? (value || '').split(',').pop().trim()
+    : (value || '').trim();
+
+  const q = currentWord.toLowerCase();
+
+  const stokFiltered = useMemo(() =>
+    stoklar
+      .filter(s => !stokKategoriler.length || stokKategoriler.includes(s.kategori))
+      .filter(s => !q || (s.urunAdi || '').toLowerCase().includes(q))
+      .slice(0, 6),
+    [stoklar, stokKategoriler, q]
+  );
+
+  const sabitFiltered = useMemo(() =>
+    sabitListe.filter(s => !q || s.toLowerCase().includes(q)).slice(0, 10),
+    [sabitListe, q]
+  );
+
+  const showDropdown = open && (stokFiltered.length > 0 || sabitFiltered.length > 0);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleSelect = (name) => {
+    if (multiWord) {
+      const parts = (value || '').split(',');
+      parts[parts.length - 1] = ' ' + name;
+      onChange(parts.join(',').replace(/^,\s*/, '').trimStart());
+    } else {
+      onChange(name);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div style={{ position: 'relative' }} ref={ref}>
+      <input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s' }}
+        onBlur={e => { if (!ref.current?.contains(e.relatedTarget)) setOpen(false); }}
+      />
+      {showDropdown && (
+        <ComboDropdown>
+          {stokFiltered.length > 0 && (
+            <div className="combo-section">
+              <div className="combo-label">📦 Stoğumdan</div>
+              {stokFiltered.map((s, i) => (
+                <div key={s._id || i} className="combo-item" onMouseDown={() => handleSelect(s.urunAdi)}>
+                  {s.urunAdi}
+                  <span className="combo-badge">{s.miktar ?? ''} {s.birim ?? ''}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {sabitFiltered.length > 0 && (
+            <div className="combo-section">
+              <div className="combo-label">📋 Sık Kullanılanlar</div>
+              {sabitFiltered.map((s, i) => (
+                <div key={i} className="combo-item" onMouseDown={() => handleSelect(s)}>
+                  {s}
+                </div>
+              ))}
+            </div>
+          )}
+        </ComboDropdown>
+      )}
+    </div>
+  );
+}
+
+
+
 const StokDropdown = styled.ul`
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
   margin: 0; padding: 6px; list-style: none;
@@ -1578,7 +1725,13 @@ export default function Hastalar() {
                 </div>
                 <div className="form-group">
                   <label>Tanı / Teşhis *</label>
-                  <input required value={yeniProtokol.tani} onChange={e => setYeniProtokol({ ...yeniProtokol, tani: e.target.value })} placeholder="Örn: Mastitis" />
+                  <ComboSelect
+                    value={yeniProtokol.tani}
+                    onChange={v => setYeniProtokol({ ...yeniProtokol, tani: v })}
+                    placeholder="Örn: Mastitis, Süt Humması"
+                    sabitListe={SIK_HASTALIKLAR}
+                    stoklar={[]}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Tedavi Notu</label>
@@ -1587,12 +1740,13 @@ export default function Hastalar() {
                 <div className="form-section-title" style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '16px 0 10px' }}>İlaçlar</div>
                 {yeniProtokol.ilaclar.map((il, i) => (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px auto', gap: 8, marginBottom: 8 }}>
-                    <StokAutocomplete
+                    <ComboSelect
                       value={il.ilacAdi}
                       onChange={v => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], ilacAdi: v }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }}
                       placeholder="İlaç adı — yazın veya seçin"
+                      sabitListe={SIK_ILACLAR}
                       stoklar={stoklar}
-                      kategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
+                      stokKategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
                     />
                     <input placeholder="Doz" value={il.doz} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], doz: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
                     <input placeholder="Süre" value={il.sure} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], sure: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
@@ -1649,7 +1803,13 @@ export default function Hastalar() {
                       <div className="form-section-title">🩺 Anamnez / Hasta Hikayesi</div>
                       <div className="form-group">
                         <label>Şikayet / Semptomlar</label>
-                        <input value={anamnez.sikayet} onChange={e => setAnamnez({ ...anamnez, sikayet: e.target.value })} placeholder="Örn: İştahsızlık, topallık, şişlik" />
+                        <ComboSelect
+                          value={anamnez.sikayet}
+                          onChange={v => setAnamnez({ ...anamnez, sikayet: v })}
+                          placeholder="Örn: İştahsızlık, topallık..."
+                          sabitListe={['İştahsızlık', 'Topallık', 'Şişlik (Timpani)', 'Süt Azalması', 'Ateş', 'Sümüklü Akıntı', 'Zayıflama', 'İshal', 'Kabızlık', 'Doğum Güçlüğü', 'Döl Tutmaması', 'Ağız Yaraları', 'Göz İltihabı', 'Yürüyüş Bozukluğu']}
+                          stoklar={[]}
+                        />
                       </div>
                       <AnamnezGrid>
                         <div className="form-group" style={{ margin: 0 }}>
@@ -1688,20 +1848,33 @@ export default function Hastalar() {
                       <div className="form-section-title">Tanı ve Tedavi</div>
                       <div className="form-group">
                         <label>Tanı / Teşhis *</label>
-                        <input required value={formData.tani} onChange={e => setFormData({ ...formData, tani: e.target.value })} placeholder="Örn: Mastitis, Süt humması" />
+                        <ComboSelect
+                          value={formData.tani}
+                          onChange={v => setFormData({ ...formData, tani: v })}
+                          placeholder="Örn: Mastitis, Süt Humması — yazın veya seçin"
+                          sabitListe={SIK_HASTALIKLAR}
+                          stoklar={[]}
+                        />
                       </div>
                       <div className="form-group">
-                        <label>Uygulanan tedavi</label>
-                        <input value={formData.tedavi} onChange={e => setFormData({ ...formData, tedavi: e.target.value })} placeholder="Örn: Antibiyotik, dinlenme" />
+                        <label>Uygulanan Tedavi</label>
+                        <ComboSelect
+                          value={formData.tedavi}
+                          onChange={v => setFormData({ ...formData, tedavi: v })}
+                          placeholder="Örn: Antibiyotik + dinlenme"
+                          sabitListe={['Antibiyotik tedavisi', 'Anti-inflamatuar', 'Vitamin + mineral desteği', 'Sıvı tedavisi (IV)', 'Lokal uygulama', 'Sürüden ayırma ve gözlem', 'Pansuman', 'Cerrahi müdahale']}
+                          stoklar={[]}
+                        />
                       </div>
                       <div className="form-group">
                         <label>İlaçlar <span style={{ fontWeight: 500, color: '#94a3b8' }}>(virgülle birden fazla ekle)</span></label>
-                        <StokAutocomplete
+                        <ComboSelect
                           value={formData.ilacAd}
                           onChange={v => setFormData({ ...formData, ilacAd: v })}
-                          placeholder="Örn: Penstrep, Metacam — yazın veya listeden seçin"
+                          placeholder="Penstrep, Metacam... — yazın veya listeden seçin"
+                          sabitListe={SIK_ILACLAR}
                           stoklar={stoklar}
-                          kategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
+                          stokKategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
                           multiWord
                         />
                       </div>
@@ -1755,14 +1928,28 @@ export default function Hastalar() {
                   <div className="form-section">
                     <div className="form-section-title">Tohumlama bilgisi</div>
                     <div className="form-group">
-                      <label>Tohum (sperma) cinsi *</label>
-                      <StokAutocomplete
+                      <label>Tohum Cinsi / Irk *</label>
+                      <ComboSelect
                         value={formData.ilacAd}
                         onChange={v => setFormData({ ...formData, ilacAd: v })}
-                        placeholder="Örn: Holstein, Simental — yazın veya listeden seçin"
+                        placeholder="Örn: Holstein, Simental — yazın veya seçin"
+                        sabitListe={SIK_TOHUMLAR}
                         stoklar={stoklar}
-                        kategoriler={['Tohum', 'Sperma', 'Tohumlama']}
+                        stokKategoriler={['Tohum', 'Sperma', 'Tohumlama']}
                       />
+                    </div>
+                    <div className="form-group">
+                      <label>Tohumlama Yöntemi</label>
+                      <ModalSelect
+                        value={formData.tani}
+                        onChange={e => setFormData({ ...formData, tani: e.target.value })}
+                      >
+                        <option value="">— Seçin (opsiyonel) —</option>
+                        <option value="Dondurulmuş Semen">❄️ Dondurulmuş Semen</option>
+                        <option value="Taze Semen">🧪 Taze Semen</option>
+                        <option value="Sexed Semen">🎯 Sexed Semen (Cinsiyet Ayrımlı)</option>
+                        <option value="Embriyo Transferi">🔬 Embriyo Transferi</option>
+                      </ModalSelect>
                     </div>
                   </div>
                 )}
