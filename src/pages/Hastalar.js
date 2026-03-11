@@ -195,21 +195,108 @@ const DetailPanel = styled.div`
   @media (max-width: 900px) { min-height: 50vh; padding: 24px 20px; }
 `;
 
+const EmptyStateWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 16px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px -12px rgba(0,0,0,0.08);
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+`;
+
+const EmptyStateBar = styled.div`
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #1e40af 70%, #2563eb 100%);
+  padding: 28px 32px 24px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .bar-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .bar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .bar-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .bar-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px;
+  }
+  .bar-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+  }
+
+  .bar-stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-pill {
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+`;
+
 const EmptyDetail = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 220px;
   color: #64748b;
   font-size: 15px;
   text-align: center;
-  padding: 32px;
-  background: #ffffff;
-  border-radius: 24px;
-  border: 2px dashed #cbd5e1;
-  margin: 0 16px;
+  padding: 32px 40px;
   font-weight: 600;
-  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.03);
+  border-top: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #fafbfd 0%, #ffffff 100%);
 `;
 
 const DetailHeader = styled.div`
@@ -1130,7 +1217,24 @@ export default function Hastalar() {
 
       <DetailPanel>
         {!selectedId ? (
-          <EmptyDetail>Sol listeden bir çiftlik seçin veya ID ile yeni çiftlik ekleyin.</EmptyDetail>
+          <EmptyStateWrapper>
+            <EmptyStateBar>
+              <div className="bar-inner">
+                <div className="bar-left">
+                  <div className="bar-icon">🩺</div>
+                  <div>
+                    <h2 className="bar-title">Hasta Paneli</h2>
+                    <p className="bar-sub">Çiftlik seçerek sağlık kayıtlarına erişin</p>
+                  </div>
+                </div>
+                <div className="bar-stats">
+                  <span className="stat-pill">📋 {musteriler.length} çiftlik</span>
+                  <span className="stat-pill">🛡️ Sağlık takibi</span>
+                </div>
+              </div>
+            </EmptyStateBar>
+            <EmptyDetail>Sol listeden bir çiftlik seçin veya ID ile yeni çiftlik ekleyin.</EmptyDetail>
+          </EmptyStateWrapper>
         ) : detailLoading ? (
           <EmptyDetail>Yükleniyor…</EmptyDetail>
         ) : (
