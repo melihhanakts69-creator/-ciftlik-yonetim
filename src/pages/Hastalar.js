@@ -770,6 +770,12 @@ export default function Hastalar() {
   const [hayvanKategori, setHayvanKategori] = useState('');
   const [hayvanKupeArama, setHayvanKupeArama] = useState('');
 
+  // Geçmiş kayıtlar filtre + scroll ref
+  const gecmisKayitlarRef = useRef(null);
+  const [kayitTipFiltri, setKayitTipFiltri] = useState('');
+  const [kayitHayvanFiltri, setKayitHayvanFiltri] = useState('');
+  const [kayitTarihFiltri, setKayitTarihFiltri] = useState('');
+
   // Sağlık skoru
   const [saglikSkorlar, setSaglikSkorlar] = useState({});
   // Protokoller
@@ -845,6 +851,26 @@ export default function Hastalar() {
     return list;
   }, [hayvanlar, hayvanKategori, hayvanKupeArama]);
 
+  const filteredKayitlar = useMemo(() => {
+    let list = saglikKayitlari;
+    if (kayitTipFiltri) list = list.filter(k => k.tip === kayitTipFiltri || (kayitTipFiltri === 'tohumlama' && k.tani === 'Suni Tohumlama'));
+    if (kayitHayvanFiltri.trim()) {
+      const q = kayitHayvanFiltri.trim().toLowerCase();
+      list = list.filter(k => (k.hayvanKupeNo || '').toLowerCase().includes(q) || (k.hayvanIsim || '').toLowerCase().includes(q));
+    }
+    if (kayitTarihFiltri) {
+      const secilen = new Date(kayitTarihFiltri);
+      const ay = secilen.getMonth();
+      const yil = secilen.getFullYear();
+      list = list.filter(k => {
+        if (!k.tarih) return false;
+        const t = new Date(k.tarih);
+        return t.getMonth() === ay && t.getFullYear() === yil;
+      });
+    }
+    return list;
+  }, [saglikKayitlari, kayitTipFiltri, kayitHayvanFiltri, kayitTarihFiltri]);
+
   const fetchMusteriler = async () => {
     try {
       const res = await api.getVeterinerMusteriler();
@@ -900,6 +926,9 @@ export default function Hastalar() {
   useEffect(() => {
     setHayvanKategori('');
     setHayvanKupeArama('');
+    setKayitTipFiltri('');
+    setKayitHayvanFiltri('');
+    setKayitTarihFiltri('');
   }, [selectedId]);
 
   useEffect(() => {
@@ -1298,7 +1327,16 @@ export default function Hastalar() {
             )}
 
             <Block>
-              <h4>Hayvanlar</h4>
+              <h4 style={{ justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>🐄 Hayvanlar</span>
+                <button
+                  type="button"
+                  onClick={() => gecmisKayitlarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e0f2fe', background: '#f0f9ff', color: '#0284c7', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  📋 Geçmiş Kayıtlar
+                </button>
+              </h4>
               {hayvanlar.length === 0 ? (
                 <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Bu çiftlikte kayıtlı hayvan yok.</p>
               ) : (
@@ -1350,19 +1388,65 @@ export default function Hastalar() {
               )}
             </Block>
 
-            <Block>
-              <h4 style={{ justifyContent: 'space-between' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Geçmiş Sağlık Kayıtları</span>
+            <Block ref={gecmisKayitlarRef}>
+              <h4 style={{ justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>📋 Geçmiş Sağlık Kayıtları</span>
                 <button type="button" onClick={() => setProtokolModalOpen(true)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e0e7ff', background: '#eef2ff', color: '#4338ca', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>+ Protokol Ekle</button>
               </h4>
+
+              {/* Filtre Satırı */}
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <select
+                  value={kayitTipFiltri}
+                  onChange={e => setKayitTipFiltri(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', color: '#0f172a' }}
+                >
+                  <option value="">🔖 Tüm Tipler</option>
+                  <option value="hastalik">🔴 Hastalık</option>
+                  <option value="tedavi">🟢 Tedavi</option>
+                  <option value="asi">🟣 Aşı</option>
+                  <option value="muayene">🔵 Muayene</option>
+                  <option value="tohumlama">💉 Suni Tohumlama</option>
+                  <option value="ameliyat">🟡 Ameliyat</option>
+                  <option value="dogum_komplikasyonu">🩷 Doğum</option>
+                </select>
+                <input
+                  type="text"
+                  value={kayitHayvanFiltri}
+                  onChange={e => setKayitHayvanFiltri(e.target.value)}
+                  placeholder="🐄 Küpe no / isim ara..."
+                  style={{ flex: 1, minWidth: 160, padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, background: '#fff' }}
+                />
+                <input
+                  type="month"
+                  value={kayitTarihFiltri}
+                  onChange={e => setKayitTarihFiltri(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, background: '#fff', cursor: 'pointer' }}
+                />
+                {(kayitTipFiltri || kayitHayvanFiltri || kayitTarihFiltri) && (
+                  <button
+                    type="button"
+                    onClick={() => { setKayitTipFiltri(''); setKayitHayvanFiltri(''); setKayitTarihFiltri(''); }}
+                    style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fee2e2', background: '#fff5f5', color: '#b91c1c', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    ✕ Temizle
+                  </button>
+                )}
+                <span style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {filteredKayitlar.length} kayıt
+                </span>
+              </div>
+
               {saglikKayitlari.length === 0 ? (
                 <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Henüz kayıt yok.</p>
+              ) : filteredKayitlar.length === 0 ? (
+                <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>Bu filtreye uygun kayıt bulunamadı.</p>
               ) : (
                 <KayitList>
-                  {saglikKayitlari.slice(0, 30).map(k => (
+                  {filteredKayitlar.slice(0, 50).map(k => (
                     <KayitItem key={k._id}>
                       <div className="content">
-                        <div className="line1">{k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'} · {tipEtiket[k.tip] || k.tip} — {k.tani}</div>
+                        <div className="line1">{k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'} · {k.tani === 'Suni Tohumlama' ? '💉 Suni Tohumlama' : (tipEtiket[k.tip] || k.tip)} {k.tani !== 'Suni Tohumlama' ? `— ${k.tani}` : ''}</div>
                         <div className="line2">{k.tarih ? new Date(k.tarih).toLocaleDateString('tr-TR') : ''} {k.tedavi ? `· ${k.tedavi}` : ''}</div>
                       </div>
                       <button type="button" className="btn-pdf" onClick={e => { e.stopPropagation(); indirRecetePdf(k); }}>PDF İndir</button>

@@ -718,8 +718,9 @@ router.get('/saglik-skoru', async (req, res) => {
         otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
 
         // Son 30 günlük sağlık kayıtları çiftlik bazında say
+        // Suni tohumlama kayıtları skoru etkilememeli (pozitif/rutin işlem)
         const saglikSayilari = await SaglikKaydi.aggregate([
-            { $match: { userId: { $in: objIds }, tarih: { $gte: otuzGunOnce } } },
+            { $match: { userId: { $in: objIds }, tarih: { $gte: otuzGunOnce }, tani: { $ne: 'Suni Tohumlama' } } },
             { $group: { _id: '$userId', sayi: { $sum: 1 }, devamEden: { $sum: { $cond: [{ $eq: ['$durum', 'devam_ediyor'] }, 1, 0] } } } }
         ]);
 
