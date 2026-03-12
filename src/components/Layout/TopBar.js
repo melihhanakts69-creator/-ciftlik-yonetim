@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaSearch, FaBell, FaUserCircle, FaBars } from 'react-icons/fa';
 import * as api from '../../services/api';
+import { useIsMobile } from '../../hooks/useMediaQuery';
+import InstallButton from '../PWAInstallPrompt/InstallButton';
 
 // --- Styled Components ---
 
@@ -149,8 +151,15 @@ const UserRole = styled.div`
   color: #B5B5C3;
 `;
 
+const InstallBtnWrap = styled.div`
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
 const TopBar = ({ onMenuClick }) => {
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
     const [unreadCount, setUnreadCount] = useState(0);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -183,6 +192,11 @@ const TopBar = ({ onMenuClick }) => {
             </LeftSection>
 
             <RightSection>
+                {isMobile && (
+                    <InstallBtnWrap>
+                        <InstallButton hideWhenCannotInstall />
+                    </InstallBtnWrap>
+                )}
                 <NotificationWrapper onClick={() => navigate('/bildirimler')}>
                     <FaBell style={{ fontSize: '20px', color: '#A2A3B7', transition: 'color 0.3s' }} />
                     {unreadCount > 0 && <Badge>{unreadCount > 9 ? '9+' : unreadCount}</Badge>}

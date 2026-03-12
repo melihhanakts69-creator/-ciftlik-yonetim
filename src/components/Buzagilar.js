@@ -393,7 +393,20 @@ const Card = styled.div`
     .actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #eee; padding-top: 15px; button { border: 1px solid #eee; background: white; padding: 8px; border-radius: 6px; cursor: pointer; } .view { color: #2196F3; } .edit { color: #FF9800; } .delete { color: #f44336; } .transfer { color: #4CAF50; }}
 `;
 const Badge = styled.span` padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; background: ${props => props.gender === 'disi' ? '#FCE4EC' : '#E3F2FD'}; color: ${props => props.gender === 'disi' ? '#C2185B' : '#1976D2'}; `;
-const ModalOverlay = styled.div` position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; `;
-const ModalContent = styled.div` background: white; padding: 30px; border-radius: 16px; width: 400px; max-width: 90%; .form-group { margin-bottom: 15px; label { display: block; font-weight: bold; margin-bottom: 5px; } input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; } } .btn-group { display: flex; gap: 10px; button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; } .save { background: #FF9800; color: white; font-weight: bold; } } `;
+const ModalOverlay = styled.div`
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+  @media (max-width: 768px) { align-items: stretch; padding: 0; }
+`;
+const ModalContent = styled.div`
+  background: white; padding: 30px; border-radius: 16px; width: 400px; max-width: 90%;
+  max-height: 90vh; overflow-y: auto;
+  .form-group { margin-bottom: 15px; label { display: block; font-weight: bold; margin-bottom: 5px; } input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; } }
+  .btn-group { display: flex; gap: 10px; button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; min-height: 44px; } .save { background: #FF9800; color: white; font-weight: bold; } }
+  @media (max-width: 768px) {
+    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+    padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  }
+`;
 
 export default Buzagilar;

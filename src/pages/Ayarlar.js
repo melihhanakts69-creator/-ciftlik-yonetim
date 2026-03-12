@@ -114,6 +114,45 @@ const DeleteBtn = styled.button`
     &:hover { background: rgba(239,68,68,0.1); }
 `;
 
+const UpdateBtn = styled.button`
+    background: #0ea5e9; color: #fff; border: none; border-radius: 10px; padding: 10px 18px;
+    font-size: 14px; font-weight: 700; cursor: pointer; min-height: 44px;
+    &:hover { background: #0284c7; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+`;
+
+function CheckUpdateBlock() {
+    const [checking, setChecking] = React.useState(false);
+    const [message, setMessage] = React.useState('');
+
+    const handleCheck = async () => {
+        if (!('serviceWorker' in navigator)) {
+            setMessage('Bu tarayıcı güncelleme kontrolünü desteklemiyor.');
+            return;
+        }
+        setChecking(true);
+        setMessage('');
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.update();
+            setMessage('Kontrol tamamlandı. Yeni sürüm varsa kısa süre içinde bir uyarı göreceksiniz.');
+        } catch (e) {
+            setMessage('Kontrol sırasında hata oluştu.');
+        } finally {
+            setChecking(false);
+        }
+    };
+
+    return (
+        <div>
+            <UpdateBtn type="button" onClick={handleCheck} disabled={checking}>
+                {checking ? 'Kontrol ediliyor...' : '🔄 Güncellemeleri kontrol et'}
+            </UpdateBtn>
+            {message && <p style={{ marginTop: 10, fontSize: 13, color: '#64748b' }}>{message}</p>}
+        </div>
+    );
+}
+
 // ── Component ─────────────────────────────────────────────────────
 export default function Ayarlar() {
     const [user, setUser] = useState({ isim: '', email: '', isletmeAdi: '', sehir: '', telefon: '', profilFoto: '', bolge: '', firmaAdi: '', lisansNo: '', _id: '', rol: '', ciftlikKodu: '' });
@@ -326,6 +365,17 @@ export default function Ayarlar() {
                                 {pLoading ? 'Değiştiriliyor...' : '🔐 Şifreyi Güncelle'}
                             </SecondaryBtn>
                         </form>
+                    </CardBody>
+                </Card>
+
+                {/* ── Uygulama / Güncelleme ── */}
+                <Card>
+                    <CardHeader>📱 Mobil Uygulama & Güncellemeler</CardHeader>
+                    <CardBody>
+                        <p style={{ margin: '0 0 12px', fontSize: 14, color: '#64748b' }}>
+                            Agrolina mobil cihazınıza indirilebilir (PWA). Yeni sürüm çıktığında uygulama açıkken bildirim alırsınız; isterseniz aşağıdan güncellemeyi kontrol edebilirsiniz.
+                        </p>
+                        <CheckUpdateBlock />
                     </CardBody>
                 </Card>
             </Grid>

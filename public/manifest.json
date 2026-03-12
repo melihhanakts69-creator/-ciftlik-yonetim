@@ -2,6 +2,8 @@
   "short_name": "Agrolina",
   "name": "Agrolina - Akıllı Çiftlik Yönetimi",
   "description": "Hayvan takibi, süt kaydı, finansal analiz ve yapay zeka destekli çiftlik yönetim sistemi",
+  "scope": "/",
+  "id": "/",
   "icons": [
     {
       "src": "favicon.ico",
@@ -9,13 +11,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "logo512.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -36,24 +38,14 @@
       "short_name": "Süt",
       "description": "Günlük süt kaydı ekle",
       "url": "/sut-kaydi",
-      "icons": [
-        {
-          "src": "logo192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
     },
     {
       "name": "İnekleri Gör",
       "short_name": "İnekler",
       "description": "Tüm inekleri listele",
       "url": "/inekler",
-      "icons": [
-        {
-          "src": "logo192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
     }
   ]
 }

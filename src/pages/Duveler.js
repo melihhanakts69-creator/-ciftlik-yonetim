@@ -545,14 +545,19 @@ const Card = styled.div`
 const ModalOverlay = styled.div`
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+    @media (max-width: 768px) { align-items: stretch; padding: 0; }
 `;
 
 const ModalContent = styled.div`
     background: white; padding: 30px; border-radius: 16px; width: 500px; max-width: 90%;
-    
+    max-height: 90vh; overflow-y: auto;
     h2 { margin-top: 0; }
     .form-group { margin-bottom: 15px; label { display: block; margin-bottom: 5px; font-weight: bold; } input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; } }
-    .btn-group { display: flex; gap: 10px; margin-top: 20px; button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; } .save { background: #4CAF50; color: white; } }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; min-height: 44px; } .save { background: #4CAF50; color: white; } }
+    @media (max-width: 768px) {
+        width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+        padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+    }
 `;
 
 export default Duveler;

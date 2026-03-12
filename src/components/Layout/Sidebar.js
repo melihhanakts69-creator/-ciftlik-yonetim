@@ -9,6 +9,7 @@ import {
 import { GiCow } from 'react-icons/gi';
 import logo from '../../logo.png';
 import * as api from '../../services/api';
+import InstallButton from '../PWAInstallPrompt/InstallButton';
 
 // --- Styled Components ---
 
@@ -328,7 +329,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       </MenuArea>
 
       <FooterArea>
-        {/* Trial/plan uyarısı */}
+        <InstallButton outline hideWhenCannotInstall style={{ width: '100%', justifyContent: 'center', marginBottom: 12 }} />
         {abonelik && (
           abonelik.plan === 'trial' && abonelik.trialKalanGun <= 7 ? (
             <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}

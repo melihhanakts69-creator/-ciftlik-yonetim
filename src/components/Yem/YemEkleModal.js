@@ -8,10 +8,16 @@ const Overlay = styled.div`
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
+  @media (max-width: 768px) { align-items: stretch; padding: 0; }
 `;
 const ModalContainer = styled.div`
   background: white; width: 90%; max-width: 550px; border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 25px; position: relative;
+  max-height: 90vh; overflow-y: auto;
+  @media (max-width: 768px) {
+    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+    padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  }
 `;
 const CloseButton = styled.button`
   position: absolute; top: 20px; right: 20px; background: none; border: none;

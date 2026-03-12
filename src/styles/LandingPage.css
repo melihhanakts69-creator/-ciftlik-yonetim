@@ -205,8 +205,13 @@
 
 .hero-buttons {
   display: flex;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
   justify-content: center;
+  align-items: center;
+}
+.btn-hero-install {
+  flex-shrink: 0;
 }
 
 .btn-hero-primary {

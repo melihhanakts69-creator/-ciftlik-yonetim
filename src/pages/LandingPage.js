@@ -4,6 +4,7 @@ import axios from 'axios';
 import logo from '../logo.png';
 import '../styles/LandingPage.css';
 import { FaCheck, FaStar, FaQuoteLeft } from 'react-icons/fa';
+import InstallButton from '../components/PWAInstallPrompt/InstallButton';
 
 const API = process.env.NODE_ENV === 'production'
     ? 'https://ciftlik-yonetim.onrender.com'
@@ -95,6 +96,7 @@ const LandingPage = () => {
                         <button className="btn-hero-secondary" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
                             {hero.btnSecondary}
                         </button>
+                        <InstallButton outline hideWhenCannotInstall className="btn-hero-install" style={{ minHeight: 48, padding: '12px 20px' }} />
                     </div>
                 </div>
             </section>
@@ -174,6 +176,9 @@ const LandingPage = () => {
                     <div className="footer-brand">
                         <h2>Agrolina</h2>
                         <p>Modern teknoloji ile geleneksel tarımı buluşturuyoruz.</p>
+                        <div className="footer-install" style={{ marginTop: 12 }}>
+                            <InstallButton hideWhenCannotInstall style={{ minHeight: 44 }} />
+                        </div>
                         <div className="social-links"><span>📷</span> <span>📘</span> <span>💼</span></div>
                     </div>
                     <div className="footer-links">

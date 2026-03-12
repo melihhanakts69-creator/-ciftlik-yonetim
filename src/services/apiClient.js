@@ -40,17 +40,19 @@ api.interceptors.response.use(
 
     // 401 hatası ve refresh denemesi değilse
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Refresh endpoint'ine yapılan istekse logout yap
-      if (originalRequest.url?.includes('/auth/refresh')) {
+      const clearAndNotify = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.dispatchEvent(new CustomEvent('agrolina:sessionExpired'));
+      };
+
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        clearAndNotify();
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        // Zaten refresh yapılıyorsa bekle
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -66,7 +68,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.dispatchEvent(new CustomEvent('agrolina:sessionExpired'));
         return Promise.reject(error);
       }
 
@@ -79,10 +81,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        clearAndNotify();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

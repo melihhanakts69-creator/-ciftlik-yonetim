@@ -352,7 +352,20 @@ const Badge = styled.span`
     background: ${props => props.suitable ? '#E8F5E9' : '#ECEFF1'};
     color: ${props => props.suitable ? '#2E7D32' : '#607D8B'};
 `;
-const ModalOverlay = styled.div` position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; `;
-const ModalContent = styled.div` background: white; padding: 30px; border-radius: 16px; width: 400px; max-width: 90%; .form-group { margin-bottom: 15px; label { display: block; font-weight: bold; margin-bottom: 5px; } input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; } } .btn-group { display: flex; gap: 10px; button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; } .save { background: #FF9800; color: white; font-weight: bold; } } `;
+const ModalOverlay = styled.div`
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+  @media (max-width: 768px) { align-items: stretch; padding: 0; }
+`;
+const ModalContent = styled.div`
+  background: white; padding: 30px; border-radius: 16px; width: 400px; max-width: 90%;
+  max-height: 90vh; overflow-y: auto;
+  .form-group { margin-bottom: 15px; label { display: block; font-weight: bold; margin-bottom: 5px; } input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; } }
+  .btn-group { display: flex; gap: 10px; button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; min-height: 44px; } .save { background: #FF9800; color: white; font-weight: bold; } }
+  @media (max-width: 768px) {
+    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+    padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  }
+`;
 
 export default Tosunlar;

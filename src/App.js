@@ -39,22 +39,45 @@ import VeterinerTakvim from './pages/VeterinerTakvim';
 import VeterinerRapor from './pages/VeterinerRapor';
 import Karlilik from './pages/Karlilik';
 import Abonelik from './pages/Abonelik';
+import OfflineBanner from './components/OfflineBanner/OfflineBanner';
+import AuthLoadingScreen from './components/AuthLoadingScreen/AuthLoadingScreen';
+
+const SESSION_EXPIRED_EVENT = 'agrolina:sessionExpired';
 
 function App() {
+  const [authReady, setAuthReady] = useState(false);
   const [girisYapildi, setGirisYapildi] = useState(false);
   const [kullanici, setKullanici] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
+  // Açılışta localStorage'dan oturumu oku; çıkış yapmadıysa aynı hesapla devam et
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     if (token && user) {
-      setGirisYapildi(true);
-      setKullanici(JSON.parse(user));
+      try {
+        setKullanici(JSON.parse(user));
+        setGirisYapildi(true);
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+      }
     }
+    setAuthReady(true);
   }, []);
 
-  const navigate = useNavigate();
+  // 401 / refresh başarısız olunca apiClient bu event'i atar; sayfa yenilemeden login'e dön
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setGirisYapildi(false);
+      setKullanici(null);
+      navigate('/login', { replace: true });
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+  }, [navigate]);
 
   const handleLoginSuccess = (user) => {
     setGirisYapildi(true);
@@ -72,16 +95,22 @@ function App() {
     setKullanici(null);
   };
 
+  // Oturum kontrolü bitene kadar login/app gösterme; böylece kayıtlı hesap varsa direkt uygulama açılır
+  if (!authReady) return <AuthLoadingScreen />;
+
   // Admin panel — her zaman Layout olmadan full-screen
   if (location.pathname === '/admin') return <AdminPanel />;
 
   if (!girisYapildi) {
     return (
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <>
+        <OfflineBanner />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </>
     );
   }
 
@@ -106,6 +135,7 @@ function App() {
 
   return (
     <>
+      <OfflineBanner />
       <ToastContainer
         position="top-right"
         autoClose={3000}

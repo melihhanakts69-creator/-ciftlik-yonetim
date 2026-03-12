@@ -9,6 +9,7 @@ const Overlay = styled.div`
   display: flex; align-items: center; justify-content: center;
   z-index: 1100;
   backdrop-filter: blur(4px);
+  @media (max-width: 768px) { align-items: stretch; padding: 0; }
 `;
 
 const ModalContainer = styled.div`
@@ -19,12 +20,16 @@ const ModalContainer = styled.div`
   position: relative;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   animation: slideIn 0.3s ease-out;
-  max-height: 85vh; /* Ekranın %85'ini geçmesin */
-  overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu çıksın */
+  max-height: 85vh;
+  overflow-y: auto;
 
   @keyframes slideIn {
     from { transform: translateY(50px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+  }
+  @media (max-width: 768px) {
+    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+    padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
   }
 `;
 

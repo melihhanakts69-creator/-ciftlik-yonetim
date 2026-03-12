@@ -333,8 +333,8 @@ const Inekler = () => {
 
             {/* Modal */}
             {showModal && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalContentStyle}>
+                <ModalOverlay>
+                    <ModalContent>
                         <h2>{duzenlenecekId ? 'İnek Düzenle' : 'Yeni İnek Ekle'}</h2>
                         <form onSubmit={handleSubmit}>
                             {!duzenlenecekId && (
@@ -389,8 +389,8 @@ const Inekler = () => {
                                 <button type="submit" style={{ ...btnStyle, backgroundColor: '#4CAF50' }}>Kaydet</button>
                             </div>
                         </form>
-                    </div>
-                </div>
+                    </ModalContent>
+                </ModalOverlay>
             )}
         </PageContainer>
     );
@@ -469,6 +469,13 @@ const Card = styled.div`
       &:hover { background: #f9f9f9; }
     }
   }
+  @media (max-width: 768px) {
+    .card-actions .btn {
+      min-height: 44px;
+      min-width: 44px;
+      padding: 12px;
+    }
+  }
 `;
 
 const thStyle = { padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' };
@@ -476,12 +483,41 @@ const tdStyle = { padding: '15px', fontSize: '14px', color: '#333' };
 const actionBtnStyle = (color) => ({
     border: 'none', background: 'none', cursor: 'pointer', color: color, fontSize: '16px', marginRight: '10px'
 });
-const modalOverlayStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-};
-const modalContentStyle = {
-    backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '400px', maxWidth: '90%'
-};
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+  @media (max-width: 768px) {
+    align-items: stretch;
+    padding: 0;
+  }
+`;
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    min-height: 100vh;
+    border-radius: 0;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+  }
+`;
 const formGroupStyle = { marginBottom: '15px' };
 const inputStyle = { width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #DDD', marginTop: '5px' };
 const btnStyle = { padding: '10px 20px', border: 'none', borderRadius: '5px', color: 'white', cursor: 'pointer' };
