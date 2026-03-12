@@ -356,7 +356,7 @@ export default function YemMerkezi() {
             ))}
           </TabBar>
 
-          <div style={{ flex: 1, width: '100%' }}>
+          <TabContent>
             {tab === 'danisman' && <YemDanismani />}
             {tab === 'stok' && <YemDeposu isEmbedded={true} />}
             {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}

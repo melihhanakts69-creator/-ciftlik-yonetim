@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useIsMobile } from '../hooks/useMediaQuery';
 import styled, { keyframes } from 'styled-components';
 import {
     FaHeartbeat, FaSyringe, FaStethoscope, FaPills, FaPlus,
