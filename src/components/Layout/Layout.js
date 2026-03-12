@@ -43,11 +43,11 @@ const Overlay = styled.div`
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 1099;
   display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
   
   @media (min-width: 769px) {
-    display: none; /* Desktopta asla görünmesin */
+    display: none;
   }
 `;
 

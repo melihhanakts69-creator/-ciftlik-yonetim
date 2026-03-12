@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import styled, { keyframes } from 'styled-components';
 import {
     FaHeartbeat, FaSyringe, FaStethoscope, FaPills, FaPlus,
@@ -75,6 +76,12 @@ const AddButton = styled.button`
     box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     background: ${p => p.$secondary ? 'rgba(255,255,255,0.25)' : '#fff1f2'};
   }
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+    font-size: 13px;
+    min-height: 44px;
+    span { display: none; }
+  }
 `;
 
 // ── Stat Strip ────────────────────────────────────────────────
@@ -84,6 +91,10 @@ const StatGrid = styled.div`
   gap: 0;
   background: rgba(255,255,255,0.08);
   border-top: 1px solid rgba(255,255,255,0.12);
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 const StatCard = styled.div`
   padding: 18px 24px; display: flex; align-items: center; gap: 14px;
@@ -91,6 +102,13 @@ const StatCard = styled.div`
   &:last-child { border-right: none; }
   transition: background .2s;
   &:hover { background: rgba(255,255,255,0.07); }
+
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    &:nth-child(2n) { border-right: none; }
+  }
 `;
 const StatIcon = styled.div`
   width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
@@ -109,12 +127,47 @@ const BodyWrap = styled.div`
   @media (max-width: 768px) { padding: 16px; }
 `;
 
+const TabLayout = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+  }
+`;
+
+const TabContent = styled.div`
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+`;
+
 
 
 
 const TabBar = styled.div`
-  display: flex; flex-direction: column; gap: 8px; background: transparent;
-  margin-bottom: 22px; width: 100%; max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: transparent;
+  margin-bottom: 22px;
+  width: 100%;
+  max-width: 300px;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    gap: 6px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
 `;
 const Tab = styled.button`
   padding: 12px 18px; border: none; border-radius: 12px;
@@ -129,6 +182,15 @@ const Tab = styled.button`
     transform: translateX(4px);
     box-shadow: 0 4px 14px rgba(0,0,0,.1);
     color: ${p => p.active ? '#fff' : '#be123c'};
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 20px;
+    gap: 6px;
+    flex-shrink: 0;
+    &:hover { transform: none; }
   }
 `;
 
@@ -280,6 +342,10 @@ const Overlay = styled.div`
   align-items: center;
   justify-content: center;
   animation: ${fadeIn} 0.2s ease;
+
+  @media (max-width: 768px) {
+    align-items: flex-end;
+  }
 `;
 
 const ModalBox = styled.div`
@@ -291,6 +357,18 @@ const ModalBox = styled.div`
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 `;
 
 const ModalHeader = styled.div`
@@ -1024,8 +1102,8 @@ function SaglikMerkezi() {
             </PageHeader>
 
             <BodyWrap>
-                <div style={{ display: 'flex', gap: '24px', flexDirection: window.innerWidth < 768 ? 'column' : 'row', alignItems: 'flex-start' }}>
-                    {/* TAB BAR (Y Ekseninde Menü) */}
+                <TabLayout>
+                    {/* TAB BAR */}
                     <TabBar>
                         <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
                             🏥 Sağlık Kayıtları
@@ -1050,7 +1128,7 @@ function SaglikMerkezi() {
                         </Tab>
                     </TabBar>
 
-                    <div style={{ flex: 1, width: '100%' }}>
+                    <TabContent>
 
                         {/* SAĞLIK KAYITLARI TAB */}
                         {aktifTab === 'kayitlar' && (
@@ -1259,8 +1337,8 @@ function SaglikMerkezi() {
                         {aktifTab === 'veterinerler' && (
                             <VeterinerlerPanel />
                         )}
-                    </div>
-                </div>
+                    </TabContent>
+                </TabLayout>
 
                 {/* MODAL */}
                 {modalAcik && (

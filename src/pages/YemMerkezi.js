@@ -57,18 +57,36 @@ const PrimaryBtn = styled.button`
 
 // ── Stat Strip ────────────────────────────────────────────────────
 const StatRow = styled.div`
-  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
-  background:rgba(255,255,255,0.08);border-top:1px solid rgba(255,255,255,0.1);
-  @media(max-width:600px){grid-template-columns:1fr;}
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  background: rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.1);
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 `;
 const Stat = styled.div`
-  padding:18px 24px;display:flex;align-items:center;gap:14px;
-  border-right:1px solid rgba(255,255,255,0.1);
-  &:last-child{border-right:none;}
-  transition:background .2s;&:hover{background:rgba(255,255,255,0.07);}
-  .ico{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,0.15);color:#fff;}
-  .lbl{font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:.4px;}
-  .val{font-size:26px;font-weight:900;color:#fff;line-height:1;}
+  padding: 18px 24px; display: flex; align-items: center; gap: 14px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  &:last-child { border-right: none; }
+  transition: background .2s;
+  &:hover { background: rgba(255,255,255,0.07); }
+  .ico { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(255,255,255,0.15); color: #fff; }
+  .lbl { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: .4px; }
+  .val { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; }
+
+  @media (max-width: 600px) {
+    padding: 12px 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    .ico { width: 32px; height: 32px; font-size: 14px; }
+    .val { font-size: 18px; }
+    .lbl { font-size: 9px; letter-spacing: 0; }
+  }
 `;
 
 // ── Body ──────────────────────────────────────────────────────────
@@ -77,20 +95,65 @@ const BodyWrap = styled.div`
   @media (max-width: 768px) { padding: 16px; }
 `;
 
+const TabLayout = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+  }
+`;
+
+const TabContent = styled.div`
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+`;
+
 // ── Tab Bar ────────────────────────────────────────────────────────
 const TabBar = styled.div`
-  display:flex;flex-direction:column;gap:8px;background:transparent;
-  margin-bottom:22px; width: 100%; max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: transparent;
+  margin-bottom: 22px;
+  width: 100%;
+  max-width: 300px;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    gap: 6px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
 `;
 const TabBtn = styled.button`
-  padding:12px 18px;border:none;border-radius:12px;font-size:14px;font-weight:700;
-  cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .2s;
-  background:${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : '#fff'};
-  color:${p => p.$active ? '#fff' : '#475569'};
-  box-shadow:${p => p.$active ? '0 4px 12px rgba(6,95,70,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
+  padding: 12px 18px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: all .2s;
+  background: ${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : '#fff'};
+  color: ${p => p.$active ? '#fff' : '#475569'};
+  box-shadow: ${p => p.$active ? '0 4px 12px rgba(6,95,70,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
   border: 1px solid ${p => p.$active ? 'transparent' : '#e2e8f0'};
-  &:hover{transform:translateX(4px); box-shadow:0 4px 14px rgba(0,0,0,.1);}
+  &:hover { transform: translateX(4px); box-shadow: 0 4px 14px rgba(0,0,0,.1); }
   .icon-left { display: flex; align-items: center; gap: 10px; }
+
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    &:hover { transform: none; }
+    .icon-left { gap: 6px; }
+  }
 `;
 const NewBadge = styled.span`
   background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
@@ -278,7 +341,7 @@ export default function YemMerkezi() {
       </PageHeader>
 
       <BodyWrap>
-        <div style={{ display: 'flex', gap: '24px', flexDirection: window.innerWidth < 768 ? 'column' : 'row', alignItems: 'flex-start' }}>
+        <TabLayout>
           <TabBar>
             {TABS.map(t => (
               <TabBtn key={t.key} $active={tab === t.key} onClick={() => setTab(t.key)}>
@@ -395,8 +458,8 @@ export default function YemMerkezi() {
             {showAddModal && (
               <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
             )}
-          </div>
-        </div>
+          </TabContent>
+        </TabLayout>
       </BodyWrap>
     </Page>
   );

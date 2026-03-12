@@ -16,9 +16,13 @@ const ChatContainer = styled.div`
   box-shadow: 0 10px 40px rgba(0,0,0,0.08);
   border: 1px solid #e2e8f0;
   font-family: 'Inter', sans-serif;
+
   @media(max-width: 768px) {
     flex-direction: column;
-    height: 80vh;
+    height: calc(100dvh - 180px);
+    min-height: 480px;
+    max-height: none;
+    border-radius: 16px;
   }
 `;
 
@@ -28,17 +32,25 @@ const Sidebar = styled.div`
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
+
   @media(max-width: 768px) {
     width: 100%;
-    height: 160px;
+    height: auto;
+    max-height: 130px;
     border-right: none;
     border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
   }
 `;
 
 const SidebarHeader = styled.div`
   padding: 20px;
   border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+
+  @media(max-width: 768px) {
+    padding: 10px 12px;
+  }
 `;
 
 const NewChatBtn = styled.button`
@@ -61,14 +73,31 @@ const NewChatBtn = styled.button`
     background: #f1f5f9;
     border-color: #94a3b8;
   }
+  @media(max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
 `;
 
 const HistoryList = styled.div`
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px;
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  @media(max-width: 768px) {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
 `;
 
 const HistoryItem = styled.div`
@@ -91,6 +120,17 @@ const HistoryItem = styled.div`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  @media(max-width: 768px) {
+    padding: 6px 12px;
+    border-radius: 16px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+    max-width: 140px;
+    background: ${p => p.$active ? '#334155' : '#f1f5f9'};
+    color: ${p => p.$active ? '#fff' : '#475569'};
+    border: 1px solid ${p => p.$active ? '#334155' : '#e2e8f0'};
   }
 `;
 
@@ -125,6 +165,11 @@ const MessagesBox = styled.div`
   scroll-behavior: smooth;
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  @media(max-width: 768px) {
+    padding: 16px 12px;
+    gap: 14px;
+  }
 `;
 
 const WelcomeScreen = styled.div`
@@ -202,6 +247,11 @@ const InputContainer = styled.div`
   padding: 20px;
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;
+  flex-shrink: 0;
+
+  @media(max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const InputBox = styled.div`

@@ -21,7 +21,7 @@ const SidebarContainer = styled.div`
   position: fixed;
   left: 0;
   top: 0;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 20px rgba(0,0,0,0.2);
@@ -32,6 +32,7 @@ const SidebarContainer = styled.div`
   @media (max-width: 768px) {
     transform: ${({ isOpen }) => (isOpen ? 'translateX(0)' : 'translateX(-100%)')};
     width: 280px;
+    z-index: 1100;
   }
 `;
 
@@ -94,6 +95,10 @@ const CloseButton = styled.button`
 const MenuArea = styled.div`
   padding: 20px 12px;
   flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 `;
 
 const MenuSection = styled.div`
