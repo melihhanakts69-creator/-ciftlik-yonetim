@@ -292,6 +292,12 @@ const ModalContent = styled.div`
   h3 { margin-top: 0; font-size: 18px; color: #2c3e50; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
   .info-box { background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 16px 0; font-size: 14px; color: #475569; line-height: 1.5; }
   .btn-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+  @media (max-width: 768px) {
+    margin: 16px;
+    padding: 18px;
+    border-radius: 12px;
+    .btn-row { flex-direction: column; button { width: 100%; padding: 12px; } }
+  }
 `;
 
 const ActionBtn = styled.button`

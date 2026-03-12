@@ -20,8 +20,12 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
 
-  h1 { margin: 0; font-size: 28px; color: #2c3e50; font-weight: 800; }
+  h1 { margin: 0; font-size: 28px; color: #2c3e50; font-weight: 800;
+    @media (max-width: 768px) { font-size: 22px; }
+  }
   p { margin: 5px 0 0; color: #7f8c8d; font-size: 14px; }
 `;
 

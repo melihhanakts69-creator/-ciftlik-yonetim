@@ -35,6 +35,10 @@ const DashboardContainer = styled.div`
   max-width: 1600px;
   margin: 0 auto;
   min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const Header = styled.div`
@@ -70,6 +74,14 @@ const Header = styled.div`
     height: 200px;
     background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
     border-radius: 50%;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
   }
 `;
 
@@ -107,11 +119,20 @@ const HeaderRight = styled.div`
   gap: 10px;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const QuickActions = styled.div`
   display: flex;
   gap: 8px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    gap: 6px;
+  }
 `;
 
 const ActionButton = styled.button`
@@ -149,9 +170,12 @@ const ActionButton = styled.button`
   svg { font-size: 13px; }
 
   @media (max-width: 768px) {
-    padding: 8px 12px;
-    font-size: 11px;
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 12px;
     span { display: none; }
+    min-height: 44px;
   }
 `;
 
@@ -174,21 +198,26 @@ const SectionTitle = styled.div`
     height: 1px;
     background: linear-gradient(to right, ${colors.border.light}, transparent);
   }
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: ${props => props.$cols ? `repeat(${props.$cols}, 1fr)` : 'repeat(12, 1fr)'};
   gap: 20px;
   margin-bottom: 28px;
 
   @media (max-width: 1200px) {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: ${props => props.$cols ? `repeat(${props.$cols}, 1fr)` : 'repeat(6, 1fr)'};
   }
   @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    grid-template-columns: ${props => props.$mobileCols ? `repeat(${props.$mobileCols}, 1fr)` : '1fr'};
+    gap: 12px;
+    margin-bottom: 16px;
   }
 `;
 
@@ -230,6 +259,12 @@ const Widget = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    border-radius: 14px;
+    h3 { margin-bottom: 12px; font-size: 14px; }
   }
 `;
 
@@ -442,7 +477,7 @@ const Dashboard = ({ kullanici }) => {
 
       {/* --- KPI CARDS --- */}
       <SectionTitle>📊 Günlük Özet</SectionTitle>
-      <Grid style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+      <Grid $cols={4} $mobileCols={2}>
         <StatsCard
           title="Günlük Süt"
           value={data.stats?.bugunSut?.toFixed(1) || '0.0'}

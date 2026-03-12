@@ -21,12 +21,18 @@ const Header = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 12px;
 
   h1 {
     font-size: 24px;
     color: #2C3E50;
     font-weight: 800;
     margin: 0;
+
+    @media (max-width: 768px) {
+      font-size: 20px;
+    }
   }
 
   .actions {

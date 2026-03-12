@@ -53,8 +53,7 @@ const SearchContainer = styled.div`
   width: 300px;
 
   @media (max-width: 768px) {
-    width: 100%;
-    max-width: 200px;
+    display: none;
   }
 `;
 

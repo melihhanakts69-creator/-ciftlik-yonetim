@@ -41,6 +41,9 @@ const PageHeader = styled.div`
     width: 260px; height: 260px; border-radius: 50%;
     background: rgba(255,255,255,0.06); pointer-events: none;
   }
+  @media (max-width: 768px) {
+    padding: 20px 16px 0;
+  }
 `;
 const HeaderTop = styled.div`
   display: flex; align-items: center; justify-content: space-between;
@@ -101,7 +104,10 @@ const StatInfo = styled.div`
 `;
 
 // ── Body ─────────────────────────────────────────────────────
-const BodyWrap = styled.div`padding: 24px;`;
+const BodyWrap = styled.div`
+  padding: 24px;
+  @media (max-width: 768px) { padding: 16px; }
+`;
 
 
 

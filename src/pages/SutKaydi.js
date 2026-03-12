@@ -14,6 +14,10 @@ const Container = styled.div`
   background: #f8fafc;
   min-height: calc(100vh - 80px);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -76,7 +80,9 @@ const MetricsGrid = styled.div`
     grid-template-columns: repeat(2, 1fr);
   }
   @media (max-width: 640px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
   }
 `;
 
@@ -91,6 +97,12 @@ const MetricCard = styled.div`
   animation: ${fadeIn} 0.4s ease-out forwards;
   animation-delay: ${p => p.$delay || '0s'};
   opacity: 0;
+
+  @media (max-width: 640px) {
+    padding: 14px;
+    border-radius: 10px;
+    .metric-value { font-size: 22px !important; }
+  }
   
   .metric-header {
     display: flex;
@@ -175,11 +187,21 @@ const PanelHeader = styled.div`
     align-items: center;
     gap: 8px;
   }
+
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 const PanelBody = styled.div`
   padding: 24px;
   flex: 1;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `;
 
 // Log Form
@@ -323,6 +345,7 @@ const TableContainer = styled.div`
   overflow: hidden;
   max-height: 280px;
   overflow-y: auto;
+  overflow-x: auto;
   
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -474,6 +497,8 @@ const HistoryItem = styled.div`
     display: flex;
     align-items: center;
     gap: 16px;
+    flex: 1;
+    min-width: 0;
   }
   
   .h-icon {
@@ -494,17 +519,30 @@ const HistoryItem = styled.div`
     font-weight: 600;
     color: #0f172a;
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .h-meta {
     font-size: 12px;
     color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .h-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    .h-left { gap: 10px; }
+    .h-icon { width: 36px; height: 36px; font-size: 16px; }
   }
   
   .h-amount {
