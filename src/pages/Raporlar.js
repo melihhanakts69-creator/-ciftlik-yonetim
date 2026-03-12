@@ -243,6 +243,16 @@ const TableWrapper = styled.div`
       background: #fafafa;
     }
   }
+
+  @media (max-width: 768px) {
+    table, thead, tbody, tr, th, td { display: block; }
+    thead tr { position: absolute; left: -9999px; }
+    tr { margin-bottom: 12px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; overflow: hidden; }
+    td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+    td:last-child { border-bottom: none; }
+    td::before { content: attr(data-label); font-weight: 700; color: #64748b; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+    tr:hover td { background: #fafafa; }
+  }
 `;
 
 const Badge = styled.span`
@@ -494,11 +504,11 @@ const Raporlar = () => {
               <tr><th>Tür</th><th>Toplam</th><th>Dişi</th><th>Erkek</th><th>Oran</th></tr>
             </thead>
             <tbody>
-              <tr><td>İnek</td><td>{inekler.length}</td><td>{inekler.length}</td><td>—</td><td>{toplam > 0 ? ((inekler.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
-              <tr><td>Düve</td><td>{duveler.length}</td><td>{duveler.length}</td><td>—</td><td>{toplam > 0 ? ((duveler.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
-              <tr><td>Buzağı</td><td>{buzagilar.length}</td><td>{buzagilar.filter(b => b.cinsiyet === 'Dişi').length}</td><td>{buzagilar.filter(b => b.cinsiyet === 'Erkek').length}</td><td>{toplam > 0 ? ((buzagilar.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
-              <tr><td>Tosun</td><td>{tosunlar.length}</td><td>—</td><td>{tosunlar.length}</td><td>{toplam > 0 ? ((tosunlar.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
-              <tr style={{ fontWeight: 700, background: '#f8f9fa' }}><td>Toplam</td><td>{toplam}</td><td>{disi}</td><td>{erkek}</td><td>100%</td></tr>
+              <tr><td data-label="Tür">İnek</td><td data-label="Toplam">{inekler.length}</td><td data-label="Dişi">{inekler.length}</td><td data-label="Erkek">—</td><td data-label="Oran">{toplam > 0 ? ((inekler.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
+              <tr><td data-label="Tür">Düve</td><td data-label="Toplam">{duveler.length}</td><td data-label="Dişi">{duveler.length}</td><td data-label="Erkek">—</td><td data-label="Oran">{toplam > 0 ? ((duveler.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
+              <tr><td data-label="Tür">Buzağı</td><td data-label="Toplam">{buzagilar.length}</td><td data-label="Dişi">{buzagilar.filter(b => b.cinsiyet === 'Dişi').length}</td><td data-label="Erkek">{buzagilar.filter(b => b.cinsiyet === 'Erkek').length}</td><td data-label="Oran">{toplam > 0 ? ((buzagilar.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
+              <tr><td data-label="Tür">Tosun</td><td data-label="Toplam">{tosunlar.length}</td><td data-label="Dişi">—</td><td data-label="Erkek">{tosunlar.length}</td><td data-label="Oran">{toplam > 0 ? ((tosunlar.length / toplam) * 100).toFixed(0) : 0}%</td></tr>
+              <tr style={{ fontWeight: 700, background: '#f8f9fa' }}><td data-label="Tür">Toplam</td><td data-label="Toplam">{toplam}</td><td data-label="Dişi">{disi}</td><td data-label="Erkek">{erkek}</td><td data-label="Oran">100%</td></tr>
             </tbody>
           </table>
         </TableWrapper>
@@ -711,11 +721,11 @@ const Raporlar = () => {
               <tbody>
                 {kayitlar.slice(0, 10).map(k => (
                   <tr key={k._id}>
-                    <td>{new Date(k.tarih).toLocaleDateString('tr-TR')}</td>
-                    <td><Badge bg="#E3F2FD" color="#1565C0">{tipLabels[k.tip] || k.tip}</Badge></td>
-                    <td>{k.tani || '—'}</td>
-                    <td>{k.hayvanIsim || k.hayvanTipi || '—'}</td>
-                    <td>
+                    <td data-label="Tarih">{new Date(k.tarih).toLocaleDateString('tr-TR')}</td>
+                    <td data-label="Tür"><Badge bg="#E3F2FD" color="#1565C0">{tipLabels[k.tip] || k.tip}</Badge></td>
+                    <td data-label="Tanı">{k.tani || '—'}</td>
+                    <td data-label="Hayvan">{k.hayvanIsim || k.hayvanTipi || '—'}</td>
+                    <td data-label="Durum">
                       <Badge
                         bg={k.durum === 'devam_ediyor' ? '#FFF3E0' : k.durum === 'iyilesti' ? '#E8F5E9' : '#FFEBEE'}
                         color={k.durum === 'devam_ediyor' ? '#E65100' : k.durum === 'iyilesti' ? '#2e7d32' : '#c62828'}
@@ -723,7 +733,7 @@ const Raporlar = () => {
                         {k.durum === 'devam_ediyor' ? 'Devam' : k.durum === 'iyilesti' ? 'İyileşti' : k.durum === 'kronik' ? 'Kronik' : k.durum || '—'}
                       </Badge>
                     </td>
-                    <td>{k.maliyet ? `${k.maliyet.toLocaleString('tr-TR')} ₺` : '—'}</td>
+                    <td data-label="Maliyet">{k.maliyet ? `${k.maliyet.toLocaleString('tr-TR')} ₺` : '—'}</td>
                   </tr>
                 ))}
               </tbody>

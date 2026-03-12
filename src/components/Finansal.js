@@ -186,9 +186,16 @@ const TransactionCard = styled.div`
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   border-left: 5px solid ${props => props.type === 'gelir' ? '#4CAF50' : '#f44336'};
 
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 12px;
+    .delete-btn { min-height: 44px; min-width: 44px; padding: 12px; }
+  }
+
   .info {
     flex: 1;
-    
+    min-width: 0;
+
     .category {
       display: inline-block;
       padding: 4px 10px;

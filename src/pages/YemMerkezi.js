@@ -5,6 +5,7 @@ import {
   FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd, FaPlus
 } from 'react-icons/fa';
 import * as api from '../services/api';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 import YemEkleModal from '../components/Yem/YemEkleModal';
 import YemDeposu from '../components/YemDeposu';
@@ -167,8 +168,26 @@ const PriceBadge = styled.span`
   font-size:12px;font-weight:700;border:1px solid #d1fae5;
 `;
 
+const YemKutuphaneCardWrap = styled.div`
+  display: flex; flex-direction: column; gap: 12px;
+  @media (min-width: 769px) { display: none; }
+`;
+const YemKutuphaneCard = styled.div`
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  .ad { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+  .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; margin-bottom: 4px; }
+  .row strong { color: #334155; }
+  .fiyat { margin-top: 10px; }
+`;
+
+const TableWrap = styled.div`
+  @media (max-width: 768px) { display: none; }
+`;
+
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState('stok');
   const [yemler, setYemler] = useState([]);
   const [rasyonlar, setRasyonlar] = useState([]);
@@ -325,25 +344,45 @@ export default function YemMerkezi() {
                     <Btn onClick={() => setShowAddModal(true)}><FaPlus /> Yeni Yem</Btn>
                   </LibBtnGroup>
                 </LibTop>
-                <Table>
-                  <thead>
-                    <tr>
-                      <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredYemler.map(y => (
-                      <tr key={y._id}>
-                        <TD>{y.ad}</TD>
-                        <TD>{y.kuruMadde}</TD>
-                        <TD>{y.protein}</TD>
-                        <TD>{y.enerji}</TD>
-                        <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
-                      </tr>
-                    ))}
-                    {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
-                  </tbody>
-                </Table>
+                {isMobile ? (
+                  <YemKutuphaneCardWrap>
+                    {filteredYemler.length === 0 ? (
+                      <div style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</div>
+                    ) : (
+                      filteredYemler.map(y => (
+                        <YemKutuphaneCard key={y._id}>
+                          <div className="ad">{y.ad}</div>
+                          <div className="row"><span>KM</span><strong>%{y.kuruMadde}</strong></div>
+                          <div className="row"><span>Protein</span><strong>%{y.protein}</strong></div>
+                          <div className="row"><span>Enerji</span><strong>{y.enerji} Mcal</strong></div>
+                          <div className="row fiyat"><span>Birim Fiyat</span><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></div>
+                        </YemKutuphaneCard>
+                      ))
+                    )}
+                  </YemKutuphaneCardWrap>
+                ) : (
+                  <TableWrap>
+                    <Table>
+                      <thead>
+                        <tr>
+                          <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredYemler.map(y => (
+                          <tr key={y._id}>
+                            <TD>{y.ad}</TD>
+                            <TD>{y.kuruMadde}</TD>
+                            <TD>{y.protein}</TD>
+                            <TD>{y.enerji}</TD>
+                            <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
+                          </tr>
+                        ))}
+                        {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
+                      </tbody>
+                    </Table>
+                  </TableWrap>
+                )}
               </LibCard>
             )}
 

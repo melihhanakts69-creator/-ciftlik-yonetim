@@ -350,6 +350,9 @@ const AnimalGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const AnimalCard = styled.div`
@@ -359,24 +362,27 @@ const AnimalCard = styled.div`
   background: #ffffff;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 15px -5px rgba(0,0,0,0.02);
-  
-  &:hover { 
-    box-shadow: 0 8px 20px -8px rgba(14, 165, 233, 0.12); 
-    border-color: #bae6fd; 
-    transform: translateY(-2px) scale(1.01); 
+
+  &:hover {
+    box-shadow: 0 8px 20px -8px rgba(14, 165, 233, 0.12);
+    border-color: #bae6fd;
+    transform: translateY(-2px) scale(1.01);
   }
 
   .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
   .kupe { font-weight: 800; color: #0f172a; font-size: 16px; letter-spacing: -0.01em;}
   .tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0284c7; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;}
   .info { font-size: 13px; color: #64748b; margin-bottom: 20px; font-weight: 600; line-height: 1.5;}
-  
+
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .actions button { padding: 10px 14px; border-radius: 10px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); flex: 1; display:flex; justify-content:center; align-items: center; gap: 6px;}
   .btn-saglik { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(16, 185, 129, 0.3);}
   .btn-saglik:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(16, 185, 129, 0.4);}
   .btn-tohum { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.3);}
   .btn-tohum:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(59, 130, 246, 0.4);}
+  @media (max-width: 768px) {
+    .actions button { min-height: 44px; }
+  }
 `;
 
 const KayitList = styled.div`

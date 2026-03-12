@@ -156,6 +156,12 @@ const RecordCard = styled.div`
     transform: translateX(4px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    button, .actions button { min-height: 44px; min-width: 44px; }
+  }
 `;
 
 const RecordIcon = styled.div`
