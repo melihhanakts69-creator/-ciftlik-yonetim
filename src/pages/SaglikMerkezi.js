@@ -432,6 +432,52 @@ const FormGroup = styled.div`
   }
 `;
 
+const HayvanSecimWrap = styled.div`
+  .search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .search-input {
+    flex: 1;
+    padding: 10px 14px 10px 36px;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center;
+    &:focus { outline: none; border-color: #e91e63; background-color: #fff; }
+  }
+  .tip-filter {
+    min-width: 120px;
+    padding: 10px 12px;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #fafafa;
+    &:focus { outline: none; border-color: #e91e63; }
+  }
+  .hayvan-select {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    background: #fff;
+  }
+  .hayvan-option {
+    padding: 12px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s;
+    &:hover { background: #fef2f2; }
+    &:last-child { border-bottom: none; }
+    &.secili { background: #fce7f3; border-left: 4px solid #e91e63; }
+  }
+  .hayvan-option .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #f1f5f9; color: #64748b; font-weight: 700; }
+`;
+
 const FormRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -886,6 +932,9 @@ function SaglikMerkezi() {
     const [filtreTip, setFiltreTip] = useState('');
     const [filtreDurum, setFiltreDurum] = useState('');
     const [hayvanlar, setHayvanlar] = useState([]);
+    const [hayvanArama, setHayvanArama] = useState('');
+    const [hayvanTipFiltre, setHayvanTipFiltre] = useState('');
+    const [asiHayvanArama, setAsiHayvanArama] = useState('');
 
     // Form state
     const [form, setForm] = useState({
@@ -959,6 +1008,10 @@ function SaglikMerkezi() {
     // Sağlık kaydı oluştur
     const handleSaglikSubmit = async (e) => {
         e.preventDefault();
+        if (!form.hayvanId) {
+            toast.error('Lütfen bir hayvan seçin');
+            return;
+        }
         try {
             const seciliHayvan = hayvanlar.find(h => h._id === form.hayvanId);
             const data = {
@@ -1046,7 +1099,26 @@ function SaglikMerkezi() {
             sonrakiTarih: '', tekrarPeriyodu: '', uygulayan: '',
             doz: '', maliyet: '', notlar: ''
         });
+        setHayvanArama('');
+        setHayvanTipFiltre('');
+        setAsiHayvanArama('');
     };
+
+    const filtrelenmisHayvanlar = hayvanlar.filter(h => {
+        const tipUygun = !hayvanTipFiltre || h.tip === hayvanTipFiltre;
+        const aramaUygun = !hayvanArama.trim() ||
+            (h.isim && h.isim.toLowerCase().includes(hayvanArama.toLowerCase().trim())) ||
+            (h.kupeNo && h.kupeNo.toLowerCase().includes(hayvanArama.toLowerCase().trim()));
+        return tipUygun && aramaUygun;
+    });
+
+    const asiFiltrelenmisHayvanlar = hayvanlar.filter(h => {
+        const tipUygun = asiForm.hayvanTipi === 'hepsi' || h.tip === asiForm.hayvanTipi;
+        const aramaUygun = !asiHayvanArama.trim() ||
+            (h.isim && h.isim.toLowerCase().includes(asiHayvanArama.toLowerCase().trim())) ||
+            (h.kupeNo && h.kupeNo.toLowerCase().includes(asiHayvanArama.toLowerCase().trim()));
+        return tipUygun && aramaUygun;
+    });
 
     const openModal = (tip) => {
         setModalTip(tip);
@@ -1386,14 +1458,51 @@ function SaglikMerkezi() {
                                     <form onSubmit={handleSaglikSubmit}>
                                         <FormGroup>
                                             <label>Hayvan *</label>
-                                            <select value={form.hayvanId} onChange={e => setForm({ ...form, hayvanId: e.target.value })} required>
-                                                <option value="">Hayvan Seçin...</option>
-                                                {hayvanlar.map(h => (
-                                                    <option key={h._id} value={h._id}>
-                                                        {h.isim} ({h.kupeNo}) — {hayvanTipiLabel[h.tip]}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <HayvanSecimWrap>
+                                                <div className="search-row">
+                                                    <input
+                                                        type="text"
+                                                        className="search-input"
+                                                        placeholder="İsim veya küpe no ile ara..."
+                                                        value={hayvanArama}
+                                                        onChange={e => setHayvanArama(e.target.value)}
+                                                    />
+                                                    <select
+                                                        className="tip-filter"
+                                                        value={hayvanTipFiltre}
+                                                        onChange={e => setHayvanTipFiltre(e.target.value)}
+                                                    >
+                                                        <option value="">Tüm Tipler</option>
+                                                        <option value="inek">🐄 İnek</option>
+                                                        <option value="duve">🐮 Düve</option>
+                                                        <option value="buzagi">🐂 Buzağı</option>
+                                                        <option value="tosun">🐃 Tosun</option>
+                                                    </select>
+                                                </div>
+                                                <div className="hayvan-select">
+                                                    {filtrelenmisHayvanlar.length === 0 ? (
+                                                        <div style={{ padding: 16, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                                                            {hayvanArama || hayvanTipFiltre ? 'Eşleşen hayvan bulunamadı' : 'Hayvan listesi yükleniyor...'}
+                                                        </div>
+                                                    ) : (
+                                                        filtrelenmisHayvanlar.map(h => (
+                                                            <div
+                                                                key={h._id}
+                                                                className={`hayvan-option ${form.hayvanId === h._id ? 'secili' : ''}`}
+                                                                onClick={() => setForm({ ...form, hayvanId: h._id, hayvanTipi: h.tip })}
+                                                            >
+                                                                <span><strong>{h.isim}</strong> ({h.kupeNo})</span>
+                                                                <span className="badge">{hayvanTipiLabel[h.tip]}</span>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                                {form.hayvanId && !filtrelenmisHayvanlar.find(h => h._id === form.hayvanId) && (
+                                                    <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+                                                        Seçili: {hayvanlar.find(h => h._id === form.hayvanId)?.isim} ({hayvanlar.find(h => h._id === form.hayvanId)?.kupeNo})
+                                                    </div>
+                                                )}
+                                            </HayvanSecimWrap>
                                         </FormGroup>
 
                                         <FormRow>
@@ -1500,7 +1609,7 @@ function SaglikMerkezi() {
                                         <FormRow>
                                             <FormGroup>
                                                 <label>Hayvan Tipi</label>
-                                                <select value={asiForm.hayvanTipi} onChange={e => setAsiForm({ ...asiForm, hayvanTipi: e.target.value, hayvanId: '' })}>
+                                                <select value={asiForm.hayvanTipi} onChange={e => { setAsiForm({ ...asiForm, hayvanTipi: e.target.value, hayvanId: '' }); setAsiHayvanArama(''); }}>
                                                     <option value="hepsi">Tüm Sürü (Toplu)</option>
                                                     <option value="inek">İnekler</option>
                                                     <option value="duve">Düveler</option>
@@ -1510,15 +1619,34 @@ function SaglikMerkezi() {
                                             </FormGroup>
                                             <FormGroup>
                                                 <label>Belirli Hayvan (opsiyonel)</label>
-                                                <select value={asiForm.hayvanId} onChange={e => setAsiForm({ ...asiForm, hayvanId: e.target.value })}>
-                                                    <option value="">Toplu Aşı</option>
-                                                    {hayvanlar
-                                                        .filter(h => asiForm.hayvanTipi === 'hepsi' || h.tip === asiForm.hayvanTipi)
-                                                        .map(h => (
-                                                            <option key={h._id} value={h._id}>{h.isim} ({h.kupeNo})</option>
-                                                        ))
-                                                    }
-                                                </select>
+                                                <HayvanSecimWrap>
+                                                    <input
+                                                        type="text"
+                                                        className="search-input"
+                                                        placeholder="İsim veya küpe no ile ara..."
+                                                        value={asiHayvanArama}
+                                                        onChange={e => setAsiHayvanArama(e.target.value)}
+                                                        style={{ marginBottom: 8 }}
+                                                    />
+                                                    <div className="hayvan-select" style={{ maxHeight: 140 }}>
+                                                        <div
+                                                            className={`hayvan-option ${!asiForm.hayvanId ? 'secili' : ''}`}
+                                                            onClick={() => setAsiForm({ ...asiForm, hayvanId: '' })}
+                                                        >
+                                                            <span>Toplu Aşı (Belirli hayvan yok)</span>
+                                                        </div>
+                                                        {asiFiltrelenmisHayvanlar.map(h => (
+                                                            <div
+                                                                key={h._id}
+                                                                className={`hayvan-option ${asiForm.hayvanId === h._id ? 'secili' : ''}`}
+                                                                onClick={() => setAsiForm({ ...asiForm, hayvanId: h._id })}
+                                                            >
+                                                                <span><strong>{h.isim}</strong> ({h.kupeNo})</span>
+                                                                <span className="badge">{hayvanTipiLabel[h.tip]}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </HayvanSecimWrap>
                                             </FormGroup>
                                         </FormRow>
 

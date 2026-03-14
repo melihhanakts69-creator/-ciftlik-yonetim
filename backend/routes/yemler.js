@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const YemStok = require('../models/YemStok');
 const YemHareket = require('../models/YemHareket');
+const Finansal = require('../models/Finansal');
 
 // TÜM YEM STOKLARINI GETİR
 router.get('/stok', auth, async (req, res) => {
@@ -96,6 +97,22 @@ router.post('/hareket', auth, async (req, res) => {
     }
 
     await stok.save();
+
+    // Tüketim/Fire ise Finansal gider olarak ekle
+    if ((hareketTipi === 'Tüketim' || hareketTipi === 'Fire') && hareket.toplamTutar > 0) {
+      const tarihVal = tarih || new Date();
+      const tarihStr = typeof tarihVal === 'string' && tarihVal.includes('T')
+        ? tarihVal.split('T')[0]
+        : (typeof tarihVal === 'string' ? tarihVal : new Date(tarihVal).toISOString().split('T')[0]);
+      await Finansal.create({
+        userId: req.userId,
+        tip: 'gider',
+        kategori: 'yem',
+        miktar: hareket.toplamTutar,
+        tarih: tarihStr,
+        aciklama: aciklama || `${hareketTipi}: ${yemTipi} (${miktar} kg)`
+      });
+    }
 
     res.status(201).json({ hareket, stok });
   } catch (error) {

@@ -7,6 +7,7 @@ const Rasyon = require('../models/Rasyon');
 const YemStok = require('../models/YemStok');
 const YemHareket = require('../models/YemHareket');
 const Maliyet = require('../models/Maliyet');
+const Finansal = require('../models/Finansal');
 const Inek = require('../models/Inek');
 
 // --- YEM KÜTÜPHANESİ ---
@@ -365,6 +366,17 @@ router.post('/dagit', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => 
             tutar: toplamGunlukMaliyet,
             tarih: islemTarihi,
             aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} Baş x ${(toplamGunlukMaliyet / hayvanSayisi).toFixed(2)} TL)`
+        });
+
+        // 5. Finansal Gelir/Gider'e Yem Gideri Olarak Ekle
+        const tarihStr = islemTarihi.toISOString ? islemTarihi.toISOString().split('T')[0] : new Date(islemTarihi).toISOString().split('T')[0];
+        await Finansal.create({
+            userId,
+            tip: 'gider',
+            kategori: 'yem',
+            miktar: toplamGunlukMaliyet,
+            tarih: tarihStr,
+            aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} Baş)`
         });
 
         res.json({
