@@ -17,20 +17,28 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+const yasHesaplaAy = (dogumTarihi) => {
+  if (!dogumTarihi) return 0;
+  return Math.floor((new Date() - new Date(dogumTarihi)) / (1000 * 60 * 60 * 24 * 30.44));
+};
+
 // YENİ DÜVE EKLE
 router.post('/', auth, async (req, res) => {
   try {
-    const { isim, yas, kilo, kupeNo, dogumTarihi, tohumlamaTarihi, notlar, eklemeTarihi } = req.body;
+    const { isim, yas, kilo, kupeNo, dogumTarihi, tohumlamaTarihi, notlar, not, eklemeTarihi, gebelikDurumu } = req.body;
+
+    const finalYas = dogumTarihi ? yasHesaplaAy(dogumTarihi) : (parseInt(yas, 10) || 0);
 
     const duve = new Duve({
       userId: req.userId,
       isim,
-      yas,
+      yas: finalYas,
       kilo,
       kupeNo,
-      dogumTarihi,
-      tohumlamaTarihi,
-      notlar,
+      dogumTarihi: dogumTarihi || undefined,
+      tohumlamaTarihi: tohumlamaTarihi || null,
+      gebelikDurumu: gebelikDurumu || 'Belirsiz',
+      notlar: notlar || not || '',
       eklemeTarihi
     });
     console.log('📌 tohumlamaTarihi:', tohumlamaTarihi);

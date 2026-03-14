@@ -173,23 +173,30 @@ function Duveler() {
         return Math.ceil((dogum - bugun) / (1000 * 60 * 60 * 24));
     };
 
+    const yasHesaplaAy = (dogumTarihi) => {
+        if (!dogumTarihi) return 0;
+        return Math.floor((new Date() - new Date(dogumTarihi)) / (1000 * 60 * 60 * 24 * 30.44));
+    };
+
     // --- CRUD Operations ---
     const duveEkle = async () => {
         try {
+            const yasAy = yasHesaplaAy(yeniDuve.dogumTarihi);
+            const payload = { ...yeniDuve, yas: yasAy, kilo: parseFloat(yeniDuve.kilo) || 0 };
+            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+
             if (satinAlma.aktif) {
                 await api.createAlisIslemi({
                     hayvanTipi: 'duve',
-                    ...yeniDuve,
-                    yas: parseInt(yeniDuve.yas),
-                    kilo: parseFloat(yeniDuve.kilo),
+                    ...payload,
                     fiyat: Number(satinAlma.fiyat),
                     aliciSatici: satinAlma.satici,
                     odenenMiktar: Number(satinAlma.odenenMiktar),
                     tarih: satinAlma.tarih,
-                    notlar: `Satın Alındı. ${yeniDuve.not || ''}`
+                    notlar: `Satın Alındı. ${payload.not || ''}`
                 });
             } else {
-                await api.createDuve({ ...yeniDuve, yas: parseInt(yeniDuve.yas), kilo: parseFloat(yeniDuve.kilo) });
+                await api.createDuve(payload);
             }
             fetchData();
             setDuveEkrani(false);
@@ -202,7 +209,11 @@ function Duveler() {
 
     const duveGuncelle = async () => {
         try {
-            await api.updateDuve(duzenlenecekDuve._id, duzenlenecekDuve);
+            const payload = { ...duzenlenecekDuve };
+            payload.yas = yasHesaplaAy(duzenlenecekDuve.dogumTarihi);
+            payload.kilo = parseFloat(duzenlenecekDuve.kilo) || 0;
+            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+            await api.updateDuve(duzenlenecekDuve._id, payload);
             setDuveler(duveler.map(d => d._id === duzenlenecekDuve._id ? duzenlenecekDuve : d));
             setDuzenlenecekDuve(null);
             alert('✅ Düve güncellendi!');
@@ -386,8 +397,8 @@ function Duveler() {
             {/* Modals placed here (simplified for brevity, referencing original logic) */}
             {/* Duve Ekle/Duzenle Modal */}
             {(duveEkrani || duzenlenecekDuve) && (
-                <ModalOverlay>
-                    <ModalContent>
+                <ModalOverlay onClick={() => { setDuveEkrani(false); setDuzenlenecekDuve(null); }}>
+                    <ModalContent onClick={e => e.stopPropagation()}>
                         <h2>{duzenlenecekDuve ? 'Düve Düzenle' : 'Yeni Düve Ekle'}</h2>
 
                         {!duzenlenecekDuve && (
@@ -413,15 +424,42 @@ function Duveler() {
                             </div>
                         )}
 
-                        {/* Form Inputs (Same as original but styled) */}
                         <div className="form-group">
-                            <label>İsim</label>
-                            <input
-                                value={duzenlenecekDuve ? duzenlenecekDuve.isim : yeniDuve.isim}
-                                onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, isim: e.target.value }) : setYeniDuve({ ...yeniDuve, isim: e.target.value })}
-                            />
+                            <label>İsim *</label>
+                            <input value={duzenlenecekDuve ? duzenlenecekDuve.isim : yeniDuve.isim} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, isim: e.target.value }) : setYeniDuve({ ...yeniDuve, isim: e.target.value })} />
                         </div>
-                        {/* ... Diğer inputlar ... */}
+                        <div className="form-group">
+                            <label>Küpe No *</label>
+                            <input value={duzenlenecekDuve ? duzenlenecekDuve.kupeNo : yeniDuve.kupeNo} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, kupeNo: e.target.value }) : setYeniDuve({ ...yeniDuve, kupeNo: e.target.value })} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div className="form-group">
+                                <label>Doğum Tarihi *</label>
+                                <input type="date" value={duzenlenecekDuve ? (duzenlenecekDuve.dogumTarihi ? new Date(duzenlenecekDuve.dogumTarihi).toISOString().split('T')[0] : '') : yeniDuve.dogumTarihi} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, dogumTarihi: e.target.value }) : setYeniDuve({ ...yeniDuve, dogumTarihi: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Kilo (kg) *</label>
+                                <input type="number" min="0" step="0.1" value={duzenlenecekDuve ? duzenlenecekDuve.kilo : yeniDuve.kilo} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, kilo: e.target.value }) : setYeniDuve({ ...yeniDuve, kilo: e.target.value })} />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Gebelik Durumu</label>
+                            <select value={duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, gebelikDurumu: e.target.value }) : setYeniDuve({ ...yeniDuve, gebelikDurumu: e.target.value })}>
+                                <option value="Belirsiz">Belirsiz</option>
+                                <option value="Gebe">Gebe</option>
+                                <option value="Gebe Değil">Gebe Değil</option>
+                            </select>
+                        </div>
+                        {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe') && (
+                            <div className="form-group">
+                                <label>Tohumlama Tarihi *</label>
+                                <input type="date" value={duzenlenecekDuve ? (duzenlenecekDuve.tohumlamaTarihi ? new Date(duzenlenecekDuve.tohumlamaTarihi).toISOString().split('T')[0] : '') : yeniDuve.tohumlamaTarihi} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, tohumlamaTarihi: e.target.value }) : setYeniDuve({ ...yeniDuve, tohumlamaTarihi: e.target.value })} />
+                            </div>
+                        )}
+                        <div className="form-group">
+                            <label>Notlar</label>
+                            <textarea rows={2} value={duzenlenecekDuve ? duzenlenecekDuve.not : yeniDuve.not} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, not: e.target.value }) : setYeniDuve({ ...yeniDuve, not: e.target.value })} placeholder="İsteğe bağlı" />
+                        </div>
                         {/* Kapat/Kaydet Butonları */}
                         <div className="btn-group">
                             <button onClick={() => { setDuveEkrani(false); setDuzenlenecekDuve(null); }}>İptal</button>
@@ -547,17 +585,29 @@ const Card = styled.div`
 `;
 
 const ModalOverlay = styled.div`
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
-    @media (max-width: 768px) { align-items: stretch; padding: 0; }
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1001;
+    padding: 16px;
+    overflow-y: auto;
+    @media (max-width: 768px) { align-items: flex-start; padding: 0; }
 `;
 
 const ModalContent = styled.div`
-    background: white; padding: 30px; border-radius: 16px; width: 500px; max-width: 90%;
-    max-height: 90vh; overflow-y: auto;
-    h2 { margin-top: 0; }
-    .form-group { margin-bottom: 15px; label { display: block; margin-bottom: 5px; font-weight: bold; } input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; } }
-    .btn-group { display: flex; gap: 10px; margin-top: 20px; button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; min-height: 44px; } .save { background: #4CAF50; color: white; } }
+    background: white;
+    padding: 28px 32px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    h2 { margin: 0 0 24px 0; font-size: 20px; font-weight: 800; color: #0f172a; }
+    .form-group { margin-bottom: 16px; label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 13px; color: #334155; } input, select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; } }
+    .btn-group { display: flex; gap: 10px; margin-top: 24px; button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; min-height: 44px; } .save { background: linear-gradient(135deg,#4CAF50,#45a049); color: white; } }
+    @media (max-width: 768px) { min-height: 100vh; border-radius: 0; padding: 24px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0)); }
     @media (max-width: 768px) {
         width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
         padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));

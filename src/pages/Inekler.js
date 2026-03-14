@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaThLarge, FaList, FaTable } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaThLarge, FaTable } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import FilterBar from '../components/common/FilterBar';
 
 const PageContainer = styled.div`
@@ -109,8 +110,9 @@ const Inekler = () => {
     const [showModal, setShowModal] = useState(false);
     const [duzenlenecekId, setDuzenlenecekId] = useState(null);
     const [yeniInek, setYeniInek] = useState({
-        isim: '', yas: '', kilo: '', kupeNo: '',
-        dogumTarihi: '', buzagiSayisi: 0, notlar: ''
+        isim: '', kilo: '', kupeNo: '',
+        dogumTarihi: '', buzagiSayisi: 0, notlar: '',
+        gebelikDurumu: 'Belirsiz', tohumlamaTarihi: ''
     });
     const [satinAlma, setSatinAlma] = useState({
         aktif: false,
@@ -158,8 +160,8 @@ const Inekler = () => {
             result.sort((a, b) => {
                 if (sortBy === 'ad_artan') return a.isim.localeCompare(b.isim);
                 if (sortBy === 'ad_azalan') return b.isim.localeCompare(a.isim);
-                if (sortBy === 'yas_genc') return (parseFloat(a.yas) || 0) - (parseFloat(b.yas) || 0);
-                if (sortBy === 'yas_yasli') return (parseFloat(b.yas) || 0) - (parseFloat(a.yas) || 0);
+                if (sortBy === 'yas_genc') return new Date(b.dogumTarihi || 0) - new Date(a.dogumTarihi || 0);
+                if (sortBy === 'yas_yasli') return new Date(a.dogumTarihi || 0) - new Date(b.dogumTarihi || 0);
                 return 0;
             });
         }
@@ -184,49 +186,67 @@ const Inekler = () => {
             try {
                 await api.deleteInek(id);
                 setInekler(prev => prev.filter(i => i._id !== id));
+                toast.success('İnek silindi');
             } catch (error) {
-                alert('Silme başarısız!');
+                toast.error('Silme başarısız!');
             }
         }
+    };
+
+    const yasHesapla = (dogumTarihi) => {
+        if (!dogumTarihi) return null;
+        return Math.floor((new Date() - new Date(dogumTarihi)) / (365.25 * 24 * 60 * 60 * 1000));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const payload = {
+                ...yeniInek,
+                kilo: parseFloat(yeniInek.kilo) || 0,
+                buzagiSayisi: parseInt(yeniInek.buzagiSayisi, 10) || 0
+            };
+            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+
             if (duzenlenecekId) {
-                await api.updateInek(duzenlenecekId, yeniInek);
+                await api.updateInek(duzenlenecekId, payload);
             } else {
                 if (satinAlma.aktif) {
                     await api.createAlisIslemi({
                         hayvanTipi: 'inek',
-                        ...yeniInek,
+                        ...payload,
+                        yas: yasHesapla(payload.dogumTarihi) ?? 0,
                         fiyat: Number(satinAlma.fiyat),
                         aliciSatici: satinAlma.satici,
                         odenenMiktar: Number(satinAlma.odenenMiktar),
                         tarih: satinAlma.tarih,
-                        notlar: `Satın Alındı. ${yeniInek.notlar || ''}`
+                        notlar: `Satın Alındı. ${payload.notlar || ''}`
                     });
                 } else {
-                    await api.createInek(yeniInek);
+                    await api.createInek(payload);
                 }
             }
             fetchInekler();
             resetModal();
-            alert('İşlem başarılı!');
+            toast.success('İşlem başarılı!');
         } catch (error) {
-            alert('İşlem başarısız: ' + (error.response?.data?.message || error.message));
+            toast.error('İşlem başarısız: ' + (error.response?.data?.message || error.message));
         }
     };
 
     const resetModal = () => {
-        setYeniInek({ isim: '', yas: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '' });
+        setYeniInek({ isim: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '', gebelikDurumu: 'Belirsiz', tohumlamaTarihi: '' });
         setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
         setDuzenlenecekId(null);
         setShowModal(false);
     };
 
     const openEdit = (inek) => {
-        setYeniInek(inek);
+        setYeniInek({
+            ...inek,
+            gebelikDurumu: inek.gebelikDurumu || 'Belirsiz',
+            tohumlamaTarihi: inek.tohumlamaTarihi ? new Date(inek.tohumlamaTarihi).toISOString().split('T')[0] : ''
+        });
         setDuzenlenecekId(inek._id);
         setShowModal(true);
     };
@@ -292,7 +312,7 @@ const Inekler = () => {
                                     <tr key={inek._id} style={{ borderBottom: '1px solid #EEE' }}>
                                         <td style={tdStyle}>{inek.kupeNo}</td>
                                         <td style={tdStyle}><strong>{inek.isim}</strong></td>
-                                        <td style={tdStyle}>{inek.yas}</td>
+                                        <td style={tdStyle}>{inek.yas ?? yasHesapla(inek.dogumTarihi) ?? '-'}</td>
                                         <td style={tdStyle}>
                                             <StatusBadge status={inek.gebelikDurumu} />
                                         </td>
@@ -324,7 +344,7 @@ const Inekler = () => {
                                 <StatusBadge status={inek.gebelikDurumu} />
                             </div>
                             <div className="card-stats">
-                                <div className="stat"><span>YAŞ</span><strong>{inek.yas}</strong></div>
+                                <div className="stat"><span>YAŞ</span><strong>{inek.yas ?? yasHesapla(inek.dogumTarihi) ?? '-'}</strong></div>
                                 <div className="stat"><span>KİLO</span><strong>{inek.kilo} kg</strong></div>
                             </div>
                             <div className="card-actions">
@@ -339,8 +359,8 @@ const Inekler = () => {
 
             {/* Modal */}
             {showModal && (
-                <ModalOverlay>
-                    <ModalContent>
+                <ModalOverlay onClick={() => resetModal()}>
+                    <ModalContent onClick={e => e.stopPropagation()}>
                         <h2>{duzenlenecekId ? 'İnek Düzenle' : 'Yeni İnek Ekle'}</h2>
                         <form onSubmit={handleSubmit}>
                             {!duzenlenecekId && (
@@ -376,19 +396,33 @@ const Inekler = () => {
                                 <label>Küpe No:</label>
                                 <input type="text" required value={yeniInek.kupeNo} onChange={e => setYeniInek({ ...yeniInek, kupeNo: e.target.value })} style={inputStyle} />
                             </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={formGroupStyle}>
-                                    <label>Yaş:</label>
-                                    <input type="number" required value={yeniInek.yas} onChange={e => setYeniInek({ ...yeniInek, yas: e.target.value })} style={inputStyle} />
+                                    <label>Doğum Tarihi: *</label>
+                                    <input type="date" required value={yeniInek.dogumTarihi} onChange={e => setYeniInek({ ...yeniInek, dogumTarihi: e.target.value })} style={inputStyle} />
                                 </div>
                                 <div style={formGroupStyle}>
-                                    <label>Kilo:</label>
-                                    <input type="number" required value={yeniInek.kilo} onChange={e => setYeniInek({ ...yeniInek, kilo: e.target.value })} style={inputStyle} />
+                                    <label>Kilo (kg): *</label>
+                                    <input type="number" required min="0" step="0.1" value={yeniInek.kilo} onChange={e => setYeniInek({ ...yeniInek, kilo: e.target.value })} style={inputStyle} />
                                 </div>
                             </div>
                             <div style={formGroupStyle}>
-                                <label>Doğum Tarihi:</label>
-                                <input type="date" value={yeniInek.dogumTarihi} onChange={e => setYeniInek({ ...yeniInek, dogumTarihi: e.target.value })} style={inputStyle} />
+                                <label>Gebelik Durumu:</label>
+                                <select value={yeniInek.gebelikDurumu} onChange={e => setYeniInek({ ...yeniInek, gebelikDurumu: e.target.value, tohumlamaTarihi: e.target.value === 'Gebe' ? yeniInek.tohumlamaTarihi : '' })} style={{ ...inputStyle, padding: '10px 12px' }}>
+                                    <option value="Belirsiz">❓ Belirsiz</option>
+                                    <option value="Gebe">✅ Gebe</option>
+                                    <option value="Gebe Değil">❌ Gebe Değil</option>
+                                </select>
+                            </div>
+                            {yeniInek.gebelikDurumu === 'Gebe' && (
+                                <div style={formGroupStyle}>
+                                    <label>Tohumlama Tarihi: *</label>
+                                    <input type="date" required value={yeniInek.tohumlamaTarihi} onChange={e => setYeniInek({ ...yeniInek, tohumlamaTarihi: e.target.value })} style={inputStyle} />
+                                </div>
+                            )}
+                            <div style={formGroupStyle}>
+                                <label>Notlar:</label>
+                                <textarea rows={3} value={yeniInek.notlar || ''} onChange={e => setYeniInek({ ...yeniInek, notlar: e.target.value })} style={{ ...inputStyle, resize: 'vertical' }} placeholder="İsteğe bağlı notlar..." />
                             </div>
                             <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                 <button type="button" onClick={resetModal} style={{ ...btnStyle, backgroundColor: '#95A5A6' }}>İptal</button>
@@ -404,15 +438,19 @@ const Inekler = () => {
 
 // --- Sub Components & Styles ---
 
-const StatusBadge = ({ status }) => (
-    <span style={{
-        padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold',
-        backgroundColor: status === 'Gebe' ? '#E8F5E9' : '#FFF3E0',
-        color: status === 'Gebe' ? '#2E7D32' : '#EF6C00'
-    }}>
-        {status || 'Boş'}
-    </span>
-);
+const StatusBadge = ({ status }) => {
+    const style = status === 'Gebe' ? { bg: '#E8F5E9', color: '#2E7D32', label: 'Gebe' }
+        : status === 'Gebe Değil' ? { bg: '#FFEBEE', color: '#C62828', label: 'Gebe Değil' }
+        : { bg: '#FFF8E1', color: '#F57F17', label: 'Belirsiz' };
+    return (
+        <span style={{
+            padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold',
+            backgroundColor: style.bg, color: style.color
+        }}>
+            {style.label}
+        </span>
+    );
+};
 
 const Card = styled.div`
   background: white;
@@ -461,25 +499,25 @@ const Card = styled.div`
     padding-top: 15px;
 
     .btn {
-      border: 1px solid #eee;
+      border: 1px solid #e2e8f0;
       background: white;
-      padding: 8px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 14px;
-      
-      &.view { color: #F39C12; }
-      &.edit { color: #3498DB; }
-      &.delete { color: #E74C3C; }
-      
-      &:hover { background: #f9f9f9; }
-    }
-  }
-  @media (max-width: 768px) {
-    .card-actions .btn {
-      min-height: 44px;
+      font-size: 15px;
       min-width: 44px;
-      padding: 12px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      
+      &.view { color: #F59E0B; }
+      &.edit { color: #3B82F6; }
+      &.delete { color: #EF4444; }
+      
+      &:hover { background: #f8fafc; }
+      &:active { transform: scale(0.97); }
     }
   }
 `;
@@ -487,45 +525,68 @@ const Card = styled.div`
 const thStyle = { padding: '15px', textAlign: 'left', fontSize: '14px', color: '#666' };
 const tdStyle = { padding: '15px', fontSize: '14px', color: '#333' };
 const actionBtnStyle = (color) => ({
-    border: 'none', background: 'none', cursor: 'pointer', color: color, fontSize: '16px', marginRight: '10px'
+    border: 'none', background: 'transparent', cursor: 'pointer', color: color, fontSize: '18px',
+    marginRight: '8px', padding: '10px', minWidth: '44px', minHeight: '44px',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: '10px', transition: 'background 0.2s'
 });
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(15,23,42,0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1001;
   padding: 16px;
+  overflow-y: auto;
   @media (max-width: 768px) {
-    align-items: stretch;
+    align-items: flex-start;
     padding: 0;
   }
 `;
 const ModalContent = styled.div`
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 400px;
-  max-width: 90%;
+  padding: 28px 32px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+  animation: modalIn 0.25s ease;
+
+  h2 {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
   @media (max-width: 768px) {
     width: 100%;
     max-width: 100%;
-    max-height: none;
     min-height: 100vh;
     border-radius: 0;
-    padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+    padding: 24px 20px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
   }
 `;
-const formGroupStyle = { marginBottom: '15px' };
-const inputStyle = { width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #DDD', marginTop: '5px' };
-const btnStyle = { padding: '10px 20px', border: 'none', borderRadius: '5px', color: 'white', cursor: 'pointer' };
+const formGroupStyle = { marginBottom: '16px' };
+const inputStyle = {
+  width: '100%', padding: '10px 14px', borderRadius: '10px',
+  border: '1.5px solid #e2e8f0', marginTop: '6px', fontSize: '14px',
+  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s'
+};
+const btnStyle = { padding: '10px 22px', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '14px' };
 
 export default Inekler;

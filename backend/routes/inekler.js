@@ -81,21 +81,35 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
   }
 });
 
+// Yaş hesapla (dogumTarihi'nden)
+const yasHesapla = (dogumTarihi) => {
+  if (!dogumTarihi) return null;
+  const dogum = new Date(dogumTarihi);
+  const bugun = new Date();
+  return Math.floor((bugun - dogum) / (365.25 * 24 * 60 * 60 * 1000));
+};
+
 // YENİ İNEK EKLE
 router.post('/', auth, planCheck, async (req, res) => {
   try {
-    const { isim, yas, kilo, kupeNo, dogumTarihi, buzagiSayisi, notlar } = req.body;
+    const { isim, yas, kilo, kupeNo, dogumTarihi, buzagiSayisi, notlar, gebelikDurumu, tohumlamaTarihi } = req.body;
+
+    // Yaş: dogumTarihi varsa hesapla, yoksa body'den al
+    const hesaplananYas = dogumTarihi ? yasHesapla(dogumTarihi) : null;
+    const finalYas = hesaplananYas !== null ? hesaplananYas : (parseInt(yas, 10) || 0);
 
     const inek = new Inek({
       userId: req.userId,
       tenantId: req.tenantId || null,
       isim,
-      yas,
+      yas: finalYas,
       kilo,
       kupeNo,
-      dogumTarihi,
-      buzagiSayisi,
+      dogumTarihi: dogumTarihi || undefined,
+      buzagiSayisi: buzagiSayisi || 0,
       notlar,
+      gebelikDurumu: gebelikDurumu || 'Belirsiz',
+      tohumlamaTarihi: tohumlamaTarihi || null,
     });
 
     await inek.save();
@@ -128,24 +142,26 @@ router.put('/:id', auth, async (req, res) => {
       filter.tenantId = req.tenantId;
     }
 
-    const inek = await Inek.findOneAndUpdate(
-      filter,
-      {
-        isim,
-        yas,
-        kilo,
-        kupeNo,
-        dogumTarihi,
-        buzagiSayisi,
-        notlar,
-        gebelikDurumu,
-        tohumlamaTarihi,
-        sonBuzagilamaTarihi,
-        kuruDonemiBaslangic,
-        laktasyonDonemi
-      },
-      { new: true }
-    );
+    const update = {};
+    if (isim !== undefined) update.isim = isim;
+    if (kilo !== undefined) update.kilo = kilo;
+    if (kupeNo !== undefined) update.kupeNo = kupeNo;
+    if (dogumTarihi !== undefined) update.dogumTarihi = dogumTarihi;
+    if (buzagiSayisi !== undefined) update.buzagiSayisi = buzagiSayisi;
+    if (notlar !== undefined) update.notlar = notlar;
+    if (gebelikDurumu !== undefined) update.gebelikDurumu = gebelikDurumu;
+    if (tohumlamaTarihi !== undefined) update.tohumlamaTarihi = tohumlamaTarihi || null;
+    if (sonBuzagilamaTarihi !== undefined) update.sonBuzagilamaTarihi = sonBuzagilamaTarihi;
+    if (kuruDonemiBaslangic !== undefined) update.kuruDonemiBaslangic = kuruDonemiBaslangic;
+    if (laktasyonDonemi !== undefined) update.laktasyonDonemi = laktasyonDonemi;
+
+    if (dogumTarihi) {
+      update.yas = yasHesapla(dogumTarihi);
+    } else if (yas !== undefined) {
+      update.yas = parseInt(yas, 10);
+    }
+
+    const inek = await Inek.findOneAndUpdate(filter, { $set: update }, { new: true });
 
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
