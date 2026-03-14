@@ -10,7 +10,7 @@ import HizliYemlemeWidget from './HizliYemlemeWidget';
 import SaglikUyariCard from './SaglikUyariCard';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell } from 'react-icons/fa';
+import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaListAlt, FaSeedling, FaBaby } from 'react-icons/fa';
 
 // --- Animations ---
 const fadeInUp = keyframes`
@@ -349,12 +349,103 @@ const LiveDot = styled.span`
   box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
 `;
 
+// --- Mobile Quick Access Bar ---
+
+const MobileQuickBar = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px 2px 12px;
+    margin-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+`;
+
+const QuickNavBtn = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 2px solid ${props => props.$active ? colors.primary : 'rgba(0,0,0,0.07)'};
+  background: ${props => props.$active ? colors.bg.green : 'white'};
+  color: ${props => props.$active ? colors.primary : colors.text.secondary};
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 74px;
+  box-shadow: ${props => props.$active
+    ? '0 4px 14px rgba(46,125,50,0.18)'
+    : '0 2px 8px rgba(0,0,0,0.06)'};
+
+  .qicon { font-size: 18px; line-height: 1; }
+
+  &:active { transform: scale(0.93); }
+`;
+
+const QuickNavBadge = styled.span`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #f44336;
+  color: white;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.4;
+`;
+
+const MobilePanelWrapper = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    margin-bottom: 16px;
+    animation: ${fadeInUp} 0.3s ease;
+  }
+`;
+
+const MobileHide = styled.div`
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+`;
+
+const MobileHideGridItem = styled.div`
+  grid-column: ${props => props.span ? `span ${props.span}` : 'span 4'};
+  animation: ${fadeInUp} 0.5s ease;
+  animation-delay: ${props => props.delay || '0s'};
+  animation-fill-mode: both;
+
+  @media (max-width: 1200px) {
+    grid-column: ${props => props.spanMd ? `span ${props.spanMd}` : `span ${Math.min(props.span || 4, 6)}`};
+  }
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+`;
+
 
 
 const Dashboard = ({ kullanici }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mobilePaneli, setMobilePaneli] = useState(null);
   const [data, setData] = useState({
     stats: null,
     performans: [],
@@ -362,6 +453,8 @@ const Dashboard = ({ kullanici }) => {
     aktiviteler: [],
     topCows: []
   });
+
+  const toggleMobilePanel = (panel) => setMobilePaneli(prev => prev === panel ? null : panel);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -521,54 +614,126 @@ const Dashboard = ({ kullanici }) => {
           bg={colors.bg.purple}
           description="Önümüzdeki 30 gün"
           clickable
-          onClick={() => {
-            const el = document.getElementById('dogum-takvimi');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
+          onClick={() => toggleMobilePanel('dogum')}
         />
       </Grid>
 
-      {/* --- CHARTS ROW --- */}
-      <SectionTitle>📈 Performans</SectionTitle>
-      <Grid>
-        <AnimatedGridItem span={8} delay="0.1s">
-          <PerformansChart
-            data={data.performans}
-            title="Süt Performans Eğrisi (30 Gün)"
-            type="area"
-            color={colors.primary}
-          />
-        </AnimatedGridItem>
+      {/* --- MOBİL HIZLI ERİŞİM ÇUBUĞU --- */}
+      <MobileQuickBar>
+        <QuickNavBtn $active={mobilePaneli === 'grafikler'} onClick={() => toggleMobilePanel('grafikler')}>
+          <FaChartLine className="qicon" />
+          Grafikler
+        </QuickNavBtn>
+        <QuickNavBtn $active={mobilePaneli === 'yapilacaklar'} onClick={() => toggleMobilePanel('yapilacaklar')}>
+          <FaListAlt className="qicon" />
+          Yapılacaklar
+          {data.yapilacaklar.length > 0 && (
+            <QuickNavBadge>{data.yapilacaklar.length > 9 ? '9+' : data.yapilacaklar.length}</QuickNavBadge>
+          )}
+        </QuickNavBtn>
+        <QuickNavBtn $active={mobilePaneli === 'yemleme'} onClick={() => toggleMobilePanel('yemleme')}>
+          <FaSeedling className="qicon" />
+          Yemleme
+        </QuickNavBtn>
+        <QuickNavBtn $active={mobilePaneli === 'dogum'} onClick={() => toggleMobilePanel('dogum')}>
+          <FaBaby className="qicon" />
+          Doğumlar
+          {(data.stats?.yaklaşanDogum || 0) > 0 && (
+            <QuickNavBadge>{data.stats.yaklaşanDogum > 9 ? '9+' : data.stats.yaklaşanDogum}</QuickNavBadge>
+          )}
+        </QuickNavBtn>
+      </MobileQuickBar>
 
-        <AnimatedGridItem span={4} delay="0.2s">
-          <Widget>
-            <h3>📊 Sürü Dağılımı</h3>
-            {getHerdData().length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={getHerdData()}
-                    innerRadius={55}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {getHerdData().map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '13px' }}>
-                Henüz hayvan verisi yok
+      {/* --- MOBİL PANEL İÇERİĞİ --- */}
+      {mobilePaneli && (
+        <MobilePanelWrapper>
+          {mobilePaneli === 'grafikler' && (
+            <>
+              <div style={{ marginBottom: 12 }}>
+                <PerformansChart
+                  data={data.performans}
+                  title="Süt Performans Eğrisi (30 Gün)"
+                  type="area"
+                  color={colors.primary}
+                />
               </div>
-            )}
-          </Widget>
-        </AnimatedGridItem>
-      </Grid>
+              <Widget>
+                <h3>📊 Sürü Dağılımı</h3>
+                {getHerdData().length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie data={getHerdData()} innerRadius={50} outerRadius={75} paddingAngle={5} dataKey="value">
+                        {getHerdData().map((entry, index) => (
+                          <Cell key={`cell-m-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '13px', padding: '24px 0' }}>
+                    Henüz hayvan verisi yok
+                  </div>
+                )}
+              </Widget>
+            </>
+          )}
+          {mobilePaneli === 'yapilacaklar' && (
+            <YapilacaklarCard bildirimler={data.yapilacaklar} />
+          )}
+          {mobilePaneli === 'yemleme' && (
+            <HizliYemlemeWidget />
+          )}
+          {mobilePaneli === 'dogum' && (
+            <YaklasanDogumlar />
+          )}
+        </MobilePanelWrapper>
+      )}
+
+      {/* --- CHARTS ROW (masaüstünde görünür, mobilde gizli) --- */}
+      <MobileHide>
+        <SectionTitle>📈 Performans</SectionTitle>
+        <Grid>
+          <AnimatedGridItem span={8} delay="0.1s">
+            <PerformansChart
+              data={data.performans}
+              title="Süt Performans Eğrisi (30 Gün)"
+              type="area"
+              color={colors.primary}
+            />
+          </AnimatedGridItem>
+
+          <AnimatedGridItem span={4} delay="0.2s">
+            <Widget>
+              <h3>📊 Sürü Dağılımı</h3>
+              {getHerdData().length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={getHerdData()}
+                      innerRadius={55}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {getHerdData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '13px' }}>
+                  Henüz hayvan verisi yok
+                </div>
+              )}
+            </Widget>
+          </AnimatedGridItem>
+        </Grid>
+      </MobileHide>
 
       {/* --- WIDGETS ROW 1 --- */}
       <SectionTitle>🏆 Operasyon</SectionTitle>
@@ -601,15 +766,15 @@ const Dashboard = ({ kullanici }) => {
           </Widget>
         </AnimatedGridItem>
 
-        {/* Yapılacaklar */}
-        <AnimatedGridItem span={4} delay="0.15s">
+        {/* Yapılacaklar - mobilde gizli, masaüstünde görünür */}
+        <MobileHideGridItem span={4} delay="0.15s">
           <YapilacaklarCard bildirimler={data.yapilacaklar} />
-        </AnimatedGridItem>
+        </MobileHideGridItem>
 
-        {/* Hızlı Yemleme */}
-        <AnimatedGridItem span={4} delay="0.2s">
+        {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
+        <MobileHideGridItem span={4} delay="0.2s">
           <HizliYemlemeWidget />
-        </AnimatedGridItem>
+        </MobileHideGridItem>
       </Grid>
 
       {/* --- WIDGETS ROW 2 --- */}
@@ -623,13 +788,15 @@ const Dashboard = ({ kullanici }) => {
         </AnimatedGridItem>
       </Grid>
 
-      {/* --- YAKLAŞAN DOĞUMLAR --- */}
-      <SectionTitle id="dogum-takvimi">🤰 Doğum Takvimi</SectionTitle>
-      <Grid>
-        <AnimatedGridItem span={12} delay="0.1s">
-          <YaklasanDogumlar />
-        </AnimatedGridItem>
-      </Grid>
+      {/* --- YAKLAŞAN DOĞUMLAR (masaüstünde görünür, mobilde gizli — butonla açılır) --- */}
+      <MobileHide>
+        <SectionTitle id="dogum-takvimi">🤰 Doğum Takvimi</SectionTitle>
+        <Grid>
+          <AnimatedGridItem span={12} delay="0.1s">
+            <YaklasanDogumlar />
+          </AnimatedGridItem>
+        </Grid>
+      </MobileHide>
 
     </DashboardContainer>
   );
