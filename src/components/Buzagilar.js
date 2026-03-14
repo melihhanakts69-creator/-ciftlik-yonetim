@@ -314,10 +314,10 @@ const Buzagilar = () => {
                   <div className="stat-box"><span>KÜPE</span><strong>{b.kupeNo}</strong></div>
                 </div>
                 <div className="actions">
-                  <button onClick={(e) => { e.stopPropagation(); navigate(`/buzagi-detay/${b._id}`) }} className="view">👁️</button>
-                  {transferUygun && <button onClick={(e) => { e.stopPropagation(); handleGecis(b) }} className="transfer"><FaArrowRight /></button>}
-                  <button onClick={(e) => { e.stopPropagation(); setDuzenlenecekBuzagi(b); setShowModal(true) }} className="edit"><FaEdit /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleSil(b._id) }} className="delete"><FaTrash /></button>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/buzagi-detay/${b._id}`) }} className="view">👁️</button>
+                  {transferUygun && <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleGecis(b) }} className="transfer"><FaArrowRight /></button>}
+                  <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDuzenlenecekBuzagi(b); setShowModal(true) }} className="edit"><FaEdit /></button>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSil(b._id) }} className="delete"><FaTrash /></button>
                 </div>
               </Card>
             )
@@ -390,7 +390,21 @@ const Card = styled.div`
     &:hover { transform: translateY(-3px); }
     .header { display: flex; justify-content: space-between; margin-bottom: 15px; h3 { margin: 0; } }
     .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; .stat-box { background: #f8f9fa; padding: 8px; text-align: center; border-radius: 8px; span { display: block; font-size: 10px; color: #999; } } }
-    .actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #eee; padding-top: 15px; button { border: 1px solid #eee; background: white; padding: 8px; border-radius: 6px; cursor: pointer; } .view { color: #2196F3; } .edit { color: #FF9800; } .delete { color: #f44336; } .transfer { color: #4CAF50; }}
+    .actions {
+        display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eee; padding-top: 15px;
+        button {
+            border: 1.5px solid #e2e8f0; background: white; padding: 10px 14px; border-radius: 10px;
+            cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s, transform 0.1s;
+            &:hover { background: #f8fafc; }
+            &:active { transform: scale(0.96); }
+        }
+        .view { color: #2196F3; }
+        .edit { color: #FF9800; }
+        .delete { color: #f44336; }
+        .transfer { color: #4CAF50; }
+    }
 `;
 const Badge = styled.span` padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; background: ${props => props.gender === 'disi' ? '#FCE4EC' : '#E3F2FD'}; color: ${props => props.gender === 'disi' ? '#C2185B' : '#1976D2'}; `;
 const ModalOverlay = styled.div`

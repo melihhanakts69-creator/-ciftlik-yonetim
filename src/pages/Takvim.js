@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import {
-  FiChevronLeft, FiChevronRight, FiCalendar, FiActivity,
+  FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp, FiCalendar, FiActivity,
   FiDroplet, FiHeart, FiBell, FiAlertCircle, FiClipboard, FiTruck, FiList, FiGrid
 } from 'react-icons/fi';
 import * as api from '../services/api';
@@ -336,7 +336,22 @@ const AgendaDayHeader = styled.div`
   gap: 12px;
   padding: 12px 16px;
   background: ${p => p.$isToday ? 'linear-gradient(135deg, #ecfdf5, #f0fdf4)' : '#f8fafc'};
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: ${p => p.$expanded ? 'none' : '1px solid #e2e8f0'};
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  
+  &:hover { background: ${p => p.$isToday ? '#dcfce7' : '#f1f5f9'}; }
+  &:active { opacity: 0.95; }
+  
+  .chevron {
+    margin-left: auto;
+    color: #64748b;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
 `;
 
 const AgendaDayNum = styled.div`
@@ -365,6 +380,8 @@ const AgendaDayInfo = styled.div`
 const AgendaEventList = styled.div`
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  animation: ${fadeIn} 0.25s ease;
 `;
 
 const AgendaEventRow = styled.div`
@@ -490,6 +507,7 @@ export default function Takvim() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState(isMobile ? 'liste' : 'takvim');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [expandedDays, setExpandedDays] = useState(new Set());
 
   const fetchEvents = async (date) => {
     setLoading(true);
@@ -561,6 +579,17 @@ export default function Takvim() {
       }
     }
     return result;
+  };
+
+  const dayKey = (day) => `${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`;
+  const toggleDay = (day) => {
+    const key = dayKey(day);
+    setExpandedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   const strMonths = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -713,9 +742,10 @@ export default function Takvim() {
               const isT = day === todayN.getDate()
                 && currentDate.getMonth() === todayN.getMonth()
                 && currentDate.getFullYear() === todayN.getFullYear();
+              const expanded = expandedDays.has(dayKey(day));
               return (
                 <AgendaDayGroup key={day}>
-                  <AgendaDayHeader $isToday={isT}>
+                  <AgendaDayHeader $isToday={isT} $expanded={expanded} onClick={() => toggleDay(day)}>
                     <AgendaDayNum $isToday={isT}>{day}</AgendaDayNum>
                     <AgendaDayInfo>
                       <div className="day-name">
@@ -724,22 +754,25 @@ export default function Takvim() {
                       </div>
                       <div className="day-count">{dayEvts.length} etkinlik</div>
                     </AgendaDayInfo>
+                    <span className="chevron">{expanded ? <FiChevronUp /> : <FiChevronDown />}</span>
                   </AgendaDayHeader>
-                  <AgendaEventList>
-                    {dayEvts.map(e => {
-                      const cfg = getStyle(e.type);
-                      return (
-                        <AgendaEventRow key={e.id}>
-                          <AgendaEventIcon $bg={cfg.bg} $color={cfg.color}>{cfg.icon}</AgendaEventIcon>
-                          <AgendaEventContent>
-                            <div className="evt-title">{e.title}</div>
-                            <div className="evt-type">{cfg.label}</div>
-                          </AgendaEventContent>
-                          <AgendaTypeBadge $bg={cfg.bg} $color={cfg.color}>{cfg.label}</AgendaTypeBadge>
-                        </AgendaEventRow>
-                      );
-                    })}
-                  </AgendaEventList>
+                  {expanded && (
+                    <AgendaEventList>
+                      {dayEvts.map(e => {
+                        const cfg = getStyle(e.type);
+                        return (
+                          <AgendaEventRow key={e.id}>
+                            <AgendaEventIcon $bg={cfg.bg} $color={cfg.color}>{cfg.icon}</AgendaEventIcon>
+                            <AgendaEventContent>
+                              <div className="evt-title">{e.title}</div>
+                              <div className="evt-type">{cfg.label}</div>
+                            </AgendaEventContent>
+                            <AgendaTypeBadge $bg={cfg.bg} $color={cfg.color}>{cfg.label}</AgendaTypeBadge>
+                          </AgendaEventRow>
+                        );
+                      })}
+                    </AgendaEventList>
+                  )}
                 </AgendaDayGroup>
               );
             })

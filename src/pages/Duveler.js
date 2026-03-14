@@ -406,14 +406,15 @@ function Duveler() {
                                 </div>
 
                                 <div className="actions">
-                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/duve-detay/${d._id}`); }} className="view"><FaEye /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setDuzenlenecekDuve(d); }} className="edit"><FaEdit /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); duveSil(d._id); }} className="delete"><FaTrash /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/duve-detay/${d._id}`); }} className="view"><FaEye /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDuzenlenecekDuve(d); }} className="edit"><FaEdit /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); duveSil(d._id); }} className="delete"><FaTrash /></button>
                                 </div>
 
                                 {d.gebelikDurumu === 'Gebe' && d.tohumlamaTarihi && (
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); setDogumYapacakDuve(d); setDogumEkrani(true); }}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDogumYapacakDuve(d); setDogumEkrani(true); }}
                                         className="birth-btn"
                                     >
                                         🤰 Doğurdu
@@ -631,9 +632,18 @@ const Card = styled.div`
     }
 
     .actions {
-        display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #eee; padding-top: 15px;
-        button { border: 1px solid #eee; background: white; padding: 8px; border-radius: 6px; cursor: pointer; }
-        .view { color: #2196F3; } .edit { color: #FF9800; } .delete { color: #f44336; }
+        display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #eee; padding-top: 15px;
+        button {
+            border: 1.5px solid #e2e8f0; background: white; padding: 10px 14px; border-radius: 10px;
+            cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s, transform 0.1s;
+            &:hover { background: #f8fafc; }
+            &:active { transform: scale(0.96); }
+        }
+        .view { color: #2196F3; }
+        .edit { color: #FF9800; }
+        .delete { color: #f44336; }
     }
     
     .birth-btn {

@@ -371,9 +371,9 @@ const Inekler = () => {
                                 <div className="stat"><span>KİLO</span><strong>{inek.kilo} kg</strong></div>
                             </div>
                             <div className="card-actions">
-                                <button onClick={(e) => { e.stopPropagation(); navigate(`/inek-detay/${inek._id}`); }} className="btn view"><FaEye /></button>
-                                <button onClick={(e) => { e.stopPropagation(); openEdit(inek); }} className="btn edit"><FaEdit /></button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDelete(inek._id); }} className="btn delete"><FaTrash /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/inek-detay/${inek._id}`); }} className="btn view"><FaEye /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); openEdit(inek); }} className="btn edit"><FaEdit /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleDelete(inek._id); }} className="btn delete"><FaTrash /></button>
                             </div>
                         </Card>
                     ))}
@@ -541,14 +541,14 @@ const Card = styled.div`
   .card-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
     border-top: 1px solid #eee;
     padding-top: 15px;
 
     .btn {
-      border: 1px solid #e2e8f0;
+      border: 1.5px solid #e2e8f0;
       background: white;
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-radius: 10px;
       cursor: pointer;
       font-size: 15px;
@@ -557,14 +557,18 @@ const Card = styled.div`
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      z-index: 2;
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, transform 0.1s;
       
       &.view { color: #F59E0B; }
       &.edit { color: #3B82F6; }
       &.delete { color: #EF4444; }
       
       &:hover { background: #f8fafc; }
-      &:active { transform: scale(0.97); }
+      &:active { transform: scale(0.96); }
     }
   }
 `;
