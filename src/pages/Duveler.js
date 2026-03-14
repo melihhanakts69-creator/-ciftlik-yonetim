@@ -180,20 +180,28 @@ function Duveler() {
     };
 
     const GEBELIK_KONTROL_GUN = 28;
-    const tohumlamaGebeValidasyonu = (gebelikDurumu, tohumlamaTarihi) => {
-        if (gebelikDurumu !== 'Gebe' || !tohumlamaTarihi) return null;
-        const tohum = new Date(tohumlamaTarihi);
+    const GEBELIK_SURE_GUN = 283;
+    const gebelikValidasyonHata = (durum, tohumStr) => {
+        const d = durum ?? (duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu);
+        const t = tohumStr ?? (duzenlenecekDuve ? duzenlenecekDuve.tohumlamaTarihi : yeniDuve.tohumlamaTarihi);
+        const tohum = t ? new Date(t) : null;
+        if (!tohum) return null;
         const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
         const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
-        if (gecenGun < GEBELIK_KONTROL_GUN) {
-            return `Gebelik kontrolü henüz yapılmadığı için (tohumlama üzerinden ${gecenGun} gün geçti, kontrol 28 gün sonra yapılır) 'Belirsiz' seçmelisiniz.`;
+        if (d === 'Gebe') {
+            if (gecenGun < GEBELIK_KONTROL_GUN)
+                return `Gebelik kontrolü henüz yapılmadı (${gecenGun} gün geçti). 'Belirsiz' seçmelisiniz.`;
+            return null;
         }
+        if (d === 'Belirsiz' && gecenGun >= GEBELIK_KONTROL_GUN && gecenGun < GEBELIK_SURE_GUN)
+            return `Gebelik kontrolü yapıldı (${gecenGun} gün geçti). 'Gebe' veya 'Gebe Değil' seçmelisiniz.`;
         return null;
     };
 
     // --- CRUD Operations ---
     const duveEkle = async () => {
-        const validasyonHata = tohumlamaGebeValidasyonu(yeniDuve.gebelikDurumu, yeniDuve.tohumlamaTarihi);
+        const validasyonHata = gebelikValidasyonHata(yeniDuve.gebelikDurumu, yeniDuve.tohumlamaTarihi);
         if (validasyonHata) {
             toast.error(validasyonHata);
             return;
@@ -226,7 +234,7 @@ function Duveler() {
     };
 
     const duveGuncelle = async () => {
-        const validasyonHata = tohumlamaGebeValidasyonu(duzenlenecekDuve.gebelikDurumu, duzenlenecekDuve.tohumlamaTarihi);
+        const validasyonHata = gebelikValidasyonHata(duzenlenecekDuve.gebelikDurumu, duzenlenecekDuve.tohumlamaTarihi);
         if (validasyonHata) {
             toast.error(validasyonHata);
             return;
@@ -467,16 +475,43 @@ function Duveler() {
                         </div>
                         <div className="form-group">
                             <label>Gebelik Durumu</label>
-                            <select value={duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, gebelikDurumu: e.target.value }) : setYeniDuve({ ...yeniDuve, gebelikDurumu: e.target.value })}>
+                            <select
+                                value={duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    const mevcutTohum = duzenlenecekDuve ? duzenlenecekDuve.tohumlamaTarihi : yeniDuve.tohumlamaTarihi;
+                                    const yeniTohum = val === 'Gebe Değil' ? '' : mevcutTohum;
+                                    if (duzenlenecekDuve) setDuzenlenecekDuve({ ...duzenlenecekDuve, gebelikDurumu: val, tohumlamaTarihi: yeniTohum });
+                                    else setYeniDuve({ ...yeniDuve, gebelikDurumu: val, tohumlamaTarihi: yeniTohum });
+                                    const h = gebelikValidasyonHata(val, yeniTohum);
+                                    if (h) toast.error(h);
+                                }}
+                                style={{ borderColor: gebelikValidasyonHata() ? '#dc2626' : undefined }}
+                            >
                                 <option value="Belirsiz">Belirsiz</option>
                                 <option value="Gebe">Gebe</option>
                                 <option value="Gebe Değil">Gebe Değil</option>
                             </select>
                         </div>
-                        {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe') && (
+                        {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe' || (duzenlenecekDuve ? duzenlenecekDuve.tohumlamaTarihi : yeniDuve.tohumlamaTarihi)) && (
                             <div className="form-group">
-                                <label>Tohumlama Tarihi *</label>
-                                <input type="date" value={duzenlenecekDuve ? (duzenlenecekDuve.tohumlamaTarihi ? new Date(duzenlenecekDuve.tohumlamaTarihi).toISOString().split('T')[0] : '') : yeniDuve.tohumlamaTarihi} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, tohumlamaTarihi: e.target.value }) : setYeniDuve({ ...yeniDuve, tohumlamaTarihi: e.target.value })} />
+                                <label>Tohumlama Tarihi {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe') ? '*' : ''}</label>
+                                <input
+                                    type="date"
+                                    required={((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe')}
+                                    value={duzenlenecekDuve ? (duzenlenecekDuve.tohumlamaTarihi ? new Date(duzenlenecekDuve.tohumlamaTarihi).toISOString().split('T')[0] : '') : yeniDuve.tohumlamaTarihi}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (duzenlenecekDuve) setDuzenlenecekDuve({ ...duzenlenecekDuve, tohumlamaTarihi: val });
+                                        else setYeniDuve({ ...yeniDuve, tohumlamaTarihi: val });
+                                        const h = gebelikValidasyonHata(duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu, val);
+                                        if (h) toast.error(h);
+                                    }}
+                                    style={{ borderColor: gebelikValidasyonHata() ? '#dc2626' : undefined }}
+                                />
+                                {gebelikValidasyonHata() && (
+                                    <span style={{ fontSize: 12, color: '#dc2626', marginTop: 4, display: 'block' }}>{gebelikValidasyonHata()}</span>
+                                )}
                             </div>
                         )}
                         <div className="form-group">
@@ -609,13 +644,18 @@ const Card = styled.div`
 
 const ModalOverlay = styled.div`
     position: fixed; inset: 0;
-    background: rgba(15,23,42,0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15,23,42,0.5);
+    backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
     z-index: 1001;
-    padding: 16px;
+    padding: 20px;
     overflow-y: auto;
-    @media (max-width: 768px) { align-items: flex-start; padding: 0; }
+
+    @media (max-width: 768px) {
+        padding: 16px 12px 24px;
+        align-items: flex-start;
+        padding-top: max(16px, env(safe-area-inset-top));
+    }
 `;
 
 const ModalContent = styled.div`
@@ -626,14 +666,25 @@ const ModalContent = styled.div`
     max-width: 480px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04);
+    animation: modalIn 0.3s ease;
+
     h2 { margin: 0 0 24px 0; font-size: 20px; font-weight: 800; color: #0f172a; }
     .form-group { margin-bottom: 16px; label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 13px; color: #334155; } input, select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; } }
     .btn-group { display: flex; gap: 10px; margin-top: 24px; button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; min-height: 44px; } .save { background: linear-gradient(135deg,#4CAF50,#45a049); color: white; } }
-    @media (max-width: 768px) { min-height: 100vh; border-radius: 0; padding: 24px 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0)); }
+
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.97) translateY(12px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
     @media (max-width: 768px) {
-        width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
-        padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+        width: 100%; max-width: 100%;
+        max-height: 85vh;
+        border-radius: 16px;
+        padding: 22px 18px;
+        padding-bottom: calc(22px + env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
     }
 `;
 

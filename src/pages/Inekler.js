@@ -198,21 +198,27 @@ const Inekler = () => {
         return Math.floor((new Date() - new Date(dogumTarihi)) / (365.25 * 24 * 60 * 60 * 1000));
     };
 
-    const GEBELIK_KONTROL_GUN = 28; // Gebelik kontrolü 21-28 gün sonra yapılır
-    const tohumlamaGebeValidasyonu = () => {
-        if (yeniInek.gebelikDurumu !== 'Gebe' || !yeniInek.tohumlamaTarihi) return null;
-        const tohum = new Date(yeniInek.tohumlamaTarihi);
+    const GEBELIK_KONTROL_GUN = 28;
+    const GEBELIK_SURE_GUN = 283;
+    const gebelikValidasyonHata = (durum = yeniInek.gebelikDurumu, tohumStr = yeniInek.tohumlamaTarihi) => {
+        const tohum = tohumStr ? new Date(tohumStr) : null;
+        if (!tohum) return null;
         const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
         const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
-        if (gecenGun < GEBELIK_KONTROL_GUN) {
-            return `Gebelik kontrolü henüz yapılmadığı için (tohumlama üzerinden ${gecenGun} gün geçti, kontrol 28 gün sonra yapılır) 'Belirsiz' seçmelisiniz.`;
+        if (durum === 'Gebe') {
+            if (gecenGun < GEBELIK_KONTROL_GUN)
+                return `Gebelik kontrolü henüz yapılmadı (${gecenGun} gün geçti). 'Belirsiz' seçmelisiniz.`;
+            return null;
         }
+        if (durum === 'Belirsiz' && gecenGun >= GEBELIK_KONTROL_GUN && gecenGun < GEBELIK_SURE_GUN)
+            return `Gebelik kontrolü yapıldı (${gecenGun} gün geçti). 'Gebe' veya 'Gebe Değil' seçmelisiniz.`;
         return null;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const validasyonHata = tohumlamaGebeValidasyonu();
+        const validasyonHata = gebelikValidasyonHata();
         if (validasyonHata) {
             toast.error(validasyonHata);
             return;
@@ -425,16 +431,40 @@ const Inekler = () => {
                             </div>
                             <div style={formGroupStyle}>
                                 <label>Gebelik Durumu:</label>
-                                <select value={yeniInek.gebelikDurumu} onChange={e => setYeniInek({ ...yeniInek, gebelikDurumu: e.target.value, tohumlamaTarihi: e.target.value === 'Gebe' ? yeniInek.tohumlamaTarihi : '' })} style={{ ...inputStyle, padding: '10px 12px' }}>
+                                <select
+                                    value={yeniInek.gebelikDurumu}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        const yeniTohum = val === 'Gebe Değil' ? '' : yeniInek.tohumlamaTarihi;
+                                        setYeniInek({ ...yeniInek, gebelikDurumu: val, tohumlamaTarihi: yeniTohum });
+                                        const h = gebelikValidasyonHata(val, yeniTohum);
+                                        if (h) toast.error(h);
+                                    }}
+                                    style={{ ...inputStyle, padding: '10px 12px', borderColor: gebelikValidasyonHata() ? '#dc2626' : undefined }}
+                                >
                                     <option value="Belirsiz">❓ Belirsiz</option>
                                     <option value="Gebe">✅ Gebe</option>
                                     <option value="Gebe Değil">❌ Gebe Değil</option>
                                 </select>
                             </div>
-                            {yeniInek.gebelikDurumu === 'Gebe' && (
+                            {(yeniInek.gebelikDurumu === 'Gebe' || yeniInek.tohumlamaTarihi) && (
                                 <div style={formGroupStyle}>
-                                    <label>Tohumlama Tarihi: *</label>
-                                    <input type="date" required value={yeniInek.tohumlamaTarihi} onChange={e => setYeniInek({ ...yeniInek, tohumlamaTarihi: e.target.value })} style={inputStyle} />
+                                    <label>Tohumlama Tarihi {yeniInek.gebelikDurumu === 'Gebe' ? '*' : ''}</label>
+                                    <input
+                                        type="date"
+                                        required={yeniInek.gebelikDurumu === 'Gebe'}
+                                        value={yeniInek.tohumlamaTarihi}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setYeniInek({ ...yeniInek, tohumlamaTarihi: val });
+                                            const h = gebelikValidasyonHata(yeniInek.gebelikDurumu, val);
+                                            if (h) toast.error(h);
+                                        }}
+                                        style={{ ...inputStyle, borderColor: gebelikValidasyonHata() ? '#dc2626' : undefined }}
+                                    />
+                                    {gebelikValidasyonHata() && (
+                                        <span style={{ fontSize: 12, color: '#dc2626', marginTop: 4, display: 'block' }}>{gebelikValidasyonHata()}</span>
+                                    )}
                                 </div>
                             )}
                             <div style={formGroupStyle}>
@@ -550,17 +580,19 @@ const actionBtnStyle = (color) => ({
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(15,23,42,0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1001;
-  padding: 16px;
+  padding: 20px;
   overflow-y: auto;
+
   @media (max-width: 768px) {
+    padding: 16px 12px 24px;
     align-items: flex-start;
-    padding: 0;
+    padding-top: max(16px, env(safe-area-inset-top));
   }
 `;
 const ModalContent = styled.div`
@@ -571,8 +603,8 @@ const ModalContent = styled.div`
   max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-  animation: modalIn 0.25s ease;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04);
+  animation: modalIn 0.3s ease;
 
   h2 {
     margin: 0 0 24px 0;
@@ -585,17 +617,18 @@ const ModalContent = styled.div`
   }
 
   @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.96) translateY(-10px); }
+    from { opacity: 0; transform: scale(0.97) translateY(12px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
   }
 
   @media (max-width: 768px) {
     width: 100%;
     max-width: 100%;
-    min-height: 100vh;
-    border-radius: 0;
-    padding: 24px 20px;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0));
+    max-height: 85vh;
+    border-radius: 16px;
+    padding: 22px 18px;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
   }
 `;
 const formGroupStyle = { marginBottom: '16px' };

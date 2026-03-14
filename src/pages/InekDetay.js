@@ -127,9 +127,16 @@ const Grid = styled.div`
 const Card = styled.div`
   background: white;
   border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-  margin-bottom: 25px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+
+  @media (max-width: 768px) {
+    padding: 18px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
 `;
 
 const CardTitle = styled.h3`
@@ -145,35 +152,64 @@ const CardTitle = styled.h3`
 
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 `;
 
 const InfoItem = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    min-height: 72px;
+  }
 `;
 
 const Label = styled.span`
-  font-size: 13px;
-  color: #7f8c8d;
-  margin-bottom: 5px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
 `;
 
 const Value = styled.span`
-  font-size: 16px;
-  color: #2c3e50;
-  font-weight: 500;
+  font-size: 15px;
+  color: #0f172a;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const StatusBadge = styled.span`
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   display: inline-block;
   text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 `;
 
 const InekDetay = () => {
@@ -230,10 +266,12 @@ const InekDetay = () => {
 
                 // Süt Grafiği
                 if (inekData.sutGecmisi && inekData.sutGecmisi.length > 0) {
-                    const grafikData = inekData.sutGecmisi.map(kayit => ({
-                        tarih: new Date(kayit.tarih).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
-                        miktar: kayit.litre
-                    }));
+                    const grafikData = inekData.sutGecmisi
+                        .slice(-7)
+                        .map(kayit => ({
+                            tarih: new Date(kayit.tarih).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
+                            miktar: kayit.litre
+                        }));
                     setSutGrafigi(grafikData);
                 } else {
                     setSutGrafigi([]);
@@ -345,6 +383,23 @@ const InekDetay = () => {
             {/* LAKTASYON GRAFİĞİ SEKMESİ */}
             {aktifSekme === 'laktasyon' && (
                 <div>
+                    {/* 7 Günlük Süt Eğrisi - Veri bölümünde */}
+                    {sutGrafigi.length > 0 && (
+                        <Card style={{ marginBottom: 20 }}>
+                            <CardTitle><FaChartLine style={{ color: '#4CAF50' }} /> Süt Verimi (Son 7 Gün)</CardTitle>
+                            <div style={{ height: 220 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={sutGrafigi}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis dataKey="tarih" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                        <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                        <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} formatter={(v) => [`${v} L`, 'Süt']} />
+                                        <Line type="monotone" dataKey="miktar" stroke="#4CAF50" strokeWidth={2.5} dot={{ r: 4, fill: '#4CAF50' }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </Card>
+                    )}
                     {laktasyonYukleniyor ? (
                         <Card><p style={{ textAlign: 'center', color: '#94a3b8' }}>Laktasyon verisi yükleniyor…</p></Card>
                     ) : laktasyon ? (
@@ -464,25 +519,6 @@ const InekDetay = () => {
                             </InfoItem>
                         </InfoGrid>
                     </Card>
-
-                    {/* SÜT GRAFİĞİ */}
-                    <Card>
-                        <CardTitle><FaChartLine /> Süt Verimi (Son 7 Gün)</CardTitle>
-                        <div style={{ height: '300px', width: '100%' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={sutGrafigi}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                                    <XAxis dataKey="tarih" stroke="#999" />
-                                    <YAxis stroke="#999" />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Line type="monotone" dataKey="miktar" stroke="#4CAF50" strokeWidth={3} dot={{ r: 4, fill: '#4CAF50' }} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </Card>
-
 
                     {/* TOHUMLAMA BİLGİSİ - Varsa Göster */}
                     {inek?.tohumlamaTarihi && (
