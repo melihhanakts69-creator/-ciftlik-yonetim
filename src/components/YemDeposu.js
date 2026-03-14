@@ -443,6 +443,14 @@ const ModalOverlay = styled.div`
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
 `;
 
 const ModalContent = styled.div`
@@ -451,11 +459,17 @@ const ModalContent = styled.div`
   padding: 25px;
   width: 100%;
   max-width: 500px;
-  max-height: 90vh;
+  max-height: min(90vh, calc(100vh - 40px));
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
   h2 { margin-top: 0; color: #2c3e50; }
+  @media (max-width: 768px) {
+    max-height: calc(100vh - 24px);
+    border-radius: 16px;
+    margin: auto 0;
+  }
 `;
 
 const Button = styled.button`

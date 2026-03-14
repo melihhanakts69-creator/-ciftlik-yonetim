@@ -71,8 +71,7 @@ const MASTER_FEED_DATA = {
 };
 
 // Yem eşitleme (Smart Sync)
-// Yem eşitleme (Smart Sync)
-router.post('', auth, checkRole(['ciftci']), async (req, res) => {
+router.post('/kutuphane/sync-stok', auth, checkRole(['ciftci']), async (req, res) => {
     try {
         const stoklar = await YemStok.find({ userId: req.userId });
         let addedCount = 0;
@@ -125,18 +124,20 @@ router.post('', auth, checkRole(['ciftci']), async (req, res) => {
     }
 });
 
-// Tüm yemleri getir
-router.get('', auth, checkRole(['ciftci']), async (req, res) => {
+// Tüm yemleri getir (kütüphane)
+const getYemler = async (req, res) => {
     try {
         const yemler = await YemKutuphanesi.find({ userId: req.userId }).sort({ ad: 1 });
         res.json(yemler);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
-});
+};
+router.get('', auth, checkRole(['ciftci']), getYemler);
+router.get('/kutuphane', auth, checkRole(['ciftci', 'sutcu']), getYemler);
 
 // Yeni yem ekle
-router.post('', auth, checkRole(['ciftci']), async (req, res) => {
+router.post('/kutuphane', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
     try {
         // YemStok entegrasyonu: Stokta bu isimle kayıt var mı bak, yoksa oluştur
         let stok = await YemStok.findOne({ userId: req.userId, yemTipi: req.body.ad });
@@ -326,12 +327,13 @@ router.post('/dagit', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => 
             }
 
             if (stok) {
-                if (stok.miktar < harcananMiktar) {
+                const mevcutMiktar = Number(stok.miktar) || 0;
+                if (mevcutMiktar < harcananMiktar) {
                     return res.status(400).json({
-                        message: `Yetersiz stok: ${stok.yemTipi} — Mevcut: ${stok.miktar.toFixed(1)} kg, Gerekli: ${harcananMiktar.toFixed(1)} kg`
+                        message: `Yetersiz stok: ${stok.yemTipi} — Mevcut: ${mevcutMiktar.toFixed(1)} kg, Gerekli: ${harcananMiktar.toFixed(1)} kg`
                     });
                 }
-                stok.miktar -= harcananMiktar;
+                stok.miktar = mevcutMiktar - harcananMiktar;
                 await stok.save();
 
                 // Yem Hareketi Kaydet
@@ -346,11 +348,10 @@ router.post('/dagit', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => 
                     aciklama: `Günlük Yemleme: ${rasyon.ad} (${hayvanSayisi} baş)`
                 });
             } else {
-                // Stok bulunamadıysa YemKutuphanesi'ndeki basit alanı güncelle (Fallback)
-                if (yem.stokTakibi) {
-                    yem.stokMiktari = (yem.stokMiktari || 0) - harcananMiktar;
-                    await yem.save();
-                }
+                // Stok bulunamadı - Yem Kütüphanesi'nde var ama YemStok'ta yok (depo senkron değil)
+                return res.status(400).json({
+                    message: `Stok kaydı bulunamadı: "${yem.ad}". Lütfen Yem Deposu\'ndan bu yem için stok ekleyin veya Akıllı Eşitle yapın.`
+                });
             }
         }
 

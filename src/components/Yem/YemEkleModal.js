@@ -8,15 +8,23 @@ const Overlay = styled.div`
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
-  @media (max-width: 768px) { align-items: stretch; padding: 0; }
+  padding: 16px; box-sizing: border-box;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  @media (max-width: 768px) {
+    align-items: flex-start; padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
 `;
 const ModalContainer = styled.div`
-  background: white; width: 90%; max-width: 550px; border-radius: 16px;
+  background: white; width: 100%; max-width: 550px; border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 25px; position: relative;
-  max-height: 90vh; overflow-y: auto;
+  max-height: calc(100vh - 32px); overflow-y: auto; flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
   @media (max-width: 768px) {
-    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
+    max-height: calc(100vh - 24px); border-radius: 14px;
     padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+    margin: auto 0;
   }
 `;
 const CloseButton = styled.button`

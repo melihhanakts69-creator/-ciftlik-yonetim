@@ -309,9 +309,11 @@ export default function YemMerkezi() {
     try {
       setLoading(true);
       const [yr, rr, sr] = await Promise.all([api.getYemKutuphanesi(), api.getRasyonlar(), api.getYemStok()]);
-      setYemler(yr.data);
-      setRasyonlar(rr.data);
-      setKritikSayisi(sr.data.filter(s => s.miktar <= s.minimumStok).length);
+      setYemler(Array.isArray(yr?.data) ? yr.data : []);
+      const rasyonData = rr?.data;
+      setRasyonlar(Array.isArray(rasyonData) ? rasyonData : (Array.isArray(rasyonData?.data) ? rasyonData.data : []));
+      const stokData = Array.isArray(sr?.data) ? sr.data : [];
+      setKritikSayisi(stokData.filter(s => s && (s.miktar ?? 0) <= (s.minimumStok ?? 0)).length);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };

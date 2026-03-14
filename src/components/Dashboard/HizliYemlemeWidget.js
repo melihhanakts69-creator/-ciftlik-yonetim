@@ -141,7 +141,8 @@ const HizliYemlemeWidget = () => {
     const loadRasyonlar = async () => {
         try {
             const res = await api.getRasyonlar();
-            setRasyonlar(res.data);
+            const data = res?.data;
+            setRasyonlar(Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
         } catch (e) {
             console.error("Rasyonlar yüklenemedi", e);
         }
