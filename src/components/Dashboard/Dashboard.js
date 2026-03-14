@@ -442,33 +442,42 @@ const MobileHideGridItem = styled.div`
   }
 `;
 
-/* Şampiyonlar + Aktiviteler için mobilde yan yana özel grid */
+/* Yapılacaklar + Aktiviteler için mobilde yan yana özel grid */
 const ChampActivitesRow = styled.div`
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 20px;
   margin-bottom: 28px;
+  overflow: hidden;
 
-  @media (max-width: 1200px) { grid-template-columns: repeat(6, 1fr); }
+  @media (max-width: 1200px) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
     margin-bottom: 14px;
+  }
+  @media (max-width: 420px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 `;
 
 const ChampCol = styled.div`
   grid-column: span 4;
+  min-width: 0;
   animation: ${fadeInUp} 0.5s ease 0.1s both;
   @media (max-width: 1200px) { grid-column: span 2; }
   @media (max-width: 768px) { grid-column: span 1; }
+  @media (max-width: 420px) { grid-column: span 1; }
 `;
 
 const ActCol = styled.div`
   grid-column: span 8;
+  min-width: 0;
   animation: ${fadeInUp} 0.5s ease 0.25s both;
   @media (max-width: 1200px) { grid-column: span 4; }
   @media (max-width: 768px) { grid-column: span 1; }
+  @media (max-width: 420px) { grid-column: span 1; }
 `;
 
 

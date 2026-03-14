@@ -9,15 +9,17 @@ const CardWrapper = styled.div`
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   border: 1px solid rgba(0,0,0,0.04);
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  overflow: hidden;
 
   &:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
   
   @media (max-width: 768px) {
-    padding: 12px 10px;
-    border-radius: 14px;
+    padding: 10px 8px;
+    border-radius: 12px;
   }
 `;
 
@@ -25,9 +27,10 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
 
   h3 {
     margin: 0;
@@ -37,13 +40,17 @@ const CardHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     
-    @media (max-width: 768px) { font-size: 12px; }
+    @media (max-width: 768px) { font-size: 11px; }
   }
 
   .count {
-    font-size: 11px; color: #999; font-weight: 500;
-    background: #f5f5f5; padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; color: #999; font-weight: 500;
+    background: #f5f5f5; padding: 2px 6px; border-radius: 8px;
+    flex-shrink: 0;
   }
 `;
 
@@ -54,12 +61,13 @@ const ActivityList = styled.div`
   max-height: 320px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
   
-  @media (max-width: 768px) { max-height: 220px; }
+  @media (max-width: 768px) { max-height: 160px; }
 `;
 
 const ActivityItem = styled.div`
@@ -70,10 +78,11 @@ const ActivityItem = styled.div`
   border-radius: 10px;
   transition: all 0.15s ease;
   cursor: default;
+  min-width: 0;
 
   &:hover { background: #fafafa; transform: translateX(3px); }
   
-  @media (max-width: 768px) { gap: 6px; padding: 6px 6px; }
+  @media (max-width: 768px) { gap: 5px; padding: 5px 6px; }
 `;
 
 const ActivityIcon = styled.div`
@@ -82,7 +91,7 @@ const ActivityIcon = styled.div`
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0;
   
-  @media (max-width: 768px) { width: 26px; height: 26px; font-size: 12px; border-radius: 8px; }
+  @media (max-width: 768px) { width: 22px; height: 22px; font-size: 11px; border-radius: 6px; }
 `;
 
 const ActivityContent = styled.div`

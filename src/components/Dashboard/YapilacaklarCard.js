@@ -10,12 +10,17 @@ const CardWrapper = styled.div`
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   border: 1px solid rgba(0,0,0,0.04);
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  overflow: hidden;
 
-  &:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  &:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+  
+  @media (max-width: 768px) {
+    padding: 10px 8px;
+    border-radius: 12px;
   }
 `;
 
@@ -23,9 +28,10 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
 
   h3 {
     margin: 0;
@@ -35,6 +41,11 @@ const CardHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    @media (max-width: 768px) { font-size: 11px; }
   }
 `;
 
@@ -56,16 +67,19 @@ const TaskList = styled.div`
   max-height: 320px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+  
+  @media (max-width: 768px) { max-height: 160px; }
 `;
 
 const TaskItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 8px 10px;
   border-radius: 10px;
   background: ${props => props.geciken ? '#FFF5F5' : '#FAFAFA'};
@@ -77,11 +91,11 @@ const TaskItem = styled.div`
   }};
   transition: all 0.15s ease;
   cursor: default;
+  min-width: 0;
 
-  &:hover {
-    transform: translateX(3px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  }
+  &:hover { transform: translateX(3px); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  
+  @media (max-width: 768px) { padding: 6px 8px; gap: 6px; }
 `;
 
 const TaskIcon = styled.div`
@@ -94,6 +108,8 @@ const TaskIcon = styled.div`
   justify-content: center;
   font-size: 13px;
   flex-shrink: 0;
+  
+  @media (max-width: 768px) { width: 24px; height: 24px; font-size: 11px; }
 `;
 
 const TaskContent = styled.div`
@@ -108,6 +124,9 @@ const TaskTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  
+  @media (max-width: 768px) { font-size: 11px; }
 `;
 
 const TaskMeta = styled.div`
@@ -116,6 +135,7 @@ const TaskMeta = styled.div`
   display: flex;
   gap: 6px;
   align-items: center;
+  flex-wrap: wrap;
 `;
 
 const Badge = styled.span`
