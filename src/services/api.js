@@ -136,6 +136,7 @@ export const tumunuOkunduIsaretle = () => api.patch('/bildirimler/toplu/okundu')
 export const silOkunmusBildirimler = () => api.delete('/bildirimler/toplu/okunmus');
 export const bildirimSil = (id) => api.delete(`/bildirimler/${id}`);
 export const bildirimTamamlandiIsaretle = (id) => api.patch(`/bildirimler/${id}/tamamlandi`);
+export const createBildirim = (data) => api.post('/bildirimler', data);
 
 // ALIŞ - SATIŞ
 export const getAlisSatisKayitlari = (params) => {

@@ -487,6 +487,41 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
+    // 1b. DOĞUM GECİKMİŞ (15+ gün geçti - doğum kaydı yapılmalı)
+    const GECIKME_GUN = 15;
+    for (const hayvan of tumGebeler) {
+      if (!hayvan.tohumlamaTarihi) continue;
+      const tohumlama = new Date(hayvan.tohumlamaTarihi);
+      const dogum = new Date(tohumlama);
+      dogum.setDate(dogum.getDate() + 283);
+      const bugunBaslangic = new Date(bugun);
+      bugunBaslangic.setHours(0, 0, 0, 0);
+      const dogumGecenGun = Math.floor((bugunBaslangic - dogum) / (1000 * 60 * 60 * 24));
+      if (dogumGecenGun >= GECIKME_GUN) {
+        const varMi = await Bildirim.findOne({
+          userId,
+          tip: 'dogum_gecikme',
+          hayvanId: hayvan._id,
+          tamamlandi: false,
+          aktif: true
+        });
+        if (!varMi) {
+          await Bildirim.create({
+            userId,
+            tip: 'dogum_gecikme',
+            baslik: `⏰ Gecikme: ${hayvan.isim || hayvan.kupeNo}`,
+            mesaj: `Tahmini doğum tarihi ${dogumGecenGun} gün geçti. Doğum gerçekleştiyse Yaklaşan Doğumlar panelinden kayıt yapın.`,
+            hayvanId: hayvan._id,
+            hayvanTipi: hayvan.constructor?.modelName === 'Inek' ? 'inek' : 'duve',
+            kupe_no: hayvan.kupeNo,
+            oncelik: 'acil',
+            hatirlatmaTarihi: bugun,
+            metadata: { gecenGun: dogumGecenGun, tahminiDogum: dogum }
+          });
+        }
+      }
+    }
+
     // 2. KURUYA ALMA ZAMANI (doğuma 60 gün kala — tohumlama + 223 gün)
     for (const hayvan of tumGebeler) {
       if (!hayvan.tohumlamaTarihi) continue;

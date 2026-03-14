@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import * as api from '../services/api';
 
 // ─── Animations ────────────────────────────────────────────────
@@ -29,6 +30,7 @@ const getUrgency = (kalanGun) => {
 };
 
 const GESTATION_DAYS = 283; // İnek/düve gebelik süresi
+const GECIKME_GUN = 15;    // Bu günden sonra gecikme uyarı paneli gösterilir
 
 // ─── Helpers ────────────────────────────────────────────────────
 const calcTahminiDogum = (tohumlamaTarihi) => {
@@ -220,6 +222,42 @@ const SkeletonLine = styled.div`
   margin-bottom: ${p => p.$mb || 0}px;
 `;
 
+// Gecikme Uyarı Modal
+const GecikmeModalOverlay = styled.div`
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 2000;
+  padding: 20px;
+`;
+const GecikmeModal = styled.div`
+  background: #fff; border-radius: 16px; max-width: 480px; width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2); overflow: hidden;
+`;
+const GecikmeModalHead = styled.div`
+  padding: 20px; background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border-bottom: 2px solid #fca5a5;
+  .title { font-size: 16px; font-weight: 800; color: #b91c1c; margin: 0 0 6px 0; }
+  .sub { font-size: 13px; color: #991b1b; }
+`;
+const GecikmeModalBody = styled.div`
+  padding: 20px;
+  .radio-group { display: flex; gap: 12px; margin-bottom: 16px; }
+  .radio-opt {
+    flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+    cursor: pointer; text-align: center; font-weight: 600; color: #64748b;
+    transition: all 0.2s;
+    &.active { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
+    &.active.olum { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+  }
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+  .form-row input, .form-row select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+  .btn-cancel { background: #f1f5f9; color: #64748b; }
+  .btn-save { background: #16a34a; color: #fff; }
+  .btn-save:hover { background: #15803d; }
+`;
+
 const SkeletonCard = () => (
   <div style={{ padding: '14px 16px', borderRadius: 12, border: '1.5px solid #f1f5f9', background: '#fafafa' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -244,6 +282,11 @@ function YaklasanDogumlar({ compact = false }) {
   const [duveler, setDuveler] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [activeTab, setActiveTab] = useState('hepsi');
+  const [gecikmeHayvan, setGecikmeHayvan] = useState(null);
+  const [gecikmeForm, setGecikmeForm] = useState({
+    sonuc: 'sag', dogumTarihi: '', buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: ''
+  });
+  const [gecikmeKaydediyor, setGecikmeKaydediyor] = useState(false);
 
   useEffect(() => {
     yuklе();
@@ -305,10 +348,58 @@ function YaklasanDogumlar({ compact = false }) {
     : gebeDuveler;
 
   const urgentCount = allGebe.filter(h => h.kalanGun <= 7).length;
+  const gecikmisHayvanlar = allGebe.filter(h => h.kalanGun < -GECIKME_GUN);
 
   const handleCardClick = (h) => {
-    if (h.tip === 'inek') navigate(`/inekler/${h._id}`);
-    else navigate(`/duveler/${h._id}`);
+    if (h.kalanGun < -GECIKME_GUN) {
+      setGecikmeHayvan(h);
+      setGecikmeForm({
+        sonuc: 'sag',
+        dogumTarihi: new Date().toISOString().split('T')[0],
+        buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: ''
+      });
+    } else {
+      if (h.tip === 'inek') navigate(`/inekler/${h._id}`);
+      else navigate(`/duveler/${h._id}`);
+    }
+  };
+
+  const gecikmeKaydet = async () => {
+    if (!gecikmeHayvan) return;
+    const { sonuc, dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = gecikmeForm;
+    if (!dogumTarihi) {
+      alert('Doğum tarihi zorunludur.');
+      return;
+    }
+    if (sonuc === 'sag' && (!buzagiIsim?.trim() || !buzagiKilo)) {
+      alert('Sağ doğum için buzağı adı ve kilosu zorunludur.');
+      return;
+    }
+    setGecikmeKaydediyor(true);
+    try {
+      const payload = {
+        dogumTarihi,
+        notlar: notlar || '',
+        buzagiDurum: sonuc === 'olum' ? 'Öldü' : 'Aktif'
+      };
+      if (sonuc === 'sag') {
+        payload.buzagiIsim = buzagiIsim.trim();
+        payload.buzagiCinsiyet = buzagiCinsiyet;
+        payload.buzagiKilo = parseFloat(buzagiKilo) || 0;
+      }
+      if (gecikmeHayvan.tip === 'inek') {
+        await api.inekDogurdu(gecikmeHayvan._id, payload);
+      } else {
+        await api.duveDogurdu(gecikmeHayvan._id, payload);
+      }
+      setGecikmeHayvan(null);
+      yuklе();
+      toast.success('Doğum kaydı başarıyla kaydedildi!');
+    } catch (err) {
+      toast.error('Hata: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setGecikmeKaydediyor(false);
+    }
   };
 
   const formatKalanGun = (kalanGun) => {
@@ -329,7 +420,10 @@ function YaklasanDogumlar({ compact = false }) {
           </div>
         </div>
         <div className="right">
-          {urgentCount > 0 && (
+          {gecikmisHayvanlar.length > 0 && (
+            <CountBadge $urgent>⏰ {gecikmisHayvanlar.length} gecikmiş</CountBadge>
+          )}
+          {urgentCount > 0 && gecikmisHayvanlar.length === 0 && (
             <CountBadge $urgent>⚠️ {urgentCount} acil</CountBadge>
           )}
           {allGebe.length > 0 && (
@@ -413,6 +507,11 @@ function YaklasanDogumlar({ compact = false }) {
                 <CardBottom>
                   <DateInfo>
                     📅 Tahmini: <strong>{fmtDate(h.tahminiDogum)}</strong>
+                    {h.kalanGun < -GECIKME_GUN && (
+                      <span style={{ display: 'block', fontSize: 11, color: '#dc2626', marginTop: 4, fontWeight: 600 }}>
+                        👆 Tıklayarak doğum kaydı yap
+                      </span>
+                    )}
                   </DateInfo>
                   <UrgencyTag $urgency={h.urgency}>{cfg.label}</UrgencyTag>
                 </CardBottom>
@@ -421,6 +520,95 @@ function YaklasanDogumlar({ compact = false }) {
           })
         )}
       </CardList>
+
+      {/* Gecikme Uyarı Paneli - 15+ gün gecikmiş hayvanlar için */}
+      {gecikmeHayvan && (
+        <GecikmeModalOverlay onClick={() => !gecikmeKaydediyor && setGecikmeHayvan(null)}>
+          <GecikmeModal onClick={e => e.stopPropagation()}>
+            <GecikmeModalHead>
+              <div className="title">⚠️ Gecikme Uyarısı</div>
+              <div className="sub">
+                {gecikmeHayvan.isim || 'İsimsiz'} #{gecikmeHayvan.kupeNo} tahmini doğum tarihini {Math.abs(gecikmeHayvan.kalanGun)} gün geçti. Doğum gerçekleşti mi?
+              </div>
+            </GecikmeModalHead>
+            <GecikmeModalBody>
+              <div className="radio-group">
+                <div
+                  className={`radio-opt ${gecikmeForm.sonuc === 'sag' ? 'active' : ''}`}
+                  onClick={() => setGecikmeForm({ ...gecikmeForm, sonuc: 'sag' })}
+                >
+                  ✅ Sağ Doğdu
+                </div>
+                <div
+                  className={`radio-opt olum ${gecikmeForm.sonuc === 'olum' ? 'active' : ''}`}
+                  onClick={() => setGecikmeForm({ ...gecikmeForm, sonuc: 'olum' })}
+                >
+                  ❌ Öldü
+                </div>
+              </div>
+              <div className="form-row">
+                <label>Doğum Tarihi *</label>
+                <input
+                  type="date"
+                  value={gecikmeForm.dogumTarihi}
+                  onChange={e => setGecikmeForm({ ...gecikmeForm, dogumTarihi: e.target.value })}
+                />
+              </div>
+              {gecikmeForm.sonuc === 'sag' && (
+                <>
+                  <div className="form-row">
+                    <label>Buzağı Adı *</label>
+                    <input
+                      value={gecikmeForm.buzagiIsim}
+                      onChange={e => setGecikmeForm({ ...gecikmeForm, buzagiIsim: e.target.value })}
+                      placeholder="Buzağı ismi"
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <div className="form-row" style={{ flex: 1 }}>
+                      <label>Cinsiyet</label>
+                      <select
+                        value={gecikmeForm.buzagiCinsiyet}
+                        onChange={e => setGecikmeForm({ ...gecikmeForm, buzagiCinsiyet: e.target.value })}
+                      >
+                        <option value="disi">Dişi</option>
+                        <option value="erkek">Erkek</option>
+                      </select>
+                    </div>
+                    <div className="form-row" style={{ flex: 1 }}>
+                      <label>Kilo (kg) *</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={gecikmeForm.buzagiKilo}
+                        onChange={e => setGecikmeForm({ ...gecikmeForm, buzagiKilo: e.target.value })}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              <div className="form-row">
+                <label>Notlar</label>
+                <input
+                  value={gecikmeForm.notlar}
+                  onChange={e => setGecikmeForm({ ...gecikmeForm, notlar: e.target.value })}
+                  placeholder="İsteğe bağlı"
+                />
+              </div>
+              <div className="btn-row">
+                <button className="btn btn-cancel" onClick={() => setGecikmeHayvan(null)} disabled={gecikmeKaydediyor}>
+                  İptal
+                </button>
+                <button className="btn btn-save" onClick={gecikmeKaydet} disabled={gecikmeKaydediyor}>
+                  {gecikmeKaydediyor ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </GecikmeModalBody>
+          </GecikmeModal>
+        </GecikmeModalOverlay>
+      )}
     </Panel>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaThLarge, FaList, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import FilterBar from '../components/common/FilterBar';
 
 const PageContainer = styled.div`
@@ -178,8 +179,25 @@ function Duveler() {
         return Math.floor((new Date() - new Date(dogumTarihi)) / (1000 * 60 * 60 * 24 * 30.44));
     };
 
+    const GEBELIK_KONTROL_GUN = 28;
+    const tohumlamaGebeValidasyonu = (gebelikDurumu, tohumlamaTarihi) => {
+        if (gebelikDurumu !== 'Gebe' || !tohumlamaTarihi) return null;
+        const tohum = new Date(tohumlamaTarihi);
+        const bugun = new Date();
+        const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+        if (gecenGun < GEBELIK_KONTROL_GUN) {
+            return `Gebelik kontrolü henüz yapılmadığı için (tohumlama üzerinden ${gecenGun} gün geçti, kontrol 28 gün sonra yapılır) 'Belirsiz' seçmelisiniz.`;
+        }
+        return null;
+    };
+
     // --- CRUD Operations ---
     const duveEkle = async () => {
+        const validasyonHata = tohumlamaGebeValidasyonu(yeniDuve.gebelikDurumu, yeniDuve.tohumlamaTarihi);
+        if (validasyonHata) {
+            toast.error(validasyonHata);
+            return;
+        }
         try {
             const yasAy = yasHesaplaAy(yeniDuve.dogumTarihi);
             const payload = { ...yeniDuve, yas: yasAy, kilo: parseFloat(yeniDuve.kilo) || 0 };
@@ -208,6 +226,11 @@ function Duveler() {
     };
 
     const duveGuncelle = async () => {
+        const validasyonHata = tohumlamaGebeValidasyonu(duzenlenecekDuve.gebelikDurumu, duzenlenecekDuve.tohumlamaTarihi);
+        if (validasyonHata) {
+            toast.error(validasyonHata);
+            return;
+        }
         try {
             const payload = { ...duzenlenecekDuve };
             payload.yas = yasHesaplaAy(duzenlenecekDuve.dogumTarihi);

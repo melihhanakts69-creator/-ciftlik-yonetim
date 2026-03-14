@@ -104,7 +104,8 @@ router.put('/:id', auth, async (req, res) => {
 // DÜVE DOĞURDU - İnek'e geçir, Buzağı oluştur
 router.post('/:id/dogurdu', auth, async (req, res) => {
   try {
-    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = req.body;
+    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum } = req.body;
+    const olum = buzagiDurum === 'Öldü';
 
     const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
     if (!duve) {
@@ -112,22 +113,31 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     }
 
     // Validasyon
-    if (!dogumTarihi || !buzagiIsim || !buzagiCinsiyet || buzagiKilo === undefined) {
+    if (!dogumTarihi) {
+      return res.status(400).json({ message: 'Doğum tarihi zorunludur' });
+    }
+    if (!olum && (!buzagiIsim || !buzagiCinsiyet || buzagiKilo === undefined)) {
       return res.status(400).json({ message: 'Doğum bilgileri eksik' });
     }
+
+    const isim = olum ? 'Ölü Buzağı' : buzagiIsim;
+    const cinsiyet = olum ? 'disi' : buzagiCinsiyet;
+    const kilo = olum ? 0 : parseFloat(buzagiKilo);
+    const durum = olum ? 'Öldü' : 'Aktif';
 
     // 1. Buzağı oluştur
     const buzagi = new Buzagi({
       userId: req.userId,
-      isim: buzagiIsim,
+      isim,
       kupeNo: `BZ-${Date.now()}`,
       anneId: duve._id.toString(),
       anneIsim: duve.isim,
       anneKupeNo: duve.kupeNo,
       dogumTarihi: dogumTarihi,
-      cinsiyet: buzagiCinsiyet,
-      kilo: buzagiKilo,
-      notlar: notlar || '',
+      cinsiyet,
+      kilo,
+      notlar: notlar || (olum ? 'Doğumda öldü' : ''),
+      durum,
       eklemeTarihi: new Date().toISOString().split('T')[0]
     });
     await buzagi.save();
@@ -150,7 +160,14 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
     await yeniInek.save();
 
-    // 3. Timeline event'leri oluştur
+    // 3. Gecikme bildirimini tamamlandı işaretle (varsa)
+    const Bildirim = require('../models/Bildirim');
+    await Bildirim.updateMany(
+      { userId: req.userId, tip: 'dogum_gecikme', hayvanId: duve._id, tamamlandi: false },
+      { tamamlandi: true, tamamlanmaTarihi: new Date() }
+    );
+
+    // 4. Timeline event'leri oluştur
     // Düve'nin doğum timeline'ı
     await Timeline.create({
       userId: req.userId,
@@ -171,7 +188,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
       aciklama: `${duve.isim} düvelikten inek'e geçti (İlk doğum)`
     });
 
-    // 4. Düveyi sil
+    // 5. Düveyi sil
     await Duve.findByIdAndDelete(req.params.id);
 
     res.json({

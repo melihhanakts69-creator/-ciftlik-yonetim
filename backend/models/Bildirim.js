@@ -15,6 +15,7 @@ const bildirimSchema = new mongoose.Schema({
       'muayene',         // Muayene zamanı
       'kizginlik',       // Kızgınlık döngüsü
       'dogum_beklenen',  // Tahmini doğum yaklaşıyor (gebelik takibi)
+      'dogum_gecikme',   // Doğum gecikti - kayıt yapılmalı (15+ gün)
       'kuruya_alma',     // Kuruya alma zamanı (doğum 60 gün öncesi)
       'kuru_donem',      // Kuru döneme geçiş
       'sagim',           // Sağım hatırlatması

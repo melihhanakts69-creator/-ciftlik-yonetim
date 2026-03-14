@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FaBell, FaCheckDouble, FaTrash, FaSyringe, FaBaby,
@@ -228,6 +229,7 @@ const EmptyState = styled.div`
 `;
 
 function Bildirimler() {
+  const navigate = useNavigate();
   const [bildirimler, setBildirimler] = useState([]);
   const [aktifFiltre, setAktifFiltre] = useState('hepsi');
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -304,6 +306,7 @@ function Bildirimler() {
       case 'asi': return { icon: <FaSyringe />, color: '#E91E63', bg: '#FCE4EC' };
       case 'dogum': return { icon: <FaBaby />, color: '#9C27B0', bg: '#F3E5F5' };
       case 'dogum_beklenen': return { icon: <FaBaby />, color: '#7B1FA2', bg: '#EDE7F6' };
+      case 'dogum_gecikme': return { icon: <FaExclamationTriangle />, color: '#dc2626', bg: '#fef2f2' };
       case 'kizginlik': return { icon: <FaExclamationTriangle />, color: '#D32F2F', bg: '#FFEBEE' };
       case 'kuruya_alma':
       case 'kuru_donem': return { icon: <FaExclamationTriangle />, color: '#E65100', bg: '#FFF3E0' };
@@ -337,9 +340,9 @@ function Bildirimler() {
     if (aktifFiltre === 'randevu') return b.tip === 'randevu';
     if (aktifFiltre === 'mesajlar') return b.tip === 'danisma';
     if (aktifFiltre === 'saglik') return ['asi', 'muayene', 'hastalik', 'tedavi', 'saglik'].includes(b.tip);
-    if (aktifFiltre === 'ureme') return ['dogum', 'dogum_beklenen', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem'].includes(b.tip);
+    if (aktifFiltre === 'ureme') return ['dogum', 'dogum_beklenen', 'dogum_gecikme', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem'].includes(b.tip);
     if (aktifFiltre === 'stok') return ['yem', 'stok'].includes(b.tip);
-    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'saglik', 'dogum', 'dogum_beklenen', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem', 'yem', 'stok', 'randevu', 'danisma', 'odeme'].includes(b.tip);
+    if (aktifFiltre === 'sistem') return !['asi', 'muayene', 'hastalik', 'tedavi', 'saglik', 'dogum', 'dogum_beklenen', 'dogum_gecikme', 'tohumlama', 'kizginlik', 'kuruya_alma', 'kuru_donem', 'yem', 'stok', 'randevu', 'danisma', 'odeme'].includes(b.tip);
     return true;
   });
 
@@ -385,8 +388,12 @@ function Bildirimler() {
                 key={b._id}
                 unread={!b.okundu}
                 color={style.color}
-                onClick={b.tip === 'randevu' ? () => handleRandevuDetayAc(b) : undefined}
-                style={b.tip === 'randevu' ? { cursor: 'pointer' } : {}}
+                onClick={
+                  b.tip === 'randevu' ? () => handleRandevuDetayAc(b)
+                  : b.tip === 'dogum_gecikme' ? () => { navigate('/'); if (!b.okundu) handleAction(b._id, 'okundu'); }
+                  : undefined
+                }
+                style={(b.tip === 'randevu' || b.tip === 'dogum_gecikme') ? { cursor: 'pointer' } : {}}
               >
                 <IconWrapper bg={style.bg} color={style.color}>
                   {style.icon}

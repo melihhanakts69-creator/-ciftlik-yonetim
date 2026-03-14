@@ -198,8 +198,25 @@ const Inekler = () => {
         return Math.floor((new Date() - new Date(dogumTarihi)) / (365.25 * 24 * 60 * 60 * 1000));
     };
 
+    const GEBELIK_KONTROL_GUN = 28; // Gebelik kontrolü 21-28 gün sonra yapılır
+    const tohumlamaGebeValidasyonu = () => {
+        if (yeniInek.gebelikDurumu !== 'Gebe' || !yeniInek.tohumlamaTarihi) return null;
+        const tohum = new Date(yeniInek.tohumlamaTarihi);
+        const bugun = new Date();
+        const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+        if (gecenGun < GEBELIK_KONTROL_GUN) {
+            return `Gebelik kontrolü henüz yapılmadığı için (tohumlama üzerinden ${gecenGun} gün geçti, kontrol 28 gün sonra yapılır) 'Belirsiz' seçmelisiniz.`;
+        }
+        return null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const validasyonHata = tohumlamaGebeValidasyonu();
+        if (validasyonHata) {
+            toast.error(validasyonHata);
+            return;
+        }
         try {
             const payload = {
                 ...yeniInek,

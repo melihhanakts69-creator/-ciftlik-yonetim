@@ -199,7 +199,8 @@ router.delete('/:id', auth, async (req, res) => {
 // İNEK DOĞURDU - Buzağı oluştur ve inek bilgilerini güncelle
 router.post('/:id/dogurdu', auth, async (req, res) => {
   try {
-    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = req.body;
+    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum } = req.body;
+    const olum = buzagiDurum === 'Öldü';
 
     const inekFilter = { _id: req.params.id, userId: req.userId };
     if (req.tenantId) {
@@ -215,23 +216,29 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     if (!dogumTarihi) {
       return res.status(400).json({ message: 'Doğum tarihi zorunludur' });
     }
-    if (!buzagiIsim || !buzagiCinsiyet || !buzagiKilo) {
+    if (!olum && (!buzagiIsim || !buzagiCinsiyet || buzagiKilo === undefined)) {
       return res.status(400).json({ message: 'Buzağı bilgileri eksik' });
     }
+
+    const isim = olum ? 'Ölü Buzağı' : buzagiIsim;
+    const cinsiyet = olum ? 'disi' : buzagiCinsiyet;
+    const kilo = olum ? 0 : parseFloat(buzagiKilo);
+    const durum = olum ? 'Öldü' : 'Aktif';
 
     // 1. Buzağı oluştur
     const buzagi = new Buzagi({
       userId: req.userId,
       tenantId: req.tenantId || null,
-      isim: buzagiIsim,
+      isim,
       kupeNo: `BZ-${Date.now()}`,
       anneId: inek._id.toString(),
       anneIsim: inek.isim,
       anneKupeNo: inek.kupeNo,
       dogumTarihi: dogumTarihi,
-      cinsiyet: buzagiCinsiyet,
-      kilo: buzagiKilo,
-      notlar: notlar || '',
+      cinsiyet,
+      kilo,
+      notlar: notlar || (olum ? 'Doğumda öldü' : ''),
+      durum,
       eklemeTarihi: new Date().toISOString().split('T')[0]
     });
     await buzagi.save();
@@ -244,7 +251,17 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     inek.tohumlamaTarihi = null;
     await inek.save();
 
-    // 3. Timeline event'i oluştur
+    // 3. Gecikme bildirimini tamamlandı işaretle (varsa)
+    const Bildirim = require('../models/Bildirim');
+    await Bildirim.updateMany(
+      { userId: req.userId, tip: 'dogum_gecikme', hayvanId: inek._id, tamamlandi: false },
+      { tamamlandi: true, tamamlanmaTarihi: new Date() }
+    );
+
+    // 4. Timeline event'i oluştur
+    const aciklama = olum
+      ? `${inek.isim} doğum yaptı - Buzağı öldü (${inek.buzagiSayisi}. buzağı)`
+      : `${inek.isim} doğum yaptı - ${isim} (${cinsiyet}) (${inek.buzagiSayisi}. buzağı)`;
     await Timeline.create({
       userId: req.userId,
       tenantId: req.tenantId || null,
@@ -252,7 +269,7 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
       hayvanTipi: 'inek',
       tip: 'dogum',
       tarih: dogumTarihi,
-      aciklama: `${inek.isim} doğum yaptı - ${buzagiIsim} (${buzagiCinsiyet}) (${inek.buzagiSayisi}. buzağı)`
+      aciklama
     });
 
     res.json({
