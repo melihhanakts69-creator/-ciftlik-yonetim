@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaFilter, FaArrowUp, FaArrowDown, FaTrash, FaWallet, FaExchangeAlt, FaChartBar } from 'react-icons/fa';
@@ -386,9 +387,10 @@ const getPeriodDates = (period) => {
 };
 
 function Finansal() {
+  const location = useLocation();
   const [kayitlar, setKayitlar] = useState([]);
   const [ozet, setOzet] = useState(null);
-  const [eklemeEkrani, setEklemeEkrani] = useState(false);
+  const [eklemeEkrani, setEklemeEkrani] = useState(!!location.state?.openAdd);
   const [donem, setDonem] = useState('bu_ay');
   const [tipFilter, setTipFilter] = useState('');
   const [showCharts, setShowCharts] = useState(false);

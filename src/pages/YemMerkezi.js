@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import {
   FaLeaf, FaClipboardList, FaCheckCircle, FaTrash, FaCalculator,
@@ -292,12 +293,13 @@ const TableWrap = styled.div`
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [tab, setTab] = useState('stok');
   const [yemler, setYemler] = useState([]);
   const [rasyonlar, setRasyonlar] = useState([]);
   const [kritikSayisi, setKritikSayisi] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(!!location.state?.openAdd);
   const [search, setSearch] = useState('');
   const [showAiBanner, setShowAiBanner] = useState(() => !sessionStorage.getItem('yem_ai_banner_dismissed'));
 

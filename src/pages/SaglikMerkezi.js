@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import {
     FaHeartbeat, FaSyringe, FaStethoscope, FaPills, FaPlus,
@@ -867,7 +868,15 @@ function VeterinerlerPanel() {
 //  COMPONENT
 // =====================
 function SaglikMerkezi() {
-    const [aktifTab, setAktifTab] = useState('kayitlar');
+    const location = useLocation();
+    const openTab = location.state?.openTab;
+    const [aktifTab, setAktifTab] = useState(openTab || 'kayitlar');
+
+    useEffect(() => {
+        if (openTab && ['kayitlar', 'asilar', 'yaklasan', 'ai', 'veterinerler'].includes(openTab)) {
+            setAktifTab(openTab);
+        }
+    }, [openTab]);
     const [kayitlar, setKayitlar] = useState([]);
     const [asilar, setAsilar] = useState([]);
     const [istatistikler, setIstatistikler] = useState(null);

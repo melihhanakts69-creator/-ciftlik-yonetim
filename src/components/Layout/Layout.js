@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
-import BottomNav from './BottomNav';
+import QuickActionsFAB from './QuickActionsFAB';
 import PWAInstallPrompt from '../PWAInstallPrompt/PWAInstallPrompt';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 
@@ -32,7 +32,7 @@ const MainContent = styled.div`
     margin-left: 0;
     max-width: 100%;
     padding: 15px;
-    padding-bottom: ${({ $isMobile }) => ($isMobile ? 'calc(56px + env(safe-area-inset-bottom, 0) + 16px)' : '15px')};
+    padding-bottom: ${({ $isMobile }) => ($isMobile ? 'calc(90px + env(safe-area-inset-bottom, 0))' : '15px')};
   }
 `;
 
@@ -73,7 +73,7 @@ const Layout = ({ children, onLogout }) => {
                 </div>
             </MainContent>
 
-            {isMobile && <BottomNav onMenuClick={() => setIsSidebarOpen(true)} />}
+            {isMobile && <QuickActionsFAB onMenuClick={() => setIsSidebarOpen(true)} />}
             <PWAInstallPrompt />
         </LayoutContainer>
     );
