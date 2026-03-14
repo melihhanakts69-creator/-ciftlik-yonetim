@@ -1116,11 +1116,13 @@ function SaglikMerkezi() {
 
                         <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
                             style={{
-                                background: aktifTab === 'ai' ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : undefined,
-                                color: aktifTab === 'ai' ? '#fff' : undefined,
-                                borderColor: aktifTab === 'ai' ? 'transparent' : undefined
+                                background: aktifTab === 'ai' ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'linear-gradient(135deg,#faf5ff,#f3e8ff)',
+                                color: aktifTab === 'ai' ? '#fff' : '#7c3aed',
+                                borderColor: aktifTab === 'ai' ? 'transparent' : '#ddd6fe',
+                                fontWeight: 800
                             }}>
-                            <FaRobot style={{ marginRight: 6 }} /> 🤖 AI Danışman
+                            <FaRobot /> 🤖 AI Danışman
+                            {aktifTab !== 'ai' && <span style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 9, padding: '2px 6px', borderRadius: 999, fontWeight: 800, marginLeft: 2 }}>AI</span>}
                         </Tab>
                         <Tab active={aktifTab === 'veterinerler'} onClick={() => setAktifTab('veterinerler')}>
                             🩺 Veterinerler
@@ -1208,54 +1210,76 @@ function SaglikMerkezi() {
 
                         {/* AŞI TAKVİMİ TAB */}
                         {aktifTab === 'asilar' && (
-                            <CardList>
+                            <>
                                 {asilar.length === 0 ? (
-                                    <EmptyState>
-                                        <FaSyringe />
-                                        <p>Henüz aşı kaydı yok</p>
-                                    </EmptyState>
-                                ) : (
-                                    asilar.map(a => {
-                                        const gecikti = a.sonrakiTarih && new Date(a.sonrakiTarih) < new Date() && a.durum === 'bekliyor';
+                                    <CardList>
+                                        <EmptyState>
+                                            <FaSyringe />
+                                            <p>Henüz aşı kaydı yok</p>
+                                        </EmptyState>
+                                    </CardList>
+                                ) : (() => {
+                                    const now = new Date();
+                                    const weekLater = new Date(now); weekLater.setDate(now.getDate() + 7);
+                                    const monthLater = new Date(now); monthLater.setDate(now.getDate() + 30);
+
+                                    const groups = [
+                                        { key: 'gecikti', label: '⚠️ Gecikmiş', color: '#f44336', bg: '#FFEBEE', filter: a => a.durum === 'bekliyor' && a.sonrakiTarih && new Date(a.sonrakiTarih) < now },
+                                        { key: 'bu_hafta', label: '🔴 Bu Hafta', color: '#ef6c00', bg: '#FFF3E0', filter: a => a.durum === 'bekliyor' && a.sonrakiTarih && new Date(a.sonrakiTarih) >= now && new Date(a.sonrakiTarih) <= weekLater },
+                                        { key: 'bu_ay', label: '🟡 Bu Ay', color: '#f59e0b', bg: '#fffbeb', filter: a => a.durum === 'bekliyor' && a.sonrakiTarih && new Date(a.sonrakiTarih) > weekLater && new Date(a.sonrakiTarih) <= monthLater },
+                                        { key: 'yaklasan', label: '🟢 Yaklaşan', color: '#16a34a', bg: '#f0fdf4', filter: a => a.durum === 'bekliyor' && (!a.sonrakiTarih || new Date(a.sonrakiTarih) > monthLater) },
+                                        { key: 'yapildi', label: '✅ Yapıldı', color: '#475569', bg: '#f8fafc', filter: a => a.durum === 'yapildi' },
+                                    ];
+
+                                    return groups.map(grp => {
+                                        const items = asilar.filter(grp.filter);
+                                        if (items.length === 0) return null;
                                         return (
-                                            <RecordCard key={a._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                                <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                                    <FaSyringe />
-                                                </RecordIcon>
-                                                <RecordContent>
-                                                    <div className="top-row">
-                                                        <div>
-                                                            <h3>{a.asiAdi}</h3>
-                                                            <div className="hayvan-info">
-                                                                {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' :
-                                                                    (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
-                                                                {a.hayvanIsim && ` • ${a.hayvanIsim}`}
-                                                                {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
-                                                            </div>
-                                                        </div>
-                                                        <Badge
-                                                            bg={gecikti ? '#FFEBEE' : a.durum === 'yapildi' ? '#E8F5E9' : '#FFF3E0'}
-                                                            color={gecikti ? '#C62828' : a.durum === 'yapildi' ? '#2E7D32' : '#E65100'}
-                                                        >
-                                                            {gecikti ? '⚠️ GECİKTİ' : a.durum === 'yapildi' ? '✅ Yapıldı' : '⏳ Bekliyor'}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="detail-row">
-                                                        <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
-                                                        {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
-                                                        {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
-                                                        {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
-                                                        {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
-                                                    </div>
-                                                </RecordContent>
-                                                <ActionBtns>
-                                                    <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
-                                                </ActionBtns>
-                                            </RecordCard>
+                                            <div key={grp.key} style={{ marginBottom: 20 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                                    <span style={{ fontSize: 13, fontWeight: 800, color: grp.color }}>{grp.label}</span>
+                                                    <span style={{ background: grp.bg, color: grp.color, borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>{items.length} kayıt</span>
+                                                    <div style={{ flex: 1, height: 1, background: '#f1f5f9' }} />
+                                                </div>
+                                                <CardList style={{ marginBottom: 0 }}>
+                                                    {items.map(a => (
+                                                        <RecordCard key={a._id} color={grp.color}>
+                                                            <RecordIcon bg={grp.bg} color={grp.color}>
+                                                                <FaSyringe />
+                                                            </RecordIcon>
+                                                            <RecordContent>
+                                                                <div className="top-row">
+                                                                    <div>
+                                                                        <h3>{a.asiAdi}</h3>
+                                                                        <div className="hayvan-info">
+                                                                            {a.hayvanTipi === 'hepsi' ? '🐄 Toplu Aşı' : (hayvanTipiLabel[a.hayvanTipi] || a.hayvanTipi)}
+                                                                            {a.hayvanIsim && ` • ${a.hayvanIsim}`}
+                                                                            {a.hayvanKupeNo && ` (${a.hayvanKupeNo})`}
+                                                                        </div>
+                                                                    </div>
+                                                                    <Badge bg={grp.bg} color={grp.color}>
+                                                                        {a.durum === 'yapildi' ? '✅ Yapıldı' : a.sonrakiTarih ? new Date(a.sonrakiTarih).toLocaleDateString('tr-TR') : '⏳ Bekliyor'}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="detail-row">
+                                                                    <span className="detail"><FaCalendarAlt /> {new Date(a.uygulamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                                    {a.sonrakiTarih && <span className="detail"><FaClock /> Sonraki: {new Date(a.sonrakiTarih).toLocaleDateString('tr-TR')}</span>}
+                                                                    {a.uygulayan && <span className="detail"><FaStethoscope /> {a.uygulayan}</span>}
+                                                                    {a.doz && <span className="detail"><FaPills /> {a.doz}</span>}
+                                                                    {a.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{a.maliyet.toLocaleString('tr-TR')}</span>}
+                                                                </div>
+                                                            </RecordContent>
+                                                            <ActionBtns>
+                                                                <button className="delete" onClick={() => handleSil(a._id, 'asi')}><FaTrash /></button>
+                                                            </ActionBtns>
+                                                        </RecordCard>
+                                                    ))}
+                                                </CardList>
+                                            </div>
                                         );
-                                    })
-                                )}
-                            </CardList>
+                                    });
+                                })()}
+                            </>
                         )}
 
                         {/* YAKLAŞAN İŞLEMLER TAB */}

@@ -20,6 +20,10 @@ const PageContainer = styled.div`
   padding: 24px;
   background: #f8f9fa;
   min-height: 100vh;
+  
+  @media (max-width: 768px) {
+    padding: 14px 12px 90px;
+  }
 `;
 
 const Header = styled.div`
@@ -79,11 +83,11 @@ const PeriodBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${props => props.active ? '#4CAF50' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#666'};
+  background: ${props => props.$active ? '#4CAF50' : 'transparent'};
+  color: ${props => props.$active ? 'white' : '#666'};
 
   &:hover {
-    background: ${props => props.active ? '#4CAF50' : '#f0f0f0'};
+    background: ${props => props.$active ? '#4CAF50' : '#f0f0f0'};
   }
 `;
 
@@ -96,6 +100,14 @@ const Tabs = styled.div`
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  
+  @media (max-width: 768px) {
+    gap: 4px;
+    padding: 5px;
+    border-radius: 12px;
+  }
 `;
 
 const Tab = styled.button`
@@ -110,14 +122,20 @@ const Tab = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
-  background: ${props => props.active ? '#4CAF50' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#666'};
+  flex-shrink: 0;
+  background: ${props => props.$active ? '#4CAF50' : 'transparent'};
+  color: ${props => props.$active ? 'white' : '#666'};
 
   &:hover {
-    background: ${props => props.active ? '#4CAF50' : '#f5f5f5'};
+    background: ${props => props.$active ? '#4CAF50' : '#f5f5f5'};
   }
 
   svg { font-size: 14px; }
+  
+  @media (max-width: 768px) {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
 `;
 
 const Grid = styled.div`
@@ -174,7 +192,7 @@ const StatCard = styled.div`
 `;
 
 const ChartGrid = styled.div`
-  display: grid;
+  display: ${props => props.$hidden ? 'none' : 'grid'};
   grid-template-columns: ${props => props.cols || '1fr 1fr'};
   gap: 20px;
   margin-bottom: 24px;
@@ -309,11 +327,34 @@ const ActionBtn = styled.button`
 
 const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4'];
 
+const ViewToggleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+const ViewToggleBtns = styled.div`
+  display: flex;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+`;
+const VTBtn = styled.button`
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; transition: all .2s;
+  background: ${p => p.$active ? '#1e293b' : 'white'};
+  color: ${p => p.$active ? 'white' : '#64748b'};
+  &:hover { background: ${p => p.$active ? '#1e293b' : '#f1f5f9'}; }
+`;
+
 const Raporlar = () => {
   const [activeTab, setActiveTab] = useState('suru');
   const [period, setPeriod] = useState(30);
   const [loading, setLoading] = useState(true);
   const [exportModal, setExportModal] = useState({ show: false, type: null, data: [] });
+  const [showCharts, setShowCharts] = useState(window.innerWidth > 768);
   const [data, setData] = useState({
     inekler: [], duveler: [], buzagilar: [], tosunlar: [],
     sutVerileri: [], finansal: [], saglik: [], alisSatis: []
@@ -470,7 +511,7 @@ const Raporlar = () => {
           <StatCard color="#9C27B0"><div className="label">Buzağı</div><div className="value">{buzagilar.length}</div><div className="unit">Baş</div></StatCard>
         </Grid>
 
-        <ChartGrid>
+        <ChartGrid $hidden={!showCharts}>
           <ChartCard>
             <h3>🐄 Hayvan Dağılımı</h3>
             {dagilim.length > 0 ? (
@@ -544,7 +585,7 @@ const Raporlar = () => {
           <StatCard color="#ef5350"><div className="label">En Düşük</div><div className="value">{minSut.toFixed(1)}</div><div className="unit">Lt</div></StatCard>
         </Grid>
 
-        <ChartGrid cols="1fr">
+        <ChartGrid cols="1fr" $hidden={!showCharts}>
           <ChartCard>
             <h3>🥛 Süt Üretim Grafiği ({period} Gün)</h3>
             {chartData.length > 0 ? (
@@ -612,7 +653,7 @@ const Raporlar = () => {
           <StatCard color="#2196F3"><div className="label">Alış/Satış</div><div className="value">{alisKayitlar.length}</div><div className="unit">İşlem</div></StatCard>
         </Grid>
 
-        <ChartGrid>
+        <ChartGrid $hidden={!showCharts}>
           <ChartCard>
             <h3>💰 Gelir vs Gider</h3>
             <ResponsiveContainer width="100%" height={280}>
@@ -680,7 +721,7 @@ const Raporlar = () => {
           <StatCard color="#ef5350"><div className="label">Sağlık Gideri</div><div className="value">{toplamMaliyet.toLocaleString('tr-TR')}</div><div className="unit">₺</div></StatCard>
         </Grid>
 
-        <ChartGrid>
+        <ChartGrid $hidden={!showCharts}>
           <ChartCard>
             <h3>🏥 Kayıt Türü Dağılımı</h3>
             {tipData.length > 0 ? (
@@ -767,7 +808,7 @@ const Raporlar = () => {
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
           <PeriodSelector>
             {[{ v: 7, l: '7 Gün' }, { v: 30, l: '30 Gün' }, { v: 90, l: '90 Gün' }, { v: 365, l: 'Yıllık' }].map(p => (
-              <PeriodBtn key={p.v} active={period === p.v} onClick={() => setPeriod(p.v)}>
+              <PeriodBtn key={p.v} $active={period === p.v} onClick={() => setPeriod(p.v)}>
                 <FaCalendarAlt style={{ marginRight: 4 }} /> {p.l}
               </PeriodBtn>
             ))}
@@ -781,7 +822,7 @@ const Raporlar = () => {
 
       <Tabs>
         {tabs.map(t => (
-          <Tab key={t.id} active={activeTab === t.id} onClick={() => setActiveTab(t.id)}>
+          <Tab key={t.id} $active={activeTab === t.id} onClick={() => setActiveTab(t.id)}>
             {t.icon} {t.label}
           </Tab>
         ))}
@@ -791,6 +832,12 @@ const Raporlar = () => {
         <LoadingSpinner>Veriler yükleniyor...</LoadingSpinner>
       ) : (
         <>
+          <ViewToggleRow>
+            <ViewToggleBtns>
+              <VTBtn $active={showCharts} onClick={() => setShowCharts(true)}><FaChartBar size={11} /> Grafik + Tablo</VTBtn>
+              <VTBtn $active={!showCharts} onClick={() => setShowCharts(false)}>📋 Sadece Tablo</VTBtn>
+            </ViewToggleBtns>
+          </ViewToggleRow>
           {activeTab === 'suru' && renderSuruTab()}
           {activeTab === 'sut' && renderSutTab()}
           {activeTab === 'finansal' && renderFinansalTab()}

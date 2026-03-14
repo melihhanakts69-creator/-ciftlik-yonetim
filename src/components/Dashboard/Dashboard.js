@@ -775,16 +775,18 @@ const Dashboard = ({ kullanici }) => {
         <MobileHideGridItem span={4} delay="0.2s">
           <HizliYemlemeWidget />
         </MobileHideGridItem>
+
+        {/* Aktiviteler - Şampiyonlar ile aynı satırda (span 8) masaüstünde, mobilde tam genişlik */}
+        <AnimatedGridItem span={8} delay="0.25s">
+          <AktivitelerCard aktiviteler={data.aktiviteler} />
+        </AnimatedGridItem>
       </Grid>
 
-      {/* --- WIDGETS ROW 2 --- */}
-      <SectionTitle>🏥 Sağlık & Aktivite</SectionTitle>
+      {/* --- SAĞLIK UYARI --- */}
+      <SectionTitle>🏥 Sağlık</SectionTitle>
       <Grid>
-        <AnimatedGridItem span={4} delay="0.1s">
+        <AnimatedGridItem span={12} delay="0.1s">
           <SaglikUyariCard />
-        </AnimatedGridItem>
-        <AnimatedGridItem span={8} delay="0.15s">
-          <AktivitelerCard aktiviteler={data.aktiviteler} />
         </AnimatedGridItem>
       </Grid>
 

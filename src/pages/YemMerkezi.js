@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import {
   FaLeaf, FaClipboardList, FaCheckCircle, FaTrash, FaCalculator,
-  FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd, FaPlus
+  FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd, FaPlus,
+  FaRobot, FaTimes
 } from 'react-icons/fa';
 import * as api from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -13,6 +14,8 @@ import YemDanismani from '../components/Yem/YemDanismani';
 import { showSuccess, showError } from '../utils/toast';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
+const pulseGlow = keyframes`0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.4)}50%{box-shadow:0 0 0 6px rgba(99,102,241,0)}`;
+const shimmer = keyframes`0%{background-position:-200% 0}100%{background-position:200% 0}`;
 
 // ─── Styled ──────────────────────────────────────────────────────────
 const Page = styled.div`
@@ -158,6 +161,38 @@ const TabBtn = styled.button`
 const NewBadge = styled.span`
   background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
   font-size:9px;padding:2px 6px;border-radius:999px;font-weight:800;
+  animation: ${pulseGlow} 2s ease-in-out infinite;
+`;
+
+const AiBanner = styled.div`
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1.5px solid #86efac; border-radius: 14px;
+  padding: 14px 18px; margin-bottom: 16px;
+  animation: ${fadeIn} .4s ease;
+  
+  @media (max-width: 768px) { padding: 12px 14px; gap: 10px; }
+`;
+const AiBannerIcon = styled.div`
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  animation: ${pulseGlow} 2.5s ease-in-out infinite;
+`;
+const AiBannerText = styled.div`
+  flex: 1;
+  .title { font-size: 14px; font-weight: 800; color: #065f46; }
+  .sub { font-size: 12px; color: #16a34a; margin-top: 2px; }
+`;
+const AiBannerBtn = styled.button`
+  padding: 8px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
+  transition: all .2s; flex-shrink: 0;
+  &:hover { filter: brightness(1.1); transform: translateY(-1px); }
+`;
+const AiBannerClose = styled.button`
+  background: none; border: none; color: #86efac; cursor: pointer; padding: 4px; flex-shrink: 0;
+  &:hover { color: #16a34a; }
 `;
 
 // ─── Rasyon Kartları ───────────────────────────────────────────────
@@ -264,6 +299,7 @@ export default function YemMerkezi() {
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [showAiBanner, setShowAiBanner] = useState(() => !sessionStorage.getItem('yem_ai_banner_dismissed'));
 
   useEffect(() => { loadData(); }, [tab]);
 
@@ -357,6 +393,20 @@ export default function YemMerkezi() {
           </TabBar>
 
           <TabContent>
+            {/* AI Danışman Keşif Banneri */}
+            {showAiBanner && tab !== 'danisman' && (
+              <AiBanner>
+                <AiBannerIcon><FaRobot /></AiBannerIcon>
+                <AiBannerText>
+                  <div className="title">Ziraat AI Yem Danışmanı</div>
+                  <div className="sub">Rasyon optimizasyonu, besin analizi ve yemleme önerileri için AI'dan yardım alın</div>
+                </AiBannerText>
+                <AiBannerBtn onClick={() => setTab('danisman')}>Dene</AiBannerBtn>
+                <AiBannerClose onClick={() => { setShowAiBanner(false); sessionStorage.setItem('yem_ai_banner_dismissed', '1'); }}>
+                  <FaTimes size={14} />
+                </AiBannerClose>
+              </AiBanner>
+            )}
             {tab === 'danisman' && <YemDanismani />}
             {tab === 'stok' && <YemDeposu isEmbedded={true} />}
             {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}

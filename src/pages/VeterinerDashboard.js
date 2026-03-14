@@ -8,26 +8,36 @@ const fadeIn = keyframes`from { opacity: 0; transform: translateY(6px); } to { o
 
 // ─── Sayfa: tam yükseklik, scroll yok ────────────────────────────────────────
 const Page = styled.div`
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, sans-serif;
   background: #f1f5f9;
-  overflow: hidden;
+  overflow-y: auto;
   animation: ${fadeIn} 0.4s ease;
+  
+  @media (max-width: 768px) {
+    padding-bottom: 80px;
+  }
 `;
 
 // ─── Üst Hero Bar ─────────────────────────────────────────────────────────────
 const HeroBar = styled.div`
   background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
   padding: 0 28px;
-  height: 72px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   gap: 22px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    gap: 12px;
+  }
 
   &::before {
     content: '';
@@ -110,6 +120,11 @@ const StatsRow = styled.div`
   gap: 10px;
   padding: 10px 20px;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 10px 12px;
+  }
 `;
 
 const StatCard = styled.div`
@@ -156,21 +171,25 @@ const MainBody = styled.div`
   grid-template-columns: 1fr 308px;
   gap: 10px;
   padding: 0 20px 12px;
-  overflow: hidden;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    padding: 0 12px 12px;
+  }
 `;
 
 const LeftCol = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: hidden;
+  min-height: 0;
 `;
 
 const RightCol = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: hidden;
+  min-height: 0;
 `;
 
 // İki bölüm: çiftlikler + kayıtlar yan yana
@@ -180,6 +199,10 @@ const LeftGrid = styled.div`
   gap: 10px;
   flex: 1;
   min-height: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 // ─── Panel & Card Bileşenleri ─────────────────────────────────────────────────

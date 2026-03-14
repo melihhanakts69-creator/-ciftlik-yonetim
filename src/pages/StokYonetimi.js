@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { FaBox, FaPlus, FaMinus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle, FaTimes } from 'react-icons/fa';
+import { FaBox, FaPlus, FaMinus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle, FaTimes, FaThLarge, FaList } from 'react-icons/fa';
 import * as api from '../services/api';
 import { toast } from 'react-toastify';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -22,12 +22,23 @@ const PageTitle = styled.h1`
   font-size: 22px; font-weight: 900; color: #0f172a; margin: 0;
   display: flex; align-items: center; gap: 10px;
 `;
+const TopActions = styled.div`display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
 const AddBtn = styled.button`
   background: linear-gradient(135deg,#4ade80,#16a34a); color:#fff; border:none;
   padding: 11px 22px; border-radius: 12px; font-size: 14px; font-weight: 800;
   cursor: pointer; display: flex; align-items: center; gap: 8px;
   box-shadow: 0 4px 14px rgba(74,222,128,.35); transition: all .2s;
   &:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,222,128,.45);}
+`;
+const ToggleViewBtns = styled.div`
+  display: flex; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden;
+`;
+const TVBtn = styled.button`
+  display: flex; align-items: center; gap: 5px; padding: 8px 14px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 700; transition: all .2s;
+  background: ${p => p.$active ? '#0f172a' : '#fff'};
+  color: ${p => p.$active ? '#fff' : '#64748b'};
+  &:hover { background: ${p => p.$active ? '#0f172a' : '#f1f5f9'}; }
 `;
 
 // Stat bar
@@ -107,6 +118,31 @@ const ProgressBar = styled.div`
   }
 `;
 const KrtikLabel = styled.div`font-size:11px;color:#94a3b8;margin-bottom:12px;margin-top:-10px;`;
+
+// Liste görünümü
+const ListView = styled.div`display:flex;flex-direction:column;gap:8px;`;
+const ListRow = styled.div`
+  display:flex;align-items:center;gap:14px;background:#fff;border-radius:14px;
+  padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.05);
+  border-left:4px solid ${p => p.$kritik ? '#ef4444' : '#4ade80'};
+  transition:all .2s;
+  &:hover{box-shadow:0 4px 16px rgba(0,0,0,.09);}
+  @media(max-width:600px){flex-wrap:wrap;}
+`;
+const ListMain = styled.div`flex:1;min-width:0;`;
+const ListNameRow = styled.div`display:flex;align-items:center;gap:8px;margin-bottom:4px;`;
+const ListName = styled.span`font-size:15px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+const ListMeta = styled.div`display:flex;align-items:center;gap:12px;`;
+const ListStock = styled.div`
+  display:flex;align-items:baseline;gap:4px;min-width:80px;
+  .v{font-size:20px;font-weight:900;color:${p => p.$kritik ? '#ef4444' : '#0f172a'};}
+  .u{font-size:12px;color:#94a3b8;font-weight:600;}
+`;
+const ListProgress = styled.div`
+  flex:1;height:4px;background:#f1f5f9;border-radius:999px;overflow:hidden;min-width:80px;max-width:180px;
+  div{height:100%;border-radius:999px;background:${p => p.$pct < 30 ? '#ef4444' : p.$pct < 70 ? '#f59e0b' : '#4ade80'};width:${p => Math.min(100, p.$pct)}%;}
+`;
+const ListActions = styled.div`display:flex;gap:6px;flex-shrink:0;`;
 const ActionBtns = styled.div`
   display: flex; gap: 8px; padding-top: 14px; border-top: 1px solid #f1f5f9;
 `;
@@ -181,6 +217,7 @@ export default function StokYonetimi() {
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(EMPTY);
+    const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? 'liste' : 'kare');
     const upd = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
 
     useEffect(() => { load(); }, []);
@@ -227,7 +264,13 @@ export default function StokYonetimi() {
         <Page>
             <TopRow>
                 <PageTitle>📦 Stok Yönetimi</PageTitle>
-                <AddBtn onClick={openNew}><FaPlus /> Yeni Stok Ekle</AddBtn>
+                <TopActions>
+                    <ToggleViewBtns>
+                        <TVBtn $active={viewMode === 'kare'} onClick={() => setViewMode('kare')}><FaThLarge size={11} /> Kare</TVBtn>
+                        <TVBtn $active={viewMode === 'liste'} onClick={() => setViewMode('liste')}><FaList size={11} /> Liste</TVBtn>
+                    </ToggleViewBtns>
+                    <AddBtn onClick={openNew}><FaPlus /> Yeni Stok Ekle</AddBtn>
+                </TopActions>
             </TopRow>
 
             {/* İstatistikler */}
@@ -273,12 +316,12 @@ export default function StokYonetimi() {
                 ))}
             </FilterBar>
 
-            {/* Kart grid */}
+            {/* Kart/Liste görünüm */}
             {loading ? (
                 <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Yükleniyor...</div>
             ) : filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Ürün bulunamadı</div>
-            ) : (
+            ) : viewMode === 'kare' ? (
                 <Grid>
                     {filtered.map(item => {
                         const pct = item.kritikSeviye > 0 ? (item.miktar / item.kritikSeviye) * 100 : 100;
@@ -315,6 +358,40 @@ export default function StokYonetimi() {
                         );
                     })}
                 </Grid>
+            ) : (
+                <ListView>
+                    {filtered.map(item => {
+                        const pct = item.kritikSeviye > 0 ? (item.miktar / item.kritikSeviye) * 100 : 100;
+                        const kritik = item.miktar <= item.kritikSeviye;
+                        return (
+                            <ListRow key={item._id} $kritik={kritik}>
+                                <ListMain>
+                                    <ListNameRow>
+                                        <ListName>{item.urunAdi}</ListName>
+                                        <KatBadge $kat={item.kategori}>{item.kategori}</KatBadge>
+                                        {kritik && <FaExclamationTriangle style={{ color: '#ef4444', fontSize: 12 }} />}
+                                    </ListNameRow>
+                                    <ListMeta>
+                                        <ListStock $kritik={kritik}>
+                                            <span className="v">{item.miktar}</span>
+                                            <span className="u">{item.birim}</span>
+                                        </ListStock>
+                                        <ListProgress $pct={pct}><div /></ListProgress>
+                                        <span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                                            Min: {item.kritikSeviye} {item.birim}
+                                        </span>
+                                    </ListMeta>
+                                </ListMain>
+                                <ListActions>
+                                    <AB $t="sub" style={{ flex: 'none', width: 34 }} onClick={() => quickUpdate(item._id, 'cikar', 1)}><FaMinus /></AB>
+                                    <AB $t="add" style={{ flex: 'none', width: 34 }} onClick={() => quickUpdate(item._id, 'ekle', 1)}><FaPlus /></AB>
+                                    <AB $t="edit" style={{ flex: 'none', padding: '8px 14px' }} onClick={() => openEdit(item)}><FaEdit /></AB>
+                                    <AB $t="del" style={{ flex: 'none', width: 34 }} onClick={() => handleDelete(item._id)}><FaTrash /></AB>
+                                </ListActions>
+                            </ListRow>
+                        );
+                    })}
+                </ListView>
             )}
 
             {/* Modal */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { FaPaperPlane, FaPlus, FaRobot, FaUserAlt, FaHistory, FaTrash } from 'react-icons/fa';
+import { FaPaperPlane, FaPlus, FaRobot, FaUserAlt, FaHistory, FaTrash, FaTimes } from 'react-icons/fa';
 import * as api from '../../services/api';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}`;
@@ -16,11 +16,12 @@ const ChatContainer = styled.div`
   box-shadow: 0 10px 40px rgba(0,0,0,0.08);
   border: 1px solid #e2e8f0;
   font-family: 'Inter', sans-serif;
+  position: relative;
 
   @media(max-width: 768px) {
     flex-direction: column;
-    height: calc(100dvh - 180px);
-    min-height: 480px;
+    height: calc(100dvh - 160px);
+    min-height: 500px;
     max-height: none;
     border-radius: 16px;
   }
@@ -32,15 +33,58 @@ const Sidebar = styled.div`
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 
   @media(max-width: 768px) {
-    width: 100%;
-    height: auto;
-    max-height: 130px;
-    border-right: none;
+    display: none;
+  }
+`;
+
+/* Mobile history drawer */
+const MobileDrawerOverlay = styled.div`
+  display: none;
+  @media(max-width: 768px) {
+    display: ${p => p.$open ? 'block' : 'none'};
+    position: absolute; inset: 0; background: rgba(15,23,42,0.5);
+    z-index: 20; backdrop-filter: blur(2px);
+  }
+`;
+
+const MobileDrawer = styled.div`
+  display: none;
+  @media(max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 280px; max-width: 85%;
+    background: #f8fafc;
+    z-index: 21;
+    border-right: 1px solid #e2e8f0;
+    animation: ${fadeIn} 0.2s ease;
+  }
+`;
+
+const MobileChatTopBar = styled.div`
+  display: none;
+  @media(max-width: 768px) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
     border-bottom: 1px solid #e2e8f0;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
+    z-index: 5;
     flex-shrink: 0;
   }
+`;
+
+const HistoryToggleBtn = styled.button`
+  display: flex; align-items: center; gap: 6px; padding: 7px 12px;
+  background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 12px; font-weight: 700; color: #475569; cursor: pointer;
+  transition: all .2s;
+  &:hover { background: #e2e8f0; }
 `;
 
 const SidebarHeader = styled.div`
@@ -142,17 +186,22 @@ const MainArea = styled.div`
 `;
 
 const ChatHeader = styled.div`
-  padding: 20px;
+  padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   gap: 12px;
   font-weight: 700;
   color: #1e293b;
-  font-size: 16px;
+  font-size: 15px;
   background: rgba(255,255,255,0.9);
   backdrop-filter: blur(10px);
   z-index: 10;
+  flex-shrink: 0;
+
+  @media(max-width: 768px) {
+    display: none;
+  }
 `;
 
 const MessagesBox = styled.div`
@@ -244,13 +293,17 @@ const TypingIndicator = styled.div`
 `;
 
 const InputContainer = styled.div`
-  padding: 20px;
+  padding: 16px 20px;
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;
   flex-shrink: 0;
 
   @media(max-width: 768px) {
-    padding: 12px;
+    padding: 10px 12px;
+    position: sticky;
+    bottom: 0;
+    background: #f8fafc;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
   }
 `;
 
@@ -331,6 +384,7 @@ export default function ChatSistemi({ type = 'genel', title = 'AI Danışman', i
     const [activeChatId, setActiveChatId] = useState(null);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
@@ -433,7 +487,10 @@ export default function ChatSistemi({ type = 'genel', title = 'AI Danışman', i
 
     return (
         <ChatContainer>
-            {/* SOL SİDEBAR - GEÇMİŞ */}
+            {/* Mobile drawer overlay */}
+            <MobileDrawerOverlay $open={mobileDrawerOpen} onClick={() => setMobileDrawerOpen(false)} />
+
+            {/* SOL SİDEBAR - MASAÜSTÜ */}
             <Sidebar>
                 <SidebarHeader>
                     <NewChatBtn onClick={handleNewChat}>
@@ -462,11 +519,55 @@ export default function ChatSistemi({ type = 'genel', title = 'AI Danışman', i
                 </HistoryList>
             </Sidebar>
 
+            {/* MOBİL DRAWER */}
+            <MobileDrawer style={{ display: mobileDrawerOpen ? undefined : 'none' }}>
+                <SidebarHeader style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <NewChatBtn style={{ flex: 1, marginRight: 8 }} onClick={() => { handleNewChat(); setMobileDrawerOpen(false); }}>
+                        <FaPlus /> Yeni Sohbet
+                    </NewChatBtn>
+                    <button onClick={() => setMobileDrawerOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6 }}>
+                        <FaTimes size={16} />
+                    </button>
+                </SidebarHeader>
+                <HistoryList style={{ overflowY: 'auto', overflowX: 'hidden', flexDirection: 'column', display: 'flex' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '10px', padding: '0 4px' }}>
+                        Geçmiş Sohbetler
+                    </div>
+                    {history.length === 0 && (
+                        <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>Henüz geçmiş yok.</div>
+                    )}
+                    {history.map(chat => (
+                        <HistoryItem
+                            key={chat._id}
+                            $active={activeChatId === chat._id}
+                            onClick={() => { loadChat(chat._id); setMobileDrawerOpen(false); }}
+                        >
+                            <FaHistory style={{ color: activeChatId === chat._id ? '#10b981' : '#94a3b8' }} />
+                            <div className="title">{chat.title || 'İsimsiz Sohbet'}</div>
+                        </HistoryItem>
+                    ))}
+                </HistoryList>
+            </MobileDrawer>
+
             {/* SAĞ ANA ALAN */}
             <MainArea>
+                {/* Desktop header */}
                 <ChatHeader>
                     {icon} {title}
                 </ChatHeader>
+
+                {/* Mobile top bar */}
+                <MobileChatTopBar>
+                    <HistoryToggleBtn onClick={() => setMobileDrawerOpen(true)}>
+                        <FaHistory size={11} /> Geçmiş {history.length > 0 && `(${history.length})`}
+                    </HistoryToggleBtn>
+                    <div style={{ flex: 1, fontWeight: 700, color: '#1e293b', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {icon} {title}
+                    </div>
+                    <HistoryToggleBtn onClick={handleNewChat} style={{ background: '#f0fdf4', borderColor: '#86efac', color: '#065f46' }}>
+                        <FaPlus size={10} /> Yeni
+                    </HistoryToggleBtn>
+                </MobileChatTopBar>
 
                 {messages.length === 0 ? (
                     <WelcomeScreen>
