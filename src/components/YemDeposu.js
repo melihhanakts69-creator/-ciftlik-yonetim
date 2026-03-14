@@ -413,24 +413,24 @@ const MovementCard = styled.div`
 
 const FAB = styled.button`
   position: fixed;
-  bottom: 20px;
+  bottom: 80px;
   right: 20px;
-  width: 60px;
-  height: 60px;
+  width: 58px;
+  height: 58px;
   border-radius: 30px;
-  background: #4CAF50;
+  background: linear-gradient(135deg, #4ade80, #16a34a);
   color: white;
   border: none;
-  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   cursor: pointer;
-  z-index: 99;
-  transition: transform 0.2s;
+  z-index: 1001;
+  transition: transform 0.2s, box-shadow 0.2s;
 
-  &:hover { transform: scale(1.1); }
+  &:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(74,222,128,.6); }
   &:active { transform: scale(0.95); }
 `;
 

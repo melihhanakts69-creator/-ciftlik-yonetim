@@ -13,8 +13,11 @@ const CardWrapper = styled.div`
   flex-direction: column;
   transition: all 0.3s ease;
 
-  &:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  &:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+  
+  @media (max-width: 768px) {
+    padding: 12px 10px;
+    border-radius: 14px;
   }
 `;
 
@@ -34,15 +37,13 @@ const CardHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    
+    @media (max-width: 768px) { font-size: 12px; }
   }
 
   .count {
-    font-size: 11px;
-    color: #999;
-    font-weight: 500;
-    background: #f5f5f5;
-    padding: 2px 8px;
-    border-radius: 10px;
+    font-size: 11px; color: #999; font-weight: 500;
+    background: #f5f5f5; padding: 2px 8px; border-radius: 10px;
   }
 `;
 
@@ -57,7 +58,8 @@ const ActivityList = styled.div`
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
-  &::-webkit-scrollbar-thumb:hover { background: #bbb; }
+  
+  @media (max-width: 768px) { max-height: 220px; }
 `;
 
 const ActivityItem = styled.div`
@@ -69,42 +71,36 @@ const ActivityItem = styled.div`
   transition: all 0.15s ease;
   cursor: default;
 
-  &:hover {
-    background: #fafafa;
-    transform: translateX(3px);
-  }
+  &:hover { background: #fafafa; transform: translateX(3px); }
+  
+  @media (max-width: 768px) { gap: 6px; padding: 6px 6px; }
 `;
 
 const ActivityIcon = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 32px; height: 32px; border-radius: 10px;
   background: ${props => props.bgColor || colors.bg.green};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  
+  @media (max-width: 768px) { width: 26px; height: 26px; font-size: 12px; border-radius: 8px; }
 `;
 
 const ActivityContent = styled.div`
-  flex: 1;
-  min-width: 0;
+  flex: 1; min-width: 0;
 `;
 
 const ActivityTitle = styled.div`
-  font-weight: 600;
-  color: ${colors.text.primary};
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600; color: ${colors.text.primary};
+  font-size: 13px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  
+  @media (max-width: 768px) { font-size: 11px; }
 `;
 
 const ActivityTime = styled.div`
-  font-size: 11px;
-  color: ${colors.text.light};
-  white-space: nowrap;
+  font-size: 11px; color: ${colors.text.light}; white-space: nowrap;
+  
+  @media (max-width: 768px) { font-size: 10px; }
 `;
 
 const EmptyState = styled.div`

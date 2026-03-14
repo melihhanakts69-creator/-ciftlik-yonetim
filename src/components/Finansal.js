@@ -141,7 +141,7 @@ const StatCard = styled.div`
 const QuickFilter = styled.div`
   display: flex;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
   align-items: center;
 `;
@@ -158,6 +158,39 @@ const QFBtn = styled.button`
   transition: all .15s;
   white-space: nowrap;
   &:hover { border-color: ${p => p.$color || '#4CAF50'}; }
+`;
+
+const DateFilterBar = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  
+  label {
+    font-size: 11px; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  
+  @media(max-width:480px){ flex-direction: column; align-items: flex-start; gap: 6px; }
+`;
+
+const DateInput = styled.input`
+  padding: 7px 10px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 13px; outline: none;
+  &:focus { border-color: #4CAF50; }
+`;
+
+const ClearDateBtn = styled.button`
+  padding: 6px 12px; border: none; border-radius: 8px;
+  background: #f1f5f9; color: #64748b; font-size: 12px;
+  font-weight: 700; cursor: pointer;
+  &:hover { background: #e2e8f0; }
 `;
 
 const ChartToggleBtn = styled.button`
@@ -360,6 +393,9 @@ function Finansal() {
   const [tipFilter, setTipFilter] = useState('');
   const [showCharts, setShowCharts] = useState(false);
   const [filtreleme, setFiltreleme] = useState(() => getPeriodDates('bu_ay'));
+  const [customBaslangic, setCustomBaslangic] = useState('');
+  const [customBitis, setCustomBitis] = useState('');
+  const [showDateFilter, setShowDateFilter] = useState(false);
 
   const [form, setForm] = useState({
     tip: 'gider', kategori: 'yem', miktar: '',
@@ -386,6 +422,23 @@ function Finansal() {
   const handleDonemChange = (d) => {
     setDonem(d);
     setFiltreleme(getPeriodDates(d));
+    setCustomBaslangic('');
+    setCustomBitis('');
+    setShowDateFilter(false);
+  };
+
+  const handleCustomDateApply = () => {
+    if (customBaslangic || customBitis) {
+      setDonem('ozel');
+      setFiltreleme({ baslangic: customBaslangic, bitis: customBitis });
+    }
+  };
+
+  const handleClearCustomDate = () => {
+    setCustomBaslangic('');
+    setCustomBitis('');
+    setShowDateFilter(false);
+    handleDonemChange('bu_ay');
   };
 
   const kayitlariYukle = async () => {
@@ -492,7 +545,36 @@ function Finansal() {
         <QFBtn $active={tipFilter === 'gider'} $color="#C62828" $bg="#FFEBEE" onClick={() => setTipFilter('gider')}>
           <FaArrowDown size={10} /> Giderler
         </QFBtn>
+        <QFBtn $active={showDateFilter || donem === 'ozel'} $color="#1d4ed8" $bg="#dbeafe"
+          onClick={() => setShowDateFilter(p => !p)}>
+          📅 Tarih Filtresi
+        </QFBtn>
       </QuickFilter>
+
+      {/* Tarih Aralığı Filtresi */}
+      {(showDateFilter || donem === 'ozel') && (
+        <DateFilterBar>
+          <label>Başlangıç:</label>
+          <DateInput type="date" value={customBaslangic}
+            onChange={e => setCustomBaslangic(e.target.value)} />
+          <label>Bitiş:</label>
+          <DateInput type="date" value={customBitis}
+            onChange={e => setCustomBitis(e.target.value)} />
+          <QFBtn $active={true} $color="#1d4ed8" $bg="#dbeafe"
+            style={{ padding: '7px 14px' }}
+            onClick={handleCustomDateApply}>
+            Uygula
+          </QFBtn>
+          <ClearDateBtn onClick={handleClearCustomDate}>Temizle</ClearDateBtn>
+          {donem === 'ozel' && (
+            <span style={{ fontSize: 11, color: '#64748b', marginLeft: 4 }}>
+              {customBaslangic && `${new Date(customBaslangic).toLocaleDateString('tr-TR')}`}
+              {customBaslangic && customBitis && ' — '}
+              {customBitis && `${new Date(customBitis).toLocaleDateString('tr-TR')}`}
+            </span>
+          )}
+        </DateFilterBar>
+      )}
 
       {/* Grafik Toggle (sadece mobilde) */}
       <ChartToggleBtn $open={showCharts} onClick={() => setShowCharts(p => !p)}>

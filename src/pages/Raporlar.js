@@ -30,19 +30,27 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 14px;
+  }
 `;
 
 const HeaderLeft = styled.div`
   h1 {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
     color: #2c3e50;
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
+    
+    @media (max-width: 768px) { font-size: 20px; }
   }
-  p { color: #95a5a6; margin: 0; font-size: 13px; }
+  p { color: #95a5a6; margin: 0; font-size: 13px; 
+    @media (max-width: 768px) { font-size: 11px; }
+  }
 `;
 
 const PeriodSelector = styled.div`
@@ -52,6 +60,12 @@ const PeriodSelector = styled.div`
   padding: 4px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  flex-wrap: wrap;
+  
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const ExportGroup = styled.div`
@@ -140,55 +154,48 @@ const Tab = styled.button`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
   animation: ${fadeIn} 0.4s ease;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
 `;
 
 const StatCard = styled.div`
   background: white;
   border-radius: 16px;
-  padding: 20px;
+  padding: 18px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
   border-left: 4px solid ${props => props.color || '#4CAF50'};
   transition: all 0.2s;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  }
+  &:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
 
   .label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #95a5a6;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 11px; font-weight: 600; color: #95a5a6;
+    text-transform: uppercase; letter-spacing: 0.5px;
   }
 
   .value {
-    font-size: 28px;
-    font-weight: 800;
-    color: #2c3e50;
-    margin: 6px 0 4px;
+    font-size: 26px; font-weight: 800; color: #2c3e50;
+    margin: 5px 0 3px;
+    
+    @media (max-width: 480px) { font-size: 22px; }
   }
 
-  .unit {
-    font-size: 14px;
-    font-weight: 500;
-    color: #95a5a6;
-  }
+  .unit { font-size: 13px; font-weight: 500; color: #95a5a6; }
 
   .trend {
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 4px;
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 4px; margin-top: 4px;
     color: ${props => props.trendUp ? '#4CAF50' : '#ef5350'};
   }
+  
+  @media (max-width: 480px) { padding: 14px 12px; border-radius: 12px; }
 `;
 
 const ChartGrid = styled.div`
@@ -206,18 +213,15 @@ const ChartGrid = styled.div`
 const ChartCard = styled.div`
   background: white;
   border-radius: 16px;
-  padding: 22px;
+  padding: 18px 20px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 
   h3 {
-    margin: 0 0 16px 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    margin: 0 0 14px 0; font-size: 14px; font-weight: 700;
+    color: #2c3e50; display: flex; align-items: center; gap: 8px;
   }
+  
+  @media (max-width: 768px) { padding: 14px 14px; border-radius: 12px; }
 `;
 
 const TableWrapper = styled.div`
@@ -332,6 +336,11 @@ const ViewToggleRow = styled.div`
   align-items: center;
   gap: 8px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    justify-content: flex-end;
+  }
 `;
 const ViewToggleBtns = styled.div`
   display: flex;
@@ -339,6 +348,7 @@ const ViewToggleBtns = styled.div`
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
 `;
 const VTBtn = styled.button`
   display: flex; align-items: center; gap: 5px;
@@ -347,6 +357,8 @@ const VTBtn = styled.button`
   background: ${p => p.$active ? '#1e293b' : 'white'};
   color: ${p => p.$active ? 'white' : '#64748b'};
   &:hover { background: ${p => p.$active ? '#1e293b' : '#f1f5f9'}; }
+  
+  @media (max-width: 480px) { padding: 7px 10px; font-size: 11px; }
 `;
 
 const Raporlar = () => {

@@ -273,6 +273,8 @@ const TopCowList = styled.div`
   flex-direction: column;
   gap: 12px;
   flex: 1;
+  
+  @media (max-width: 768px) { gap: 6px; }
 `;
 
 const TopCowItem = styled.div`
@@ -284,34 +286,35 @@ const TopCowItem = styled.div`
   transition: all 0.2s ease;
   background: ${props => props.index === 0 ? '#FFFDE7' : props.index === 1 ? '#F5F5F5' : props.index === 2 ? '#FFF3E0' : '#FAFAFA'};
 
-  &:hover {
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
+  &:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
   .rank {
-    width: 28px; height: 28px;
-    border-radius: 9px;
+    width: 28px; height: 28px; border-radius: 9px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 12px;
-    margin-right: 12px;
-    color: white;
+    font-weight: 800; font-size: 12px; margin-right: 12px; color: white;
+    
+    @media (max-width: 768px) { width: 22px; height: 22px; font-size: 10px; margin-right: 6px; border-radius: 7px; }
   }
   
   .info {
     flex: 1;
     strong { display: block; font-size: 13px; color: #333; font-weight: 700; }
     span { font-size: 11px; color: #999; }
+    
+    @media (max-width: 768px) {
+      strong { font-size: 11px; }
+      span { font-size: 10px; }
+    }
   }
 
   .value {
-    font-weight: 800;
-    color: ${colors.primary};
-    font-size: 14px;
-    background: ${colors.bg.green};
-    padding: 4px 10px;
-    border-radius: 8px;
+    font-weight: 800; color: ${colors.primary}; font-size: 14px;
+    background: ${colors.bg.green}; padding: 4px 10px; border-radius: 8px;
+    
+    @media (max-width: 768px) { font-size: 11px; padding: 3px 6px; }
   }
+  
+  @media (max-width: 768px) { padding: 7px 8px; border-radius: 9px; }
 `;
 
 const LoadingContainer = styled.div`
@@ -437,6 +440,35 @@ const MobileHideGridItem = styled.div`
   @media (max-width: 768px) {
     display: none !important;
   }
+`;
+
+/* Şampiyonlar + Aktiviteler için mobilde yan yana özel grid */
+const ChampActivitesRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+
+  @media (max-width: 1200px) { grid-template-columns: repeat(6, 1fr); }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+`;
+
+const ChampCol = styled.div`
+  grid-column: span 4;
+  animation: ${fadeInUp} 0.5s ease 0.1s both;
+  @media (max-width: 1200px) { grid-column: span 2; }
+  @media (max-width: 768px) { grid-column: span 1; }
+`;
+
+const ActCol = styled.div`
+  grid-column: span 8;
+  animation: ${fadeInUp} 0.5s ease 0.25s both;
+  @media (max-width: 1200px) { grid-column: span 4; }
+  @media (max-width: 768px) { grid-column: span 1; }
 `;
 
 
@@ -738,8 +770,21 @@ const Dashboard = ({ kullanici }) => {
       {/* --- WIDGETS ROW 1 --- */}
       <SectionTitle>🏆 Operasyon</SectionTitle>
       <Grid>
-        {/* Şampiyonlar */}
-        <AnimatedGridItem span={4} delay="0.1s">
+        {/* Yapılacaklar - mobilde gizli, masaüstünde görünür */}
+        <MobileHideGridItem span={4} delay="0.15s">
+          <YapilacaklarCard bildirimler={data.yapilacaklar} />
+        </MobileHideGridItem>
+
+        {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
+        <MobileHideGridItem span={4} delay="0.2s">
+          <HizliYemlemeWidget />
+        </MobileHideGridItem>
+      </Grid>
+
+      {/* Şampiyonlar + Aktiviteler - mobilde yan yana */}
+      <SectionTitle>🏆 Şampiyonlar & Aktiviteler</SectionTitle>
+      <ChampActivitesRow>
+        <ChampCol>
           <Widget>
             <h3>🏆 Şampiyonlar <span style={{ fontSize: '11px', color: '#999', fontWeight: 500 }}>En Çok Süt</span></h3>
             <TopCowList>
@@ -764,23 +809,11 @@ const Dashboard = ({ kullanici }) => {
               ))}
             </TopCowList>
           </Widget>
-        </AnimatedGridItem>
-
-        {/* Yapılacaklar - mobilde gizli, masaüstünde görünür */}
-        <MobileHideGridItem span={4} delay="0.15s">
-          <YapilacaklarCard bildirimler={data.yapilacaklar} />
-        </MobileHideGridItem>
-
-        {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
-        <MobileHideGridItem span={4} delay="0.2s">
-          <HizliYemlemeWidget />
-        </MobileHideGridItem>
-
-        {/* Aktiviteler - Şampiyonlar ile aynı satırda (span 8) masaüstünde, mobilde tam genişlik */}
-        <AnimatedGridItem span={8} delay="0.25s">
+        </ChampCol>
+        <ActCol>
           <AktivitelerCard aktiviteler={data.aktiviteler} />
-        </AnimatedGridItem>
-      </Grid>
+        </ActCol>
+      </ChampActivitesRow>
 
       {/* --- SAĞLIK UYARI --- */}
       <SectionTitle>🏥 Sağlık</SectionTitle>
