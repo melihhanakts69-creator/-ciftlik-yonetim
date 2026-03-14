@@ -127,9 +127,16 @@ const Grid = styled.div`
 const Card = styled.div`
   background: white;
   border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-  margin-bottom: 25px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+
+  @media (max-width: 768px) {
+    padding: 18px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
 `;
 
 const CardTitle = styled.h3`
@@ -145,35 +152,64 @@ const CardTitle = styled.h3`
 
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 `;
 
 const InfoItem = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    min-height: 72px;
+  }
 `;
 
 const Label = styled.span`
-  font-size: 13px;
-  color: #7f8c8d;
-  margin-bottom: 5px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+  }
 `;
 
 const Value = styled.span`
-  font-size: 16px;
-  color: #2c3e50;
-  font-weight: 500;
+  font-size: 15px;
+  color: #0f172a;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const StatusBadge = styled.span`
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   display: inline-block;
   text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 `;
 
 const TosunDetay = () => {
@@ -261,6 +297,16 @@ const TosunDetay = () => {
                 </ActionButtons>
             </Header>
 
+            {/* HIZLI İŞLEMLER - Üstte, yatay */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+                <ActionButton onClick={() => setShowKiloModal(true)} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 120 }}>
+                    <FaWeight /> Kilo
+                </ActionButton>
+                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', flex: 1, minWidth: 120 }}>
+                    <FaMoneyBillWave /> Satış
+                </ActionButton>
+            </div>
+
             <Grid>
                 {/* SOL KOLON */}
                 <div>
@@ -306,25 +352,6 @@ const TosunDetay = () => {
 
                 {/* SAĞ KOLON */}
                 <div>
-                    {/* HIZLI İŞLEMLER */}
-                    <Card>
-                        <CardTitle>⚡ Hızlı İşlemler</CardTitle>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <ActionButton
-                                onClick={() => setShowKiloModal(true)}
-                                style={{ backgroundColor: '#e0f2f1', color: '#00695c', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaWeight /> Kilo Güncelle
-                            </ActionButton>
-                            <ActionButton
-                                onClick={() => setShowSatisModal(true)}
-                                style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaMoneyBillWave /> Satış Yap
-                            </ActionButton>
-                        </div>
-                    </Card>
-
                     {/* NOTLAR */}
                     <Card>
                         <CardTitle>📝 Notlar</CardTitle>

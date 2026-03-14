@@ -12,6 +12,22 @@ import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby } from 'react-icons/fa';
 
+const DASHBOARD_PANEL_KEY = 'dashboardPanelMetrikleri';
+const DEFAULT_PANELS = ['gunlukSut', 'sagmalInek', 'okunmayanBildirim', 'yaklasanDogum'];
+
+const METRIK_OPTIONS = [
+  { id: 'gunlukSut', label: 'Günlük Süt', icon: '🥛', unit: 'Lt', color: colors.info, bg: colors.bg.blue, nav: '/sut-kaydi' },
+  { id: 'sagmalInek', label: 'Sağmal İnek', icon: '🐄', unit: 'Baş', color: colors.primary, bg: colors.bg.green, nav: '/inekler' },
+  { id: 'okunmayanBildirim', label: 'Aktif Bildirimler', icon: '🔔', unit: 'Adet', color: colors.warning, bg: colors.bg.orange, nav: '/bildirimler' },
+  { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'Adet', color: colors.secondary, bg: colors.bg.purple, nav: 'dogum' },
+  { id: 'toplamInek', label: 'Toplam İnek', icon: '🐄', unit: 'Baş', color: '#1976d2', bg: '#e3f2fd', nav: '/inekler' },
+  { id: 'toplamDuve', label: 'Toplam Düve', icon: '🐮', unit: 'Baş', color: '#7b1fa2', bg: '#f3e5f5', nav: '/duveler' },
+  { id: 'toplamBuzagi', label: 'Toplam Buzağı', icon: '🐮', unit: 'Baş', color: '#c2185b', bg: '#fce4ec', nav: '/buzagilar' },
+  { id: 'toplamTosun', label: 'Toplam Tosun', icon: '🐂', unit: 'Baş', color: '#5d4037', bg: '#efebe9', nav: '/tosunlar' },
+  { id: 'toplamHayvan', label: 'Toplam Hayvan', icon: '🐾', unit: 'Baş', color: '#388e3c', bg: '#e8f5e9', nav: '/inekler' },
+  { id: 'gebeToplam', label: 'Gebe Hayvan', icon: '🤰', unit: 'Baş', color: '#00838f', bg: '#e0f7fa', nav: '/inekler' },
+];
+
 // --- Animations ---
 const fadeInUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -197,6 +213,10 @@ const SectionTitle = styled.div`
     flex: 1;
     height: 1px;
     background: linear-gradient(to right, ${colors.border.light}, transparent);
+  }
+
+  button:hover {
+    opacity: 1;
   }
 
   @media (max-width: 768px) {
@@ -482,11 +502,56 @@ const ActCol = styled.div`
 
 
 
+const getMetrikValue = (stats, metrikId) => {
+  if (!stats) return '0';
+  switch (metrikId) {
+    case 'gunlukSut': return (stats.bugunSut ?? 0).toFixed(1);
+    case 'sagmalInek': return stats.sagmal ?? 0;
+    case 'okunmayanBildirim': return stats.okunmayanBildirim ?? 0;
+    case 'yaklasanDogum': return stats.yaklaşanDogum ?? 0;
+    case 'toplamInek': return stats.toplamHayvan?.inek ?? 0;
+    case 'toplamDuve': return stats.toplamHayvan?.duve ?? 0;
+    case 'toplamBuzagi': return stats.toplamHayvan?.buzagi ?? 0;
+    case 'toplamTosun': return stats.toplamHayvan?.tosun ?? 0;
+    case 'toplamHayvan': return (stats.toplamHayvan?.inek || 0) + (stats.toplamHayvan?.duve || 0) + (stats.toplamHayvan?.buzagi || 0) + (stats.toplamHayvan?.tosun || 0);
+    case 'gebeToplam': return stats.gebe?.toplam ?? 0;
+    default: return '0';
+  }
+};
+
+const getMetrikDescription = (stats, metrikId) => {
+  if (!stats) return '';
+  switch (metrikId) {
+    case 'gunlukSut': return 'Son 30 güne göre';
+    case 'sagmalInek': return `${stats.toplamHayvan?.inek || 0} Toplam İnek`;
+    case 'okunmayanBildirim': return 'Okunmamış';
+    case 'yaklasanDogum': return 'Önümüzdeki 30 gün';
+    case 'toplamInek': return 'Aktif inekler';
+    case 'toplamDuve': return 'Aktif düveler';
+    case 'toplamBuzagi': return 'Aktif buzağılar';
+    case 'toplamTosun': return 'Aktif tosunlar';
+    case 'toplamHayvan': return 'Tüm hayvanlar';
+    case 'gebeToplam': return 'Gebe inek + düve';
+    default: return '';
+  }
+};
+
 const Dashboard = ({ kullanici }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mobilePaneli, setMobilePaneli] = useState(null);
+  const [showPanelAyari, setShowPanelAyari] = useState(false);
+  const [panelMetrikleri, setPanelMetrikleri] = useState(() => {
+    try {
+      const s = localStorage.getItem(DASHBOARD_PANEL_KEY);
+      if (s) {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr) && arr.length === 4) return arr;
+      }
+    } catch (_) {}
+    return [...DEFAULT_PANELS];
+  });
   const [data, setData] = useState({
     stats: null,
     performans: [],
@@ -496,6 +561,12 @@ const Dashboard = ({ kullanici }) => {
   });
 
   const toggleMobilePanel = (panel) => setMobilePaneli(prev => prev === panel ? null : panel);
+
+  const panelMetrikKaydet = (yeniMetrikler) => {
+    setPanelMetrikleri(yeniMetrikler);
+    localStorage.setItem(DASHBOARD_PANEL_KEY, JSON.stringify(yeniMetrikler));
+    setShowPanelAyari(false);
+  };
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -609,55 +680,72 @@ const Dashboard = ({ kullanici }) => {
         </HeaderRight>
       </Header>
 
-      {/* --- KPI CARDS --- */}
-      <SectionTitle>📊 Günlük Özet</SectionTitle>
+      {/* --- KPI CARDS (Özelleştirilebilir) --- */}
+      <SectionTitle>
+        📊 Günlük Özet
+        <button
+          onClick={() => setShowPanelAyari(true)}
+          style={{ marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 4, opacity: 0.7 }}
+          title="Panelleri özelleştir"
+        >
+          <FaCog size={14} />
+        </button>
+      </SectionTitle>
       <Grid $cols={4} $mobileCols={2}>
-        <StatsCard
-          title="Günlük Süt"
-          value={data.stats?.bugunSut?.toFixed(1) || '0.0'}
-          unit="Lt"
-          icon="🥛"
-          color={colors.info}
-          bg={colors.bg.blue}
-          trend={data.stats?.trendler?.sut || 0}
-          description="Son 30 güne göre"
-          clickable
-          onClick={() => navigate('/sut-kaydi')}
-        />
-        <StatsCard
-          title="Sağmal İnek"
-          value={data.stats?.sagmal || 0}
-          unit="Baş"
-          icon="🐄"
-          color={colors.primary}
-          bg={colors.bg.green}
-          description={`${data.stats?.toplamHayvan?.inek || 0} Toplam İnek`}
-          clickable
-          onClick={() => navigate('/inekler')}
-        />
-        <StatsCard
-          title="Aktif Bildirimler"
-          value={data.stats?.okunmayanBildirim || 0}
-          unit="Adet"
-          icon="🔔"
-          color={colors.warning}
-          bg={colors.bg.orange}
-          description="Okunmamış"
-          clickable
-          onClick={() => navigate('/bildirimler')}
-        />
-        <StatsCard
-          title="Yaklaşan Doğum"
-          value={data.stats?.yaklaşanDogum || 0}
-          unit="Adet"
-          icon="🤰"
-          color={colors.secondary}
-          bg={colors.bg.purple}
-          description="Önümüzdeki 30 gün"
-          clickable
-          onClick={() => toggleMobilePanel('dogum')}
-        />
+        {panelMetrikleri.map((metrikId, idx) => {
+          const opt = METRIK_OPTIONS.find(m => m.id === metrikId) || METRIK_OPTIONS[0];
+          const onClick = opt.nav === 'dogum' ? () => toggleMobilePanel('dogum') : opt.nav ? () => navigate(opt.nav) : undefined;
+          return (
+            <StatsCard
+              key={idx}
+              title={opt.label}
+              value={getMetrikValue(data.stats, metrikId)}
+              unit={opt.unit}
+              icon={opt.icon}
+              color={opt.color}
+              bgColor={opt.bg}
+              trend={metrikId === 'gunlukSut' ? (data.stats?.trendler?.sut || 0) : undefined}
+              description={getMetrikDescription(data.stats, metrikId)}
+              clickable={!!onClick}
+              onClick={onClick}
+            />
+          );
+        })}
       </Grid>
+
+      {/* Panel Özelleştirme Modal */}
+      {showPanelAyari && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={() => setShowPanelAyari(false)}>
+          <div style={{ background: 'white', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaCog /> Özet Panellerini Özelleştir
+            </h3>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>Her panel için gösterilecek veriyi seçin.</p>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Panel {i + 1}</label>
+                <select
+                  value={panelMetrikleri[i] || DEFAULT_PANELS[i]}
+                  onChange={e => {
+                    const yeni = [...panelMetrikleri];
+                    yeni[i] = e.target.value;
+                    setPanelMetrikleri(yeni);
+                  }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 14 }}
+                >
+                  {METRIK_OPTIONS.map(m => (
+                    <option key={m.id} value={m.id}>{m.icon} {m.label}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={() => { setPanelMetrikleri([...DEFAULT_PANELS]); setShowPanelAyari(false); localStorage.setItem(DASHBOARD_PANEL_KEY, JSON.stringify(DEFAULT_PANELS)); }} style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Varsayılana Dön</button>
+              <button onClick={() => panelMetrikKaydet(panelMetrikleri)} style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: colors.primary, color: 'white', cursor: 'pointer', fontWeight: 600 }}>Kaydet</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* --- MOBİL HIZLI ERİŞİM ÇUBUĞU --- */}
       <MobileQuickBar>

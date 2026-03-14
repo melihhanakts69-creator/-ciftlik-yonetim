@@ -354,6 +354,22 @@ const DuveDetay = () => {
                 </ActionButtons>
             </Header>
 
+            {/* HIZLI İŞLEMLER - Üstte, yatay */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+                <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#ef6c00', flex: 1, minWidth: 120 }}>
+                    <FaSyringe /> Tohumlama
+                </ActionButton>
+                <ActionButton onClick={() => setShowKiloModal(true)} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 120 }}>
+                    <FaWeight /> Kilo
+                </ActionButton>
+                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#880e4f', flex: 1, minWidth: 120 }}>
+                    <FaBaby /> Doğum
+                </ActionButton>
+                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', flex: 1, minWidth: 120 }}>
+                    <FaMoneyBillWave /> Satış
+                </ActionButton>
+            </div>
+
             <Grid>
                 {/* SOL KOLON */}
                 <div>
@@ -444,38 +460,6 @@ const DuveDetay = () => {
 
                 {/* SAĞ KOLON */}
                 <div>
-                    {/* HIZLI İŞLEMLER */}
-                    <Card>
-                        <CardTitle>⚡ Hızlı İşlemler</CardTitle>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <ActionButton
-                                onClick={() => setShowTohumlamaModal(true)}
-                                style={{ backgroundColor: '#fff3e0', color: '#ef6c00', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaSyringe /> Tohumlama Ekle
-                            </ActionButton>
-                            <ActionButton
-                                onClick={() => setShowKiloModal(true)}
-                                style={{ backgroundColor: '#e0f2f1', color: '#00695c', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaWeight /> Kilo Güncelle
-                            </ActionButton>
-                            {/* Her zaman göster (test için), normalde gebeyse gösterilir */}
-                            <ActionButton
-                                onClick={() => setShowDogumModal(true)}
-                                style={{ backgroundColor: '#fce4ec', color: '#880e4f', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaBaby /> Doğum Yaptı (İnek Ol)
-                            </ActionButton>
-                            <ActionButton
-                                onClick={() => setShowSatisModal(true)}
-                                style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', width: '100%', justifyContent: 'center' }}
-                            >
-                                <FaMoneyBillWave /> Satış Yap
-                            </ActionButton>
-                        </div>
-                    </Card>
-
                     {/* NOTLAR */}
                     <Card>
                         <CardTitle>📝 Notlar</CardTitle>

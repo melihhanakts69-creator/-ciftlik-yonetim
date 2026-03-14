@@ -286,8 +286,8 @@ function Tosunlar() {
 
       {/* Modal (Simplified) */}
       {(tosunEkrani || duzenlenecekTosun) && (
-        <ModalOverlay>
-          <ModalContent>
+        <ModalOverlay onClick={() => { setTosunEkrani(false); setDuzenlenecekTosun(null); }}>
+          <ModalContent onClick={e => e.stopPropagation()}>
             <h2>{duzenlenecekTosun ? 'Tosun Düzenle' : 'Yeni Tosun Ekle'}</h2>
 
             {!duzenlenecekTosun && (
@@ -353,18 +353,32 @@ const Badge = styled.span`
     color: ${props => props.suitable ? '#2E7D32' : '#607D8B'};
 `;
 const ModalOverlay = styled.div`
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
-  @media (max-width: 768px) { align-items: stretch; padding: 0; }
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1001;
+  padding: 20px;
+  overflow-y: auto;
+  @media (max-width: 768px) {
+    padding: 16px 12px 24px;
+    align-items: flex-start;
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
 `;
 const ModalContent = styled.div`
-  background: white; padding: 30px; border-radius: 16px; width: 400px; max-width: 90%;
+  background: white; padding: 28px 32px; border-radius: 20px;
+  width: 100%; max-width: 440px;
   max-height: 90vh; overflow-y: auto;
-  .form-group { margin-bottom: 15px; label { display: block; font-weight: bold; margin-bottom: 5px; } input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; } }
-  .btn-group { display: flex; gap: 10px; button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; min-height: 44px; } .save { background: #FF9800; color: white; font-weight: bold; } }
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04);
+  .form-group { margin-bottom: 16px; label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 13px; color: #334155; } input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; } }
+  .btn-group { display: flex; gap: 10px; margin-top: 24px; button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; min-height: 44px; } .save { background: linear-gradient(135deg,#FF9800,#F57C00); color: white; } }
   @media (max-width: 768px) {
-    width: 100%; max-width: 100%; min-height: 100vh; border-radius: 0; max-height: none;
-    padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0));
+    max-height: 85vh;
+    border-radius: 16px;
+    padding: 22px 18px;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
   }
 `;
 

@@ -229,7 +229,7 @@ const Inekler = () => {
                 kilo: parseFloat(yeniInek.kilo) || 0,
                 buzagiSayisi: parseInt(yeniInek.buzagiSayisi, 10) || 0
             };
-            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+            if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
 
             if (duzenlenecekId) {
                 await api.updateInek(duzenlenecekId, payload);
@@ -447,9 +447,9 @@ const Inekler = () => {
                                     <option value="Gebe Değil">❌ Gebe Değil</option>
                                 </select>
                             </div>
-                            {(yeniInek.gebelikDurumu === 'Gebe' || yeniInek.tohumlamaTarihi) && (
+                            {(yeniInek.gebelikDurumu === 'Gebe' || yeniInek.gebelikDurumu === 'Belirsiz') && (
                                 <div style={formGroupStyle}>
-                                    <label>Tohumlama Tarihi {yeniInek.gebelikDurumu === 'Gebe' ? '*' : ''}</label>
+                                    <label>Tohumlama Tarihi {yeniInek.gebelikDurumu === 'Gebe' ? '*' : ''} {yeniInek.gebelikDurumu === 'Belirsiz' && '(28 günden az olmalı)'}</label>
                                     <input
                                         type="date"
                                         required={yeniInek.gebelikDurumu === 'Gebe'}

@@ -209,7 +209,7 @@ function Duveler() {
         try {
             const yasAy = yasHesaplaAy(yeniDuve.dogumTarihi);
             const payload = { ...yeniDuve, yas: yasAy, kilo: parseFloat(yeniDuve.kilo) || 0 };
-            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+            if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
 
             if (satinAlma.aktif) {
                 await api.createAlisIslemi({
@@ -243,7 +243,7 @@ function Duveler() {
             const payload = { ...duzenlenecekDuve };
             payload.yas = yasHesaplaAy(duzenlenecekDuve.dogumTarihi);
             payload.kilo = parseFloat(duzenlenecekDuve.kilo) || 0;
-            if (payload.gebelikDurumu !== 'Gebe') payload.tohumlamaTarihi = '';
+            if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
             await api.updateDuve(duzenlenecekDuve._id, payload);
             setDuveler(duveler.map(d => d._id === duzenlenecekDuve._id ? duzenlenecekDuve : d));
             setDuzenlenecekDuve(null);
@@ -493,9 +493,9 @@ function Duveler() {
                                 <option value="Gebe Değil">Gebe Değil</option>
                             </select>
                         </div>
-                        {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe' || (duzenlenecekDuve ? duzenlenecekDuve.tohumlamaTarihi : yeniDuve.tohumlamaTarihi)) && (
+                        {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe' || (duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Belirsiz') && (
                             <div className="form-group">
-                                <label>Tohumlama Tarihi {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe') ? '*' : ''}</label>
+                                <label>Tohumlama Tarihi {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe') ? '*' : ''} {((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Belirsiz') && '(28 günden az olmalı)'}</label>
                                 <input
                                     type="date"
                                     required={((duzenlenecekDuve ? duzenlenecekDuve.gebelikDurumu : yeniDuve.gebelikDurumu) === 'Gebe')}
