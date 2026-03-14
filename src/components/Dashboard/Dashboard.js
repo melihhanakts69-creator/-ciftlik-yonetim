@@ -10,7 +10,7 @@ import HizliYemlemeWidget from './HizliYemlemeWidget';
 import SaglikUyariCard from './SaglikUyariCard';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaListAlt, FaSeedling, FaBaby } from 'react-icons/fa';
+import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby } from 'react-icons/fa';
 
 // --- Animations ---
 const fadeInUp = keyframes`
@@ -656,12 +656,9 @@ const Dashboard = ({ kullanici }) => {
           <FaChartLine className="qicon" />
           Grafikler
         </QuickNavBtn>
-        <QuickNavBtn $active={mobilePaneli === 'yapilacaklar'} onClick={() => toggleMobilePanel('yapilacaklar')}>
-          <FaListAlt className="qicon" />
-          Yapılacaklar
-          {data.yapilacaklar.length > 0 && (
-            <QuickNavBadge>{data.yapilacaklar.length > 9 ? '9+' : data.yapilacaklar.length}</QuickNavBadge>
-          )}
+        <QuickNavBtn $active={mobilePaneli === 'sampiyonlar'} onClick={() => toggleMobilePanel('sampiyonlar')}>
+          <span className="qicon">🏆</span>
+          Şampiyonlar
         </QuickNavBtn>
         <QuickNavBtn $active={mobilePaneli === 'yemleme'} onClick={() => toggleMobilePanel('yemleme')}>
           <FaSeedling className="qicon" />
@@ -711,8 +708,31 @@ const Dashboard = ({ kullanici }) => {
               </Widget>
             </>
           )}
-          {mobilePaneli === 'yapilacaklar' && (
-            <YapilacaklarCard bildirimler={data.yapilacaklar} />
+          {mobilePaneli === 'sampiyonlar' && (
+            <Widget>
+              <h3>🏆 Şampiyonlar <span style={{ fontSize: '11px', color: '#999', fontWeight: 500 }}>En Çok Süt</span></h3>
+              <TopCowList>
+                {data.topCows.length === 0 && (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: '13px', padding: '20px 0' }}>
+                    Henüz süt verisi yok
+                  </div>
+                )}
+                {data.topCows.map((cow, index) => (
+                  <TopCowItem key={cow._id} index={index}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div className="rank" style={{ background: rankColors[index] || '#eee', color: index < 3 ? 'white' : '#999' }}>
+                        {index + 1}
+                      </div>
+                      <div className="info">
+                        <strong>{cow.isim || 'İsimsiz'}</strong>
+                        <span>🏷️ {cow.kupeNo}</span>
+                      </div>
+                    </div>
+                    <div className="value">{cow.ortalama.toFixed(1)} Lt</div>
+                  </TopCowItem>
+                ))}
+              </TopCowList>
+            </Widget>
           )}
           {mobilePaneli === 'yemleme' && (
             <HizliYemlemeWidget />
@@ -770,21 +790,8 @@ const Dashboard = ({ kullanici }) => {
       {/* --- WIDGETS ROW 1 --- */}
       <SectionTitle>🏆 Operasyon</SectionTitle>
       <Grid>
-        {/* Yapılacaklar - mobilde gizli, masaüstünde görünür */}
+        {/* Şampiyonlar - mobilde gizli (butonla açılır), masaüstünde görünür */}
         <MobileHideGridItem span={4} delay="0.15s">
-          <YapilacaklarCard bildirimler={data.yapilacaklar} />
-        </MobileHideGridItem>
-
-        {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
-        <MobileHideGridItem span={4} delay="0.2s">
-          <HizliYemlemeWidget />
-        </MobileHideGridItem>
-      </Grid>
-
-      {/* Şampiyonlar + Aktiviteler - mobilde yan yana */}
-      <SectionTitle>🏆 Şampiyonlar & Aktiviteler</SectionTitle>
-      <ChampActivitesRow>
-        <ChampCol>
           <Widget>
             <h3>🏆 Şampiyonlar <span style={{ fontSize: '11px', color: '#999', fontWeight: 500 }}>En Çok Süt</span></h3>
             <TopCowList>
@@ -809,6 +816,19 @@ const Dashboard = ({ kullanici }) => {
               ))}
             </TopCowList>
           </Widget>
+        </MobileHideGridItem>
+
+        {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
+        <MobileHideGridItem span={4} delay="0.2s">
+          <HizliYemlemeWidget />
+        </MobileHideGridItem>
+      </Grid>
+
+      {/* Yapılacaklar + Aktiviteler - mobilde yan yana */}
+      <SectionTitle>📋 Yapılacaklar & Aktiviteler</SectionTitle>
+      <ChampActivitesRow>
+        <ChampCol>
+          <YapilacaklarCard bildirimler={data.yapilacaklar} />
         </ChampCol>
         <ActCol>
           <AktivitelerCard aktiviteler={data.aktiviteler} />
