@@ -1,7 +1,7 @@
 /* Agrolina PWA Service Worker - Cache stratejisi: shell cache-first, API network-first */
 
-const CACHE_NAME = 'agrolina-v1';
-const RUNTIME_CACHE = 'agrolina-runtime-v1';
+const CACHE_NAME = 'agrolina-v2';
+const RUNTIME_CACHE = 'agrolina-runtime-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
