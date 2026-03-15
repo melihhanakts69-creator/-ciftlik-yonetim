@@ -8,6 +8,7 @@ import PerformansChart from './PerformansChart';
 import YapilacaklarCard from './YapilacaklarCard';
 import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
+import BugunYemlemeCard from './BugunYemlemeCard';
 import SaglikUyariCard from './SaglikUyariCard';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -991,6 +992,14 @@ const Dashboard = ({ kullanici }) => {
           </AnimatedGridItem>
         </Grid>
       </MobileHide>
+
+      {/* --- BUGÜN YEMLEME (grup bazlı) --- */}
+      <SectionTitle id="yemleme">🌾 Bugün Yemleme</SectionTitle>
+      <Grid>
+        <AnimatedGridItem span={4} delay="0.1s">
+          <BugunYemlemeCard />
+        </AnimatedGridItem>
+      </Grid>
 
       {/* --- WIDGETS ROW 1 --- */}
       <SectionTitle id="operasyon">🏆 Operasyon</SectionTitle>

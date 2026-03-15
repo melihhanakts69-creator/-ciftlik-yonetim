@@ -41,7 +41,18 @@ const stokSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'YemKutuphanesi',
         required: false
-    }
+    },
+    // Yem besin değerleri (YemKutuphanesi'nden cache, kategori: Yem için)
+    yemBilgi: {
+        kuruMadde: { type: Number, default: 0 },
+        hammProtein: { type: Number, default: 0 },
+        metabolikEnerji: { type: Number, default: 0 },
+        ndf: { type: Number, default: 0 },
+        nisasta: { type: Number, default: 0 }
+    },
+    // Otomatik hesaplanan (güncelleme sırasında)
+    gunlukTuketim: { type: Number, default: 0 },
+    yeterlilikGun: { type: Number, default: 999 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Stok', stokSchema);

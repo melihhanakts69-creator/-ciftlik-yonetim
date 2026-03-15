@@ -173,6 +173,22 @@ export const deleteRasyon = (id) => api.delete(`/yem-yonetim/rasyon/${id}`);
 // data: { rasyonId: string, tarih: string (optional) }
 export const rasyonDagit = (data) => api.post('/yem-yonetim/dagit', data);
 
+// Günlük grup yemleme (yeni profesyonel sistem)
+export const getYemlemeBugun = () => api.get('/yemleme/bugun');
+export const postYemleme = (data) => api.post('/yemleme', data);
+export const getYemlemeGecmis = (params) => {
+  const q = new URLSearchParams(params).toString();
+  return api.get(`/yemleme/gecmis?${q}`);
+};
+
+// Gruplar (rasyon atama için)
+export const getGruplar = () => api.get('/gruplar');
+export const getGrup = (id) => api.get(`/gruplar/${id}`);
+export const createGrup = (data) => api.post('/gruplar', data);
+export const updateGrup = (id, data) => api.put(`/gruplar/${id}`, data);
+export const deleteGrup = (id) => api.delete(`/gruplar/${id}`);
+export const getGrupHayvanlar = (id) => api.get(`/gruplar/${id}/hayvanlar`);
+
 // SAĞLIK MODÜLÜ
 export const getSaglikKayitlari = (params = {}) => {
   const query = new URLSearchParams(params).toString();

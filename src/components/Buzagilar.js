@@ -73,8 +73,9 @@ const Buzagilar = () => {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [duzenlenecekBuzagi, setDuzenlenecekBuzagi] = useState(null);
+  const [gruplar, setGruplar] = useState([]);
   const [yeniBuzagi, setYeniBuzagi] = useState({
-    isim: '', kupeNo: '', cinsiyet: 'disi', dogumTarihi: '', kilo: '', anneId: '', anneIsim: '', anneKupeNo: ''
+    isim: '', kupeNo: '', cinsiyet: 'disi', dogumTarihi: '', kilo: '', anneId: '', anneIsim: '', anneKupeNo: '', grupId: ''
   });
   const [satinAlma, setSatinAlma] = useState({
     aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0]
@@ -85,6 +86,10 @@ const Buzagilar = () => {
     const handleResize = () => { if (window.innerWidth < 768) setViewMode('card'); };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    api.getGruplar().then(r => setGruplar(Array.isArray(r?.data) ? r.data : [])).catch(() => setGruplar([]));
   }, []);
 
   useEffect(() => {
@@ -159,7 +164,7 @@ const Buzagilar = () => {
           notlar: `Satın Alındı`
         });
       } else {
-        await api.createBuzagi(yeniBuzagi);
+        await api.createBuzagi({ ...yeniBuzagi, grupId: yeniBuzagi.grupId || null });
       }
       fetchData();
       closeModal();
@@ -172,7 +177,7 @@ const Buzagilar = () => {
   const handleGuncelle = async (e) => {
     e.preventDefault();
     try {
-      await api.updateBuzagi(duzenlenecekBuzagi._id, duzenlenecekBuzagi);
+      await api.updateBuzagi(duzenlenecekBuzagi._id, { ...duzenlenecekBuzagi, grupId: duzenlenecekBuzagi.grupId || null });
       fetchData();
       closeModal();
       showSuccess('Güncellendi!');
@@ -208,7 +213,7 @@ const Buzagilar = () => {
   const closeModal = () => {
     setShowModal(false);
     setDuzenlenecekBuzagi(null);
-    setYeniBuzagi({ isim: '', kupeNo: '', cinsiyet: 'disi', dogumTarihi: '', kilo: '', anneId: '', anneIsim: '', anneKupeNo: '' });
+    setYeniBuzagi({ isim: '', kupeNo: '', cinsiyet: 'disi', dogumTarihi: '', kilo: '', anneId: '', anneIsim: '', anneKupeNo: '', grupId: '' });
     setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
   };
 
@@ -362,6 +367,12 @@ const Buzagilar = () => {
             </div>
             <div className="form-group"><label>Doğum</label><input type="date" value={duzenlenecekBuzagi ? duzenlenecekBuzagi.dogumTarihi : yeniBuzagi.dogumTarihi} onChange={e => duzenlenecekBuzagi ? setDuzenlenecekBuzagi({ ...duzenlenecekBuzagi, dogumTarihi: e.target.value }) : setYeniBuzagi({ ...yeniBuzagi, dogumTarihi: e.target.value })} /></div>
             <div className="form-group"><label>Kilo</label><input type="number" value={duzenlenecekBuzagi ? duzenlenecekBuzagi.kilo : yeniBuzagi.kilo} onChange={e => duzenlenecekBuzagi ? setDuzenlenecekBuzagi({ ...duzenlenecekBuzagi, kilo: e.target.value }) : setYeniBuzagi({ ...yeniBuzagi, kilo: e.target.value })} /></div>
+            <div className="form-group"><label>Grup (Yemleme)</label>
+              <select value={duzenlenecekBuzagi ? (duzenlenecekBuzagi.grupId?._id || duzenlenecekBuzagi.grupId || '') : (yeniBuzagi.grupId || '')} onChange={e => duzenlenecekBuzagi ? setDuzenlenecekBuzagi({ ...duzenlenecekBuzagi, grupId: e.target.value }) : setYeniBuzagi({ ...yeniBuzagi, grupId: e.target.value })}>
+                <option value="">— Grup seçin —</option>
+                {gruplar.map(g => <option key={g._id} value={g._id}>{g.ad} ({g.tip || 'karma'})</option>)}
+              </select>
+            </div>
 
             <div className="btn-group">
               <button onClick={closeModal}>İptal</button>

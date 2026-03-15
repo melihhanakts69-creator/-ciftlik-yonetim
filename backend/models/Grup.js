@@ -25,6 +25,11 @@ const grupSchema = new mongoose.Schema({
     enum: ['inek', 'duve', 'buzagi', 'tosun', 'karma'], // Karma = karışık
     default: 'karma'
   },
+  rasyonId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Rasyon',
+    default: null
+  },
   aktif: {
     type: Boolean,
     default: true

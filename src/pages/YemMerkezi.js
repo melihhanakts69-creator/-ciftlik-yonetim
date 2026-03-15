@@ -290,6 +290,26 @@ const TableWrap = styled.div`
   @media (max-width: 768px) { display: none; }
 `;
 
+const ModalOverlay = styled.div`
+  position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:1100;padding:16px;
+`;
+const ModalBox = styled.div`
+  background:#fff;border-radius:16px;padding:24px;max-width:400px;width:100%;
+  box-shadow:0 10px 40px rgba(0,0,0,.15);
+`;
+const ModalTitle = styled.h3`margin:0 0 16px;font-size:18px;font-weight:800;color:#0f172a;`;
+const ModalInput = styled.input`
+  width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:14px;margin-bottom:12px;box-sizing:border-box;
+  &:focus{outline:none;border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
+`;
+const ModalSelect = styled.select`
+  width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:14px;margin-bottom:16px;box-sizing:border-box;background:#fff;
+`;
+const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`;
+
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
   const isMobile = useIsMobile();
@@ -297,9 +317,12 @@ export default function YemMerkezi() {
   const [tab, setTab] = useState('stok');
   const [yemler, setYemler] = useState([]);
   const [rasyonlar, setRasyonlar] = useState([]);
+  const [gruplar, setGruplar] = useState([]);
   const [kritikSayisi, setKritikSayisi] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(!!location.state?.openAdd);
+  const [showGrupEkleModal, setShowGrupEkleModal] = useState(false);
+  const [grupForm, setGrupForm] = useState({ ad: '', tip: 'sagmal' });
   const [search, setSearch] = useState('');
   const [showAiBanner, setShowAiBanner] = useState(() => !sessionStorage.getItem('yem_ai_banner_dismissed'));
 
@@ -308,12 +331,18 @@ export default function YemMerkezi() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [yr, rr, sr] = await Promise.all([api.getYemKutuphanesi(), api.getRasyonlar(), api.getYemStok()]);
+      const [yr, rr, sr, gr] = await Promise.all([
+        api.getYemKutuphanesi(),
+        api.getRasyonlar(),
+        api.getYemStok(),
+        api.getGruplar().catch(() => ({ data: [] }))
+      ]);
       setYemler(Array.isArray(yr?.data) ? yr.data : []);
       const rasyonData = rr?.data;
       setRasyonlar(Array.isArray(rasyonData) ? rasyonData : (Array.isArray(rasyonData?.data) ? rasyonData.data : []));
       const stokData = Array.isArray(sr?.data) ? sr.data : [];
       setKritikSayisi(stokData.filter(s => s && (s.miktar ?? 0) <= (s.minimumStok ?? 0)).length);
+      setGruplar(Array.isArray(gr?.data) ? gr.data : []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -339,8 +368,35 @@ export default function YemMerkezi() {
 
   const filteredYemler = yemler.filter(y => y.ad.toLowerCase().includes(search.toLowerCase()));
 
+  const handleGrupRasyonGuncelle = async (grupId, rasyonId) => {
+    try {
+      await api.updateGrup(grupId, { rasyonId: rasyonId || null });
+      showSuccess('Rasyon atandı');
+      loadData();
+    } catch (e) {
+      showError(e.response?.data?.message || 'Güncellenemedi');
+    }
+  };
+
+  const handleGrupEkle = async () => {
+    if (!grupForm.ad?.trim()) {
+      showError('Grup adı girin');
+      return;
+    }
+    try {
+      await api.createGrup({ ad: grupForm.ad.trim(), tip: grupForm.tip });
+      showSuccess('Grup oluşturuldu');
+      setGrupForm({ ad: '', tip: 'sagmal' });
+      setShowGrupEkleModal(false);
+      loadData();
+    } catch (e) {
+      showError(e.response?.data?.message || 'Grup oluşturulamadı');
+    }
+  };
+
   const TABS = [
     { key: 'stok', label: 'Stok & Depo', icon: <FaBoxOpen /> },
+    { key: 'gruplar', label: 'Gruplar', icon: <FaClipboardList />, badge: gruplar.length || null },
     { key: 'rasyon', label: 'Rasyonlarım', icon: <FaChartPie />, badge: rasyonlar.length || null },
     { key: 'hesapla', label: 'Hesaplayıcı', icon: <FaCalculator /> },
     { key: 'danisman', label: 'Yem Danışmanı', icon: <FaUserMd />, isNew: true },
@@ -414,6 +470,56 @@ export default function YemMerkezi() {
             {tab === 'danisman' && <YemDanismani />}
             {tab === 'stok' && <YemDeposu isEmbedded={true} />}
             {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
+
+            {tab === 'gruplar' && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                  <Btn onClick={() => setShowGrupEkleModal(true)}>
+                    <FaPlus /> Grup Ekle
+                  </Btn>
+                </div>
+                <RGrid>
+                {gruplar.length === 0 ? (
+                  <EmptyMsg>
+                    <div className="icon">📋</div>
+                    <p>Henüz grup tanımlamadınız.<br />
+                      <strong>Grup Ekle</strong> ile yeni grup oluşturun, sonra hayvanlarınıza bu grupları atayın.</p>
+                    <Btn style={{ marginTop: 16 }} onClick={() => setShowGrupEkleModal(true)}>
+                      <FaPlus /> İlk Grubu Oluştur
+                    </Btn>
+                  </EmptyMsg>
+                ) : gruplar.map(g => (
+                  <RCard key={g._id}>
+                    <RCardBody>
+                      <RHead>
+                        <RAd style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 12, height: 12, borderRadius: 4, background: g.renk || '#10b981' }} />
+                          {g.ad}
+                        </RAd>
+                        <RBadge>{g.tip || 'karma'}</RBadge>
+                      </RHead>
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Rasyon ata</label>
+                        <select
+                          value={g.rasyonId?._id || g.rasyonId || ''}
+                          onChange={e => handleGrupRasyonGuncelle(g._id, e.target.value || null)}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13 }}
+                        >
+                          <option value="">— Rasyon seçin —</option>
+                          {rasyonlar.map(r => (
+                            <option key={r._id} value={r._id}>{r.ad} ({r.hedefGrup})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#94a3b8' }}>
+                        Gruba rasyon atayın. Dashboard'da günlük yemleme bu gruplara göre yapılır.
+                      </p>
+                    </RCardBody>
+                  </RCard>
+                ))}
+              </RGrid>
+              </>
+            )}
 
             {tab === 'rasyon' && (
               <RGrid>
@@ -511,6 +617,34 @@ export default function YemMerkezi() {
 
             {showAddModal && (
               <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
+            )}
+            {showGrupEkleModal && (
+              <ModalOverlay onClick={() => setShowGrupEkleModal(false)}>
+                <ModalBox onClick={e => e.stopPropagation()}>
+                  <ModalTitle>Yeni Grup Oluştur</ModalTitle>
+                  <ModalInput
+                    placeholder="Grup adı (örn: Sağmal A, Kuru Dönem)"
+                    value={grupForm.ad}
+                    onChange={e => setGrupForm(f => ({ ...f, ad: e.target.value }))}
+                  />
+                  <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Grup tipi</label>
+                  <ModalSelect
+                    value={grupForm.tip}
+                    onChange={e => setGrupForm(f => ({ ...f, tip: e.target.value }))}
+                  >
+                    <option value="sagmal">Sağmal</option>
+                    <option value="kuru">Kuru Dönem</option>
+                    <option value="duve">Düve</option>
+                    <option value="buzagi">Buzağı</option>
+                    <option value="besi">Besi / Tosun</option>
+                    <option value="karma">Karma</option>
+                  </ModalSelect>
+                  <ModalActions>
+                    <RBtn onClick={() => setShowGrupEkleModal(false)}>İptal</RBtn>
+                    <RBtn $primary onClick={handleGrupEkle}><FaCheckCircle /> Oluştur</RBtn>
+                  </ModalActions>
+                </ModalBox>
+              </ModalOverlay>
             )}
           </TabContent>
         </TabLayout>

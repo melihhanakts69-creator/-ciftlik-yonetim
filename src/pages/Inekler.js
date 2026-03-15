@@ -109,10 +109,11 @@ const Inekler = () => {
     // Modal States
     const [showModal, setShowModal] = useState(false);
     const [duzenlenecekId, setDuzenlenecekId] = useState(null);
+    const [gruplar, setGruplar] = useState([]);
     const [yeniInek, setYeniInek] = useState({
         isim: '', kilo: '', kupeNo: '',
         dogumTarihi: '', buzagiSayisi: 0, notlar: '',
-        gebelikDurumu: 'Belirsiz', tohumlamaTarihi: ''
+        gebelikDurumu: 'Belirsiz', tohumlamaTarihi: '', grupId: ''
     });
     const [satinAlma, setSatinAlma] = useState({
         aktif: false,
@@ -130,6 +131,10 @@ const Inekler = () => {
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        api.getGruplar().then(r => setGruplar(Array.isArray(r?.data) ? r.data : [])).catch(() => setGruplar([]));
     }, []);
 
     // Filter Logic
@@ -227,7 +232,8 @@ const Inekler = () => {
             const payload = {
                 ...yeniInek,
                 kilo: parseFloat(yeniInek.kilo) || 0,
-                buzagiSayisi: parseInt(yeniInek.buzagiSayisi, 10) || 0
+                buzagiSayisi: parseInt(yeniInek.buzagiSayisi, 10) || 0,
+                grupId: yeniInek.grupId || null
             };
             if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
 
@@ -258,7 +264,7 @@ const Inekler = () => {
     };
 
     const resetModal = () => {
-        setYeniInek({ isim: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '', gebelikDurumu: 'Belirsiz', tohumlamaTarihi: '' });
+        setYeniInek({ isim: '', kilo: '', kupeNo: '', dogumTarihi: '', buzagiSayisi: 0, notlar: '', gebelikDurumu: 'Belirsiz', tohumlamaTarihi: '', grupId: '' });
         setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
         setDuzenlenecekId(null);
         setShowModal(false);
@@ -268,7 +274,8 @@ const Inekler = () => {
         setYeniInek({
             ...inek,
             gebelikDurumu: inek.gebelikDurumu || 'Belirsiz',
-            tohumlamaTarihi: inek.tohumlamaTarihi ? new Date(inek.tohumlamaTarihi).toISOString().split('T')[0] : ''
+            tohumlamaTarihi: inek.tohumlamaTarihi ? new Date(inek.tohumlamaTarihi).toISOString().split('T')[0] : '',
+            grupId: inek.grupId?._id || inek.grupId || ''
         });
         setDuzenlenecekId(inek._id);
         setShowModal(true);
@@ -467,6 +474,13 @@ const Inekler = () => {
                                     )}
                                 </div>
                             )}
+                            <div style={formGroupStyle}>
+                                <label>Grup (Yemleme):</label>
+                                <select style={{ ...inputStyle, padding: '10px 12px' }} value={yeniInek.grupId || ''} onChange={e => setYeniInek({ ...yeniInek, grupId: e.target.value })}>
+                                    <option value="">— Grup seçin —</option>
+                                    {gruplar.map(g => <option key={g._id} value={g._id}>{g.ad} ({g.tip || 'karma'})</option>)}
+                                </select>
+                            </div>
                             <div style={formGroupStyle}>
                                 <label>Notlar:</label>
                                 <textarea rows={3} value={yeniInek.notlar || ''} onChange={e => setYeniInek({ ...yeniInek, notlar: e.target.value })} style={{ ...inputStyle, resize: 'vertical' }} placeholder="İsteğe bağlı notlar..." />

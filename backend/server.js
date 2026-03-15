@@ -80,7 +80,8 @@ app.use('/api/maliyet', require('./routes/maliyet'));
 app.use('/api/alis-satis', require('./routes/alisSatis'));
 app.use('/api/bildirimler', require('./routes/bildirimler'));
 app.use('/api/saglik', require('./routes/saglik')); // Sağlık Modülü
-app.use('/api/yem-yonetim', require('./routes/yemYonetim')); // Yeni
+app.use('/api/yem-yonetim', require('./routes/yemYonetim'));
+app.use('/api/yemleme', require('./routes/yemleme')); // Günlük grup yemleme
 app.use('/api/gruplar', require('./routes/gruplar'));
 app.use('/api/takvim', require('./routes/takvim')); // Takvim Modülü
 app.use('/api/stok', require('./routes/stok')); // Stok Modülü

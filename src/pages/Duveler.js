@@ -81,9 +81,10 @@ function Duveler() {
     // Modal States
     const [duveEkrani, setDuveEkrani] = useState(false);
     const [duzenlenecekDuve, setDuzenlenecekDuve] = useState(null);
+    const [gruplar, setGruplar] = useState([]);
     const [yeniDuve, setYeniDuve] = useState({
         isim: '', kupeNo: '', dogumTarihi: '', yas: '', kilo: '',
-        anneKupeNo: '', tohumlamaTarihi: '', gebelikDurumu: 'Belirsiz', not: ''
+        anneKupeNo: '', tohumlamaTarihi: '', gebelikDurumu: 'Belirsiz', not: '', grupId: ''
     });
     const [satinAlma, setSatinAlma] = useState({
         aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0]
@@ -101,6 +102,10 @@ function Duveler() {
         const handleResize = () => { if (window.innerWidth < 768) setViewMode('card'); };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        api.getGruplar().then(r => setGruplar(Array.isArray(r?.data) ? r.data : [])).catch(() => setGruplar([]));
     }, []);
 
     useEffect(() => {
@@ -208,7 +213,7 @@ function Duveler() {
         }
         try {
             const yasAy = yasHesaplaAy(yeniDuve.dogumTarihi);
-            const payload = { ...yeniDuve, yas: yasAy, kilo: parseFloat(yeniDuve.kilo) || 0 };
+            const payload = { ...yeniDuve, yas: yasAy, kilo: parseFloat(yeniDuve.kilo) || 0, grupId: yeniDuve.grupId || null };
             if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
 
             if (satinAlma.aktif) {
@@ -240,7 +245,7 @@ function Duveler() {
             return;
         }
         try {
-            const payload = { ...duzenlenecekDuve };
+            const payload = { ...duzenlenecekDuve, grupId: duzenlenecekDuve.grupId || null };
             payload.yas = yasHesaplaAy(duzenlenecekDuve.dogumTarihi);
             payload.kilo = parseFloat(duzenlenecekDuve.kilo) || 0;
             if (payload.gebelikDurumu === 'Gebe Değil') payload.tohumlamaTarihi = '';
@@ -275,7 +280,7 @@ function Duveler() {
     };
 
     const resetForm = () => {
-        setYeniDuve({ isim: '', kupeNo: '', dogumTarihi: '', yas: '', kilo: '', anneKupeNo: '', tohumlamaTarihi: '', gebelikDurumu: 'Belirsiz', not: '' });
+        setYeniDuve({ isim: '', kupeNo: '', dogumTarihi: '', yas: '', kilo: '', anneKupeNo: '', tohumlamaTarihi: '', gebelikDurumu: 'Belirsiz', not: '', grupId: '' });
         setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
     };
 
@@ -515,6 +520,13 @@ function Duveler() {
                                 )}
                             </div>
                         )}
+                        <div className="form-group">
+                            <label>Grup (Yemleme)</label>
+                            <select value={duzenlenecekDuve ? (duzenlenecekDuve.grupId?._id || duzenlenecekDuve.grupId || '') : (yeniDuve.grupId || '')} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, grupId: e.target.value }) : setYeniDuve({ ...yeniDuve, grupId: e.target.value })}>
+                                <option value="">— Grup seçin —</option>
+                                {gruplar.map(g => <option key={g._id} value={g._id}>{g.ad} ({g.tip || 'karma'})</option>)}
+                            </select>
+                        </div>
                         <div className="form-group">
                             <label>Notlar</label>
                             <textarea rows={2} value={duzenlenecekDuve ? duzenlenecekDuve.not : yeniDuve.not} onChange={e => duzenlenecekDuve ? setDuzenlenecekDuve({ ...duzenlenecekDuve, not: e.target.value }) : setYeniDuve({ ...yeniDuve, not: e.target.value })} placeholder="İsteğe bağlı" />

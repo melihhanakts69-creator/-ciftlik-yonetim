@@ -74,7 +74,8 @@ function Tosunlar() {
   // Modal
   const [tosunEkrani, setTosunEkrani] = useState(false);
   const [duzenlenecekTosun, setDuzenlenecekTosun] = useState(null);
-  const [yeniTosun, setYeniTosun] = useState({ isim: '', kupeNo: '', dogumTarihi: '', kilo: '', not: '' });
+  const [gruplar, setGruplar] = useState([]);
+  const [yeniTosun, setYeniTosun] = useState({ isim: '', kupeNo: '', dogumTarihi: '', kilo: '', not: '', grupId: '' });
   const [satinAlma, setSatinAlma] = useState({
     aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0]
   });
@@ -84,6 +85,10 @@ function Tosunlar() {
     const handleResize = () => { if (window.innerWidth < 768) setViewMode('card'); };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    api.getGruplar().then(r => setGruplar(Array.isArray(r?.data) ? r.data : [])).catch(() => setGruplar([]));
   }, []);
 
   useEffect(() => {
@@ -145,7 +150,7 @@ function Tosunlar() {
           notlar: `Satın Alındı. ${yeniTosun.not || ''}`
         });
       } else {
-        await api.createTosun(yeniTosun);
+        await api.createTosun({ ...yeniTosun, grupId: yeniTosun.grupId || null });
       }
       alert('✅ İşlem Başarılı!');
       setTosunEkrani(false);
@@ -158,7 +163,7 @@ function Tosunlar() {
 
   const tosunGuncelle = async () => {
     try {
-      await api.updateTosun(duzenlenecekTosun._id, duzenlenecekTosun);
+      await api.updateTosun(duzenlenecekTosun._id, { ...duzenlenecekTosun, grupId: duzenlenecekTosun.grupId || null });
       alert('✅ Tosun güncellendi!');
       setDuzenlenecekTosun(null);
       tosunlariYukle();
@@ -179,7 +184,7 @@ function Tosunlar() {
   };
 
   const resetForm = () => {
-    setYeniTosun({ isim: '', kupeNo: '', dogumTarihi: '', kilo: '', not: '' });
+    setYeniTosun({ isim: '', kupeNo: '', dogumTarihi: '', kilo: '', not: '', grupId: '' });
     setSatinAlma({ aktif: false, fiyat: '', satici: '', odenenMiktar: '', tarih: new Date().toISOString().split('T')[0] });
   };
 
@@ -317,6 +322,12 @@ function Tosunlar() {
             <div className="form-group"><label>Küpe No</label><input value={duzenlenecekTosun ? duzenlenecekTosun.kupeNo : yeniTosun.kupeNo} onChange={e => duzenlenecekTosun ? setDuzenlenecekTosun({ ...duzenlenecekTosun, kupeNo: e.target.value }) : setYeniTosun({ ...yeniTosun, kupeNo: e.target.value })} /></div>
             <div className="form-group"><label>Doğum Tarihi</label><input type="date" value={duzenlenecekTosun ? duzenlenecekTosun.dogumTarihi : yeniTosun.dogumTarihi} onChange={e => duzenlenecekTosun ? setDuzenlenecekTosun({ ...duzenlenecekTosun, dogumTarihi: e.target.value }) : setYeniTosun({ ...yeniTosun, dogumTarihi: e.target.value })} /></div>
             <div className="form-group"><label>Kilo</label><input type="number" value={duzenlenecekTosun ? duzenlenecekTosun.kilo : yeniTosun.kilo} onChange={e => duzenlenecekTosun ? setDuzenlenecekTosun({ ...duzenlenecekTosun, kilo: e.target.value }) : setYeniTosun({ ...yeniTosun, kilo: e.target.value })} /></div>
+            <div className="form-group"><label>Grup (Yemleme)</label>
+              <select value={duzenlenecekTosun ? (duzenlenecekTosun.grupId?._id || duzenlenecekTosun.grupId || '') : (yeniTosun.grupId || '')} onChange={e => duzenlenecekTosun ? setDuzenlenecekTosun({ ...duzenlenecekTosun, grupId: e.target.value }) : setYeniTosun({ ...yeniTosun, grupId: e.target.value })}>
+                <option value="">— Grup seçin —</option>
+                {gruplar.map(g => <option key={g._id} value={g._id}>{g.ad} ({g.tip || 'karma'})</option>)}
+              </select>
+            </div>
 
             <div className="btn-group">
               <button onClick={() => { setTosunEkrani(false); setDuzenlenecekTosun(null); }}>İptal</button>
