@@ -7,6 +7,7 @@ const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const Bildirim = require('../models/Bildirim');
+const Stok = require('../models/Stok');
 const VeterinerCari = require('../models/VeterinerCari');
 const VeterinerRandevu = require('../models/VeterinerRandevu');
 const Finansal = require('../models/Finansal');
@@ -290,10 +291,115 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
             ilaclar,
             veteriner: `Dr. ${veteriner.isim} (Klinik: ${veteriner.klinikAdi || 'Serbest'})`,
             notlar,
-            maliyet: maliyetTutar
+            maliyet: maliyetTutar,
+            kayitSahibi: { tip: 'veteriner', sahipId: vetId }
         });
 
         await yeniKayit.save();
+
+        // ── SÜT KORUMA ZİNCİRİ ──────────────────────────────────
+        const ilaclarArr = yeniKayit.ilaclar || [];
+        const maxArinmaSut = Math.max(0, ...ilaclarArr.map(i => i.arinmaSuresiSut || 0));
+        const maxArinmaEt = Math.max(0, ...ilaclarArr.map(i => i.arinmaSuresiEt || 0));
+
+        if (maxArinmaSut > 0 || maxArinmaEt > 0) {
+            const bugun = new Date();
+            if (maxArinmaSut > 0) {
+                yeniKayit.sutYasakBitis = new Date(bugun);
+                yeniKayit.sutYasakBitis.setDate(bugun.getDate() + maxArinmaSut);
+                yeniKayit.sutYasakAktif = true;
+            }
+            if (maxArinmaEt > 0) {
+                yeniKayit.etYasakBitis = new Date(bugun);
+                yeniKayit.etYasakBitis.setDate(bugun.getDate() + maxArinmaEt);
+            }
+            await yeniKayit.save();
+
+            const sutBitisStr = yeniKayit.sutYasakBitis
+                ? yeniKayit.sutYasakBitis.toLocaleDateString('tr-TR')
+                : null;
+            const ilacAdlari = ilaclarArr.map(i => i.ilacAdi).filter(Boolean).join(', ');
+
+            await Bildirim.create({
+                userId: ciftciId,
+                tip: 'saglik',
+                oncelik: 'acil',
+                baslik: `Süt Yasağı: ${hayvanKupeNo || hayvanIsim}`,
+                mesaj: `Vet. ${veteriner.isim} tarafından uygulanan ${ilacAdlari} nedeniyle${sutBitisStr ? ` ${sutBitisStr} tarihine kadar` : ''} bu hayvanın sütü tanka karıştırılmamalıdır.`,
+                hayvanId: hayvanId || undefined,
+                hayvanTipi: hayvanTipi || 'inek',
+                kupe_no: hayvanKupeNo,
+                hatirlatmaTarihi: bugun,
+                metadata: {
+                    tip: 'sut_yasak',
+                    sutYasakBitis: yeniKayit.sutYasakBitis,
+                    ilacAdlari,
+                    veterinerAdi: veteriner.isim
+                }
+            });
+
+            const toplayicilar = await User.find({
+                rol: 'toplayici',
+                topladigiCiftlikler: mongoose.Types.ObjectId.isValid(ciftciId) ? new mongoose.Types.ObjectId(ciftciId) : ciftciId
+            }).lean();
+
+            if (toplayicilar.length > 0) {
+                const ciftci = await User.findById(ciftciId).select('isletmeAdi isim').lean();
+                const ciftlikAdi = ciftci?.isletmeAdi || ciftci?.isim || 'Çiftlik';
+                await Bildirim.insertMany(toplayicilar.map(t => ({
+                    userId: t._id,
+                    tip: 'saglik',
+                    oncelik: 'acil',
+                    baslik: `Süt Yasağı — ${ciftlikAdi}`,
+                    mesaj: `${hayvanKupeNo || hayvanIsim} küpeli hayvana antibiyotik uygulandı.${sutBitisStr ? ` ${sutBitisStr} tarihine kadar` : ''} bu hayvanın sütünü ayrı tutun.`,
+                    hatirlatmaTarihi: bugun,
+                    aktif: true,
+                    metadata: {
+                        tip: 'sut_yasak',
+                        ciftciId,
+                        sutYasakBitis: yeniKayit.sutYasakBitis,
+                        hayvanKupeNo
+                    }
+                })));
+            }
+        }
+        // ── ZİNCİR SONU ─────────────────────────────────────────
+
+        // ── İLAÇ STOK DÜŞÜM (çiftçinin stoku) ───────────────────
+        for (const ilac of ilaclarArr) {
+            if (!ilac.ilacAdi || !(ilac.kullanilanMiktar || ilac.kullanılanMiktar)) continue;
+            const miktar = ilac.kullanilanMiktar || ilac.kullanılanMiktar || 0;
+            const stok = await Stok.findOne({
+                userId: ciftciId,
+                urunAdi: { $regex: new RegExp(ilac.ilacAdi.trim(), 'i') },
+                kategori: { $in: ['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter'] }
+            });
+            if (stok) {
+                stok.miktar = Math.max(0, stok.miktar - miktar);
+                stok.sonGuncelleme = new Date();
+                await stok.save();
+                if (stok.miktar <= (stok.kritikSeviye || 0)) {
+                    const mevcutBildirim = await Bildirim.findOne({
+                        userId: ciftciId,
+                        tip: 'stok',
+                        tamamlandi: false,
+                        'metadata.stokId': stok._id.toString()
+                    });
+                    if (!mevcutBildirim) {
+                        await Bildirim.create({
+                            userId: ciftciId,
+                            tip: 'stok',
+                            oncelik: 'acil',
+                            baslik: `İlaç Stok Uyarısı: ${stok.urunAdi}`,
+                            mesaj: `${stok.urunAdi} kritik seviyede. Mevcut: ${stok.miktar} ${stok.birim}.`,
+                            hatirlatmaTarihi: new Date(),
+                            metadata: { stokId: stok._id.toString(), urunAdi: stok.urunAdi }
+                        });
+                    }
+                }
+            }
+        }
+        // ── STOK SONU ────────────────────────────────────────────
 
         if (maliyetTutar > 0) {
             await VeterinerCari.create({

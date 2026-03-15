@@ -919,7 +919,7 @@ export default function Hastalar() {
   const [modalOpen, setModalOpen] = useState(false);
   const [secilenHayvan, setSecilenHayvan] = useState(null);
   const [islemTipi, setIslemTipi] = useState('hastalik');
-  const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '' });
+  const [formData, setFormData] = useState({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '', kullanilanMiktar: '' });
   const [hayvanKategori, setHayvanKategori] = useState('');
   const [hayvanKupeArama, setHayvanKupeArama] = useState('');
 
@@ -945,7 +945,7 @@ export default function Hastalar() {
   const [raporYukleniyor, setRaporYukleniyor] = useState(false);
   // Protokol yönetim modal
   const [protokolModalOpen, setProtokolModalOpen] = useState(false);
-  const [yeniProtokol, setYeniProtokol] = useState({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '' }] });
+  const [yeniProtokol, setYeniProtokol] = useState({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '', arinmaSuresiSut: '', arinmaSuresiEt: '', kullanilanMiktar: '', birim: 'ml' }] });
 
   // Fatura Kes (işlem modallarında ortak)
   const initFatura = { enabled: false, tutar: '', odemeTipi: 'pesin', vadeTarihi: '' };
@@ -1139,7 +1139,7 @@ export default function Hastalar() {
   const openModal = (tip, hayvan) => {
     setIslemTipi(tip);
     setSecilenHayvan(hayvan);
-    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '' });
+    setFormData({ tani: '', tedavi: '', ilacAd: '', notlar: '', maliyet: '', kullanilanMiktar: '' });
     setAnamnez({ sikayet: '', suresi: '', atesli: '', istah: '', bulgular: '' });
     setSecilenProtokol('');
     setFaturaData(initFatura);
@@ -1173,13 +1173,18 @@ export default function Hastalar() {
     if (!protokolId) return;
     const p = protokoller.find(x => x._id === protokolId);
     if (!p) return;
+    const ilaclar = p.ilaclar || [];
+    const ilkArinmali = ilaclar.find(x => x.arinmaSuresiSut > 0);
     setFormData(prev => ({
       ...prev,
       tani: p.tani || prev.tani,
       tedavi: p.tedaviNotu || prev.tedavi,
-      ilacAd: (p.ilaclar || []).map(x => x.ilacAdi).filter(Boolean).join(', ') || prev.ilacAd
+      ilacAd: ilaclar.map(x => x.ilacAdi).filter(Boolean).join(', ') || prev.ilacAd,
+      kullanilanMiktar: ilaclar[0]?.kullanilanMiktar || ilaclar[0]?.kullanılanMiktar || prev.kullanilanMiktar
     }));
-    // Kullanım sayacını artır (fire and forget)
+    if (ilkArinmali) {
+      setArinma({ aktif: true, sut: String(ilkArinmali.arinmaSuresiSut || ''), et: String(ilkArinmali.arinmaSuresiEt || '') });
+    }
     api.patchVeterinerProtokolKullan(protokolId).catch(() => {});
   };
 
@@ -1216,11 +1221,19 @@ export default function Hastalar() {
         tip: islemTipi === 'tohumlama' ? 'muayene' : 'hastalik',
         tani: islemTipi === 'tohumlama' ? 'Suni Tohumlama' : formData.tani,
         tedavi: islemTipi === 'tohumlama' ? formData.ilacAd : formData.tedavi,
-        ilaclar: formData.ilacAd ? formData.ilacAd.split(',').map(x => ({ ilacAdi: x.trim() })).filter(x => x.ilacAdi) : [],
+        ilaclar: formData.ilacAd ? formData.ilacAd.split(',').map((x, idx) => {
+          const ilac = { ilacAdi: x.trim() };
+          if (islemTipi === 'hastalik' && arinma.aktif && arinma.sut) {
+            ilac.arinmaSuresiSut = Number(arinma.sut);
+            if (arinma.et) ilac.arinmaSuresiEt = Number(arinma.et);
+          }
+          if (formData.kullanilanMiktar && parseFloat(formData.kullanilanMiktar) > 0 && idx === 0) {
+            ilac.kullanilanMiktar = parseFloat(formData.kullanilanMiktar);
+            ilac.birim = 'ml';
+          }
+          return ilac;
+        }).filter(x => x.ilacAdi) : [],
         notlar: tumNotlar,
-        ...(islemTipi === 'hastalik' && arinma.aktif && arinma.sut
-          ? { arinmaSuresiSut: Number(arinma.sut), ...(arinma.et ? { arinmaSuresiEt: Number(arinma.et) } : {}) }
-          : {}),
       };
       await api.postMusteriHayvanSaglik(selectedId, secilenHayvan._id, payload);
 
@@ -1301,7 +1314,7 @@ export default function Hastalar() {
       await api.postVeterinerProtokol(yeniProtokol);
       toast.success('Protokol kaydedildi.');
       setProtokolModalOpen(false);
-      setYeniProtokol({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '' }] });
+      setYeniProtokol({ ad: '', hastalik: '', tip: 'hastalik', tani: '', tedaviNotu: '', ilaclar: [{ ilacAdi: '', doz: '', sure: '', arinmaSuresiSut: '', arinmaSuresiEt: '', kullanilanMiktar: '', birim: 'ml' }] });
       fetchProtokoller();
     } catch (err) {
       toast.error('Protokol kaydedilemedi.');
@@ -1602,7 +1615,23 @@ export default function Hastalar() {
                         <div className="line1">{k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'} · {k.tani === 'Suni Tohumlama' ? '💉 Suni Tohumlama' : (tipEtiket[k.tip] || k.tip)} {k.tani !== 'Suni Tohumlama' ? `— ${k.tani}` : ''}</div>
                         <div className="line2">{k.tarih ? new Date(k.tarih).toLocaleDateString('tr-TR') : ''} {k.tedavi ? `· ${k.tedavi}` : ''}</div>
                       </div>
-                      <button type="button" className="btn-pdf" onClick={e => { e.stopPropagation(); indirRecetePdf(k); }}>PDF İndir</button>
+                      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                        {(() => {
+                          const user = JSON.parse(localStorage.getItem('user') || '{}');
+                          const isVet = user.rol === 'veteriner';
+                          return (
+                            <>
+                              {isVet && (
+                                <>
+                                  <button type="button" className="btn-pdf" style={{ background: '#fef3c7', borderColor: '#f59e0b', color: '#b45309' }} onClick={e => { e.stopPropagation(); toast.info('Düzenleme formu yakında eklenecek'); }}>Düzenle</button>
+                                  <button type="button" className="btn-pdf" style={{ background: '#fee2e2', borderColor: '#ef4444', color: '#b91c1c' }} onClick={e => { e.stopPropagation(); if (window.confirm('Bu kaydı silmek istediğinize emin misiniz?')) api.deleteSaglikKaydi(k._id).then(() => { toast.success('Silindi'); setSaglikKayitlari(prev => prev.filter(x => x._id !== k._id)); }).catch(() => toast.error('Silinemedi')); }}>Sil</button>
+                                </>
+                              )}
+                              <button type="button" className="btn-pdf" onClick={e => { e.stopPropagation(); indirRecetePdf(k); }}>PDF İndir</button>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </KayitItem>
                   ))}
                 </KayitList>
@@ -1745,21 +1774,23 @@ export default function Hastalar() {
                 </div>
                 <div className="form-section-title" style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '16px 0 10px' }}>İlaçlar</div>
                 {yeniProtokol.ilaclar.map((il, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px auto', gap: 8, marginBottom: 8 }}>
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px 70px auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                     <ComboSelect
                       value={il.ilacAdi}
                       onChange={v => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], ilacAdi: v }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }}
-                      placeholder="İlaç adı — yazın veya seçin"
+                      placeholder="İlaç adı"
                       sabitListe={SIK_ILACLAR}
                       stoklar={stoklar}
                       stokKategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
                     />
-                    <input placeholder="Doz" value={il.doz} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], doz: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
-                    <input placeholder="Süre" value={il.sure} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], sure: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+                    <input placeholder="Doz" value={il.doz} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], doz: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
+                    <input placeholder="Süre" value={il.sure} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], sure: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} />
+                    <input type="number" min="0" step="0.1" placeholder="Arınma süt (gün)" value={il.arinmaSuresiSut} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], arinmaSuresiSut: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} title="Süt arınma süresi (gün)" />
+                    <input type="number" min="0" step="0.1" placeholder="Miktar (ml)" value={il.kullanilanMiktar} onChange={e => { const ils = [...yeniProtokol.ilaclar]; ils[i] = { ...ils[i], kullanilanMiktar: e.target.value }; setYeniProtokol({ ...yeniProtokol, ilaclar: ils }); }} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} title="Stoktan düşülecek miktar" />
                     <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: yeniProtokol.ilaclar.filter((_, j) => j !== i) })} style={{ padding: '8px 10px', borderRadius: 8, border: 'none', background: '#fee2e2', color: '#b91c1c', cursor: 'pointer' }}>✕</button>
                   </div>
                 ))}
-                <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: [...yeniProtokol.ilaclar, { ilacAdi: '', doz: '', sure: '' }] })} style={{ padding: '8px 14px', border: '1px dashed #d1d5db', borderRadius: 8, background: '#f9fafb', color: '#374151', fontSize: 13, cursor: 'pointer', marginTop: 4 }}>+ İlaç Ekle</button>
+                <button type="button" onClick={() => setYeniProtokol({ ...yeniProtokol, ilaclar: [...yeniProtokol.ilaclar, { ilacAdi: '', doz: '', sure: '', arinmaSuresiSut: '', arinmaSuresiEt: '', kullanilanMiktar: '', birim: 'ml' }] })} style={{ padding: '8px 14px', border: '1px dashed #d1d5db', borderRadius: 8, background: '#f9fafb', color: '#374151', fontSize: 13, cursor: 'pointer', marginTop: 4 }}>+ İlaç Ekle</button>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setProtokolModalOpen(false)}>İptal</button>
@@ -1882,6 +1913,18 @@ export default function Hastalar() {
                           stoklar={stoklar}
                           stokKategoriler={['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter', 'Biyolojik']}
                           multiWord
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Kullanılan miktar (ml) <span style={{ fontWeight: 500, color: '#94a3b8' }}>— stoktan düşülür</span></label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.kullanilanMiktar}
+                          onChange={e => setFormData({ ...formData, kullanilanMiktar: e.target.value })}
+                          placeholder="Örn: 10 (ilk ilaca uygulanır)"
+                          style={{ padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, width: '100%' }}
                         />
                       </div>
                     </div>

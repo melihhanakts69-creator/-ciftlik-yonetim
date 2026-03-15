@@ -16,6 +16,7 @@ const SutKaydi = require('../models/SutKaydi');
 const Bildirim = require('../models/Bildirim');
 const Maliyet = require('../models/Maliyet');
 const AlisSatis = require('../models/AlisSatis');
+const SaglikKaydi = require('../models/SaglikKaydi');
 
 // Dashboard genel istatistikler
 router.get('/stats', auth, async (req, res) => {
@@ -532,6 +533,95 @@ router.get('/karlilik', auth, async (req, res) => {
   } catch (error) {
     console.error('Karlılık error:', error);
     res.status(500).json({ message: 'Karlılık verisi alınamadı', detail: error.message });
+  }
+});
+
+// Sağlık skoru (0-100)
+router.get('/saglik-skoru', auth, async (req, res) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.userId);
+    const bugun = new Date();
+    const otuzGunOnce = new Date(bugun - 30 * 86400000);
+
+    const AsiTakvimi = require('../models/AsiTakvimi');
+
+    const [toplamInek, aktifTedavi, gecikmisAsi, olumler, yasak] = await Promise.all([
+      Inek.countDocuments({ userId: uid, durum: 'Aktif' }),
+      SaglikKaydi.countDocuments({ userId: uid, durum: 'devam_ediyor' }),
+      AsiTakvimi.countDocuments({
+        userId: uid,
+        sonrakiTarih: { $lt: bugun },
+        durum: 'bekliyor'
+      }),
+      SaglikKaydi.countDocuments({
+        userId: uid,
+        durum: 'oldu',
+        tarih: { $gte: otuzGunOnce }
+      }),
+      SaglikKaydi.countDocuments({
+        userId: uid,
+        sutYasakAktif: true,
+        sutYasakBitis: { $gte: bugun }
+      })
+    ]);
+
+    if (toplamInek === 0) return res.json({ skor: 100, detay: {} });
+
+    let skor = 100;
+    const aktifTedaviKesinti = Math.min(30, (aktifTedavi / toplamInek) * 30);
+    const asiKesinti = Math.min(20, gecikmisAsi * 3);
+    const olumKesinti = Math.min(30, olumler * 10);
+    const yasakKesinti = Math.min(10, yasak * 5);
+
+    skor -= aktifTedaviKesinti + asiKesinti + olumKesinti + yasakKesinti;
+
+    res.json({
+      skor: Math.max(0, Math.round(skor)),
+      detay: {
+        toplamInek,
+        aktifTedavi,
+        gecikmisAsi,
+        olumler,
+        sutYasakAktif: yasak
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Skor hesaplanamadı' });
+  }
+});
+
+// Bugün aktif süt yasağı olan hayvanlar
+router.get('/sut-yasak', auth, async (req, res) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.userId);
+    const bugun = new Date();
+
+    const yasaklar = await SaglikKaydi.find({
+      userId: uid,
+      sutYasakAktif: true,
+      sutYasakBitis: { $gte: bugun }
+    })
+      .select('hayvanIsim hayvanKupeNo hayvanTipi sutYasakBitis ilaclar')
+      .sort({ sutYasakBitis: 1 })
+      .lean();
+
+    const sonuc = yasaklar.map(k => {
+      const kalanGun = Math.ceil(
+        (new Date(k.sutYasakBitis) - bugun) / (1000 * 60 * 60 * 24)
+      );
+      return {
+        hayvanIsim: k.hayvanIsim,
+        hayvanKupeNo: k.hayvanKupeNo,
+        hayvanTipi: k.hayvanTipi,
+        sutYasakBitis: k.sutYasakBitis,
+        kalanGun,
+        ilaclar: (k.ilaclar || []).map(i => i.ilacAdi).filter(Boolean).join(', ')
+      };
+    });
+
+    res.json(sonuc);
+  } catch (err) {
+    res.status(500).json({ message: 'Süt yasak listesi alınamadı' });
   }
 });
 

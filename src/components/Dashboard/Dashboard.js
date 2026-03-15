@@ -10,6 +10,8 @@ import AktivitelerCard from './AktivitelerCard';
 import HizliYemlemeWidget from './HizliYemlemeWidget';
 import BugunYemlemeCard from './BugunYemlemeCard';
 import SaglikUyariCard from './SaglikUyariCard';
+import SutYasakWidget from './SutYasakWidget';
+import SuruSaglikSkoru from './SuruSaglikSkoru';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby, FaLeaf, FaSyringe, FaWallet, FaStethoscope, FaGlassWhiskey } from 'react-icons/fa';
@@ -756,6 +758,8 @@ const Dashboard = ({ kullanici }) => {
         </HeaderRight>
       </Header>
 
+      <SutYasakWidget />
+
       {/* --- PC HIZLI ERİŞİM ÇUBUĞU (yatay butonlar - mobildeki gibi) --- */}
       <DesktopQuickBar>
         <DesktopQuickRow>
@@ -801,6 +805,7 @@ const Dashboard = ({ kullanici }) => {
         </button>
       </SectionTitle>
       <Grid $cols={4} $mobileCols={2}>
+        <SuruSaglikSkoru />
         {panelMetrikleri.map((metrikId, idx) => {
           const opt = METRIK_OPTIONS.find(m => m.id === metrikId) || METRIK_OPTIONS[0];
           const onClick = opt.nav === 'dogum' ? () => toggleMobilePanel('dogum') : opt.nav ? () => navigate(opt.nav) : undefined;

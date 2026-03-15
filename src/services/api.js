@@ -158,6 +158,8 @@ export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
 export const getDashboardAktiviteler = (limit = 10) => api.get(`/dashboard/aktiviteler?limit=${limit}`);
 export const getDashboardTopPerformers = () => api.get('/dashboard/top-performers');
 export const getKarlilik = () => api.get('/dashboard/karlilik');
+export const getSutYasak = () => api.get('/dashboard/sut-yasak');
+export const getSaglikSkoru = () => api.get('/dashboard/saglik-skoru');
 
 // YEM YÖNETİM SİSTEMİ (Phase 3.5)
 export const getYemKutuphanesi = () => api.get('/yem-yonetim/kutuphane');

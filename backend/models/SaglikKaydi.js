@@ -54,19 +54,13 @@ const saglikKaydiSchema = new mongoose.Schema({
         trim: true
     },
     ilaclar: [{
-        ilacAdi: {
-            type: String,
-            required: true,
-            trim: true
-        },
-        doz: {
-            type: String,
-            trim: true
-        },
-        sure: {
-            type: String,
-            trim: true
-        }
+        ilacAdi: { type: String, required: true, trim: true },
+        doz: { type: String, trim: true },
+        sure: { type: String, trim: true },
+        arinmaSuresiSut: { type: Number, default: 0 },
+        arinmaSuresiEt: { type: Number, default: 0 },
+        kullanilanMiktar: { type: Number, default: 0 },
+        birim: { type: String, default: 'ml' }
     }],
     veteriner: {
         type: String,
@@ -87,7 +81,14 @@ const saglikKaydiSchema = new mongoose.Schema({
     notlar: {
         type: String,
         trim: true
-    }
+    },
+    kayitSahibi: {
+        tip: { type: String, enum: ['ciftci', 'veteriner'], default: 'ciftci' },
+        sahipId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
+    },
+    sutYasakBitis: { type: Date, default: null },
+    sutYasakAktif: { type: Boolean, default: false },
+    etYasakBitis: { type: Date, default: null }
 }, {
     timestamps: true
 });

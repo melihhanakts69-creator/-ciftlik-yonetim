@@ -32,7 +32,11 @@ const tedaviProtokolSchema = new mongoose.Schema({
     ilaclar: [{
         ilacAdi: { type: String, trim: true },
         doz: { type: String, trim: true },
-        sure: { type: String, trim: true }
+        sure: { type: String, trim: true },
+        arinmaSuresiSut: { type: Number, default: 0 },
+        arinmaSuresiEt: { type: Number, default: 0 },
+        kullanilanMiktar: { type: Number, default: 0 },
+        birim: { type: String, default: 'ml' }
     }],
     kullanilmaSayisi: {
         type: Number,

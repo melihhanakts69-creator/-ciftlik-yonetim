@@ -942,7 +942,7 @@ function SaglikMerkezi() {
         tarih: new Date().toISOString().split('T')[0],
         tani: '', belirtiler: '', tedavi: '', veteriner: '',
         maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
-        tahminiZarar: ''
+        tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: ''
     });
 
     const [asiForm, setAsiForm] = useState({
@@ -1019,6 +1019,17 @@ function SaglikMerkezi() {
         }
         try {
             const seciliHayvan = hayvanlar.find(h => h._id === form.hayvanId);
+            const ilaclar = form.ilacAd ? form.ilacAd.split(',').map((x, idx) => {
+                const ilac = { ilacAdi: x.trim() };
+                if (form.arinmaSut && parseFloat(form.arinmaSut) > 0) ilac.arinmaSuresiSut = parseFloat(form.arinmaSut);
+                if (form.arinmaEt && parseFloat(form.arinmaEt) > 0) ilac.arinmaSuresiEt = parseFloat(form.arinmaEt);
+                if (form.kullanilanMiktar && parseFloat(form.kullanilanMiktar) > 0 && idx === 0) {
+                    ilac.kullanilanMiktar = parseFloat(form.kullanilanMiktar);
+                    ilac.birim = 'ml';
+                }
+                return ilac;
+            }).filter(x => x.ilacAdi) : [];
+
             const data = {
                 ...form,
                 hayvanTipi: seciliHayvan?.tip || form.hayvanTipi,
@@ -1027,7 +1038,8 @@ function SaglikMerkezi() {
                 belirtiler: form.belirtiler ? form.belirtiler.split(',').map(s => s.trim()) : [],
                 maliyet: parseFloat(form.maliyet) || 0,
                 sonrakiKontrol: form.sonrakiKontrol || undefined,
-                tahminiZarar: form.durum === 'oldu' ? parseFloat(form.tahminiZarar) || 0 : undefined
+                tahminiZarar: form.durum === 'oldu' ? parseFloat(form.tahminiZarar) || 0 : undefined,
+                ilaclar
             };
 
             await api.createSaglikKaydi(data);
@@ -1098,7 +1110,7 @@ function SaglikMerkezi() {
             tarih: new Date().toISOString().split('T')[0],
             tani: '', belirtiler: '', tedavi: '', veteriner: '',
             maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
-            tahminiZarar: ''
+            tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: ''
         });
         setAsiForm({
             hayvanId: '', hayvanTipi: 'hepsi', asiAdi: '',
@@ -1558,6 +1570,30 @@ function SaglikMerkezi() {
                                                 placeholder="Uygulanan tedaviyi yazın..."
                                             />
                                         </FormGroup>
+
+                                        <FormGroup>
+                                            <label>İlaçlar <span style={{ color: '#94a3b8', fontWeight: 500 }}>(virgülle ayırın — stoktan düşülür)</span></label>
+                                            <input
+                                                type="text"
+                                                value={form.ilacAd}
+                                                onChange={e => setForm({ ...form, ilacAd: e.target.value })}
+                                                placeholder="Örn: Penstrep, Metacam"
+                                            />
+                                        </FormGroup>
+                                        <FormRow>
+                                            <FormGroup>
+                                                <label>Kullanılan miktar (ml)</label>
+                                                <input type="number" min="0" step="0.1" value={form.kullanilanMiktar} onChange={e => setForm({ ...form, kullanilanMiktar: e.target.value })} placeholder="İlk ilaca uygulanır" />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Süt arınma (gün)</label>
+                                                <input type="number" min="0" value={form.arinmaSut} onChange={e => setForm({ ...form, arinmaSut: e.target.value })} placeholder="Opsiyonel" />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <label>Et arınma (gün)</label>
+                                                <input type="number" min="0" value={form.arinmaEt} onChange={e => setForm({ ...form, arinmaEt: e.target.value })} placeholder="Opsiyonel" />
+                                            </FormGroup>
+                                        </FormRow>
 
                                         <FormRow>
                                             <FormGroup>

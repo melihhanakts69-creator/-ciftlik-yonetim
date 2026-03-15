@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const AsiTakvimi = require('../models/AsiTakvimi');
+const Stok = require('../models/Stok');
 const Timeline = require('../models/Timeline');
 const Bildirim = require('../models/Bildirim');
 const Finansal = require('../models/Finansal');
@@ -39,7 +40,7 @@ router.get('/veterinerlerim', auth, checkRole(['ciftci']), async (req, res) => {
 // ============================
 
 // Tüm sağlık kayıtlarını getir (filtreleme destekli)
-router.get('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.get('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { tip, durum, hayvanTipi, hayvanId, baslangic, bitis, limit = 50, page = 1 } = req.query;
 
@@ -80,7 +81,7 @@ router.get('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, r
 });
 
 // Belirli hayvanın sağlık geçmişi
-router.get('/hayvan/:hayvanId', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.get('/hayvan/:hayvanId', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const kayitlar = await SaglikKaydi.hayvanGecmisi(req.userId, req.params.hayvanId);
         res.json(kayitlar);
@@ -91,7 +92,7 @@ router.get('/hayvan/:hayvanId', auth, checkRole(['ciftci', 'veteriner', 'sutcu']
 });
 
 // Sağlık istatistikleri
-router.get('/istatistik', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.get('/istatistik', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const istatistikler = await SaglikKaydi.istatistikler(req.userId);
 
@@ -111,7 +112,7 @@ router.get('/istatistik', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), asy
 });
 
 // Yaklaşan kontroller ve aşılar
-router.get('/yaklasan', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.get('/yaklasan', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const gun = parseInt(req.query.gun) || 7;
 
@@ -146,15 +147,88 @@ router.get('/yaklasan', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async
 });
 
 // Yeni sağlık kaydı oluştur
-router.post('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId: _u, _id, ...safeBody } = req.body;
 
         const kayit = new SaglikKaydi({
             ...safeBody,
-            userId: req.userId
+            userId: req.userId,
+            kayitSahibi: {
+                tip: req.user?.rol === 'veteriner' ? 'veteriner' : 'ciftci',
+                sahipId: req.originalUserId || req.userId
+            }
         });
         await kayit.save();
+
+        // ── İLAÇ STOK DÜŞÜM ─────────────────────────────────────
+        for (const ilac of kayit.ilaclar || []) {
+            if (!ilac.ilacAdi || !(ilac.kullanilanMiktar || ilac.kullanılanMiktar)) continue;
+            const miktar = ilac.kullanilanMiktar || ilac.kullanılanMiktar || 0;
+            const stok = await Stok.findOne({
+                userId: req.userId,
+                urunAdi: { $regex: new RegExp(ilac.ilacAdi.trim(), 'i') },
+                kategori: { $in: ['İlaç', 'Antibiyotik', 'Vitamin', 'Anti-inflamatuar', 'Paraziter'] }
+            });
+            if (stok) {
+                stok.miktar = Math.max(0, stok.miktar - miktar);
+                stok.sonGuncelleme = new Date();
+                await stok.save();
+                if (stok.miktar <= (stok.kritikSeviye || 0)) {
+                    const mevcutBildirim = await Bildirim.findOne({
+                        userId: req.userId,
+                        tip: 'stok',
+                        tamamlandi: false,
+                        'metadata.stokId': stok._id.toString()
+                    });
+                    if (!mevcutBildirim) {
+                        await Bildirim.create({
+                            userId: req.userId,
+                            tip: 'stok',
+                            oncelik: 'acil',
+                            baslik: `İlaç Stok Uyarısı: ${stok.urunAdi}`,
+                            mesaj: `${stok.urunAdi} kritik seviyede. Mevcut: ${stok.miktar} ${stok.birim}.`,
+                            hatirlatmaTarihi: new Date(),
+                            metadata: { stokId: stok._id.toString(), urunAdi: stok.urunAdi }
+                        });
+                    }
+                }
+            }
+        }
+        // ── STOK SONU ────────────────────────────────────────────
+
+        // ── SÜT KORUMA ZİNCİRİ (çiftçi kendi kaydı) ──────────────
+        const ilaclarArr = kayit.ilaclar || [];
+        const maxArinmaSut = Math.max(0, ...ilaclarArr.map(i => i.arinmaSuresiSut || 0));
+        const maxArinmaEt = Math.max(0, ...ilaclarArr.map(i => i.arinmaSuresiEt || 0));
+        if (maxArinmaSut > 0 || maxArinmaEt > 0) {
+            const bugun = new Date();
+            if (maxArinmaSut > 0) {
+                kayit.sutYasakBitis = new Date(bugun);
+                kayit.sutYasakBitis.setDate(bugun.getDate() + maxArinmaSut);
+                kayit.sutYasakAktif = true;
+            }
+            if (maxArinmaEt > 0) {
+                kayit.etYasakBitis = new Date(bugun);
+                kayit.etYasakBitis.setDate(bugun.getDate() + maxArinmaEt);
+            }
+            await kayit.save();
+            const sutBitisStr = kayit.sutYasakBitis ? kayit.sutYasakBitis.toLocaleDateString('tr-TR') : null;
+            const ilacAdlari = ilaclarArr.map(i => i.ilacAdi).filter(Boolean).join(', ');
+            await Bildirim.create({
+                userId: req.userId,
+                tip: 'saglik',
+                oncelik: 'acil',
+                baslik: `Süt Yasağı: ${kayit.hayvanIsim || kayit.hayvanKupeNo}`,
+                mesaj: `${ilacAdlari} nedeniyle${sutBitisStr ? ` ${sutBitisStr} tarihine kadar` : ''} bu hayvanın sütü tanka karıştırılmamalıdır.`,
+                hayvanId: kayit.hayvanId,
+                hayvanTipi: kayit.hayvanTipi,
+                kupe_no: kayit.hayvanKupeNo,
+                hatirlatmaTarihi: bugun,
+                metadata: { tip: 'sut_yasak', sutYasakBitis: kayit.sutYasakBitis, ilacAdlari }
+            });
+        }
+        // ── ZİNCİR SONU ─────────────────────────────────────────
 
         // Timeline'a otomatik kayıt
         try {
@@ -240,20 +314,24 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, 
     }
 });
 
-// Sağlık kaydını güncelle
-router.put('/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+// Sağlık kaydını güncelle (çiftçi: kendi kaydı, veteriner: kayitSahibi.sahipId ile oluşturduğu)
+router.put('/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId, _id, tahminiZarar: reqTahminiZarar, ...safeBody } = req.body;
 
-        const kayit = await SaglikKaydi.findOneAndUpdate(
-            { _id: req.params.id, userId: req.userId },
+        const mevcut = await SaglikKaydi.findById(req.params.id).lean();
+        if (!mevcut) return res.status(404).json({ message: 'Sağlık kaydı bulunamadı' });
+
+        const sahipIdStr = mevcut.kayitSahibi?.sahipId?.toString();
+        const izinli = mevcut.userId.toString() === req.userId ||
+            (req.originalUserId && sahipIdStr === req.originalUserId);
+        if (!izinli) return res.status(403).json({ message: 'Bu kaydı güncelleme yetkiniz yok' });
+
+        const kayit = await SaglikKaydi.findByIdAndUpdate(
+            req.params.id,
             { ...safeBody },
             { new: true, runValidators: true }
         );
-
-        if (!kayit) {
-            return res.status(404).json({ message: 'Sağlık kaydı bulunamadı' });
-        }
 
         // Durum 'oldu' olarak güncellendiyse ve tahmini zarar varsa Finansal gider ekle
         const tahminiZarar = parseFloat(reqTahminiZarar);
@@ -280,18 +358,19 @@ router.put('/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req
     }
 });
 
-// Sağlık kaydını sil
-router.delete('/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+// Sağlık kaydını sil (çiftçi: kendi kaydı, veteriner: kayitSahibi.sahipId ile oluşturduğu kayıt)
+router.delete('/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
-        const kayit = await SaglikKaydi.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.userId
-        });
+        const kayit = await SaglikKaydi.findById(req.params.id).lean();
+        if (!kayit) return res.status(404).json({ message: 'Sağlık kaydı bulunamadı' });
 
-        if (!kayit) {
-            return res.status(404).json({ message: 'Sağlık kaydı bulunamadı' });
-        }
+        const sahipIdStr = kayit.kayitSahibi?.sahipId?.toString();
+        const izinli = kayit.userId.toString() === req.userId ||
+            (req.originalUserId && sahipIdStr === req.originalUserId);
 
+        if (!izinli) return res.status(403).json({ message: 'Bu kaydı silme yetkiniz yok' });
+
+        await SaglikKaydi.findByIdAndDelete(req.params.id);
         res.json({ message: 'Sağlık kaydı silindi' });
     } catch (error) {
         console.error('Sağlık kaydı silme hatası:', error);
@@ -305,7 +384,7 @@ router.delete('/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (
 // ============================
 
 // Aşı takvimi listesi
-router.get('/asi-takvimi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.get('/asi-takvimi', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { durum, hayvanTipi, limit = 50, page = 1 } = req.query;
 
@@ -339,7 +418,7 @@ router.get('/asi-takvimi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), as
 });
 
 // Yeni aşı kaydı
-router.post('/asi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.post('/asi', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId: _u, _id, ...safeBody } = req.body;
 
@@ -348,6 +427,59 @@ router.post('/asi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (re
             userId: req.userId
         });
         await asi.save();
+
+        // Toplu aşı ise tüm hayvanlara bireysel kayıt oluştur
+        const isToplu = (!req.body.hayvanTipi || req.body.hayvanTipi === 'hepsi') && !req.body.hayvanId;
+        if (isToplu) {
+            const hedefTipler = req.body.hayvanTipi === 'hepsi'
+                ? ['inek', 'duve', 'buzagi', 'tosun']
+                : [req.body.hayvanTipi || 'inek'];
+
+            const modelMap = {
+                inek: require('../models/Inek'),
+                duve: require('../models/Duve'),
+                buzagi: require('../models/Buzagi'),
+                tosun: require('../models/Tosun')
+            };
+
+            let toplamHayvan = 0;
+
+            for (const tip of hedefTipler) {
+                const Model = modelMap[tip];
+                if (!Model) continue;
+                const hayvanlar = await Model.find({
+                    userId: req.userId,
+                    durum: 'Aktif'
+                }).lean();
+
+                toplamHayvan += hayvanlar.length;
+
+                const basBasinaMaliyet = hayvanlar.length > 0 && asi.maliyet > 0
+                    ? asi.maliyet / hayvanlar.length
+                    : 0;
+
+                const kayitlar = hayvanlar.map(h => ({
+                    userId: req.userId,
+                    hayvanId: h._id,
+                    hayvanTipi: tip,
+                    hayvanIsim: h.isim,
+                    hayvanKupeNo: h.kupeNo,
+                    asiAdi: asi.asiAdi,
+                    uygulamaTarihi: asi.uygulamaTarihi,
+                    sonrakiTarih: asi.sonrakiTarih,
+                    tekrarPeriyodu: asi.tekrarPeriyodu,
+                    uygulayan: asi.uygulayan,
+                    doz: asi.doz,
+                    maliyet: Math.round(basBasinaMaliyet * 100) / 100,
+                    durum: 'yapildi',
+                    notlar: `Toplu aşı — ${toplamHayvan} hayvan`
+                }));
+
+                if (kayitlar.length > 0) {
+                    await AsiTakvimi.insertMany(kayitlar);
+                }
+            }
+        }
 
         // Sonraki aşı tarihi varsa bildirim oluştur
         if (asi.sonrakiTarih) {
@@ -409,7 +541,7 @@ router.post('/asi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (re
 });
 
 // Aşı güncelle
-router.put('/asi/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.put('/asi/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const { userId, _id, ...safeBody } = req.body;
 
@@ -431,7 +563,7 @@ router.put('/asi/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async 
 });
 
 // Aşı sil
-router.delete('/asi/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
+router.delete('/asi/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
         const asi = await AsiTakvimi.findOneAndDelete({
             _id: req.params.id,

@@ -193,6 +193,109 @@ async function otomatikGorevleriKontrolEt(userId) {
         }
       }
     }
+
+    // 5. GEBELİK MUAYENESİ (tohumlamadan 35-45 gün)
+    const tohumlananlar = await Inek.find({
+      userId: uid,
+      gebelikDurumu: 'Belirsiz',
+      tohumlamaTarihi: { $exists: true, $ne: null }
+    }).lean();
+
+    for (const inek of tohumlananlar) {
+      const gecenGun = Math.floor(
+        (bugun - new Date(inek.tohumlamaTarihi)) / (1000 * 60 * 60 * 24)
+      );
+      if (gecenGun >= 35 && gecenGun <= 45) {
+        const varMi = await Bildirim.findOne({
+          userId: uid,
+          hayvanId: inek._id,
+          'metadata.tip': 'gebelik_muayenesi',
+          createdAt: { $gte: new Date(bugun - 10 * 86400000) }
+        });
+        if (!varMi) {
+          await Bildirim.create({
+            userId: uid,
+            tip: 'muayene',
+            baslik: `Gebelik Kontrolü: ${inek.isim || inek.kupeNo}`,
+            mesaj: `Tohumlamadan ${gecenGun} gün geçti. Gebelik teyidi için veterinere muayene ettirin.`,
+            hayvanId: inek._id,
+            hayvanTipi: 'inek',
+            oncelik: 'yuksek',
+            hatirlatmaTarihi: bugun,
+            metadata: { tip: 'gebelik_muayenesi', gecenGun }
+          });
+        }
+      }
+    }
+
+    // 6. POSTPARTUM KONTROL (doğumdan 12-21 gün)
+    const yeniDogan = await Inek.find({
+      userId: uid,
+      sonBuzagilamaTarihi: {
+        $gte: new Date(bugun - 21 * 86400000),
+        $lte: new Date(bugun - 12 * 86400000)
+      }
+    }).lean();
+
+    for (const inek of yeniDogan) {
+      const varMi = await Bildirim.findOne({
+        userId: uid,
+        hayvanId: inek._id,
+        'metadata.tip': 'postpartum',
+        tamamlandi: false
+      });
+      if (!varMi) {
+        const gecenGun = Math.floor(
+          (bugun - new Date(inek.sonBuzagilamaTarihi)) / (1000 * 60 * 60 * 24)
+        );
+        await Bildirim.create({
+          userId: uid,
+          tip: 'muayene',
+          baslik: `Postpartum Kontrol: ${inek.isim || inek.kupeNo}`,
+          mesaj: `Doğumdan ${gecenGun} gün geçti. Rahim, meme ve genel durum kontrol edilmeli.`,
+          hayvanId: inek._id,
+          hayvanTipi: 'inek',
+          oncelik: 'yuksek',
+          hatirlatmaTarihi: bugun,
+          metadata: { tip: 'postpartum', gecenGun }
+        });
+      }
+    }
+
+    // 7. TOHUMLAMA ZAMANI (doğumdan 60+ gün, hâlâ gebe değil)
+    const tohumlanacaklar = await Inek.find({
+      userId: uid,
+      gebelikDurumu: 'Gebe Değil',
+      sonBuzagilamaTarihi: {
+        $lte: new Date(bugun - 60 * 86400000)
+      },
+      durum: 'Aktif'
+    }).lean();
+
+    for (const inek of tohumlanacaklar) {
+      const varMi = await Bildirim.findOne({
+        userId: uid,
+        hayvanId: inek._id,
+        'metadata.tip': 'tohumlama_zamani',
+        createdAt: { $gte: new Date(bugun - 21 * 86400000) }
+      });
+      if (!varMi) {
+        const gecenGun = Math.floor(
+          (bugun - new Date(inek.sonBuzagilamaTarihi)) / (1000 * 60 * 60 * 24)
+        );
+        await Bildirim.create({
+          userId: uid,
+          tip: 'kizginlik',
+          baslik: `Tohumlama Zamanı: ${inek.isim || inek.kupeNo}`,
+          mesaj: `Doğumdan ${gecenGun} gün geçti, henüz tohumlanmadı. Kızgınlık takibine başlayın.`,
+          hayvanId: inek._id,
+          hayvanTipi: 'inek',
+          oncelik: 'normal',
+          hatirlatmaTarihi: bugun,
+          metadata: { tip: 'tohumlama_zamani', gecenGun }
+        });
+      }
+    }
   } catch (err) {
     console.error('Otomatik görev hatası (userId:', userId, '):', err);
     throw err;
