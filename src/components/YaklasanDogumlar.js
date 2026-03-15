@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 
@@ -53,6 +53,23 @@ const calcProgress = (tohumlamaTarihi) => {
 };
 
 // ─── Styled Components ──────────────────────────────────────────
+const CompactWidget = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+
+  h3 {
+    margin: 0 0 14px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+`;
+
 const Panel = styled.div`
   background: #fff;
   border-radius: 16px;
@@ -417,6 +434,43 @@ function YaklasanDogumlar({ compact = false }) {
     if (kalanGun === 1) return 'Yarın';
     return `${kalanGun} gün`;
   };
+
+  // Compact mode for Dashboard sidebar
+  if (compact) {
+    const yaklasanlar = allGebe;
+    return (
+      <CompactWidget>
+        <h3>
+          Yaklaşan Doğumlar
+          <Link to="/inekler" style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>Tümü →</Link>
+        </h3>
+        {yukleniyor ? (
+          [1, 2, 3].map(i => <SkeletonCard key={i} />)
+        ) : yaklasanlar.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af', fontSize: 13 }}>Yaklaşan doğum yok</div>
+        ) : (
+          yaklasanlar.slice(0, 4).map((item, i) => (
+            <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < 3 ? '1px solid #f3f4f6' : 'none' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 7, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, color: '#166534', flexShrink: 0 }}>
+                {(item.isim || item.kupeNo || '?')[0]}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{item.isim || item.kupeNo}</div>
+                <div style={{ fontSize: 11, color: '#9ca3af' }}>{item.tip === 'duve' ? 'Düve' : 'İnek'}</div>
+              </div>
+              <span style={{
+                fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+                background: item.kalanGun <= 7 ? '#fef2f2' : '#fef3c7',
+                color: item.kalanGun <= 7 ? '#991b1b' : '#92400e'
+              }}>
+                {item.kalanGun < 0 ? `${Math.abs(item.kalanGun)} gün gecikti` : `${item.kalanGun} gün`}
+              </span>
+            </div>
+          ))
+        )}
+      </CompactWidget>
+    );
+  }
 
   return (
     <Panel>

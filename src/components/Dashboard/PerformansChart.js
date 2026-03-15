@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { colors } from '../../styles/colors';
 import Card from '../common/Card';
 
@@ -57,7 +57,15 @@ const PerformansChart = ({ data, title, type = 'line', dataKey = 'toplam', xKey 
     <Card title={title} headerBorder>
       <ChartContainer>
         <ResponsiveContainer width="100%" height="100%">
-          {type === 'area' ? (
+          {type === 'bar' ? (
+            <BarChart data={formattedData}>
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.chart.grid} />
+              <XAxis dataKey="tarih" stroke={colors.text.light} style={{ fontSize: '12px' }} />
+              <YAxis stroke={colors.text.light} style={{ fontSize: '12px' }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="deger" fill={color} name="Süt Üretimi" unit=" lt" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          ) : type === 'area' ? (
             <AreaChart data={formattedData}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
