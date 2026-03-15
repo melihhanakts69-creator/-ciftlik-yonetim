@@ -254,7 +254,7 @@ const TosunDetay = () => {
                     </Card>
                 </div>
 
-            </Grid>
+            </DetailGrid>
 
             {/* KİLO MODAL */}
             {
