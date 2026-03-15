@@ -52,7 +52,7 @@ const BuzagiDetay = () => {
                 setBuzagi(res.data);
                 setKiloGuncel(res.data.kilo || '');
             } else {
-                showError('Buzağı bulunamadı!');
+                toast.error('Buzağı bulunamadı!');
                 navigate('/buzagilar');
             }
         } catch (error) {
