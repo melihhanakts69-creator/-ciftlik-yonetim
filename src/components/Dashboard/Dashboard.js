@@ -10,7 +10,7 @@ import HizliYemlemeWidget from './HizliYemlemeWidget';
 import SaglikUyariCard from './SaglikUyariCard';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby } from 'react-icons/fa';
+import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby, FaLeaf, FaSyringe, FaWallet, FaStethoscope, FaGlassWhiskey } from 'react-icons/fa';
 
 const DASHBOARD_PANEL_KEY = 'dashboardPanelMetrikleri';
 const DEFAULT_PANELS = ['gunlukSut', 'sagmalInek', 'okunmayanBildirim', 'yaklasanDogum'];
@@ -448,6 +448,73 @@ const MobileHide = styled.div`
   }
 `;
 
+// --- Desktop Quick Access Bar (yatay butonlar - PC'de görünür) ---
+const DesktopQuickBar = styled.div`
+  display: none;
+
+  @media (min-width: 769px) {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 20px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+`;
+
+const DesktopQuickRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+
+  &:not(:first-child) {
+    padding-top: 12px;
+    border-top: 1px dashed rgba(0,0,0,0.08);
+  }
+`;
+
+const DesktopQuickBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 2px solid ${props => props.$active ? colors.primary : 'rgba(0,0,0,0.06)'};
+  background: ${props => props.$active ? colors.bg.green : 'white'};
+  color: ${props => props.$active ? colors.primary : colors.text.secondary};
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  svg, .qicon { font-size: 18px; }
+
+  &:hover {
+    background: ${props => props.$active ? colors.bg.green : 'rgba(74,222,128,0.08)'};
+    color: ${colors.primary};
+    border-color: rgba(46,125,50,0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46,125,50,0.12);
+  }
+`;
+
+const DesktopQuickBadge = styled.span`
+  background: #f44336;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  min-width: 18px;
+  text-align: center;
+`;
+
 const MobileHideGridItem = styled.div`
   grid-column: ${props => props.span ? `span ${props.span}` : 'span 4'};
   animation: ${fadeInUp} 0.5s ease;
@@ -561,6 +628,20 @@ const Dashboard = ({ kullanici }) => {
   });
 
   const toggleMobilePanel = (panel) => setMobilePaneli(prev => prev === panel ? null : panel);
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const rol = kullanici?.rol || 'ciftci';
+  const desktopNavActions = [
+    { id: 'yem', label: 'Yem', icon: <FaLeaf />, path: '/yem-merkezi', state: { openAdd: true } },
+    { id: 'asi', label: 'Aşı', icon: <FaSyringe />, path: '/saglik-merkezi', state: { openTab: 'asilar' } },
+    { id: 'masraf', label: 'Masraf', icon: <FaWallet />, path: '/finansal', state: { openAdd: true }, ciftciOnly: true },
+    { id: 'veteriner', label: 'Vet', icon: <FaStethoscope />, path: '/saglik-merkezi', state: { openTab: 'veterinerler' } },
+    { id: 'sut', label: 'Süt', icon: <FaGlassWhiskey />, path: '/sut-kaydi' },
+  ].filter(a => !a.ciftciOnly || rol === 'ciftci');
 
   const panelMetrikKaydet = (yeniMetrikler) => {
     setPanelMetrikleri(yeniMetrikler);
@@ -679,6 +760,39 @@ const Dashboard = ({ kullanici }) => {
           </QuickActions>
         </HeaderRight>
       </Header>
+
+      {/* --- PC HIZLI ERİŞİM ÇUBUĞU (yatay butonlar - mobildeki gibi) --- */}
+      <DesktopQuickBar>
+        <DesktopQuickRow>
+          {desktopNavActions.map((a) => (
+            <DesktopQuickBtn key={a.id} onClick={() => navigate(a.path, { state: a.state })}>
+              {a.icon}
+              <span>{a.label}</span>
+            </DesktopQuickBtn>
+          ))}
+        </DesktopQuickRow>
+        <DesktopQuickRow>
+          <DesktopQuickBtn onClick={() => scrollToSection('performans')}>
+            <FaChartLine />
+            <span>Grafikler</span>
+          </DesktopQuickBtn>
+          <DesktopQuickBtn onClick={() => scrollToSection('operasyon')}>
+            <span className="qicon">🏆</span>
+            <span>Şampiyonlar</span>
+          </DesktopQuickBtn>
+          <DesktopQuickBtn onClick={() => scrollToSection('yemleme')}>
+            <FaSeedling />
+            <span>Yemleme</span>
+          </DesktopQuickBtn>
+          <DesktopQuickBtn onClick={() => scrollToSection('dogum-takvimi')}>
+            <FaBaby />
+            <span>Doğumlar</span>
+            {(data.stats?.yaklaşanDogum || 0) > 0 && (
+              <DesktopQuickBadge>{data.stats.yaklaşanDogum > 9 ? '9+' : data.stats.yaklaşanDogum}</DesktopQuickBadge>
+            )}
+          </DesktopQuickBtn>
+        </DesktopQuickRow>
+      </DesktopQuickBar>
 
       {/* --- KPI CARDS (Özelleştirilebilir) --- */}
       <SectionTitle>
@@ -842,7 +956,7 @@ const Dashboard = ({ kullanici }) => {
 
       {/* --- CHARTS ROW (masaüstünde görünür, mobilde gizli) --- */}
       <MobileHide>
-        <SectionTitle>📈 Performans</SectionTitle>
+        <SectionTitle id="performans">📈 Performans</SectionTitle>
         <Grid>
           <AnimatedGridItem span={8} delay="0.1s">
             <PerformansChart
@@ -885,7 +999,7 @@ const Dashboard = ({ kullanici }) => {
       </MobileHide>
 
       {/* --- WIDGETS ROW 1 --- */}
-      <SectionTitle>🏆 Operasyon</SectionTitle>
+      <SectionTitle id="operasyon">🏆 Operasyon</SectionTitle>
       <Grid>
         {/* Şampiyonlar - mobilde gizli (butonla açılır), masaüstünde görünür */}
         <MobileHideGridItem span={4} delay="0.15s">
@@ -916,7 +1030,7 @@ const Dashboard = ({ kullanici }) => {
         </MobileHideGridItem>
 
         {/* Hızlı Yemleme - mobilde gizli, masaüstünde görünür */}
-        <MobileHideGridItem span={4} delay="0.2s">
+        <MobileHideGridItem span={4} delay="0.2s" id="yemleme">
           <HizliYemlemeWidget />
         </MobileHideGridItem>
       </Grid>
