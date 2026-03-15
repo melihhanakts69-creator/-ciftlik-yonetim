@@ -13,6 +13,7 @@ import SaglikUyariCard from './SaglikUyariCard';
 import SutYasakWidget from './SutYasakWidget';
 import SuruSaglikSkoru from './SuruSaglikSkoru';
 import YaklasanDogumlar from '../YaklasanDogumlar';
+import { Skeleton } from '../common/Skeleton';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat, FaTint, FaCog, FaBell, FaChartLine, FaSeedling, FaBaby, FaLeaf, FaSyringe, FaWallet, FaStethoscope, FaGlassWhiskey } from 'react-icons/fa';
 
@@ -24,7 +25,7 @@ const METRIK_OPTIONS = [
   { id: 'sagmalInek', label: 'Sağmal İnek', icon: '🐄', unit: 'Baş', color: colors.primary, bg: colors.bg.green, nav: '/inekler' },
   { id: 'okunmayanBildirim', label: 'Aktif Bildirimler', icon: '🔔', unit: 'Adet', color: colors.warning, bg: colors.bg.orange, nav: '/bildirimler' },
   { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'Adet', color: colors.secondary, bg: colors.bg.purple, nav: 'dogum' },
-  { id: 'toplamInek', label: 'Toplam İnek', icon: '🐄', unit: 'Baş', color: '#1976d2', bg: '#e3f2fd', nav: '/inekler' },
+  { id: 'toplamInek', label: 'Toplam İnek', icon: '🐄', unit: 'Baş', color: colors.info, bg: colors.bg.blue, nav: '/inekler' },
   { id: 'toplamDuve', label: 'Toplam Düve', icon: '🐮', unit: 'Baş', color: '#7b1fa2', bg: '#f3e5f5', nav: '/duveler' },
   { id: 'toplamBuzagi', label: 'Toplam Buzağı', icon: '🐮', unit: 'Baş', color: '#c2185b', bg: '#fce4ec', nav: '/buzagilar' },
   { id: 'toplamTosun', label: 'Toplam Tosun', icon: '🐂', unit: 'Baş', color: '#5d4037', bg: '#efebe9', nav: '/tosunlar' },
@@ -160,6 +161,7 @@ const ActionButton = styled.button`
   align-items: center;
   gap: 7px;
   padding: 9px 16px;
+  min-height: 48px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.25);
   font-weight: 600;
@@ -195,7 +197,7 @@ const ActionButton = styled.button`
     padding: 10px 8px;
     font-size: 12px;
     span { display: none; }
-    min-height: 44px;
+    min-height: 48px;
   }
 `;
 
@@ -341,30 +343,6 @@ const TopCowItem = styled.div`
   @media (max-width: 768px) { padding: 7px 8px; border-radius: 9px; }
 `;
 
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-  color: ${colors.text.secondary};
-  font-size: 16px;
-  gap: 12px;
-
-  .spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid #e0e0e0;
-    border-top-color: ${colors.primary};
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-
 const LiveDot = styled.span`
   display: inline-block;
   width: 8px;
@@ -400,6 +378,7 @@ const QuickNavBtn = styled.button`
   justify-content: center;
   gap: 5px;
   padding: 10px 14px;
+  min-height: 48px;
   border-radius: 16px;
   border: 2px solid ${props => props.$active ? colors.primary : 'rgba(0,0,0,0.07)'};
   background: ${props => props.$active ? colors.bg.green : 'white'};
@@ -425,7 +404,7 @@ const QuickNavBadge = styled.span`
   position: absolute;
   top: 5px;
   right: 5px;
-  background: #f44336;
+  background: ${colors.danger};
   color: white;
   border-radius: 10px;
   font-size: 9px;
@@ -486,6 +465,7 @@ const DesktopQuickBtn = styled.button`
   align-items: center;
   gap: 10px;
   padding: 12px 20px;
+  min-height: 48px;
   border-radius: 14px;
   border: 2px solid ${props => props.$active ? colors.primary : 'rgba(0,0,0,0.06)'};
   background: ${props => props.$active ? colors.bg.green : 'white'};
@@ -509,7 +489,7 @@ const DesktopQuickBtn = styled.button`
 `;
 
 const DesktopQuickBadge = styled.span`
-  background: #f44336;
+  background: ${colors.danger};
   color: white;
   border-radius: 10px;
   font-size: 10px;
@@ -719,10 +699,40 @@ const Dashboard = ({ kullanici }) => {
 
   if (loading) return (
     <DashboardContainer>
-      <LoadingContainer>
-        <div className="spinner" />
-        Veriler yükleniyor...
-      </LoadingContainer>
+      <Header>
+        <TitleSection>
+          <Skeleton $height={14} $width={120} style={{ marginBottom: 8 }} />
+          <Skeleton $height={26} $width={220} style={{ marginBottom: 4 }} />
+          <Skeleton $height={13} $width={180} />
+        </TitleSection>
+      </Header>
+      <SectionTitle>📊 Günlük Özet</SectionTitle>
+      <Grid $cols={4} $mobileCols={2}>
+        {[1, 2, 3, 4, 5].map(i => (
+          <Skeleton key={i} $height={100} $borderRadius={16} />
+        ))}
+      </Grid>
+      <SectionTitle>📈 Performans</SectionTitle>
+      <Grid>
+        <AnimatedGridItem span={8}>
+          <Skeleton $height={280} $borderRadius={18} />
+        </AnimatedGridItem>
+        <AnimatedGridItem span={4}>
+          <Skeleton $height={280} $borderRadius={18} />
+        </AnimatedGridItem>
+      </Grid>
+      <SectionTitle>📋 Yapılacaklar & Aktiviteler</SectionTitle>
+      <ChampActivitesRow>
+        <ChampCol>
+          <Skeleton $height={120} $borderRadius={18} style={{ marginBottom: 8 }} />
+          <Skeleton $height={40} $borderRadius={10} style={{ marginBottom: 8 }} />
+          <Skeleton $height={40} $borderRadius={10} style={{ marginBottom: 8 }} />
+          <Skeleton $height={40} $borderRadius={10} />
+        </ChampCol>
+        <ActCol>
+          <Skeleton $height={200} $borderRadius={18} />
+        </ActCol>
+      </ChampActivitesRow>
     </DashboardContainer>
   );
 

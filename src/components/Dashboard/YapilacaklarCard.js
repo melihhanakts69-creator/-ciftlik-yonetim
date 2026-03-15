@@ -152,13 +152,18 @@ const Badge = styled.span`
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 20px;
+  padding: 24px 20px;
   color: ${colors.text.light};
   font-size: 13px;
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+
+  .empty-icon { font-size: 28px; }
+  .empty-title { font-weight: 600; color: ${colors.text.secondary}; }
 `;
 
 const ViewAllBtn = styled.button`
@@ -224,7 +229,10 @@ const YapilacaklarCard = ({ bildirimler = [], onTaskClick, onTaskComplete }) => 
       </CardHeader>
 
       {bildirimler.length === 0 ? (
-        <EmptyState>✅ Tüm görevler tamamlandı!</EmptyState>
+        <EmptyState>
+          <span className="empty-icon">✅</span>
+          <span className="empty-title">Bugün yapılacak bir şey yok</span>
+        </EmptyState>
       ) : (
         <>
           <TaskList>

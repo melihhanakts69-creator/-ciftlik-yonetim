@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
+import { gradients } from '../../styles/colors';
 import {
   FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
   FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
@@ -15,7 +16,7 @@ import InstallButton from '../PWAInstallPrompt/InstallButton';
 
 const SidebarContainer = styled.div`
   width: 260px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  background: ${gradients.sidebar};
   color: #fff;
   height: 100vh;
   position: fixed;

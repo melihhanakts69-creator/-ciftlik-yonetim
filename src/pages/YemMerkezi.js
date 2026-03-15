@@ -29,8 +29,8 @@ const PageHeader = styled.div`
   background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%);
   padding: 28px 32px 0; position: relative; overflow: hidden;
   &::after {
-    content: ''; position: absolute; right: -60px; top: -60px;
-    width: 260px; height: 260px; border-radius: 50%;
+    content: ''; position: absolute; right: -40px; top: -40px;
+    width: 200px; height: 200px; border-radius: 50%;
     background: rgba(255,255,255,0.06); pointer-events: none;
   }
   @media (max-width: 768px) {

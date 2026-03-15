@@ -6,7 +6,9 @@ export const colors = {
   primary: '#4CAF50',      // Yeşil - Düve, İnek, Başarı
   secondary: '#FF9800',    // Turuncu - Buzağı, Tosun, Uyarı
   info: '#2196F3',         // Mavi - Detay, Bilgi
-  danger: '#f44336',       // Kırmızı - Sil, Hata
+  danger: '#e11d48',       // Kırmızı - Sil, Hata, Sağlık
+  dangerDark: '#be123c',   // Koyu kırmızı
+  dangerDarker: '#881337',  // En koyu kırmızı
   warning: '#FF9800',      // Turuncu - Uyarılar
   success: '#4CAF50',      // Yeşil - Başarılı işlemler
 
@@ -15,6 +17,8 @@ export const colors = {
     main: '#F5F5F5',       // Ana sayfa arka planı
     card: '#FFFFFF',       // Kart arka planı
     dark: '#2C3E50',       // Koyu mod
+    darkNavy: '#1a1a2e',   // Sidebar koyu navy
+    darkNavyAlt: '#16213e', // Sidebar navy alt ton
     green: '#E8F5E9',      // Yeşil arka plan (gebe, aktif)
     lightGreen: '#F1F8F4', // Açık yeşil
     orange: '#FFF3E0',     // Turuncu arka plan (buzağı)
@@ -47,7 +51,7 @@ export const colors = {
     gebe: '#4CAF50',       // Gebe
     sagmal: '#2196F3',     // Sağmal
     kuru: '#FF9800',       // Kuru dönem
-    hasta: '#f44336',      // Hasta
+    hasta: '#e11d48',      // Hasta (danger)
     belirsiz: '#9E9E9E'    // Belirsiz
   },
 
@@ -72,7 +76,8 @@ export const gradients = {
   primaryDark: 'linear-gradient(135deg, #1a5e1f 0%, #2e7d32 40%, #43a047 100%)', // Header, hero
   secondary: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
   info: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-  danger: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)'
+  danger: 'linear-gradient(135deg, #be123c 0%, #e11d48 100%)',
+  sidebar: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)'
 };
 
 // Spacing (Boşluklar)

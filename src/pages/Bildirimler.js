@@ -219,12 +219,16 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
   color: #95a5a6;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 
   svg {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.3;
   }
+  h3 { margin: 0 0 8px 0; }
   p { font-size: 16px; margin: 0; }
 `;
 
@@ -375,6 +379,12 @@ function Bildirimler() {
       <NotificationList>
         {yukleniyor ? (
           <EmptyState>Yükleniyor...</EmptyState>
+        ) : bildirimler.length === 0 ? (
+          <EmptyState>
+            <span style={{ fontSize: 48, display: 'block', marginBottom: 16 }}>🔔</span>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 18, color: '#2c3e50', fontWeight: 700 }}>Her şey yolunda görünüyor</h3>
+            <p>Yeni bildirimler burada görünecek</p>
+          </EmptyState>
         ) : filtrelenmis_data.length === 0 ? (
           <EmptyState>
             <FaBell />

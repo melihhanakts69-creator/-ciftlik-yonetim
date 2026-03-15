@@ -54,6 +54,7 @@ const ActionButton = styled.button`
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
+  min-height: 48px;
   font-size: 14px;
   font-weight: 600;
   display: flex;
@@ -279,6 +280,7 @@ const SelectCardOpt = styled.div`
   background: ${p => p.$active ? '#eff6ff' : '#fff'};
   border-radius: 8px;
   padding: 16px;
+  min-height: 48px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -314,6 +316,7 @@ const SelectCardOpt = styled.div`
 const PrimaryButton = styled.button`
   width: 100%;
   padding: 14px;
+  min-height: 48px;
   background: #3b82f6;
   color: white;
   border: none;
@@ -428,6 +431,7 @@ const ButtonRow = styled.div`
   button {
     flex: 1;
     padding: 12px;
+    min-height: 48px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
@@ -593,7 +597,7 @@ const EmptyState = styled.div`
     justify-content: center;
     margin: 0 auto 16px;
     color: #94a3b8;
-    font-size: 24px;
+    font-size: 28px;
   }
   
   h4 {
@@ -604,10 +608,27 @@ const EmptyState = styled.div`
   }
   
   p {
-    margin: 0;
+    margin: 0 0 20px 0;
     color: #64748b;
     font-size: 13px;
   }
+`;
+const EmptyStateBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  min-height: 48px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #059669; }
 `;
 
 // Simple Calendar
@@ -1044,9 +1065,12 @@ export default function SutKaydi() {
           <HistoryList>
             {gecmis.length === 0 ? (
               <EmptyState>
-                <div className="icon-wrap"><FiDroplet /></div>
-                <h4>Veri Bulunamadı</h4>
-                <p>Sisteme işlenmiş sağım verisi henüz mevcut değil.</p>
+                <div className="icon-wrap">🥛</div>
+                <h4>Bugün henüz süt kaydı girilmedi</h4>
+                <p>Toplu giriş yaparak sağım verilerinizi ekleyin</p>
+                <EmptyStateBtn onClick={() => { document.getElementById('miktar-input')?.focus(); document.getElementById('miktar-input')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                  <FiPlus /> Toplu Giriş Yap
+                </EmptyStateBtn>
               </EmptyState>
             ) : gecmis.slice(0, 15).map(k => {
               const isSabah = k.sagim === 'sabah';

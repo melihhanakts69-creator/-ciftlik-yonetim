@@ -28,6 +28,7 @@ const NavItem = styled(NavLink)`
   justify-content: center;
   padding: 8px 4px;
   min-height: 56px;
+  min-width: 48px;
   color: #6b7280;
   text-decoration: none;
   font-size: 10px;

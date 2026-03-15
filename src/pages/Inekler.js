@@ -69,10 +69,40 @@ const ToggleViewButtons = styled.div`
   }
 `;
 
+const EmptyStateBox = styled.div`
+  text-align: center;
+  padding: 48px 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-top: 20px;
+
+  .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; }
+  h3 { margin: 0 0 8px 0; font-size: 18px; color: #333; font-weight: 700; }
+  p { margin: 0 0 20px 0; font-size: 14px; color: #666; }
+`;
+const EmptyStateBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  min-height: 48px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  &:hover { transform: translateY(-2px); }
+`;
+
 const AddButton = styled.button`
   background-color: #4CAF50;
   color: white;
   padding: 10px 20px;
+  min-height: 48px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -318,8 +348,20 @@ const Inekler = () => {
                 placeholder="İsim veya Küpe No ara..."
             />
 
+            {/* Empty State - hiç inek yokken */}
+            {!loading && inekler.length === 0 && (
+              <EmptyStateBox>
+                <span className="empty-icon">🐄</span>
+                <h3>Henüz inek eklenmemiş</h3>
+                <p>Çiftliğini yönetmeye ilk ineği ekleyerek başla</p>
+                <EmptyStateBtn onClick={() => { resetModal(); setShowModal(true); }}>
+                  <FaPlus /> İnek Ekle
+                </EmptyStateBtn>
+              </EmptyStateBox>
+            )}
+
             {/* Content */}
-            {viewMode === 'table' ? (
+            {!loading && inekler.length > 0 && viewMode === 'table' ? (
                 <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
                     <table style={{ minWidth: '800px', width: '100%', borderCollapse: 'collapse' }}>
                         <thead style={{ backgroundColor: '#F8F9FA', borderBottom: '2px solid #E9ECEF' }}>
@@ -360,11 +402,9 @@ const Inekler = () => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
+            ) : !loading && inekler.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                    {loading ? (
-                        <div style={{ gridColumn: '1/-1', textAlign: 'center' }}>Yükleniyor...</div>
-                    ) : filteredInekler.map(inek => (
+                    {filteredInekler.map(inek => (
                         <Card key={inek._id} onClick={() => navigate(`/inek-detay/${inek._id}`)}>
                             <div className="card-header">
                                 <div>
@@ -385,7 +425,9 @@ const Inekler = () => {
                         </Card>
                     ))}
                 </div>
-            )}
+            ) : loading ? (
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, background: 'white', borderRadius: 12 }}>Yükleniyor...</div>
+            ) : null}
 
             {/* Modal */}
             {showModal && (

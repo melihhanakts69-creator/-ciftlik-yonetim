@@ -11,8 +11,12 @@ const SkeletonBase = styled.div`
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200px 100%;
   animation: ${shimmer} 1.5s ease-in-out infinite;
-  border-radius: ${props => props.radius || '8px'};
+  border-radius: ${props => props.$borderRadius || props.$radius || props.borderRadius || props.radius || '8px'};
+  height: ${props => props.$height || props.height || 'auto'};
+  width: ${props => props.$width || props.width || '100%'};
 `;
+
+export const Skeleton = styled(SkeletonBase)``;
 
 // Temel Skeleton türleri
 export const SkeletonLine = styled(SkeletonBase)`
@@ -134,6 +138,7 @@ export const ChartSkeleton = ({ height = '300px' }) => (
 );
 
 export default {
+    Skeleton,
     SkeletonLine,
     SkeletonCircle,
     SkeletonCard,

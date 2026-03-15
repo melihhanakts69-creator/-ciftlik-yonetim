@@ -11,6 +11,7 @@ import { GiCow } from 'react-icons/gi';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 import SaglikDanismani from '../components/Saglik/SaglikDanismani';
+import { colors, gradients } from '../styles/colors';
 
 // --- Animations ---
 const fadeIn = keyframes`
@@ -34,12 +35,12 @@ const PageContainer = styled.div`
 
 // ── Page Header ───────────────────────────────────────────────
 const PageHeader = styled.div`
-  background: linear-gradient(135deg, #881337 0%, #be123c 50%, #e11d48 100%);
+  background: linear-gradient(135deg, ${colors.dangerDarker} 0%, ${colors.dangerDark} 50%, ${colors.danger} 100%);
   padding: 28px 32px 0;
   position: relative; overflow: hidden;
   &::after {
-    content: ''; position: absolute; right: -60px; top: -60px;
-    width: 260px; height: 260px; border-radius: 50%;
+    content: ''; position: absolute; right: -40px; top: -40px;
+    width: 200px; height: 200px; border-radius: 50%;
     background: rgba(255,255,255,0.06); pointer-events: none;
   }
   @media (max-width: 768px) {
@@ -69,7 +70,7 @@ const AddButton = styled.button`
   cursor: pointer; transition: all .2s; white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   background: ${p => p.$secondary ? 'rgba(255,255,255,0.15)' : '#fff'};
-  color: ${p => p.$secondary ? '#fff' : '#be123c'};
+  color: ${p => p.$secondary ? '#fff' : colors.danger};
   border: ${p => p.$secondary ? '1px solid rgba(255,255,255,0.3)' : 'none'};
   &:hover {
     transform: translateY(-1px);
@@ -174,7 +175,7 @@ const Tab = styled.button`
   cursor: pointer; font-weight: 700; font-size: 14px;
   white-space: nowrap; transition: all 0.2s;
   display: flex; align-items: center; justify-content: flex-start; gap: 12px;
-  background: ${p => p.active ? 'linear-gradient(135deg, #be123c, #e11d48)' : '#fff'};
+  background: ${p => p.active ? `linear-gradient(135deg, ${colors.dangerDark}, ${colors.danger})` : '#fff'};
   color: ${p => p.active ? '#fff' : '#475569'};
   box-shadow: ${p => p.active ? '0 4px 12px rgba(190,18,60,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
   border: 1px solid ${p => p.active ? 'transparent' : '#e2e8f0'};
@@ -200,7 +201,7 @@ const FilterRow = styled.div`
 const FilterSelect = styled.select`
   padding: 8px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
   font-size: 13px; background: #f8fafc; color: #475569; cursor: pointer; font-weight: 500;
-  &:focus { outline: none; border-color: #be123c; background: #fff; }
+  &:focus { outline: none; border-color: ${colors.danger}; background: #fff; }
 `;
 
 const CardList = styled.div`
