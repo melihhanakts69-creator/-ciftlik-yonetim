@@ -171,9 +171,9 @@ const TosunDetay = () => {
     const yas = Math.floor((new Date() - new Date(tosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
 
     return (
-        <Container>
+        <DetailContainer>
             {/* --- HEADER --- */}
-            <Header>
+            <DetailHeader>
                 <TitleSection>
                     <BackButton onClick={() => navigate('/tosunlar')}><FaArrowLeft /></BackButton>
                     <div>
