@@ -104,7 +104,7 @@ router.put('/:id', auth, async (req, res) => {
 // DÜVE DOĞURDU - İnek'e geçir, Buzağı oluştur
 router.post('/:id/dogurdu', auth, async (req, res) => {
   try {
-    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum } = req.body;
+    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
 
     const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
@@ -167,7 +167,22 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
       { tamamlandi: true, tamamlanmaTarihi: new Date() }
     );
 
-    // 4. Timeline event'leri oluştur
+    // 4. Ölüm ise Finansal gider ekle (tahmini zarar)
+    if (olum && tahminiZarar && parseFloat(tahminiZarar) > 0) {
+      const Finansal = require('../models/Finansal');
+      const tarihStr = typeof dogumTarihi === 'string' && dogumTarihi.includes('T')
+        ? dogumTarihi.split('T')[0] : (typeof dogumTarihi === 'string' ? dogumTarihi : new Date(dogumTarihi).toISOString().split('T')[0]);
+      await Finansal.create({
+        userId: req.userId,
+        tip: 'gider',
+        kategori: 'hayvan-olum',
+        miktar: parseFloat(tahminiZarar),
+        tarih: tarihStr,
+        aciklama: `Buzağı ölümü (doğumda): ${duve.isim} ${duve.kupeNo}`
+      });
+    }
+
+    // 5. Timeline event'leri oluştur
     // Düve'nin doğum timeline'ı
     await Timeline.create({
       userId: req.userId,

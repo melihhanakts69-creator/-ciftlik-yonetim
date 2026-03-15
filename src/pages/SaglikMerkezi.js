@@ -941,7 +941,8 @@ function SaglikMerkezi() {
         hayvanId: '', hayvanTipi: 'inek', tip: 'hastalik',
         tarih: new Date().toISOString().split('T')[0],
         tani: '', belirtiler: '', tedavi: '', veteriner: '',
-        maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: ''
+        maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
+        tahminiZarar: ''
     });
 
     const [asiForm, setAsiForm] = useState({
@@ -1012,6 +1013,10 @@ function SaglikMerkezi() {
             toast.error('Lütfen bir hayvan seçin');
             return;
         }
+        if (form.durum === 'oldu' && (!form.tahminiZarar || parseFloat(form.tahminiZarar) <= 0)) {
+            toast.error('Ölüm durumunda tahmini zarar (TL) giriniz');
+            return;
+        }
         try {
             const seciliHayvan = hayvanlar.find(h => h._id === form.hayvanId);
             const data = {
@@ -1021,7 +1026,8 @@ function SaglikMerkezi() {
                 hayvanKupeNo: seciliHayvan?.kupeNo || '',
                 belirtiler: form.belirtiler ? form.belirtiler.split(',').map(s => s.trim()) : [],
                 maliyet: parseFloat(form.maliyet) || 0,
-                sonrakiKontrol: form.sonrakiKontrol || undefined
+                sonrakiKontrol: form.sonrakiKontrol || undefined,
+                tahminiZarar: form.durum === 'oldu' ? parseFloat(form.tahminiZarar) || 0 : undefined
             };
 
             await api.createSaglikKaydi(data);
@@ -1091,7 +1097,8 @@ function SaglikMerkezi() {
             hayvanId: '', hayvanTipi: 'inek', tip: 'hastalik',
             tarih: new Date().toISOString().split('T')[0],
             tani: '', belirtiler: '', tedavi: '', veteriner: '',
-            maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: ''
+            maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
+            tahminiZarar: ''
         });
         setAsiForm({
             hayvanId: '', hayvanTipi: 'hepsi', asiAdi: '',
@@ -1578,6 +1585,20 @@ function SaglikMerkezi() {
                                                 <input type="date" value={form.sonrakiKontrol} onChange={e => setForm({ ...form, sonrakiKontrol: e.target.value })} />
                                             </FormGroup>
                                         </FormRow>
+
+                                        {form.durum === 'oldu' && (
+                                            <FormGroup>
+                                                <label>Tahmini Zarar (TL) *</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={form.tahminiZarar}
+                                                    onChange={e => setForm({ ...form, tahminiZarar: e.target.value })}
+                                                    placeholder="Örn: 15000"
+                                                />
+                                            </FormGroup>
+                                        )}
 
                                         <FormGroup>
                                             <label>Notlar</label>

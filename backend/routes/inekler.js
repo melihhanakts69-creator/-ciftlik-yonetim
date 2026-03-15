@@ -199,7 +199,7 @@ router.delete('/:id', auth, async (req, res) => {
 // İNEK DOĞURDU - Buzağı oluştur ve inek bilgilerini güncelle
 router.post('/:id/dogurdu', auth, async (req, res) => {
   try {
-    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum } = req.body;
+    const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
 
     const inekFilter = { _id: req.params.id, userId: req.userId };
@@ -258,7 +258,22 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
       { tamamlandi: true, tamamlanmaTarihi: new Date() }
     );
 
-    // 4. Timeline event'i oluştur
+    // 4. Ölüm ise Finansal gider ekle (tahmini zarar)
+    if (olum && tahminiZarar && parseFloat(tahminiZarar) > 0) {
+      const Finansal = require('../models/Finansal');
+      const tarihStr = typeof dogumTarihi === 'string' && dogumTarihi.includes('T')
+        ? dogumTarihi.split('T')[0] : (typeof dogumTarihi === 'string' ? dogumTarihi : new Date(dogumTarihi).toISOString().split('T')[0]);
+      await Finansal.create({
+        userId: req.userId,
+        tip: 'gider',
+        kategori: 'hayvan-olum',
+        miktar: parseFloat(tahminiZarar),
+        tarih: tarihStr,
+        aciklama: `Buzağı ölümü (doğumda): ${inek.isim} ${inek.kupeNo}`
+      });
+    }
+
+    // 5. Timeline event'i oluştur
     const aciklama = olum
       ? `${inek.isim} doğum yaptı - Buzağı öldü (${inek.buzagiSayisi}. buzağı)`
       : `${inek.isim} doğum yaptı - ${isim} (${cinsiyet}) (${inek.buzagiSayisi}. buzağı)`;

@@ -412,6 +412,7 @@ function Finansal() {
   const giderKategorileri = [
     { value: 'yem', label: '🌾 Yem' },
     { value: 'veteriner', label: '💉 Veteriner' },
+    { value: 'hayvan-olum', label: '💀 Hayvan Ölümü' },
     { value: 'iscilik', label: '👷 İşçilik' },
     { value: 'elektrik', label: '💡 Elektrik' },
     { value: 'su', label: '💧 Su' },

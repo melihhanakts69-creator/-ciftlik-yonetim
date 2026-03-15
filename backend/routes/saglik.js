@@ -7,6 +7,7 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 const Timeline = require('../models/Timeline');
 const Bildirim = require('../models/Bildirim');
 const Maliyet = require('../models/Maliyet');
+const Finansal = require('../models/Finansal');
 const User = require('../models/User');
 const Tenant = require('../models/Tenant');
 const mongoose = require('mongoose');
@@ -194,6 +195,24 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, 
             }
         }
 
+        // Ölüm ise tahmini zarar Finansal gider olarak ekle
+        const tahminiZarar = parseFloat(req.body.tahminiZarar);
+        if (kayit.durum === 'oldu' && tahminiZarar > 0) {
+            try {
+                const tarihStr = kayit.tarih instanceof Date ? kayit.tarih.toISOString().split('T')[0] : (kayit.tarih || new Date().toISOString().split('T')[0]);
+                await Finansal.create({
+                    userId: req.userId,
+                    tip: 'gider',
+                    kategori: 'hayvan-olum',
+                    miktar: tahminiZarar,
+                    tarih: tarihStr,
+                    aciklama: `Hayvan ölümü: ${kayit.hayvanIsim || kayit.hayvanKupeNo || 'Hayvan'} - ${kayit.tani}`
+                });
+            } catch (finansalErr) {
+                console.error('Finansal hayvan ölümü kayıt hatası (kritik değil):', finansalErr.message);
+            }
+        }
+
         // Sonraki kontrol varsa bildirim oluştur
         if (kayit.sonrakiKontrol) {
             try {
@@ -223,16 +242,34 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, 
 // Sağlık kaydını güncelle
 router.put('/:id', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, res) => {
     try {
-        const { userId, _id, ...safeBody } = req.body;
+        const { userId, _id, tahminiZarar: reqTahminiZarar, ...safeBody } = req.body;
 
         const kayit = await SaglikKaydi.findOneAndUpdate(
             { _id: req.params.id, userId: req.userId },
-            safeBody,
+            { ...safeBody },
             { new: true, runValidators: true }
         );
 
         if (!kayit) {
             return res.status(404).json({ message: 'Sağlık kaydı bulunamadı' });
+        }
+
+        // Durum 'oldu' olarak güncellendiyse ve tahmini zarar varsa Finansal gider ekle
+        const tahminiZarar = parseFloat(reqTahminiZarar);
+        if (kayit.durum === 'oldu' && tahminiZarar > 0) {
+            try {
+                const tarihStr = kayit.tarih instanceof Date ? kayit.tarih.toISOString().split('T')[0] : (kayit.tarih || new Date().toISOString().split('T')[0]);
+                await Finansal.create({
+                    userId: req.userId,
+                    tip: 'gider',
+                    kategori: 'hayvan-olum',
+                    miktar: tahminiZarar,
+                    tarih: tarihStr,
+                    aciklama: `Hayvan ölümü: ${kayit.hayvanIsim || kayit.hayvanKupeNo || 'Hayvan'} - ${kayit.tani}`
+                });
+            } catch (finansalErr) {
+                console.error('Finansal hayvan ölümü kayıt hatası (kritik değil):', finansalErr.message);
+            }
         }
 
         res.json({ message: 'Sağlık kaydı güncellendi', kayit });

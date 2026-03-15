@@ -284,7 +284,8 @@ function YaklasanDogumlar({ compact = false }) {
   const [activeTab, setActiveTab] = useState('hepsi');
   const [gecikmeHayvan, setGecikmeHayvan] = useState(null);
   const [gecikmeForm, setGecikmeForm] = useState({
-    sonuc: 'sag', dogumTarihi: '', buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: ''
+    sonuc: 'sag', dogumTarihi: '', buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: '',
+    tahminiZarar: ''
   });
   const [gecikmeKaydediyor, setGecikmeKaydediyor] = useState(false);
 
@@ -356,7 +357,8 @@ function YaklasanDogumlar({ compact = false }) {
       setGecikmeForm({
         sonuc: 'sag',
         dogumTarihi: new Date().toISOString().split('T')[0],
-        buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: ''
+        buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: '',
+        tahminiZarar: ''
       });
     } else {
       if (h.tip === 'inek') navigate(`/inekler/${h._id}`);
@@ -366,13 +368,17 @@ function YaklasanDogumlar({ compact = false }) {
 
   const gecikmeKaydet = async () => {
     if (!gecikmeHayvan) return;
-    const { sonuc, dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar } = gecikmeForm;
+    const { sonuc, dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, tahminiZarar } = gecikmeForm;
     if (!dogumTarihi) {
       alert('Doğum tarihi zorunludur.');
       return;
     }
     if (sonuc === 'sag' && (!buzagiIsim?.trim() || !buzagiKilo)) {
       alert('Sağ doğum için buzağı adı ve kilosu zorunludur.');
+      return;
+    }
+    if (sonuc === 'olum' && (!tahminiZarar || parseFloat(tahminiZarar) <= 0)) {
+      alert('Buzağı ölümü için tahmini zarar (TL) giriniz.');
       return;
     }
     setGecikmeKaydediyor(true);
@@ -386,6 +392,9 @@ function YaklasanDogumlar({ compact = false }) {
         payload.buzagiIsim = buzagiIsim.trim();
         payload.buzagiCinsiyet = buzagiCinsiyet;
         payload.buzagiKilo = parseFloat(buzagiKilo) || 0;
+      }
+      if (sonuc === 'olum' && tahminiZarar) {
+        payload.tahminiZarar = parseFloat(tahminiZarar);
       }
       if (gecikmeHayvan.tip === 'inek') {
         await api.inekDogurdu(gecikmeHayvan._id, payload);
@@ -546,6 +555,19 @@ function YaklasanDogumlar({ compact = false }) {
                   ❌ Öldü
                 </div>
               </div>
+              {gecikmeForm.sonuc === 'olum' && (
+                <div className="form-row">
+                  <label>Tahmini Zarar (TL) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={gecikmeForm.tahminiZarar}
+                    onChange={e => setGecikmeForm({ ...gecikmeForm, tahminiZarar: e.target.value })}
+                    placeholder="Örn: 5000"
+                  />
+                </div>
+              )}
               <div className="form-row">
                 <label>Doğum Tarihi *</label>
                 <input
