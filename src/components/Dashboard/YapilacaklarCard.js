@@ -5,18 +5,14 @@ import { colors, spacing, borderRadius } from '../../styles/colors';
 
 const CardWrapper = styled.div`
   background: white;
-  border-radius: 18px;
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.04);
+  border: 1px solid #e5e7eb;
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
   overflow: hidden;
-
-  &:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
   
   @media (max-width: 768px) {
     padding: 10px 8px;
@@ -84,16 +80,16 @@ const TaskItem = styled.div`
   border-radius: 10px;
   background: ${props => props.geciken ? '#FFF5F5' : '#FAFAFA'};
   border-left: 3px solid ${props => {
-    if (props.geciken) return '#ef5350';
-    if (props.oncelik === 'acil') return '#ef5350';
-    if (props.oncelik === 'yuksek') return '#FF9800';
-    return '#4CAF50';
+    if (props.geciken) return '#ef4444';
+    if (props.oncelik === 'acil') return '#ef4444';
+    if (props.oncelik === 'yuksek') return '#f59e0b';
+    return '#16a34a';
   }};
-  transition: all 0.15s ease;
+  transition: background 0.15s;
   cursor: default;
   min-width: 0;
 
-  &:hover { transform: translateX(3px); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  &:hover { background: #f4f4f5; }
   
   @media (max-width: 768px) { padding: 6px 8px; gap: 6px; }
 `;

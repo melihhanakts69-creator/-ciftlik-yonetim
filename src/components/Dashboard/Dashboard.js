@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { colors, gradients, spacing, borderRadius, shadows } from '../../styles/colors';
+import { colors, spacing, borderRadius } from '../../styles/colors';
 import * as api from '../../services/api';
 import StatsCard from '../common/StatsCard';
 import PerformansChart from './PerformansChart';
@@ -66,43 +66,19 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
-  padding: 24px 28px;
-  background: ${gradients.primaryDark};
-  border-radius: 20px;
-  color: white;
-  position: relative;
-  overflow: hidden;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
   animation: ${fadeInUp} 0.6s ease;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -60%;
-    left: 20%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
-    border-radius: 50%;
-  }
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
-    padding: 18px 20px;
-    margin-bottom: 18px;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
   }
 `;
 
@@ -112,26 +88,24 @@ const TitleSection = styled.div`
 `;
 
 const GreetingLine = styled.div`
-  font-size: 14px;
-  opacity: 0.85;
-  margin-bottom: 4px;
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 2px;
   font-weight: 500;
-  letter-spacing: 0.3px;
 `;
 
 const Title = styled.h1`
-  font-size: 26px;
-  font-weight: 800;
-  color: white;
-  margin: 0 0 4px 0;
-  letter-spacing: -0.5px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 2px 0;
+  letter-spacing: -0.4px;
 `;
 
 const Subtitle = styled.p`
   font-size: 13px;
-  color: rgba(255,255,255,0.75);
+  color: #6b7280;
   margin: 0;
-  font-weight: 400;
 `;
 
 const HeaderRight = styled.div`
@@ -159,34 +133,29 @@ const QuickActions = styled.div`
 const ActionButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   padding: 9px 16px;
   min-height: 48px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
-  background: rgba(255,255,255,0.12);
-  color: white;
-  font-size: 12px;
-  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+  font-size: 13px;
+
+  background: transparent;
+  color: #374151;
+  border: 1px solid #e5e7eb;
 
   &:hover {
-    transform: translateY(-2px);
-    background: rgba(255,255,255,0.22);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    background: #f9fafb;
+    border-color: #d1d5db;
   }
 
   &.accent {
-    background: rgba(255,255,255,0.95);
-    color: ${colors.primary};
-    border-color: transparent;
-    font-weight: 700;
-    &:hover { 
-      background: white;
-      box-shadow: 0 4px 20px rgba(255,255,255,0.3); 
-    }
+    background: #16a34a;
+    color: white;
+    border: none;
+    &:hover { background: #15803d; }
   }
 
   svg { font-size: 13px; }
@@ -263,18 +232,16 @@ const AnimatedGridItem = styled.div`
 
 const Widget = styled.div`
   background: white;
-  border-radius: 18px;
+  border-radius: 12px;
   padding: 22px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  border: 1px solid #e5e7eb;
   height: 100%;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.04);
+  transition: background 0.15s;
 
   &:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-    transform: translateY(-2px);
+    background: #fafafa;
   }
 
   h3 {
@@ -312,7 +279,7 @@ const TopCowItem = styled.div`
   transition: all 0.2s ease;
   background: ${props => props.index === 0 ? '#FFFDE7' : props.index === 1 ? '#F5F5F5' : props.index === 2 ? '#FFF3E0' : '#FAFAFA'};
 
-  &:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  &:hover { background: #f4f4f5; }
 
   .rank {
     width: 28px; height: 28px; border-radius: 9px;
@@ -347,11 +314,10 @@ const LiveDot = styled.span`
   display: inline-block;
   width: 8px;
   height: 8px;
-  background: #66BB6A;
+  background: ${colors.primary};
   border-radius: 50%;
   margin-right: 6px;
   animation: ${pulse} 2s ease-in-out infinite;
-  box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
 `;
 
 // --- Mobile Quick Access Bar ---
@@ -379,25 +345,22 @@ const QuickNavBtn = styled.button`
   gap: 5px;
   padding: 10px 14px;
   min-height: 48px;
-  border-radius: 16px;
-  border: 2px solid ${props => props.$active ? colors.primary : 'rgba(0,0,0,0.07)'};
-  background: ${props => props.$active ? colors.bg.green : 'white'};
-  color: ${props => props.$active ? colors.primary : colors.text.secondary};
+  border-radius: 8px;
+  border: 1px solid ${props => props.$active ? colors.primary : '#e5e7eb'};
+  background: ${props => props.$active ? colors.primaryLight : 'white'};
+  color: ${props => props.$active ? colors.primaryText : colors.text.secondary};
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
   position: relative;
   min-width: 74px;
-  box-shadow: ${props => props.$active
-    ? '0 4px 14px rgba(46,125,50,0.18)'
-    : '0 2px 8px rgba(0,0,0,0.06)'};
 
   .qicon { font-size: 18px; line-height: 1; }
 
-  &:active { transform: scale(0.93); }
+  &:active { transform: scale(0.98); }
 `;
 
 const QuickNavBadge = styled.span`

@@ -37,7 +37,7 @@ const NavItem = styled(NavLink)`
   -webkit-tap-highlight-color: transparent;
 
   &.active {
-    color: #4CAF50;
+    color: #16a34a;
   }
 
   svg {
@@ -64,7 +64,7 @@ const MenuButton = styled.button`
   -webkit-tap-highlight-color: transparent;
 
   &.active {
-    color: #4CAF50;
+    color: #16a34a;
   }
 
   svg {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
-import { gradients } from '../../styles/colors';
 import {
   FaHome, FaChartPie, FaGlassWhiskey, FaSeedling,
   FaFileAlt, FaBaby, FaVenus, FaMars, FaWarehouse, FaWallet,
@@ -15,8 +14,8 @@ import InstallButton from '../PWAInstallPrompt/InstallButton';
 // --- Styled Components ---
 
 const SidebarContainer = styled.div`
-  width: 260px;
-  background: ${gradients.sidebar};
+  width: 240px;
+  background: #18181b;
   color: #fff;
   height: 100vh;
   position: fixed;
@@ -25,14 +24,13 @@ const SidebarContainer = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  border-right: 1px solid #27272a;
   z-index: 1000;
   transition: transform 0.3s ease-in-out;
 
-  /* Mobile Logic */
   @media (max-width: 768px) {
     transform: ${({ isOpen }) => (isOpen ? 'translateX(0)' : 'translateX(-100%)')};
-    width: 280px;
+    width: 260px;
     z-index: 1100;
   }
 `;
@@ -55,12 +53,11 @@ const BrandContainer = styled.div`
 const LogoImage = styled.img`
   width: 60px;
   height: 60px;
-  border-radius: 14px;
+  border-radius: 12px;
   object-fit: contain;
-  background: #f8f9fa;
+  background: #f4f4f5;
   padding: 4px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  border: 2px solid rgba(255,255,255,0.1);
+  border: 1px solid #27272a;
 `;
 
 const BrandText = styled.div`
@@ -68,12 +65,12 @@ const BrandText = styled.div`
     margin: 0;
     font-size: 18px;
     font-weight: 700;
-    color: #4CAF50;
+    color: #ffffff;
     letter-spacing: 0.5px;
   }
   span {
     font-size: 10px;
-    color: #888;
+    color: #71717a;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -127,44 +124,42 @@ const LogoutButton = styled.button`
   justify-content: center;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  background: #ef4444;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: background 0.15s;
   gap: 8px;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+    background: #dc2626;
   }
 `;
 
 const StyledNavLink = styled(NavLink)`
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 9px 12px;
   text-decoration: none;
-  color: #a8a8b3;
-  border-radius: 10px;
-  margin-bottom: 4px;
-  font-size: 14px;
+  color: #71717a;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.25s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: rgba(76, 175, 80, 0.1);
-    color: #fff;
-    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.06);
+    color: #d4d4d8;
   }
 
   &.active {
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    background: #16a34a;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    font-weight: 600;
   }
 `;
 

@@ -24,11 +24,13 @@ const Header = styled.div`
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 
   h1 {
-    font-size: 26px;
-    font-weight: 800;
-    color: #2c3e50;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
     margin: 0;
     display: flex;
     align-items: center;
@@ -43,30 +45,29 @@ const ButtonGroup = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: white;
-  border: 1px solid #ddd;
-  padding: 10px 16px;
-  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  padding: 9px 16px;
+  min-height: 48px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #555;
-  font-weight: 600;
+  color: #374151;
+  font-weight: 500;
   font-size: 13px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.15s;
 
   &:hover {
-    background: #f9f9f9;
-    transform: translateY(-2px);
-    color: #333;
+    background: #f9fafb;
+    border-color: #d1d5db;
   }
   
   &.danger {
-    color: #c62828;
-    border-color: #ffcdd2;
-    &:hover { background: #ffebee; }
+    color: #dc2626;
+    border-color: #fecaca;
+    &:hover { background: #fef2f2; }
   }
 `;
 
@@ -78,15 +79,15 @@ const TabContainer = styled.div`
   padding-bottom: 4px;
   
   &::-webkit-scrollbar { height: 4px; }
-  &::-webkit-scrollbar-thumb { background: #eee; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
 `;
 
 const TabButton = styled.button`
   padding: 8px 16px;
-  background: ${props => props.active ? '#4CAF50' : 'white'};
-  color: ${props => props.active ? 'white' : '#666'};
-  border: 1px solid ${props => props.active ? '#4CAF50' : '#ddd'};
-  border-radius: 20px;
+  background: ${props => props.active ? '#16a34a' : 'white'};
+  color: ${props => props.active ? 'white' : '#6b7280'};
+  border: 1px solid ${props => props.active ? '#16a34a' : '#e5e7eb'};
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;

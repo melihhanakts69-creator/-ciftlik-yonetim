@@ -1,114 +1,134 @@
-// 🎨 Çiftlik Yönetim Sistemi - Renk Paleti
-// Tüm projede kullanılacak standart renkler
+// 🎨 Agrolina - Marka Renk Sistemi
+// Tek marka kimliği, tutarlı, olgun görünüm
 
 export const colors = {
-  // Ana Renkler
-  primary: '#4CAF50',      // Yeşil - Düve, İnek, Başarı
-  secondary: '#FF9800',    // Turuncu - Buzağı, Tosun, Uyarı
-  info: '#2196F3',         // Mavi - Detay, Bilgi
-  danger: '#e11d48',       // Kırmızı - Sil, Hata, Sağlık
-  dangerDark: '#be123c',   // Koyu kırmızı
-  dangerDarker: '#881337',  // En koyu kırmızı
-  warning: '#FF9800',      // Turuncu - Uyarılar
-  success: '#4CAF50',      // Yeşil - Başarılı işlemler
+  primary: '#16a34a',
+  primaryDark: '#15803d',
+  primaryLight: '#dcfce7',
+  primaryText: '#166534',
 
-  // Arka Plan Renkleri
+  secondary: '#f59e0b',
+  secondaryLight: '#fef3c7',
+  secondaryText: '#92400e',
+
+  info: '#3b82f6',
+  infoLight: '#eff6ff',
+  infoText: '#1e40af',
+
+  danger: '#ef4444',
+  dangerDark: '#dc2626',
+  dangerDarker: '#b91c1c',
+  dangerLight: '#fef2f2',
+  dangerText: '#991b1b',
+
+  warning: '#f59e0b',
+  warningLight: '#fffbeb',
+  warningText: '#92400e',
+
+  success: '#16a34a',
+  successLight: '#dcfce7',
+  successText: '#166534',
+
+  neutral: {
+    50: '#fafafa',
+    100: '#f4f4f5',
+    200: '#e4e4e7',
+    300: '#d4d4d8',
+    400: '#a1a1aa',
+    500: '#71717a',
+    600: '#52525b',
+    700: '#3f3f46',
+    800: '#27272a',
+    900: '#18181b',
+  },
+
   bg: {
-    main: '#F5F5F5',       // Ana sayfa arka planı
-    card: '#FFFFFF',       // Kart arka planı
-    dark: '#2C3E50',       // Koyu mod
-    darkNavy: '#1a1a2e',   // Sidebar koyu navy
-    darkNavyAlt: '#16213e', // Sidebar navy alt ton
-    green: '#E8F5E9',      // Yeşil arka plan (gebe, aktif)
-    lightGreen: '#F1F8F4', // Açık yeşil
-    orange: '#FFF3E0',     // Turuncu arka plan (buzağı)
-    lightOrange: '#FFF8F0',// Açık turuncu
-    blue: '#E3F2FD',       // Mavi arka plan (bilgi)
-    lightBlue: '#F0F7FF',  // Açık mavi
-    red: '#FFEBEE',        // Kırmızı arka plan (uyarı)
-    purple: '#F3E5F5',     // Mor arka plan (doğum, gebe)
-    gray: '#FAFAFA'        // Gri arka plan
+    main: '#f9fafb',
+    card: '#ffffff',
+    dark: '#18181b',
+    darkNavy: '#18181b',
+    green: '#dcfce7',
+    lightGreen: '#dcfce7',
+    orange: '#fef3c7',
+    lightOrange: '#fffbeb',
+    blue: '#eff6ff',
+    lightBlue: '#eff6ff',
+    red: '#fef2f2',
+    purple: '#f5f3ff',
+    gray: '#f4f4f5',
   },
 
-  // Text Renkleri
   text: {
-    primary: '#333333',    // Ana metin
-    secondary: '#666666',  // İkincil metin
-    light: '#999999',      // Açık metin
-    white: '#FFFFFF',      // Beyaz metin
-    muted: '#BBBBBB'       // Soluk metin
+    primary: '#111827',
+    secondary: '#6b7280',
+    light: '#9ca3af',
+    muted: '#d1d5db',
+    white: '#ffffff',
   },
 
-  // Border Renkleri
   border: {
-    light: '#e0e0e0',      // Açık kenarlık
-    medium: '#cccccc',     // Orta kenarlık
-    dark: '#999999'        // Koyu kenarlık
+    light: '#e5e7eb',
+    medium: '#d1d5db',
+    dark: '#9ca3af',
   },
 
-  // Durum Renkleri (Hayvanlar için)
   status: {
-    gebe: '#4CAF50',       // Gebe
-    sagmal: '#2196F3',     // Sağmal
-    kuru: '#FF9800',       // Kuru dönem
-    hasta: '#e11d48',      // Hasta (danger)
-    belirsiz: '#9E9E9E'    // Belirsiz
+    gebe: '#16a34a',
+    sagmal: '#3b82f6',
+    kuru: '#f59e0b',
+    hasta: '#ef4444',
+    belirsiz: '#71717a',
   },
 
-  // Grafik Renkleri
   chart: {
-    primary: '#4CAF50',
-    secondary: '#2196F3',
-    tertiary: '#FF9800',
-    quaternary: '#9C27B0',
-    line1: '#4CAF50',
-    line2: '#2196F3',
-    line3: '#FF9800',
-    area1: 'rgba(76, 175, 80, 0.2)',
-    area2: 'rgba(33, 150, 243, 0.2)',
-    grid: '#e0e0e0'
-  }
+    primary: '#16a34a',
+    secondary: '#3b82f6',
+    tertiary: '#f59e0b',
+    quaternary: '#8b5cf6',
+    line1: '#16a34a',
+    line2: '#3b82f6',
+    line3: '#f59e0b',
+    area1: 'rgba(22, 163, 74, 0.2)',
+    area2: 'rgba(59, 130, 246, 0.2)',
+    grid: '#e5e7eb',
+  },
 };
 
-// Gradient'ler
+// Gradient kullanma — düz renkler tercih. Geriye uyumluluk için tutuldu.
 export const gradients = {
-  primary: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
-  primaryDark: 'linear-gradient(135deg, #1a5e1f 0%, #2e7d32 40%, #43a047 100%)', // Header, hero
-  secondary: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-  info: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-  danger: 'linear-gradient(135deg, #be123c 0%, #e11d48 100%)',
-  sidebar: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)'
+  primary: '#16a34a',
+  primaryDark: '#16a34a',
+  secondary: '#f59e0b',
+  info: '#3b82f6',
+  danger: '#ef4444',
+  sidebar: '#18181b',
 };
 
-// Spacing (Boşluklar)
 export const spacing = {
   xs: '4px',
   sm: '8px',
   md: '16px',
   lg: '24px',
   xl: '32px',
-  xxl: '48px'
+  xxl: '48px',
 };
 
-// Border Radius
 export const borderRadius = {
   sm: '8px',
   md: '12px',
   lg: '16px',
   xl: '20px',
-  round: '50%'
+  round: '50%',
 };
 
-// Shadows
 export const shadows = {
-  sm: '0 2px 4px rgba(0,0,0,0.1)',
-  md: '0 2px 10px rgba(0,0,0,0.1)',
-  lg: '0 4px 20px rgba(0,0,0,0.15)',
-  xl: '0 8px 30px rgba(0,0,0,0.2)',
-  hover: '0 8px 20px rgba(0,0,0,0.15)'
+  sm: 'none',
+  md: 'none',
+  lg: 'none',
+  xl: 'none',
+  hover: 'none',
 };
 
-// Typography
 export const typography = {
   fontSize: {
     xs: '10px',
@@ -118,22 +138,21 @@ export const typography = {
     lg: '18px',
     xl: '20px',
     xxl: '24px',
-    huge: '32px'
+    huge: '32px',
   },
   fontWeight: {
     light: 300,
     normal: 400,
     medium: 500,
     semibold: 600,
-    bold: 700
-  }
+    bold: 700,
+  },
 };
 
-// Transitions
 export const transitions = {
-  fast: '0.2s ease',
-  medium: '0.3s ease',
-  slow: '0.5s ease'
+  fast: '0.15s ease',
+  medium: '0.2s ease',
+  slow: '0.3s ease',
 };
 
 export default {
@@ -143,5 +162,5 @@ export default {
   borderRadius,
   shadows,
   typography,
-  transitions
+  transitions,
 };

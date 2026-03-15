@@ -11,7 +11,7 @@ import { GiCow } from 'react-icons/gi';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 import SaglikDanismani from '../components/Saglik/SaglikDanismani';
-import { colors, gradients } from '../styles/colors';
+import { colors } from '../styles/colors';
 
 // --- Animations ---
 const fadeIn = keyframes`
@@ -33,92 +33,89 @@ const PageContainer = styled.div`
   animation: ${fadeIn} .35s ease;
 `;
 
-// ── Page Header ───────────────────────────────────────────────
+// ── Page Header (standart beyaz) ───────────────────────────────────────────────
 const PageHeader = styled.div`
-  background: linear-gradient(135deg, ${colors.dangerDarker} 0%, ${colors.dangerDark} 50%, ${colors.danger} 100%);
-  padding: 28px 32px 0;
-  position: relative; overflow: hidden;
-  &::after {
-    content: ''; position: absolute; right: -40px; top: -40px;
-    width: 200px; height: 200px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); pointer-events: none;
-  }
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px 16px;
+
   @media (max-width: 768px) {
-    padding: 20px 16px 0;
+    padding: 14px 16px 12px;
   }
 `;
 const HeaderTop = styled.div`
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 0;
 `;
 const HeaderLeft = styled.div`display: flex; align-items: center; gap: 14px;`;
 const HeaderIcon = styled.div`
-  width: 52px; height: 52px; border-radius: 16px;
-  background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+  width: 44px; height: 44px; border-radius: 12px;
+  background: #f4f4f5;
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.25);
+  font-size: 22px; flex-shrink: 0;
+  border: 1px solid #e5e7eb;
 `;
 const HeaderTitle = styled.h1`
-  margin: 0; font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.3px;
+  margin: 0; font-size: 20px; font-weight: 700; color: #111827; letter-spacing: -0.3px;
 `;
-const HeaderSub = styled.p`margin: 3px 0 0; font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 400;`;
+const HeaderSub = styled.p`margin: 2px 0 0; font-size: 13px; color: #6b7280;`;
 const BtnGroup = styled.div`display: flex; gap: 10px; flex-wrap: wrap;`;
 const AddButton = styled.button`
-  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-  border-radius: 10px; font-weight: 700; font-size: 13px;
-  cursor: pointer; transition: all .2s; white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  background: ${p => p.$secondary ? 'rgba(255,255,255,0.15)' : '#fff'};
-  color: ${p => p.$secondary ? '#fff' : colors.danger};
-  border: ${p => p.$secondary ? '1px solid rgba(255,255,255,0.3)' : 'none'};
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-    background: ${p => p.$secondary ? 'rgba(255,255,255,0.25)' : '#fff1f2'};
-  }
+  display: flex; align-items: center; gap: 8px; padding: 9px 16px;
+  min-height: 48px;
+  border-radius: 8px; font-weight: 600; font-size: 13px;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  &:hover { background: #15803d; }
   @media (max-width: 768px) {
     padding: 10px 14px;
-    font-size: 13px;
-    min-height: 44px;
+    min-height: 48px;
     span { display: none; }
   }
 `;
 
-// ── Stat Strip ────────────────────────────────────────────────
+// ── Stat Strip (header'dan ayrı) ────────────────────────────────────────────────
 const StatGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0;
-  background: rgba(255,255,255,0.08);
-  border-top: 1px solid rgba(255,255,255,0.12);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin: 16px 0 24px 0;
+  overflow: hidden;
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
+    margin: 12px 0 20px 0;
   }
 `;
 const StatCard = styled.div`
   padding: 18px 24px; display: flex; align-items: center; gap: 14px;
-  border-right: 1px solid rgba(255,255,255,0.12);
+  border-right: 1px solid #e5e7eb;
   &:last-child { border-right: none; }
-  transition: background .2s;
-  &:hover { background: rgba(255,255,255,0.07); }
+  transition: background 0.15s;
+  &:hover { background: #f9fafb; }
 
   @media (max-width: 768px) {
     padding: 14px 16px;
     gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid #e5e7eb;
     &:nth-child(2n) { border-right: none; }
   }
 `;
 const StatIcon = styled.div`
   width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: rgba(255,255,255,0.15); color: #fff;
+  background: #f4f4f5;
+  color: #52525b;
   display: flex; align-items: center; justify-content: center; font-size: 18px;
+  border: 1px solid #e5e7eb;
 `;
 const StatInfo = styled.div`
-  .value { font-size: 24px; font-weight: 900; color: #fff; line-height: 1; }
-  .label { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600;
+  .value { font-size: 24px; font-weight: 700; color: #111827; line-height: 1; }
+  .label { font-size: 11px; color: #6b7280; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
 `;
 
@@ -1169,6 +1166,8 @@ function SaglikMerkezi() {
                         </AddButton>
                     </BtnGroup>
                 </HeaderTop>
+            </PageHeader>
+            <BodyWrap style={{ paddingTop: 16 }}>
                 <StatGrid>
                     <StatCard>
                         <StatIcon><FaHeartbeat /></StatIcon>
@@ -1199,9 +1198,6 @@ function SaglikMerkezi() {
                         </StatInfo>
                     </StatCard>
                 </StatGrid>
-            </PageHeader>
-
-            <BodyWrap>
                 <TabLayout>
                     {/* TAB BAR */}
                     <TabBar>

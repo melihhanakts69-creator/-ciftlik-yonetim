@@ -28,11 +28,13 @@ const Header = styled.div`
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 
   h1 {
-    font-size: 22px;
-    font-weight: 800;
-    color: #1e293b;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
     margin: 0;
     display: flex;
     align-items: center;
@@ -50,8 +52,8 @@ const Header = styled.div`
 const PeriodBar = styled.div`
   display: flex;
   background: white;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   overflow: hidden;
 `;
 
@@ -60,28 +62,28 @@ const PeriodBtn = styled.button`
   border: none;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 700;
-  transition: all .2s;
-  background: ${p => p.$active ? '#1e293b' : 'white'};
-  color: ${p => p.$active ? 'white' : '#64748b'};
-  &:hover { background: ${p => p.$active ? '#1e293b' : '#f1f5f9'}; }
+  font-weight: 600;
+  transition: background 0.15s;
+  background: ${p => p.$active ? '#111827' : 'white'};
+  color: ${p => p.$active ? 'white' : '#6b7280'};
+  &:hover { background: ${p => p.$active ? '#111827' : '#f9fafb'}; }
 `;
 
 const AddButton = styled.button`
-  padding: 9px 18px;
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  padding: 9px 16px;
+  min-height: 48px;
+  background: #16a34a;
   color: white;
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 8px;
+  font-weight: 600;
   font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all .2s;
-  box-shadow: 0 2px 8px rgba(76,175,80,0.3);
-  &:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  transition: background 0.15s;
+  &:hover { background: #15803d; }
 
   @media (max-width: 768px) { display: none; }
 `;
@@ -98,35 +100,35 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: ${props => props.$bg || 'white'};
-  border-radius: 14px;
+  background: white;
+  border-radius: 12px;
   padding: 16px;
-  color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
   position: relative;
   overflow: hidden;
 
   h3 {
     margin: 0 0 4px 0;
     font-size: 11px;
-    opacity: 0.85;
     font-weight: 600;
+    color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
 
   .value {
     font-size: 20px;
-    font-weight: 900;
+    font-weight: 700;
     margin-bottom: 3px;
     line-height: 1.1;
+    color: #111827;
     
     @media (max-width: 768px) { font-size: 16px; }
   }
 
   .label {
     font-size: 11px;
-    opacity: 0.75;
+    color: #9ca3af;
   }
 
   .ico {
@@ -134,8 +136,9 @@ const StatCard = styled.div`
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 32px;
-    opacity: 0.15;
+    font-size: 28px;
+    opacity: 0.2;
+    color: #52525b;
   }
 `;
 
@@ -150,9 +153,9 @@ const QuickFilter = styled.div`
 const QFBtn = styled.button`
   padding: 7px 14px;
   border-radius: 20px;
-  border: 1.5px solid ${p => p.$active ? (p.$color || '#4CAF50') : '#e2e8f0'};
-  background: ${p => p.$active ? (p.$bg || '#E8F5E9') : 'white'};
-  color: ${p => p.$active ? (p.$color || '#2e7d32') : '#64748b'};
+  border: 1px solid ${p => p.$active ? (p.$color || '#16a34a') : '#e5e7eb'};
+  background: ${p => p.$active ? (p.$bg || '#dcfce7') : 'white'};
+  color: ${p => p.$active ? (p.$color || '#166534') : '#6b7280'};
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;

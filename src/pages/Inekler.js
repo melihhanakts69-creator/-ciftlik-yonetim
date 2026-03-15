@@ -73,8 +73,8 @@ const EmptyStateBox = styled.div`
   text-align: center;
   padding: 48px 24px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   margin-top: 20px;
 
   .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; }
@@ -87,19 +87,19 @@ const EmptyStateBtn = styled.button`
   gap: 8px;
   padding: 12px 24px;
   min-height: 48px;
-  background: #4CAF50;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 10px;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: transform 0.2s;
-  &:hover { transform: translateY(-2px); }
+  transition: background 0.15s;
+  &:hover { background: #15803d; }
 `;
 
 const AddButton = styled.button`
-  background-color: #4CAF50;
+  background-color: #16a34a;
   color: white;
   padding: 10px 20px;
   min-height: 48px;
@@ -110,12 +110,10 @@ const AddButton = styled.button`
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  transition: background 0.15s;
 
   &:hover {
-    transform: translateY(-2px);
-    background-color: #43A047;
+    background-color: #15803d;
   }
 
   @media (max-width: 768px) {
@@ -558,14 +556,13 @@ const StatusBadge = ({ status }) => {
 const Card = styled.div`
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
   padding: 20px;
-  transition: transform 0.2s;
+  transition: background 0.15s;
   cursor: pointer;
-  border: 1px solid #eee;
 
   &:hover {
-    transform: translateY(-3px);
+    background: #f9fafb;
   }
 
   .card-header {

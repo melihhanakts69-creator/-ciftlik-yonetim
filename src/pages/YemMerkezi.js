@@ -24,39 +24,36 @@ const Page = styled.div`
   font-family: 'Inter', system-ui, sans-serif; animation: ${fadeIn} .35s ease;
 `;
 
-// ── Page Header (gradient) ──────────────────────────────────────────
+// ── Page Header (standart beyaz) ──────────────────────────────────────────
 const PageHeader = styled.div`
-  background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%);
-  padding: 28px 32px 0; position: relative; overflow: hidden;
-  &::after {
-    content: ''; position: absolute; right: -40px; top: -40px;
-    width: 200px; height: 200px; border-radius: 50%;
-    background: rgba(255,255,255,0.06); pointer-events: none;
-  }
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px 16px;
+
   @media (max-width: 768px) {
-    padding: 20px 16px 0;
+    padding: 14px 16px 12px;
   }
 `;
 const HeaderTop = styled.div`
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 0;
 `;
 const HeaderLeft = styled.div`display: flex; align-items: center; gap: 14px;`;
 const HeaderIcon = styled.div`
-  width: 52px; height: 52px; border-radius: 16px;
-  background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+  width: 44px; height: 44px; border-radius: 12px;
+  background: #f4f4f5;
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; border: 1px solid rgba(255,255,255,0.2);
+  font-size: 22px; border: 1px solid #e5e7eb;
 `;
-const HeaderTitle = styled.h1`margin:0;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.3px;`;
-const HeaderSub = styled.p`margin:3px 0 0;font-size:13px;color:rgba(255,255,255,0.6);font-weight:400;`;
+const HeaderTitle = styled.h1`margin:0;font-size:20px;font-weight:700;color:#111827;letter-spacing:-0.3px;`;
+const HeaderSub = styled.p`margin:2px 0 0;font-size:13px;color:#6b7280;`;
 const HeaderBtns = styled.div`display:flex;gap:10px;flex-wrap:wrap;`;
 const PrimaryBtn = styled.button`
-  display:flex;align-items:center;gap:8px;padding:11px 22px;
-  background:#fff;color:#065f46;border:none;border-radius:10px;
-  font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
-  &:hover{background:#f0fdf4;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.15);}
+  display:flex;align-items:center;gap:8px;padding:9px 16px;
+  min-height: 48px;
+  background:#16a34a;color:#fff;border:none;border-radius:8px;
+  font-weight:600;font-size:13px;cursor:pointer;transition:background 0.15s;
+  &:hover{background:#15803d;}
 `;
 
 // ── Stat Strip ────────────────────────────────────────────────────
@@ -64,8 +61,11 @@ const StatRow = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  background: rgba(255,255,255,0.08);
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin: 0 0 24px 0;
+  overflow: hidden;
 
   @media (max-width: 600px) {
     grid-template-columns: repeat(3, 1fr);
@@ -73,13 +73,13 @@ const StatRow = styled.div`
 `;
 const Stat = styled.div`
   padding: 18px 24px; display: flex; align-items: center; gap: 14px;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid #e5e7eb;
   &:last-child { border-right: none; }
-  transition: background .2s;
-  &:hover { background: rgba(255,255,255,0.07); }
-  .ico { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(255,255,255,0.15); color: #fff; }
-  .lbl { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: .4px; }
-  .val { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; }
+  transition: background 0.15s;
+  &:hover { background: #f9fafb; }
+  .ico { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: #f4f4f5; color: #52525b; border: 1px solid #e5e7eb; }
+  .lbl { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  .val { font-size: 26px; font-weight: 700; color: #111827; line-height: 1; }
 
   @media (max-width: 600px) {
     padding: 12px 10px;
@@ -420,6 +420,9 @@ export default function YemMerkezi() {
             </PrimaryBtn>
           </HeaderBtns>
         </HeaderTop>
+      </PageHeader>
+
+      <BodyWrap>
         <StatRow>
           <Stat>
             <div className="ico"><FaClipboardList /></div>
@@ -434,9 +437,6 @@ export default function YemMerkezi() {
             <div><div className="lbl">Kritik Stok</div><div className="val">{kritikSayisi}</div></div>
           </Stat>
         </StatRow>
-      </PageHeader>
-
-      <BodyWrap>
         <TabLayout>
           <TabBar>
             {TABS.map(t => (

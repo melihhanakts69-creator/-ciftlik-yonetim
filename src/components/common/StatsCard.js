@@ -4,16 +4,14 @@ import { colors, shadows, borderRadius, spacing } from '../../styles/colors';
 
 const Card = styled.div`
   background: ${colors.bg.card};
-  border-radius: ${borderRadius.lg};
-  padding: ${spacing.md}; /* Reduced from lg */
-  box-shadow: ${shadows.md};
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: ${spacing.md};
+  border: 1px solid #e5e7eb;
+  transition: background 0.15s;
   cursor: ${props => props.clickable ? 'pointer' : 'default'};
-  border-left: 4px solid ${props => props.color || colors.primary};
 
   &:hover {
-    box-shadow: ${props => props.clickable ? shadows.hover : shadows.md};
-    transform: ${props => props.clickable ? 'translateY(-2px)' : 'none'};
+    background: ${props => props.clickable ? '#f9fafb' : colors.bg.card};
   }
 `;
 

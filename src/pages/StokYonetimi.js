@@ -30,67 +30,68 @@ const Page = styled.div`
 `;
 
 const Header = styled.div`
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f4c35 100%);
-  padding: 28px 24px 24px;
-  color: white;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px 16px;
   
-  @media(max-width:768px){ padding: 20px 16px 18px; }
+  @media(max-width:768px){ padding: 14px 16px 12px; }
 `;
 
 const HeaderTop = styled.div`
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 `;
 
 const PageTitle = styled.h1`
-  font-size: 24px; font-weight: 900; margin: 0;
-  color: white; display: flex; align-items: center; gap: 10px;
+  font-size: 20px; font-weight: 700; margin: 0;
+  color: #111827; display: flex; align-items: center; gap: 10px;
   
-  @media(max-width:768px){ font-size: 20px; }
+  @media(max-width:768px){ font-size: 18px; }
 `;
 
 const HeaderActions = styled.div`display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
 
 const ToggleViewBtns = styled.div`
   display: flex;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 10px; overflow: hidden;
+  background: #f4f4f5;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px; overflow: hidden;
 `;
 
 const TVBtn = styled.button`
   display: flex; align-items: center; gap: 5px; padding: 8px 14px;
-  border: none; cursor: pointer; font-size: 12px; font-weight: 700; transition: all .2s;
-  background: ${p => p.$active ? 'rgba(255,255,255,.25)' : 'transparent'};
-  color: ${p => p.$active ? '#fff' : 'rgba(255,255,255,.6)'};
-  &:hover { background: rgba(255,255,255,.2); color: white; }
+  border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.15s;
+  background: ${p => p.$active ? '#e5e7eb' : 'transparent'};
+  color: ${p => p.$active ? '#111827' : '#6b7280'};
+  &:hover { background: #e4e4e7; }
 `;
 
 const AddBtn = styled.button`
-  background: linear-gradient(135deg,#4ade80,#16a34a); color:#fff; border:none;
-  padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 800;
+  background: #16a34a; color:#fff; border:none;
+  padding: 9px 16px; min-height: 48px;
+  border-radius: 8px; font-size: 13px; font-weight: 600;
   cursor: pointer; display: flex; align-items: center; gap: 8px;
-  box-shadow: 0 4px 14px rgba(74,222,128,.35); transition: all .2s;
+  transition: background 0.15s;
   white-space: nowrap;
-  &:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,222,128,.5);}
+  &:hover{background:#15803d;}
 `;
 
 const StatRow = styled.div`
   display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
+  margin-top: 16px;
   
   @media(max-width:700px){ grid-template-columns: 1fr 1fr; gap: 8px; }
 `;
 
 const Stat = styled.div`
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.15);
-  backdrop-filter: blur(8px);
-  border-radius: 14px; padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px; padding: 16px;
   
-  .val { font-size: 26px; font-weight: 900; color: ${p => p.$accent || '#4ade80'}; line-height: 1; margin-bottom: 4px; }
-  .lbl { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; }
+  .val { font-size: 26px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
+  .lbl { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; }
   
-  @media(max-width:768px){ padding: 10px 12px; .val{font-size:22px;} }
+  @media(max-width:768px){ padding: 12px; .val{font-size:22px;} }
 `;
 
 const Content = styled.div`
