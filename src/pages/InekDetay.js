@@ -3,213 +3,76 @@ import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
 import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import SatisModal from '../components/modals/SatisModal';
 import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
+import { EditModal, FormGroup, FormLabel, FormInput, FormTextarea } from '../components/HayvanDetay/DetayModal';
+import { toast } from 'react-toastify';
 
-// --- STYLED COMPONENTS ---
+// --- STYLED COMPONENTS (sade, profesyonel) ---
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-
-  @media (max-width: 768px) {
-    padding: 10px;
-  }
+  max-width: 960px; margin: 0 auto; padding: 20px 16px 40px;
+  background: #f8fafc; min-height: 100vh;
 `;
-
 const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
-  }
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding: 20px 24px; background: #fff;
+  border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  flex-wrap: wrap; gap: 16px;
 `;
-
-const TitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  
-  @media (max-width: 768px) {
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-`;
-
+const TitleSection = styled.div`display: flex; align-items: center; gap: 16px;`;
 const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #666;
-  padding: 10px;
-  border-radius: 50%;
-  &:hover { background-color: #f0f0f0; }
+  background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 10px;
+  cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center;
+  &:hover { background: #e2e8f0; }
 `;
-
 const CowTitle = styled.h1`
-  margin: 0;
-  font-size: 28px;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-
-  @media (max-width: 768px) {
-    font-size: 24px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+  margin: 0; font-size: 22px; font-weight: 800; color: #0f172a;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 `;
-
 const TagBadge = styled.span`
-  background-color: #FF9800;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: bold;
+  background: #4CAF50; color: #fff; padding: 4px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 700;
 `;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 10px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-`;
-
+const Subtitle = styled.div`font-size: 13px; color: #64748b; margin-top: 4px;`;
+const ActionButtons = styled.div`display: flex; gap: 8px;`;
 const ActionButton = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: transform 0.2s;
-  
-  &:hover { transform: translateY(-2px); }
-  
-  @media (max-width: 768px) {
-    flex: 1;
-    justify-content: center;
-  }
+  padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer;
+  font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s;
+  &:hover { transform: translateY(-1px); }
 `;
-
+const QuickRow = styled.div`
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+`;
+const TabBtn = styled.button`
+  padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px;
+  background: ${p => p.$active ? '#4CAF50' : '#fff'}; color: ${p => p.$active ? '#fff' : '#64748b'};
+  box-shadow: ${p => p.$active ? '0 2px 8px rgba(76,175,80,0.3)' : '0 1px 3px rgba(0,0,0,0.06)'};
+`;
+const TabRow = styled.div`display: flex; gap: 6px; margin-bottom: 20px;`;
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
+  display: grid; grid-template-columns: 1fr 320px; gap: 20px;
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
 `;
-
 const Card = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  margin-bottom: 20px;
-  border: 1px solid #f1f5f9;
-
-  @media (max-width: 768px) {
-    padding: 18px;
-    border-radius: 14px;
-    margin-bottom: 16px;
-  }
+  background: #fff; border-radius: 14px; padding: 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;
 `;
-
 const CardTitle = styled.h3`
-  margin: 0 0 20px 0;
-  color: #34495e;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #334155;
+  display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;
 `;
-
 const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
 `;
-
 const InfoItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #f1f5f9;
-
-  @media (max-width: 768px) {
-    padding: 12px;
-    min-height: 72px;
-  }
+  padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9;
 `;
-
-const Label = styled.span`
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-
-  @media (max-width: 768px) {
-    font-size: 11px;
-  }
-`;
-
-const Value = styled.span`
-  font-size: 15px;
-  color: #0f172a;
-  font-weight: 600;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
+const Label = styled.span`font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;`;
+const Value = styled.span`font-size: 14px; color: #0f172a; font-weight: 600;`;
 const StatusBadge = styled.span`
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  display: inline-block;
-  text-align: center;
-
-  @media (max-width: 768px) {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
+  padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-block;
 `;
 
 const InekDetay = () => {
@@ -224,7 +87,9 @@ const InekDetay = () => {
     const [laktasyon, setLaktasyon] = useState(null);
     const [laktasyonYukleniyor, setLaktasyonYukleniyor] = useState(false);
 
-    // Modal State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editForm, setEditForm] = useState({});
+    const [saving, setSaving] = useState(false);
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
     const [showDogumModal, setShowDogumModal] = useState(false);
     const [showSatisModal, setShowSatisModal] = useState(false);
@@ -323,10 +188,55 @@ const InekDetay = () => {
         try {
             setLoading(true);
             await api.deleteInekTohumlama(id);
-            alert('Tohumlama kaydı silindi');
+            toast.success('Tohumlama kaydı silindi');
             fetchDetaylar();
         } catch (error) {
-            alert('Silme başarısız: ' + (error.response?.data?.message || error.message));
+            toast.error('Silme başarısız: ' + (error.response?.data?.message || error.message));
+            setLoading(false);
+        }
+    };
+
+    const openEdit = () => {
+        setEditForm({
+            isim: inek.isim || '',
+            kupeNo: inek.kupeNo || '',
+            kilo: inek.kilo || '',
+            dogumTarihi: inek.dogumTarihi ? new Date(inek.dogumTarihi).toISOString().split('T')[0] : '',
+            notlar: inek.notlar || '',
+            gebelikDurumu: inek.gebelikDurumu || 'Belirsiz',
+            tohumlamaTarihi: inek.tohumlamaTarihi ? new Date(inek.tohumlamaTarihi).toISOString().split('T')[0] : ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            await api.updateInek(id, {
+                ...editForm,
+                kilo: parseFloat(editForm.kilo) || 0,
+                tohumlamaTarihi: editForm.tohumlamaTarihi || null
+            });
+            toast.success('Bilgiler güncellendi');
+            setShowEditModal(false);
+            fetchDetaylar();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Güncelleme başarısız');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm(`${inek.isim} adlı ineği silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+        try {
+            setLoading(true);
+            await api.deleteInek(id);
+            toast.success('İnek silindi');
+            navigate('/inekler');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Silme başarısız');
             setLoading(false);
         }
     };
@@ -345,56 +255,45 @@ const InekDetay = () => {
                             {inek.isim}
                             <TagBadge>{inek.kupeNo}</TagBadge>
                         </CowTitle>
-                        <div style={{ color: '#7f8c8d', marginTop: '5px' }}>
-                            {inek.irk} • {inek.yas} Yaşında
-                        </div>
+                        <Subtitle>{inek.irk || 'İnek'} • {inek.yas} Yaşında</Subtitle>
                     </div>
                 </TitleSection>
 
                 <ActionButtons>
-                    <ActionButton style={{ backgroundColor: '#E3F2FD', color: '#2196F3' }}>
+                    <ActionButton onClick={openEdit} style={{ backgroundColor: '#E3F2FD', color: '#1976D2' }}>
                         <FaEdit /> Düzenle
                     </ActionButton>
-                    <ActionButton style={{ backgroundColor: '#FFEBEE', color: '#D32F2F' }}>
+                    <ActionButton onClick={handleDelete} style={{ backgroundColor: '#FFEBEE', color: '#C62828' }}>
                         <FaTrash /> Sil
                     </ActionButton>
                 </ActionButtons>
             </Header>
 
-            {/* HIZLI İŞLEMLER - Üstte, yatay */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
-                <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#ef6c00', flex: 1, minWidth: 120 }}>
+            <QuickRow>
+                <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#e65100', flex: 1, minWidth: 110 }}>
                     <FaSyringe /> Tohumlama
                 </ActionButton>
-                <ActionButton onClick={() => navigate('/saglik-merkezi')} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 120 }}>
+                <ActionButton onClick={() => navigate('/saglik-merkezi')} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 110 }}>
                     <FaNotesMedical /> Sağlık
                 </ActionButton>
-                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#880e4f', flex: 1, minWidth: 120 }}>
+                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#ad1457', flex: 1, minWidth: 110 }}>
                     <FaBaby /> Doğum
                 </ActionButton>
-                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', flex: 1, minWidth: 120 }}>
+                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#6a1b9a', flex: 1, minWidth: 110 }}>
                     <FaMoneyBillWave /> Satış
                 </ActionButton>
-            </div>
+            </QuickRow>
 
-            {/* SEKME NAVİGASYONU */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20, background: 'white', padding: '8px', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', width: 'fit-content' }}>
+            <TabRow>
                 {[
-                    { key: 'genel', label: '📋 Genel Bilgi' },
-                    { key: 'laktasyon', label: '📈 Verim Grafiği' },
+                    { key: 'genel', label: '📋 Genel' },
+                    { key: 'laktasyon', label: '📈 Verim' },
                 ].map(s => (
-                    <button
-                        key={s.key}
-                        onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}
-                        style={{
-                            padding: '9px 18px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                            background: aktifSekme === s.key ? '#4CAF50' : 'transparent',
-                            color: aktifSekme === s.key ? 'white' : '#64748b',
-                            transition: 'all 0.2s'
-                        }}
-                    >{s.label}</button>
+                    <TabBtn key={s.key} $active={aktifSekme === s.key} onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}>
+                        {s.label}
+                    </TabBtn>
                 ))}
-            </div>
+            </TabRow>
 
             {/* LAKTASYON GRAFİĞİ SEKMESİ */}
             {aktifSekme === 'laktasyon' && (
@@ -685,18 +584,46 @@ const InekDetay = () => {
             }
 
 
-            {/* SATIŞ MODAL */}
-            <SatisModal
-                isOpen={showSatisModal}
-                onClose={() => setShowSatisModal(false)}
-                hayvan={inek ? { ...inek, type: 'inek' } : null}
-                onSuccess={() => {
-                    fetchDetaylar();
-                    // Satış başarılı olduğunda (örneğin hayvan durumu değiştiyse veya listeden çıktıysa)
-                    // kullanıcıyı listeye yönlendirebiliriz veya detayları güncelleyebiliriz.
-                    // Şimdilik detayları güncelliyoruz.
-                }}
-            />
+            <SatisModal isOpen={showSatisModal} onClose={() => setShowSatisModal(false)} hayvan={inek ? { ...inek, type: 'inek' } : null} onSuccess={fetchDetaylar} />
+
+            {showEditModal && (
+                <EditModal title="✏️ İnek Bilgilerini Düzenle" onClose={() => setShowEditModal(false)} onSubmit={handleEditSubmit} loading={saving}>
+                    <FormGroup>
+                        <FormLabel>İsim *</FormLabel>
+                        <FormInput value={editForm.isim || ''} onChange={e => setEditForm({ ...editForm, isim: e.target.value })} placeholder="İnek adı" required />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Küpe No</FormLabel>
+                        <FormInput value={editForm.kupeNo || ''} onChange={e => setEditForm({ ...editForm, kupeNo: e.target.value })} placeholder="Küpe numarası" />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Doğum Tarihi</FormLabel>
+                        <FormInput type="date" value={editForm.dogumTarihi || ''} onChange={e => setEditForm({ ...editForm, dogumTarihi: e.target.value })} />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Kilo (kg)</FormLabel>
+                        <FormInput type="number" step="0.1" value={editForm.kilo || ''} onChange={e => setEditForm({ ...editForm, kilo: e.target.value })} placeholder="0" />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Gebelik Durumu</FormLabel>
+                        <select value={editForm.gebelikDurumu || 'Belirsiz'} onChange={e => setEditForm({ ...editForm, gebelikDurumu: e.target.value })} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 14 }}>
+                            <option value="Belirsiz">Belirsiz</option>
+                            <option value="Gebe">Gebe</option>
+                            <option value="Boş">Boş</option>
+                        </select>
+                    </FormGroup>
+                    {editForm.gebelikDurumu === 'Gebe' && (
+                        <FormGroup>
+                            <FormLabel>Tohumlama Tarihi</FormLabel>
+                            <FormInput type="date" value={editForm.tohumlamaTarihi || ''} onChange={e => setEditForm({ ...editForm, tohumlamaTarihi: e.target.value })} />
+                        </FormGroup>
+                    )}
+                    <FormGroup>
+                        <FormLabel>Notlar</FormLabel>
+                        <FormTextarea value={editForm.notlar || ''} onChange={e => setEditForm({ ...editForm, notlar: e.target.value })} placeholder="Ek notlar..." />
+                    </FormGroup>
+                </EditModal>
+            )}
 
         </Container >
     );

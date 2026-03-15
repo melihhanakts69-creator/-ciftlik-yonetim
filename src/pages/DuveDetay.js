@@ -2,214 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
 import styled from 'styled-components';
-import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaNotesMedical, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
+import { FaArrowLeft, FaEdit, FaTrash, FaSyringe, FaBaby, FaWeight, FaMoneyBillWave } from 'react-icons/fa';
 import SatisModal from '../components/modals/SatisModal';
 import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
+import { EditModal, FormGroup, FormLabel, FormInput, FormTextarea } from '../components/HayvanDetay/DetayModal';
+import { toast } from 'react-toastify';
 
-// --- STYLED COMPONENTS (Shared with InekDetay ideally, but kept separate for speed) ---
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f8f9fa;
-  min-height: 100vh;
-
-  @media (max-width: 768px) {
-    padding: 10px;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px;
-  }
-`;
-
-const TitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-`;
-
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #666;
-  padding: 10px;
-  border-radius: 50%;
-  &:hover { background-color: #f0f0f0; }
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 28px;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-
-  @media (max-width: 768px) {
-    font-size: 24px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-`;
-
-const TagBadge = styled.span`
-  background-color: #FF9800;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: bold;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 10px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-`;
-
-const ActionButton = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: transform 0.2s;
-  
-  &:hover { transform: translateY(-2px); }
-
-  @media (max-width: 768px) {
-    flex: 1;
-    justify-content: center;
-  }
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Card = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  margin-bottom: 20px;
-  border: 1px solid #f1f5f9;
-
-  @media (max-width: 768px) {
-    padding: 18px;
-    border-radius: 14px;
-    margin-bottom: 16px;
-  }
-`;
-
-const CardTitle = styled.h3`
-  margin: 0 0 20px 0;
-  color: #34495e;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-`;
-
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-`;
-
-const InfoItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #f1f5f9;
-
-  @media (max-width: 768px) {
-    padding: 12px;
-    min-height: 72px;
-  }
-`;
-
-const Label = styled.span`
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-
-  @media (max-width: 768px) {
-    font-size: 11px;
-  }
-`;
-
-const Value = styled.span`
-  font-size: 15px;
-  color: #0f172a;
-  font-weight: 600;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
-const StatusBadge = styled.span`
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  display: inline-block;
-  text-align: center;
-
-  @media (max-width: 768px) {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-`;
+const Container = styled.div`max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; background: #f8fafc; min-height: 100vh;`;
+const Header = styled.div`display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px 24px; background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-wrap: wrap; gap: 16px;`;
+const TitleSection = styled.div`display: flex; align-items: center; gap: 16px;`;
+const BackButton = styled.button`background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; &:hover { background: #e2e8f0; }`;
+const Title = styled.h1`margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
+const TagBadge = styled.span`background: #9C27B0; color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 700;`;
+const Subtitle = styled.div`font-size: 13px; color: #64748b; margin-top: 4px;`;
+const ActionButtons = styled.div`display: flex; gap: 8px;`;
+const ActionButton = styled.button`padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.2s; &:hover { transform: translateY(-1px); }`;
+const QuickRow = styled.div`display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;`;
+const Grid = styled.div`display: grid; grid-template-columns: 1fr 320px; gap: 20px; @media (max-width: 900px) { grid-template-columns: 1fr; }`;
+const Card = styled.div`background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;`;
+const CardTitle = styled.h3`margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #334155; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;`;
+const InfoGrid = styled.div`display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;`;
+const InfoItem = styled.div`padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9;`;
+const Label = styled.span`font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;`;
+const Value = styled.span`font-size: 14px; color: #0f172a; font-weight: 600;`;
+const StatusBadge = styled.span`padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-block;`;
 
 const DuveDetay = () => {
     const { id } = useParams();
@@ -218,7 +34,9 @@ const DuveDetay = () => {
     const [duve, setDuve] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Modallar için State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editForm, setEditForm] = useState({});
+    const [saving, setSaving] = useState(false);
     const [showDogumModal, setShowDogumModal] = useState(false);
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
     const [showKiloModal, setShowKiloModal] = useState(false);
@@ -319,10 +137,51 @@ const DuveDetay = () => {
         try {
             setLoading(true);
             await api.deleteDuveTohumlama(id);
-            alert('Tohumlama kaydı silindi');
+            toast.success('Tohumlama kaydı silindi');
             fetchDetaylar();
         } catch (error) {
-            alert('Silme başarısız: ' + (error.response?.data?.message || error.message));
+            toast.error('Silme başarısız: ' + (error.response?.data?.message || error.message));
+            setLoading(false);
+        }
+    };
+
+    const openEdit = () => {
+        setEditForm({
+            isim: duve.isim || '',
+            kupeNo: duve.kupeNo || '',
+            kilo: duve.kilo || '',
+            dogumTarihi: duve.dogumTarihi ? new Date(duve.dogumTarihi).toISOString().split('T')[0] : '',
+            notlar: duve.notlar || duve.not || '',
+            gebelikDurumu: duve.gebelikDurumu || 'Belirsiz',
+            tohumlamaTarihi: duve.tohumlamaTarihi ? new Date(duve.tohumlamaTarihi).toISOString().split('T')[0] : ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            await api.updateDuve(id, { ...editForm, kilo: parseFloat(editForm.kilo) || 0, tohumlamaTarihi: editForm.tohumlamaTarihi || null });
+            toast.success('Bilgiler güncellendi');
+            setShowEditModal(false);
+            fetchDetaylar();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Güncelleme başarısız');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm(`${duve.isim} adlı düveyi silmek istediğinize emin misiniz?`)) return;
+        try {
+            setLoading(true);
+            await api.deleteDuve(id);
+            toast.success('Düve silindi');
+            navigate('/duveler');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Silme başarısız');
             setLoading(false);
         }
     };
@@ -338,37 +197,26 @@ const DuveDetay = () => {
                             {duve.isim}
                             <TagBadge>{duve.kupeNo}</TagBadge>
                         </Title>
-                        <div style={{ color: '#7f8c8d', marginTop: '5px' }}>
-                            Düve • {yas} Aylık
-                        </div>
+                        <Subtitle>Düve • {yas} Aylık</Subtitle>
                     </div>
                 </TitleSection>
 
                 <ActionButtons>
-                    <ActionButton style={{ backgroundColor: '#E3F2FD', color: '#2196F3' }}>
+                    <ActionButton onClick={openEdit} style={{ backgroundColor: '#E3F2FD', color: '#1976D2' }}>
                         <FaEdit /> Düzenle
                     </ActionButton>
-                    <ActionButton style={{ backgroundColor: '#FFEBEE', color: '#D32F2F' }}>
+                    <ActionButton onClick={handleDelete} style={{ backgroundColor: '#FFEBEE', color: '#C62828' }}>
                         <FaTrash /> Sil
                     </ActionButton>
                 </ActionButtons>
             </Header>
 
-            {/* HIZLI İŞLEMLER - Üstte, yatay */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
-                <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#ef6c00', flex: 1, minWidth: 120 }}>
-                    <FaSyringe /> Tohumlama
-                </ActionButton>
-                <ActionButton onClick={() => setShowKiloModal(true)} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 120 }}>
-                    <FaWeight /> Kilo
-                </ActionButton>
-                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#880e4f', flex: 1, minWidth: 120 }}>
-                    <FaBaby /> Doğum
-                </ActionButton>
-                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#7b1fa2', flex: 1, minWidth: 120 }}>
-                    <FaMoneyBillWave /> Satış
-                </ActionButton>
-            </div>
+            <QuickRow>
+                <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#e65100', flex: 1, minWidth: 110 }}><FaSyringe /> Tohumlama</ActionButton>
+                <ActionButton onClick={() => setShowKiloModal(true)} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 110 }}><FaWeight /> Kilo</ActionButton>
+                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#ad1457', flex: 1, minWidth: 110 }}><FaBaby /> Doğum</ActionButton>
+                <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#6a1b9a', flex: 1, minWidth: 110 }}><FaMoneyBillWave /> Satış</ActionButton>
+            </QuickRow>
 
             <Grid>
                 {/* SOL KOLON */}
@@ -587,12 +435,46 @@ const DuveDetay = () => {
                 )
             }
 
-            <SatisModal
-                isOpen={showSatisModal}
-                onClose={() => setShowSatisModal(false)}
-                hayvan={{ ...duve, type: 'duve' }}
-                onSuccess={() => navigate('/duveler')}
-            />
+            <SatisModal isOpen={showSatisModal} onClose={() => setShowSatisModal(false)} hayvan={{ ...duve, type: 'duve' }} onSuccess={() => navigate('/duveler')} />
+
+            {showEditModal && (
+                <EditModal title="✏️ Düve Bilgilerini Düzenle" onClose={() => setShowEditModal(false)} onSubmit={handleEditSubmit} loading={saving}>
+                    <FormGroup>
+                        <FormLabel>İsim *</FormLabel>
+                        <FormInput value={editForm.isim || ''} onChange={e => setEditForm({ ...editForm, isim: e.target.value })} required />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Küpe No</FormLabel>
+                        <FormInput value={editForm.kupeNo || ''} onChange={e => setEditForm({ ...editForm, kupeNo: e.target.value })} />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Doğum Tarihi</FormLabel>
+                        <FormInput type="date" value={editForm.dogumTarihi || ''} onChange={e => setEditForm({ ...editForm, dogumTarihi: e.target.value })} />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Kilo (kg)</FormLabel>
+                        <FormInput type="number" step="0.1" value={editForm.kilo || ''} onChange={e => setEditForm({ ...editForm, kilo: e.target.value })} />
+                    </FormGroup>
+                    <FormGroup>
+                        <FormLabel>Gebelik Durumu</FormLabel>
+                        <select value={editForm.gebelikDurumu || 'Belirsiz'} onChange={e => setEditForm({ ...editForm, gebelikDurumu: e.target.value })} style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 14 }}>
+                            <option value="Belirsiz">Belirsiz</option>
+                            <option value="Gebe">Gebe</option>
+                            <option value="Boş">Boş</option>
+                        </select>
+                    </FormGroup>
+                    {editForm.gebelikDurumu === 'Gebe' && (
+                        <FormGroup>
+                            <FormLabel>Tohumlama Tarihi</FormLabel>
+                            <FormInput type="date" value={editForm.tohumlamaTarihi || ''} onChange={e => setEditForm({ ...editForm, tohumlamaTarihi: e.target.value })} />
+                        </FormGroup>
+                    )}
+                    <FormGroup>
+                        <FormLabel>Notlar</FormLabel>
+                        <FormTextarea value={editForm.notlar || ''} onChange={e => setEditForm({ ...editForm, notlar: e.target.value })} />
+                    </FormGroup>
+                </EditModal>
+            )}
 
         </Container >
     );
