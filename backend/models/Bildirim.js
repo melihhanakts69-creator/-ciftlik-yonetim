@@ -6,7 +6,7 @@ const bildirimSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  tip: {
+    tip: {
     type: String,
     required: true,
     enum: [
@@ -18,6 +18,7 @@ const bildirimSchema = new mongoose.Schema({
       'dogum_gecikme',   // Doğum gecikti - kayıt yapılmalı (15+ gün)
       'kuruya_alma',     // Kuruya alma zamanı (doğum 60 gün öncesi)
       'kuru_donem',      // Kuru döneme geçiş
+      'sutten_kesme',    // Sütten kesme zamanı (buzağı 75-95 gün)
       'sagim',           // Sağım hatırlatması
       'yem',             // Yem stoku azaldı
       'stok',            // Stok kritik seviye uyarısı

@@ -40,8 +40,13 @@ app.set('trust proxy', 1);
 // Rate limiting
 app.use('/api/', apiLimiter);          // Tüm API: 500 istek/15dk
 
-// Database bağlantısı
-connectDB();
+// Database bağlantısı + Scheduler (otomatik bildirimler)
+connectDB().then(() => {
+  const { startScheduler } = require('./jobs/scheduler');
+  startScheduler();
+}).catch(err => {
+  console.error('DB/Scheduler:', err);
+});
 
 // Test route
 app.get('/', (req, res) => {

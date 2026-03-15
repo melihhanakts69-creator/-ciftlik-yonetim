@@ -22,6 +22,7 @@ export const colors = {
     blue: '#E3F2FD',       // Mavi arka plan (bilgi)
     lightBlue: '#F0F7FF',  // Açık mavi
     red: '#FFEBEE',        // Kırmızı arka plan (uyarı)
+    purple: '#F3E5F5',     // Mor arka plan (doğum, gebe)
     gray: '#FAFAFA'        // Gri arka plan
   },
 
@@ -68,6 +69,7 @@ export const colors = {
 // Gradient'ler
 export const gradients = {
   primary: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+  primaryDark: 'linear-gradient(135deg, #1a5e1f 0%, #2e7d32 40%, #43a047 100%)', // Header, hero
   secondary: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
   info: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
   danger: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)'

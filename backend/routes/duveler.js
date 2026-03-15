@@ -160,10 +160,10 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
     await yeniInek.save();
 
-    // 3. Gecikme bildirimini tamamlandı işaretle (varsa)
+    // 3. Doğum bildirimlerini tamamlandı işaretle (dogum_beklenen, dogum_gecikme)
     const Bildirim = require('../models/Bildirim');
     await Bildirim.updateMany(
-      { userId: req.userId, tip: 'dogum_gecikme', hayvanId: duve._id, tamamlandi: false },
+      { userId: req.userId, hayvanId: duve._id, tip: { $in: ['dogum_beklenen', 'dogum_gecikme', 'dogum'] }, tamamlandi: false },
       { tamamlandi: true, tamamlanmaTarihi: new Date() }
     );
 

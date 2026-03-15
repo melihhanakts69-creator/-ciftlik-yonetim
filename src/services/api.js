@@ -152,7 +152,11 @@ export const createAlisIslemi = (data) => api.post('/alis-satis/alis', data);
 export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
 
 // DASHBOARD
+export const getDashboardStats = () => api.get('/dashboard/stats');
+export const getDashboardPerformans = (gun = 30) => api.get(`/dashboard/performans/sut?gun=${gun}`);
 export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
+export const getDashboardAktiviteler = (limit = 10) => api.get(`/dashboard/aktiviteler?limit=${limit}`);
+export const getDashboardTopPerformers = () => api.get('/dashboard/top-performers');
 export const getKarlilik = () => api.get('/dashboard/karlilik');
 
 // YEM YÖNETİM SİSTEMİ (Phase 3.5)

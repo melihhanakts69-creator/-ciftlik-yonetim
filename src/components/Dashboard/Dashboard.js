@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { colors, spacing, borderRadius, shadows } from '../../styles/colors';
+import { colors, gradients, spacing, borderRadius, shadows } from '../../styles/colors';
+import * as api from '../../services/api';
 import StatsCard from '../common/StatsCard';
 import PerformansChart from './PerformansChart';
 import YapilacaklarCard from './YapilacaklarCard';
@@ -63,7 +64,7 @@ const Header = styled.div`
   align-items: center;
   margin-bottom: 28px;
   padding: 24px 28px;
-  background: linear-gradient(135deg, #1a5e1f 0%, #2e7d32 40%, #43a047 100%);
+  background: ${gradients.primaryDark};
   border-radius: 20px;
   color: white;
   position: relative;
@@ -174,7 +175,7 @@ const ActionButton = styled.button`
 
   &.accent {
     background: rgba(255,255,255,0.95);
-    color: #2e7d32;
+    color: ${colors.primary};
     border-color: transparent;
     font-weight: 700;
     &:hover { 
@@ -458,7 +459,7 @@ const DesktopQuickBar = styled.div`
     gap: 14px;
     margin-bottom: 28px;
     padding: 20px 24px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(135deg, ${colors.bg.card} 0%, ${colors.bg.gray} 100%);
     border-radius: 20px;
     box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
     border: 1px solid rgba(0,0,0,0.04);
@@ -649,8 +650,6 @@ const Dashboard = ({ kullanici }) => {
     setShowPanelAyari(false);
   };
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -658,39 +657,34 @@ const Dashboard = ({ kullanici }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-
-      const fetchApi = (url) => fetch(url, { headers }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)));
+      setError(null);
 
       const results = await Promise.allSettled([
-        fetchApi(`${API_URL}/dashboard/stats`),
-        fetchApi(`${API_URL}/dashboard/performans/sut?gun=30`),
-        fetchApi(`${API_URL}/dashboard/yapilacaklar`),
-        fetchApi(`${API_URL}/dashboard/aktiviteler?limit=10`),
-        fetchApi(`${API_URL}/dashboard/top-performers`)
+        api.getDashboardStats(),
+        api.getDashboardPerformans(30),
+        api.getYapilacaklar(),
+        api.getDashboardAktiviteler(10),
+        api.getDashboardTopPerformers()
       ]);
 
       setData({
-        stats: results[0].status === 'fulfilled' ? results[0].value : null,
-        performans: results[1].status === 'fulfilled' && Array.isArray(results[1].value) ? results[1].value : [],
-        yapilacaklar: results[2].status === 'fulfilled' && results[2].value
-          ? [...(results[2].value.geciken || []), ...(results[2].value.bugun || [])]
+        stats: results[0].status === 'fulfilled' ? results[0].data : null,
+        performans: results[1].status === 'fulfilled' && Array.isArray(results[1].data) ? results[1].data : [],
+        yapilacaklar: results[2].status === 'fulfilled' && results[2].data
+          ? [...(results[2].data.geciken || []), ...(results[2].data.bugun || [])]
           : [],
-        aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value) ? results[3].value : [],
-        topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].value) ? results[4].value : []
+        aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].data) ? results[3].data : [],
+        topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].data) ? results[4].data : []
       });
 
-      // Hata olanistekcikleri logla
       results.forEach((res, index) => {
         if (res.status === 'rejected') {
-          console.error(`Dashboard Fetch Error [Index ${index}]:`, res.reason);
+          console.error(`Dashboard API Error [Index ${index}]:`, res.reason);
         }
       });
-
     } catch (err) {
-      console.error('Catched Error:', err);
-      setError(err.message || err.detail || String(err));
+      console.error('Dashboard fetch error:', err);
+      setError(err?.response?.data?.message || err.message || String(err));
     } finally {
       setLoading(false);
     }

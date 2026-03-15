@@ -180,13 +180,12 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
   const [okunmamisSayisi, setOkunmamisSayisi] = useState(0);
   const [abonelik, setAbonelik] = useState(null);
 
-  // Okunmamış bildirim sayısını çek
+  // Okunmamış bildirim sayısı — /ozet/istatistik ile DB'de sayıyor (limit bypass)
   useEffect(() => {
     const fetchOkunmamis = async () => {
       try {
-        const res = await api.getBildirimler();
-        const okunmamis = res.data.filter(b => !b.okundu).length;
-        setOkunmamisSayisi(okunmamis);
+        const res = await api.getBildirimIstatistikleri();
+        setOkunmamisSayisi(res.data?.okunmayan ?? 0);
       } catch (e) {
         console.log('Bildirim sayısı alınamadı');
       }
