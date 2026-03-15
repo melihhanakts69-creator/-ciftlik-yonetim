@@ -59,7 +59,7 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const maliyet = await Maliyet.findOne({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!maliyet) {
@@ -78,7 +78,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const maliyetData = {
       ...req.body,
-      userId: req.user.userId
+      userId: req.userId
     };
 
     const maliyet = new Maliyet(maliyetData);
@@ -100,7 +100,7 @@ router.put('/:id', auth, async (req, res) => {
     const maliyet = await Maliyet.findOneAndUpdate(
       {
         _id: req.params.id,
-        userId: req.user.userId
+        userId: req.userId
       },
       req.body,
       { new: true, runValidators: true }
@@ -125,7 +125,7 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const maliyet = await Maliyet.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user.userId
+      userId: req.userId
     });
 
     if (!maliyet) {

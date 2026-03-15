@@ -31,6 +31,11 @@ const tosunSchema = new mongoose.Schema({
     type: String,
     default: 'Aktif',
     enum: ['Aktif', 'Satıldı', 'Öldü']
+  },
+  grupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Grup',
+    default: null
   }
 }, {
   timestamps: true

@@ -7,14 +7,31 @@ const AiSohbet = require('../models/AiSohbet'); // Yeni Sohbet Modeli eklendi
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
+const MAX_DAILY_REQUESTS = 20;
+const userLimits = new Map();
+
+function checkUserLimit(userId) {
+  const bugun = new Date().toISOString().split('T')[0];
+  const kayit = userLimits.get(userId);
+
+  if (!kayit || kayit.date !== bugun) {
+    userLimits.set(userId, { count: 1, date: bugun });
+    return { allowed: true, remaining: MAX_DAILY_REQUESTS - 1 };
+  }
+
+  if (kayit.count >= MAX_DAILY_REQUESTS) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  kayit.count++;
+  return { allowed: true, remaining: MAX_DAILY_REQUESTS - kayit.count };
+}
+
 // ─── API KEY ROTATION SISTEMI ─────────────────────────────────────────────────
 // Bu sistem birden fazla API anahtarını destekler. Biri bitince diğerine atlar.
 // ─── API KEY YAPILANDIRMASI ──────────────────────────────────────────────────
-const _kp = ['AIzaS', 'yAy6x', 'd8ztC', 'usdvh', 'dWkho', '14dL5', 'IlDTJ', 'jG9c'];
-const defaultKey = _kp.join('');
-
-const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || defaultKey)
-    .split(',').map(k => k.trim()).filter(k => k.length > 0);
+const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+  .split(',').map(k => k.trim()).filter(k => k.length > 0);
 
 const CLAUDE_KEYS = (process.env.CLAUDE_API_KEYS || process.env.CLAUDE_API_KEY || '')
     .split(',').map(k => k.trim()).filter(k => k.length > 0);
@@ -158,12 +175,11 @@ async function handleAiRequest(req, res, type, systemPrompt, contextPrefix) {
     if (!soru || soru.trim().length < 3) {
         return res.status(400).json({ message: 'Soru çok kısa' });
     }
-    if (API_KEYS.length === 0) {
-        return res.status(500).json({ message: 'AI servisi yapılandırılmamış, key eksik' });
+    if (GEMINI_KEYS.length === 0 && CLAUDE_KEYS.length === 0) {
+        return res.status(500).json({ message: 'AI servisi yapılandırılmamış' });
     }
 
     const userId = req.userId || 'anonim';
-
     const limitCheck = checkUserLimit(userId.toString());
     if (!limitCheck.allowed) {
         return res.status(429).json({

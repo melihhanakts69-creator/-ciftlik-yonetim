@@ -150,6 +150,18 @@ router.post('/sut-toplama', async (req, res) => {
     const tarihStr = typeof tarih === 'string' ? tarih : new Date(tarih).toISOString().split('T')[0];
     const sagimVal = sagim === 'aksam' ? 'aksam' : 'sabah';
 
+    const mevcutKayit = await SutKaydi.findOne({
+      userId: ciftci._id,
+      toplayiciUserId: toplayiciId,
+      tarih: tarihStr,
+      sagim: sagimVal
+    });
+    if (mevcutKayit) {
+      return res.status(400).json({
+        message: `Bu çiftlik için ${tarihStr} tarihli ${sagimVal} sağımı zaten kaydedilmiş.`
+      });
+    }
+
     const kayit = new SutKaydi({
       userId: ciftci._id,
       tenantId: tenant._id,

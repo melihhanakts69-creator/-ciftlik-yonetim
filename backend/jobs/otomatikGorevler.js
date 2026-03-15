@@ -129,7 +129,9 @@ async function otomatikGorevleriKontrolEt(userId) {
     });
 
     for (const inek of kizginlikAdaylari) {
-      const referansTarih = inek.sonBuzagilamaTarihi || inek.tohumlamaTarihi;
+      // Önce buzağılama, yoksa tohumlama (sadece gebe değilse — başarısız tohumlama referans)
+      const referansTarih = inek.sonBuzagilamaTarihi ||
+        (inek.gebelikDurumu !== 'Gebe' ? inek.tohumlamaTarihi : null);
       if (!referansTarih) continue;
 
       const ref = new Date(referansTarih);

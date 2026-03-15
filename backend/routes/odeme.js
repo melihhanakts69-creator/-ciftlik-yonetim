@@ -162,11 +162,17 @@ router.get('/demo-aktif', auth, async (req, res) => {
 // İyzico Webhook (ödeme onayı geldiğinde Tenant planı güncelle)
 router.post('/webhook/iyzico', async (req, res) => {
   try {
+    const webhookSecret = process.env.IYZICO_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const gelen = req.headers['x-iyz-signature'] || req.query.token;
+      if (gelen !== webhookSecret) {
+        console.warn('Webhook: geçersiz imza reddedildi');
+        return res.status(401).json({ message: 'Yetkisiz' });
+      }
+    }
+
     const payload = req.body;
     console.log('İyzico webhook:', JSON.stringify(payload));
-
-    // İmza doğrulama burada yapılmalı (gerçek ortamda şart)
-    // const signature = req.headers['x-iyz-signature'];
 
     if (payload.status === 'success' && payload.paymentId) {
       const tenantId = payload.metadata?.tenantId;

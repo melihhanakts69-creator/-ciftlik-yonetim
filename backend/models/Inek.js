@@ -66,6 +66,11 @@ const inekSchema = new mongoose.Schema({
     type: String,
     default: 'Belirsiz',
     enum: ['Gebe', 'Gebe Değil', 'Belirsiz']
+  },
+  grupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Grup',
+    default: null
   }
 }, {
   timestamps: true

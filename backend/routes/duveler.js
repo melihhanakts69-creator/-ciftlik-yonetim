@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const planCheck = require('../middleware/planCheck');
 const Duve = require('../models/Duve');
 const Inek = require('../models/Inek');
 const Buzagi = require('../models/Buzagi');
@@ -23,7 +24,7 @@ const yasHesaplaAy = (dogumTarihi) => {
 };
 
 // YENİ DÜVE EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, planCheck, async (req, res) => {
   try {
     const { isim, yas, kilo, kupeNo, dogumTarihi, tohumlamaTarihi, notlar, not, eklemeTarihi, gebelikDurumu } = req.body;
 
@@ -102,7 +103,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // DÜVE DOĞURDU - İnek'e geçir, Buzağı oluştur
-router.post('/:id/dogurdu', auth, async (req, res) => {
+router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
   try {
     const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
@@ -160,10 +161,10 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     });
     await yeniInek.save();
 
-    // 3. Doğum bildirimlerini tamamlandı işaretle (dogum_beklenen, dogum_gecikme)
+    // 3. Doğum bildirimlerini tamamlandı işaretle (dogum_beklenen, dogum_gecikme, kuruya_alma)
     const Bildirim = require('../models/Bildirim');
     await Bildirim.updateMany(
-      { userId: req.userId, hayvanId: duve._id, tip: { $in: ['dogum_beklenen', 'dogum_gecikme', 'dogum'] }, tamamlandi: false },
+      { userId: req.userId, hayvanId: duve._id, tip: { $in: ['dogum_beklenen', 'dogum_gecikme', 'dogum', 'kuruya_alma'] }, tamamlandi: false },
       { tamamlandi: true, tamamlanmaTarihi: new Date() }
     );
 

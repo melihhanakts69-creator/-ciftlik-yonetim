@@ -60,6 +60,11 @@ const buzagiSchema = new mongoose.Schema({
     type: String,
     default: 'Aktif',
     enum: ['Aktif', 'Satıldı', 'Öldü', 'Düveye Geçti', 'Tosuna Geçti']
+  },
+  grupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Grup',
+    default: null
   }
 }, {
   timestamps: true

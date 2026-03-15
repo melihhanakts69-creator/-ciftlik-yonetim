@@ -239,7 +239,8 @@ router.get('/top-performers', auth, async (req, res) => {
       {
         $match: {
           userId: uid,
-          tarih: { $gte: baslangicStr }
+          tarih: { $gte: baslangicStr },
+          inekId: { $regex: /^[a-f0-9]{24}$/i }
         }
       },
       {
@@ -251,7 +252,7 @@ router.get('/top-performers', auth, async (req, res) => {
         $group: {
           _id: '$inekObjId',
           toplamSut: { $sum: '$litre' },
-          gunSayisi: { $sum: 1 }
+          gunler: { $addToSet: '$tarih' }
         }
       },
       {
@@ -271,7 +272,8 @@ router.get('/top-performers', auth, async (req, res) => {
           isim: '$inekBilgi.isim',
           kupeNo: '$inekBilgi.kupeNo',
           toplamSut: 1,
-          ortalama: { $divide: ['$toplamSut', '$gunSayisi'] }
+          gunSayisi: { $size: '$gunler' },
+          ortalama: { $divide: ['$toplamSut', { $max: [{ $size: '$gunler' }, 1] }] }
         }
       },
       { $sort: { ortalama: -1 } },

@@ -76,28 +76,34 @@ router.put('/:id', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req
         stok.sonGuncelleme = Date.now();
         await stok.save();
 
-        // Kritik seviye kontrolü ve Bildirim oluşturma
+        // Kritik seviye kontrolü ve Bildirim oluşturma (tamamlanmadı kontrolü — stok tekrar kritik olana kadar bildirim yok)
         if (stok.kritikSeviye !== undefined && stok.miktar <= stok.kritikSeviye) {
-            // Daha önce okunmamış benzer bildirim var mı?
             const mevcutBildirim = await Bildirim.findOne({
                 userId: req.userId,
                 tip: 'stok',
-                okundu: false,
-                mesaj: { $regex: stok.urunAdi, $options: 'i' },
-                aktif: true
+                tamamlandi: false,
+                aktif: true,
+                'metadata.stokId': stok._id.toString()
             });
 
             if (!mevcutBildirim) {
                 await Bildirim.create({
                     userId: req.userId,
                     baslik: '⚠️ Kritik Stok Uyarısı',
-                    mesaj: `${stok.urunAdi} kritık seviyenin altına düştü! Mevcut: ${stok.miktar} ${stok.birim || ''}, Kritik Eşiği: ${stok.kritikSeviye}`,
+                    mesaj: `${stok.urunAdi} kritik seviyenin altına düştü! Mevcut: ${stok.miktar} ${stok.birim || ''}, Kritik Eşiği: ${stok.kritikSeviye}`,
                     tip: 'stok',
                     oncelik: 'acil',
                     hatirlatmaTarihi: new Date(),
-                    aktif: true
+                    aktif: true,
+                    metadata: { stokId: stok._id.toString(), urunAdi: stok.urunAdi }
                 });
             }
+        } else if (stok.kritikSeviye !== undefined && stok.miktar > stok.kritikSeviye) {
+            // Stok kritik seviyenin üstüne çıktıysa bildirimi kapat
+            await Bildirim.updateMany(
+                { userId: req.userId, tip: 'stok', 'metadata.stokId': stok._id.toString(), tamamlandi: false },
+                { tamamlandi: true, tamamlanmaTarihi: new Date() }
+            );
         }
 
         res.json(stok);

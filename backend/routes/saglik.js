@@ -6,7 +6,6 @@ const SaglikKaydi = require('../models/SaglikKaydi');
 const AsiTakvimi = require('../models/AsiTakvimi');
 const Timeline = require('../models/Timeline');
 const Bildirim = require('../models/Bildirim');
-const Maliyet = require('../models/Maliyet');
 const Finansal = require('../models/Finansal');
 const User = require('../models/User');
 const Tenant = require('../models/Tenant');
@@ -180,18 +179,20 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (req, 
             console.error('Timeline kayıt hatası (kritik değil):', timelineErr.message);
         }
 
-        // Maliyet varsa otomatik gider kaydı
+        // Maliyet varsa Finansal gider kaydı (tek kaynak: Finansal)
         if (kayit.maliyet > 0) {
             try {
-                await Maliyet.create({
+                const tarihStr = kayit.tarih instanceof Date ? kayit.tarih.toISOString().split('T')[0] : (kayit.tarih || new Date().toISOString().split('T')[0]);
+                await Finansal.create({
                     userId: req.userId,
+                    tip: 'gider',
                     kategori: 'veteriner',
-                    tutar: kayit.maliyet,
-                    tarih: kayit.tarih,
+                    miktar: kayit.maliyet,
+                    tarih: tarihStr,
                     aciklama: `${kayit.tani} - ${kayit.hayvanIsim || kayit.hayvanKupeNo || 'Hayvan'} (${kayit.tip})`
                 });
-            } catch (maliyetErr) {
-                console.error('Maliyet kayıt hatası (kritik değil):', maliyetErr.message);
+            } catch (finansalErr) {
+                console.error('Finansal kayıt hatası (kritik değil):', finansalErr.message);
             }
         }
 
@@ -367,18 +368,20 @@ router.post('/asi', auth, checkRole(['ciftci', 'veteriner', 'sutcu']), async (re
             }
         }
 
-        // Maliyet varsa gider kaydı
+        // Maliyet varsa Finansal gider kaydı (tek kaynak: Finansal)
         if (asi.maliyet > 0) {
             try {
-                await Maliyet.create({
+                const tarihStr = asi.uygulamaTarihi instanceof Date ? asi.uygulamaTarihi.toISOString().split('T')[0] : (asi.uygulamaTarihi || new Date().toISOString().split('T')[0]);
+                await Finansal.create({
                     userId: req.userId,
+                    tip: 'gider',
                     kategori: 'veteriner',
-                    tutar: asi.maliyet,
-                    tarih: asi.uygulamaTarihi,
+                    miktar: asi.maliyet,
+                    tarih: tarihStr,
                     aciklama: `Aşı: ${asi.asiAdi} - ${asi.hayvanIsim || asi.hayvanKupeNo || 'Toplu'}`
                 });
-            } catch (maliyetErr) {
-                console.error('Aşı maliyet hatası (kritik değil):', maliyetErr.message);
+            } catch (finansalErr) {
+                console.error('Aşı Finansal kayıt hatası (kritik değil):', finansalErr.message);
             }
         }
 

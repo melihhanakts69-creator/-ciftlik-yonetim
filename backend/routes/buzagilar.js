@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const planCheck = require('../middleware/planCheck');
 const Buzagi = require('../models/Buzagi');
 const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
@@ -17,7 +18,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // YENİ BUZAĞI EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, planCheck, async (req, res) => {
   try {
     const { isim, kupeNo, anneId, anneIsim, anneKupeNo, babaKupeNo, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi } = req.body;
 

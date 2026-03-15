@@ -197,7 +197,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // İNEK DOĞURDU - Buzağı oluştur ve inek bilgilerini güncelle
-router.post('/:id/dogurdu', auth, async (req, res) => {
+router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
   try {
     const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
@@ -251,10 +251,10 @@ router.post('/:id/dogurdu', auth, async (req, res) => {
     inek.tohumlamaTarihi = null;
     await inek.save();
 
-    // 3. Doğum bildirimlerini tamamlandı işaretle (dogum_beklenen, dogum_gecikme)
+    // 3. Doğum bildirimlerini tamamlandı işaretle (dogum_beklenen, dogum_gecikme, kuruya_alma)
     const Bildirim = require('../models/Bildirim');
     await Bildirim.updateMany(
-      { userId: req.userId, hayvanId: inek._id, tip: { $in: ['dogum_beklenen', 'dogum_gecikme', 'dogum'] }, tamamlandi: false },
+      { userId: req.userId, hayvanId: inek._id, tip: { $in: ['dogum_beklenen', 'dogum_gecikme', 'dogum', 'kuruya_alma'] }, tamamlandi: false },
       { tamamlandi: true, tamamlanmaTarihi: new Date() }
     );
 

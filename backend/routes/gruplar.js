@@ -52,6 +52,32 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Gruba ait hayvanları getir
+router.get('/:id/hayvanlar', auth, async (req, res) => {
+  try {
+    const grupId = req.params.id;
+    const uid = req.userId;
+
+    const [inekler, duveler, buzagilar, tosunlar] = await Promise.all([
+      Inek.find({ userId: uid, grupId }).lean(),
+      Duve.find({ userId: uid, grupId }).lean(),
+      Buzagi.find({ userId: uid, grupId }).lean(),
+      Tosun.find({ userId: uid, grupId }).lean()
+    ]);
+
+    res.json({
+      inekler,
+      duveler,
+      buzagilar,
+      tosunlar,
+      toplam: inekler.length + duveler.length + buzagilar.length + tosunlar.length
+    });
+  } catch (err) {
+    console.error('Grup hayvanları error:', err);
+    res.status(500).json({ message: 'Hayvanlar alınamadı' });
+  }
+});
+
 // Belirli bir grubu getir
 router.get('/:id', auth, async (req, res) => {
   try {

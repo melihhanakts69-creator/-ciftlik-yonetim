@@ -49,9 +49,12 @@ const duveSchema = new mongoose.Schema({
   },
   eklemeTarihi: {
     type: Date
+  },
+  grupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Grup',
+    default: null
   }
-
-
 }, {
   timestamps: true
 });

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Tosun = require('../models/Tosun');
 const auth = require('../middleware/auth');
+const planCheck = require('../middleware/planCheck');
 
 // TÜMÜNÜ GETİR
 router.get('/', auth, async (req, res) => {
@@ -14,7 +15,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // YENİ TOSUN EKLE
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, planCheck, async (req, res) => {
   try {
     const { isim, kupeNo, dogumTarihi, anneKupeNo, babaKupeNo, kilo, satisTarihi, satisFiyati, not, durum } = req.body;
     const yeniTosun = new Tosun({
