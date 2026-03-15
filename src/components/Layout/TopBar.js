@@ -9,21 +9,22 @@ import InstallButton from '../PWAInstallPrompt/InstallButton';
 // --- Styled Components ---
 
 const TopBarContainer = styled.div`
-  height: 80px;
-  background-color: white;
+  height: 56px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  margin-bottom: 30px;
-  border-radius: 16px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0;
+  border-radius: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 
   @media (max-width: 768px) {
-    padding: 0 15px;
-    height: 70px;
-    margin-bottom: 20px;
-    border-radius: 12px;
+    padding: 0 12px;
+    height: 50px;
   }
 `;
 

@@ -8,19 +8,67 @@ import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 import { EditModal, FormGroup, FormLabel, FormInput, FormTextarea } from '../components/HayvanDetay/DetayModal';
 import { toast } from 'react-toastify';
 
-const Container = styled.div`max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; background: #f8fafc; min-height: 100vh;`;
-const Header = styled.div`display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px 24px; background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-wrap: wrap; gap: 16px;`;
-const TitleSection = styled.div`display: flex; align-items: center; gap: 16px;`;
+const DetailContainer = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 0 12px 80px;
+  }
+`;
+
+const DetailHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+`;
+
+const TitleSection = styled.div`display: flex; align-items: center; gap: 12px;`;
 const BackButton = styled.button`background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; &:hover { background: #e2e8f0; }`;
 const Title = styled.h1`margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
 const TagBadge = styled.span`background: #5d4037; color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 700;`;
 const Subtitle = styled.div`font-size: 13px; color: #64748b; margin-top: 4px;`;
-const ActionButtons = styled.div`display: flex; gap: 8px;`;
+const ActionButtons = styled.div`display: flex; gap: 8px; margin-left: auto;`;
 const ActionButton = styled.button`padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: all 0.2s; &:hover { transform: translateY(-1px); }`;
 const QuickRow = styled.div`display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;`;
-const Grid = styled.div`display: grid; grid-template-columns: 1fr 320px; gap: 20px; @media (max-width: 900px) { grid-template-columns: 1fr; }`;
-const Card = styled.div`background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;`;
-const CardTitle = styled.h3`margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #334155; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;`;
+const DetailGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+const Card = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+`;
+const CardTitle = styled.h3`
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 14px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+`;
+const SidePanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 70px;
+`;
 const InfoGrid = styled.div`display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;`;
 const InfoItem = styled.div`padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #f1f5f9;`;
 const Label = styled.span`font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;`;
@@ -117,7 +165,7 @@ const TosunDetay = () => {
         }
     };
 
-    if (loading) return <Container>Yükleniyor...</Container>;
+    if (loading) return <DetailContainer>Yükleniyor...</DetailContainer>;
     if (!tosun) return null;
 
     const yas = Math.floor((new Date() - new Date(tosun.dogumTarihi)) / (1000 * 60 * 60 * 24 * 30));
@@ -145,14 +193,14 @@ const TosunDetay = () => {
                         <FaTrash /> Sil
                     </ActionButton>
                 </ActionButtons>
-            </Header>
+            </DetailHeader>
 
             <QuickRow>
                 <ActionButton onClick={() => setShowKiloModal(true)} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 110 }}><FaWeight /> Kilo</ActionButton>
                 <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#6a1b9a', flex: 1, minWidth: 110 }}><FaMoneyBillWave /> Satış</ActionButton>
             </QuickRow>
 
-            <Grid>
+            <DetailGrid>
                 {/* SOL KOLON */}
                 <div>
                     {/* TEMEL BİLGİLER */}
@@ -256,7 +304,7 @@ const TosunDetay = () => {
                 </EditModal>
             )}
 
-        </Container >
+        </DetailContainer>
     );
 };
 

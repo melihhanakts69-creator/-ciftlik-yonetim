@@ -20,21 +20,28 @@ const CAT_CONFIG = {
 const getCat = k => CAT_CONFIG[k] || CAT_CONFIG['Diğer'];
 
 // ─── Styled ────────────────────────────────────────────────────────────────────
-const Page = styled.div`
+const PageContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
   min-height: 100vh;
-  background: #f8fafc;
   font-family: 'Inter', system-ui, sans-serif;
   animation: ${fadeIn} .4s ease;
-  
-  @media(max-width:768px){ background: #f1f5f9; }
+
+  @media (max-width: 768px) {
+    padding: 0 12px 80px;
+  }
 `;
 
-const Header = styled.div`
-  background: #ffffff;
+const PageHeader = styled.div`
+  padding: 20px 0 16px;
   border-bottom: 1px solid #e5e7eb;
-  padding: 20px 24px 16px;
-  
-  @media(max-width:768px){ padding: 14px 16px 12px; }
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    padding: 14px 0 12px;
+    margin-bottom: 14px;
+  }
 `;
 
 const HeaderTop = styled.div`
@@ -95,9 +102,11 @@ const Stat = styled.div`
 `;
 
 const Content = styled.div`
-  padding: 20px 24px;
-  
-  @media(max-width:768px){ padding: 14px 12px; }
+  padding: 0;
+
+  @media (max-width: 768px) {
+    padding: 0;
+  }
 `;
 
 const FilterBar = styled.div`
@@ -448,9 +457,9 @@ export default function StokYonetimi() {
   const pieData = CATS.map((c, i) => ({ name: c, value: stoklar.filter(s => s.kategori === c).length, fill: PIE_COLORS[i] })).filter(d => d.value > 0);
 
   return (
-    <Page>
+    <PageContainer>
       {/* ── Header ────────────────────────────────────────────── */}
-      <Header>
+      <PageHeader>
         <HeaderTop>
           <PageTitle>📦 Stok Yönetimi</PageTitle>
           <HeaderActions>
@@ -484,7 +493,7 @@ export default function StokYonetimi() {
             <div className="lbl">Yeterli</div>
           </Stat>
         </StatRow>
-      </Header>
+      </PageHeader>
 
       <Content>
         {/* ── Kritik uyarı ──────────────────────────────────────── */}
@@ -658,6 +667,6 @@ export default function StokYonetimi() {
           </Modal>
         </Overlay>
       )}
-    </Page>
+    </PageContainer>
   );
 }

@@ -9,18 +9,29 @@ import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 import { EditModal, FormGroup, FormLabel, FormInput, FormTextarea } from '../components/HayvanDetay/DetayModal';
 import { toast } from 'react-toastify';
 
-// --- STYLED COMPONENTS (sade, profesyonel) ---
-const Container = styled.div`
-  max-width: 960px; margin: 0 auto; padding: 20px 16px 40px;
-  background: #f8fafc; min-height: 100vh;
+// --- STYLED COMPONENTS (standart pattern) ---
+const DetailContainer = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 0 12px 80px;
+  }
 `;
-const Header = styled.div`
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 20px; padding: 20px 24px; background: #fff;
-  border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  flex-wrap: wrap; gap: 16px;
+
+const DetailHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 `;
-const TitleSection = styled.div`display: flex; align-items: center; gap: 16px;`;
+
+const TitleSection = styled.div`display: flex; align-items: center; gap: 12px;`;
 const BackButton = styled.button`
   background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 10px;
   cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center;
@@ -35,7 +46,7 @@ const TagBadge = styled.span`
   font-size: 13px; font-weight: 700;
 `;
 const Subtitle = styled.div`font-size: 13px; color: #64748b; margin-top: 4px;`;
-const ActionButtons = styled.div`display: flex; gap: 8px;`;
+const ActionButtons = styled.div`display: flex; gap: 8px; margin-left: auto;`;
 const ActionButton = styled.button`
   padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer;
   font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;
@@ -45,23 +56,56 @@ const ActionButton = styled.button`
 const QuickRow = styled.div`
   display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
 `;
-const TabBtn = styled.button`
-  padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px;
-  background: ${p => p.$active ? '#4CAF50' : '#fff'}; color: ${p => p.$active ? '#fff' : '#64748b'};
-  box-shadow: ${p => p.$active ? '0 2px 8px rgba(76,175,80,0.3)' : '0 1px 3px rgba(0,0,0,0.06)'};
+const TabBar = styled.div`
+  display: flex; gap: 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
 `;
-const TabRow = styled.div`display: flex; gap: 6px; margin-bottom: 20px;`;
-const Grid = styled.div`
-  display: grid; grid-template-columns: 1fr 320px; gap: 20px;
-  @media (max-width: 900px) { grid-template-columns: 1fr; }
+const Tab = styled.button`
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: ${p => p.$active ? '600' : '500'};
+  color: ${p => p.$active ? '#16a34a' : '#6b7280'};
+  border-bottom: 2px solid ${p => p.$active ? '#16a34a' : 'transparent'};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+`;
+const DetailGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
 `;
 const Card = styled.div`
-  background: #fff; border-radius: 14px; padding: 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 18px 20px;
+  margin-bottom: 16px;
 `;
 const CardTitle = styled.h3`
-  margin: 0 0 16px 0; font-size: 15px; font-weight: 800; color: #334155;
-  display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 14px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+`;
+const SidePanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 70px;
 `;
 const InfoGrid = styled.div`
   display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
@@ -241,13 +285,13 @@ const InekDetay = () => {
         }
     };
 
-    if (loading) return <Container>Yükleniyor...</Container>;
+    if (loading) return <DetailContainer>Yükleniyor...</DetailContainer>;
     if (!inek) return null;
 
     return (
-        <Container>
+        <DetailContainer>
             {/* --- HEADER --- */}
-            <Header>
+            <DetailHeader>
                 <TitleSection>
                     <BackButton onClick={() => navigate('/inekler')}><FaArrowLeft /></BackButton>
                     <div>
@@ -267,7 +311,7 @@ const InekDetay = () => {
                         <FaTrash /> Sil
                     </ActionButton>
                 </ActionButtons>
-            </Header>
+            </DetailHeader>
 
             <QuickRow>
                 <ActionButton onClick={() => setShowTohumlamaModal(true)} style={{ backgroundColor: '#fff3e0', color: '#e65100', flex: 1, minWidth: 110 }}>
@@ -284,16 +328,16 @@ const InekDetay = () => {
                 </ActionButton>
             </QuickRow>
 
-            <TabRow>
+            <TabBar>
                 {[
                     { key: 'genel', label: '📋 Genel' },
                     { key: 'laktasyon', label: '📈 Verim' },
                 ].map(s => (
-                    <TabBtn key={s.key} $active={aktifSekme === s.key} onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}>
+                    <Tab key={s.key} $active={aktifSekme === s.key} onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}>
                         {s.label}
-                    </TabBtn>
+                    </Tab>
                 ))}
-            </TabRow>
+            </TabBar>
 
             {/* LAKTASYON GRAFİĞİ SEKMESİ */}
             {aktifSekme === 'laktasyon' && (
@@ -395,7 +439,7 @@ const InekDetay = () => {
 
             {/* GENEL BİLGİ SEKMESİ */}
             {aktifSekme === 'genel' && (
-                <Grid>
+                <DetailGrid>
                 {/* SOL KOLON */}
                 <div>
                     {/* TEMEL BİLGİLER */}
@@ -501,7 +545,7 @@ const InekDetay = () => {
                 </div>
 
                 {/* SAĞ KOLON */}
-                <div>
+                <SidePanel>
                     {/* NOTLAR */}
                     <Card>
                         <CardTitle>📝 Notlar</CardTitle>
@@ -509,8 +553,8 @@ const InekDetay = () => {
                             {inek.notlar || 'Henüz bir not eklenmemiş.'}
                         </p>
                     </Card>
-                </div>
-            </Grid>
+                </SidePanel>
+            </DetailGrid>
             )}
 
 
@@ -625,7 +669,7 @@ const InekDetay = () => {
                 </EditModal>
             )}
 
-        </Container >
+        </DetailContainer>
     );
 };
 

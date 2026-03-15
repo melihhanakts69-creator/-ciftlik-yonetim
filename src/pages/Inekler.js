@@ -7,21 +7,23 @@ import { toast } from 'react-toastify';
 import FilterBar from '../components/common/FilterBar';
 
 const PageContainer = styled.div`
-  padding: 20px;
-  background-color: #f8f9fa;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
   min-height: 100vh;
-  
+
   @media (max-width: 768px) {
-    padding: 10px;
-    padding-bottom: 80px;
+    padding: 0 12px 80px;
   }
 `;
 
-const Header = styled.div`
+const PageHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;
 
@@ -40,6 +42,34 @@ const Header = styled.div`
     display: flex;
     gap: 10px;
   }
+
+  @media (max-width: 768px) {
+    padding: 14px 0 12px;
+    margin-bottom: 14px;
+  }
+`;
+
+const FilterRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const FilterChip = styled.button`
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid ${p => p.$active ? '#16a34a' : '#e5e7eb'};
+  background: ${p => p.$active ? '#dcfce7' : '#fff'};
+  color: ${p => p.$active ? '#166534' : '#6b7280'};
+  font-size: 12px;
+  font-weight: ${p => p.$active ? '600' : '500'};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
 `;
 
 const ToggleViewButtons = styled.div`
@@ -324,7 +354,7 @@ const Inekler = () => {
 
     return (
         <PageContainer>
-            <Header>
+            <PageHeader>
                 <h1>🐄 İneklerimiz ({filteredInekler.length})</h1>
                 <div className="actions">
                     <ToggleViewButtons>
@@ -335,7 +365,7 @@ const Inekler = () => {
                         <FaPlus /> <span>Yeni İnek</span>
                     </AddButton>
                 </div>
-            </Header>
+            </PageHeader>
 
             <FilterBar
                 onSearch={setSearchTerm}

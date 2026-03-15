@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
-import QuickActionsFAB from './QuickActionsFAB';
+import BottomNav from './BottomNav';
 import PWAInstallPrompt from '../PWAInstallPrompt/PWAInstallPrompt';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 
@@ -21,9 +21,9 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.div`
   flex: 1;
-  margin-left: 260px;
-  padding: 30px;
-  max-width: calc(100% - 260px);
+  margin-left: 240px;
+  padding: 0;
+  max-width: calc(100% - 240px);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
@@ -31,8 +31,8 @@ const MainContent = styled.div`
   @media (max-width: 768px) {
     margin-left: 0;
     max-width: 100%;
-    padding: 15px;
-    padding-bottom: ${({ $isMobile }) => ($isMobile ? 'calc(90px + env(safe-area-inset-bottom, 0))' : '15px')};
+    padding: 0;
+    padding-bottom: ${({ $isMobile }) => ($isMobile ? 'calc(70px + env(safe-area-inset-bottom, 0))' : '0')};
   }
 `;
 
@@ -73,7 +73,7 @@ const Layout = ({ children, onLogout }) => {
                 </div>
             </MainContent>
 
-            {isMobile && <QuickActionsFAB onMenuClick={() => setIsSidebarOpen(true)} />}
+            {isMobile && <BottomNav onMenuClick={() => setIsSidebarOpen(true)} />}
             <PWAInstallPrompt />
         </LayoutContainer>
     );
