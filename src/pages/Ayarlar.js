@@ -6,69 +6,81 @@ const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { 
 
 // ── Styled ────────────────────────────────────────────────────────
 const Page = styled.div`
-  max-width: 860px; margin: 0 auto; padding: 24px 16px; animation: ${fadeIn} 0.4s ease;
-  font-family: 'Inter', system-ui, sans-serif;
+  max-width: 920px; margin: 0 auto; padding: 28px 20px 40px; animation: ${fadeIn} 0.4s ease;
+  font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  min-height: 100vh;
 `;
 const PageTitle = styled.h1`
-  font-size: 22px; font-weight: 900; color: #1e293b; margin: 0 0 24px;
-  display: flex; align-items: center; gap: 10px;
+  font-size: 24px; font-weight: 900; color: #0f172a; margin: 0 0 28px; letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 12px;
 `;
-const Grid = styled.div`display: grid; gap: 20px;`;
+const Grid = styled.div`display: grid; gap: 24px;`;
 const Card = styled.div`
-  background: #fff; border-radius: 20px; box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-  overflow: hidden;
+  background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  overflow: hidden; border: 1px solid rgba(0,0,0,0.04);
 `;
 const CardHeader = styled.div`
-  padding: 18px 24px; border-bottom: 1px solid #f1f5f9;
-  font-size: 14px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;
-  display: flex; align-items: center; gap: 8px;
+  padding: 20px 28px; border-bottom: 1px solid #f1f5f9;
+  font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.6px;
+  display: flex; align-items: center; gap: 10px; background: #fafbfc;
 `;
-const CardBody = styled.div`padding: 24px;`;
+const CardBody = styled.div`padding: 28px;`;
 
-// Profil Kartı
+// Profil Kartı - Yeniden tasarlandı
 const ProfileBand = styled.div`
-  background: linear-gradient(135deg, #0a1628 0%, #1a3a2a 100%);
-  padding: 28px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  @media (max-width: 560px) { flex-direction: column; text-align: center; }
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a2e 50%, #14532d 100%);
+  padding: 36px 32px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+  position: relative; overflow: hidden;
+  &::before {
+    content: ''; position: absolute; top: -80px; right: -80px; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(74,222,128,0.12) 0%, transparent 70%); border-radius: 50%;
+  }
+  @media (max-width: 560px) { flex-direction: column; text-align: center; padding: 28px 20px; gap: 20px; }
 `;
-const AvatarWrap = styled.div`position: relative; cursor: pointer;`;
+const AvatarWrap = styled.div`
+  position: relative; cursor: pointer; flex-shrink: 0;
+  &::after { content: 'Fotoğraf değiştir'; position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: rgba(255,255,255,0.7); white-space: nowrap; font-weight: 600; }
+  &:hover .avatar-overlay { opacity: 1; }
+`;
 const Avatar = styled.div`
-  width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(74,222,128,0.5);
-  background: linear-gradient(135deg, #16a34a, #4ade80);
+  width: 100px; height: 100px; border-radius: 50%; border: 4px solid rgba(74,222,128,0.6);
+  background: linear-gradient(135deg, #15803d, #4ade80);
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; font-weight: 900; color: #fff; overflow: hidden; user-select: none;
+  font-size: 36px; font-weight: 900; color: #fff; overflow: hidden; user-select: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   img { width: 100%; height: 100%; object-fit: cover; }
 `;
 const AvatarOverlay = styled.div`
-  position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s;
-  color: #fff; font-size: 20px;
-  ${AvatarWrap}:hover & { opacity: 1; }
+  position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.55);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: 0.25s;
+  color: #fff; font-size: 14px; font-weight: 700; gap: 4px;
 `;
-const ProfileInfo = styled.div`flex: 1; min-width: 200px;`;
-const ProfileName = styled.div`font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 4px;`;
-const ProfileSub = styled.div`font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 8px;`;
+const ProfileInfo = styled.div`flex: 1; min-width: 220px; position: relative; z-index: 1;`;
+const ProfileName = styled.div`font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 6px; letter-spacing: -0.02em;`;
+const ProfileSub = styled.div`font-size: 14px; color: rgba(255,255,255,0.75); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
 const RoleBadge = styled.span`
-  background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3);
-  color: #4ade80; border-radius: 999px; padding: 3px 12px; font-size: 11px; font-weight: 700;
+  background: rgba(74,222,128,0.2); border: 1px solid rgba(74,222,128,0.4);
+  color: #86efac; border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700;
 `;
+const FarmIdRow = styled.div`display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;`;
 const FarmIdBox = styled.div`
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px; padding: 10px 14px; margin-top: 12px; display: inline-flex;
-  align-items: center; gap: 10px; cursor: pointer;
-  &:hover { border-color: rgba(74,222,128,0.4); }
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px; padding: 12px 16px; display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: all 0.2s;
+  &:hover { border-color: rgba(74,222,128,0.5); background: rgba(255,255,255,0.12); }
 `;
-const FarmIdLabel = styled.div`font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 700; text-transform: uppercase;`;
-const FarmIdValue = styled.div`font-size: 12px; color: #94a3b8; font-family: monospace; letter-spacing: 0.5px;`;
+const FarmIdLabel = styled.div`font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;`;
+const FarmIdValue = styled.div`font-size: 13px; color: #cbd5e1; font-family: 'SF Mono', monospace; letter-spacing: 0.5px;`;
 const CopyBtn = styled.button`
-  background: none; border: 1px solid rgba(74,222,128,0.3); border-radius: 6px;
-  color: #4ade80; font-size: 11px; font-weight: 700; padding: 3px 8px; cursor: pointer;
-  &:hover { background: rgba(74,222,128,0.1); }
+  background: rgba(74,222,128,0.2); border: 1px solid rgba(74,222,128,0.4); border-radius: 8px;
+  color: #86efac; font-size: 11px; font-weight: 700; padding: 4px 10px; cursor: pointer;
+  &:hover { background: rgba(74,222,128,0.3); }
 `;
 
 // Form
-const FormGrid = styled.div`display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  @media (max-width: 560px) { grid-template-columns: 1fr; }`;
+const FormGrid = styled.div`display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  @media (max-width: 560px) { grid-template-columns: 1fr; gap: 16px; }`;
 const FG = styled.div``;
 const Label = styled.label`font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 6px;`;
 const Input = styled.input`
@@ -93,13 +105,14 @@ const AlertBox = styled.div`
   color: ${p => p.$err ? '#ef4444' : '#16a34a'};
 `;
 
-const TabContainer = styled.div`display: flex; gap: 8px; margin-bottom: 24px;`;
+const TabContainer = styled.div`display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap;`;
 const TabBtn = styled.button`
-    padding: 12px 24px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
-    background: ${p => p.$active ? '#1e293b' : '#fff'}; color: ${p => p.$active ? '#fff' : '#64748b'};
-    box-shadow: ${p => p.$active ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.04)'};
-    transition: all 0.2s;
-    &:hover { background: ${p => p.$active ? '#0f172a' : '#f8fafc'}; }
+    padding: 14px 26px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+    background: ${p => p.$active ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#fff'};
+    color: ${p => p.$active ? '#fff' : '#64748b'};
+    box-shadow: ${p => p.$active ? '0 4px 14px rgba(15,23,42,0.25)' : '0 2px 8px rgba(0,0,0,0.05)'};
+    transition: all 0.2s; border: 1px solid ${p => p.$active ? 'transparent' : '#e2e8f0'};
+    &:hover { background: ${p => p.$active ? '#0f172a' : '#f8fafc'}; transform: translateY(-1px); }
 `;
 
 const Table = styled.table`
@@ -249,7 +262,9 @@ export default function Ayarlar() {
         try {
             const res = await api.updateProfile({ isim: user.isim, email: user.email, isletmeAdi: user.isletmeAdi, sehir: user.sehir, telefon: user.telefon, profilFoto: user.profilFoto, bolge: user.bolge, firmaAdi: user.firmaAdi });
             const curr = JSON.parse(localStorage.getItem('user') || '{}');
-            localStorage.setItem('user', JSON.stringify({ ...curr, ...res.data.user }));
+            const updated = { ...curr, ...res.data.user };
+            localStorage.setItem('user', JSON.stringify(updated));
+            window.dispatchEvent(new CustomEvent('agrolina:userUpdated'));
             setMsg('✅ Profil güncellendi!'); setMsgErr(false);
         } catch (e) { setMsg(e.response?.data?.detail || e.response?.data?.message || '❌ Güncellenemedi!'); setMsgErr(true); }
         finally { setLoading(false); }
@@ -293,7 +308,7 @@ export default function Ayarlar() {
                     <ProfileBand>
                         <AvatarWrap onClick={handleAvatarUpload} title="Fotoğraf yükle/değiştir">
                             <Avatar>{user.profilFoto ? <img src={user.profilFoto} alt="avatar" /> : initials}</Avatar>
-                            <AvatarOverlay>📷</AvatarOverlay>
+                            <AvatarOverlay className="avatar-overlay">📷 Değiştir</AvatarOverlay>
                         </AvatarWrap>
 
                         <ProfileInfo>
@@ -305,7 +320,7 @@ export default function Ayarlar() {
                                 <span style={{ marginLeft: 10 }}>{user.email}</span>
                             </ProfileSub>
                             {user.rol === 'ciftci' && (
-                                <>
+                                <FarmIdRow>
                                     {ciftlikKodu && (
                                         <FarmIdBox onClick={() => copyId(ciftlikKodu)} title="Veteriner ve süt toplayıcıyla paylaşın">
                                             <div>
@@ -318,11 +333,11 @@ export default function Ayarlar() {
                                     <FarmIdBox onClick={() => copyId(farmId)} title="Çiftçi ID (isteğe bağlı)">
                                         <div>
                                             <FarmIdLabel>ID (gelişmiş)</FarmIdLabel>
-                                            <FarmIdValue style={{ fontSize: 11 }}>{farmId}</FarmIdValue>
+                                            <FarmIdValue style={{ fontSize: 12 }}>{farmId}</FarmIdValue>
                                         </div>
                                         <CopyBtn>{copied ? '✅' : 'Kopyala'}</CopyBtn>
                                     </FarmIdBox>
-                                </>
+                                </FarmIdRow>
                             )}
                         </ProfileInfo>
                     </ProfileBand>

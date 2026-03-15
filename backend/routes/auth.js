@@ -358,14 +358,34 @@ router.put('/update', require('../middleware/auth'), updateValidation, async (re
 // 1. Alt Hesapları Listele
 router.get('/sub-accounts', require('../middleware/auth'), async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId).select('rol tenantId');
     if (user.rol !== 'ciftci') {
       return res.status(403).json({ message: 'Sadece çiftlik sahipleri alt hesapları görebilir.' });
     }
 
-    const subAccounts = await User.find({ parentUserId: req.userId }).select('-sifre');
-    res.json(subAccounts);
+    // parentUserId ile bağlı işçiler + aynı tenant altındaki sütçüler (eski kayıtlar veya farklı bağlantı yolları)
+    const mongoose = require('mongoose');
+    const conditions = [{ parentUserId: new mongoose.Types.ObjectId(req.userId) }];
+    let tenantId = user.tenantId;
+    if (!tenantId) {
+      const tenant = await Tenant.findOne({ ownerUser: req.userId }).select('_id').lean();
+      tenantId = tenant?._id;
+    }
+    if (tenantId) {
+      conditions.push({ tenantId, rol: 'sutcu' });
+    }
+    const subAccounts = await User.find({ $or: conditions }).select('-sifre').lean();
+    // Aynı kişi iki koşulla da eşleşebilir; benzersizleştir
+    const seen = new Set();
+    const unique = subAccounts.filter(s => {
+      const id = s._id.toString();
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    res.json(unique);
   } catch (error) {
+    console.error('Auth sub-accounts error:', error);
     res.status(500).json({ message: 'Alt hesaplar getirilirken hata oluştu.' });
   }
 });
@@ -420,14 +440,20 @@ router.delete('/sub-accounts/:id', require('../middleware/auth'), async (req, re
     const targetUser = await User.findById(req.params.id);
     if (!targetUser) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
 
-    // Sadece hesabı açan parent (ciftci) silebilir
-    if (targetUser.parentUserId?.toString() !== req.userId) {
+    const isParent = targetUser.parentUserId?.toString() === req.userId;
+    let isTenantOwner = false;
+    if (!isParent && targetUser.tenantId) {
+      const tenant = await Tenant.findById(targetUser.tenantId).select('ownerUser').lean();
+      isTenantOwner = tenant?.ownerUser?.toString() === req.userId;
+    }
+    if (!isParent && !isTenantOwner) {
       return res.status(403).json({ message: 'Bu hesabı silme yetkiniz yok.' });
     }
 
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'Alt hesap silindi.' });
   } catch (error) {
+    console.error('Auth sub-account delete error:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });

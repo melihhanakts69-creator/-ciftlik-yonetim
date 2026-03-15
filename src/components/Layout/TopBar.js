@@ -150,6 +150,14 @@ const UserRole = styled.div`
   color: #B5B5C3;
 `;
 
+const ProfileAvatar = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #E1E3EA;
+`;
+
 const InstallBtnWrap = styled.div`
   @media (min-width: 769px) {
     display: none;
@@ -160,7 +168,13 @@ const TopBar = ({ onMenuClick }) => {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
     const [unreadCount, setUnreadCount] = useState(0);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+
+    useEffect(() => {
+        const onUserUpdate = () => setUser(JSON.parse(localStorage.getItem('user') || '{}'));
+        window.addEventListener('agrolina:userUpdated', onUserUpdate);
+        return () => window.removeEventListener('agrolina:userUpdated', onUserUpdate);
+    }, []);
 
     useEffect(() => {
         fetchUnreadCount();
@@ -203,10 +217,14 @@ const TopBar = ({ onMenuClick }) => {
 
                 <UserSection onClick={() => navigate('/ayarlar')}>
                     <UserInfo>
-                        <UserName>{user.name || 'Kullanıcı'}</UserName>
-                        <UserRole>Yönetici</UserRole>
+                        <UserName>{user.isim || user.name || 'Kullanıcı'}</UserName>
+                        <UserRole>{user.isletmeAdi || (user.rol === 'veteriner' ? 'Veteriner' : user.rol === 'sutcu' ? 'İşçi' : user.rol === 'toplayici' ? 'Süt Toplayıcı' : 'Çiftlik')}</UserRole>
                     </UserInfo>
-                    <FaUserCircle style={{ fontSize: '36px', color: '#E1E3EA' }} />
+                    {user.profilFoto ? (
+                        <ProfileAvatar src={user.profilFoto} alt="Profil" />
+                    ) : (
+                        <FaUserCircle style={{ fontSize: '36px', color: '#E1E3EA' }} />
+                    )}
                 </UserSection>
             </RightSection>
         </TopBarContainer>

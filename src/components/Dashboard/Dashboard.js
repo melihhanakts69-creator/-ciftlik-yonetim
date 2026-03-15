@@ -656,7 +656,7 @@ const Dashboard = ({ kullanici }) => {
       <Header>
         <TitleSection>
           <GreetingLine>{getGreeting()}</GreetingLine>
-          <Title>🌿 Agrolina Paneli</Title>
+          <Title>🌿 {kullanici?.isletmeAdi || 'Çiftlik'} Paneli</Title>
           <Subtitle>
             {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             {' · '}
