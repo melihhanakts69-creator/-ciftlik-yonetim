@@ -546,7 +546,7 @@ export default function YemMerkezi() {
                       </div>
                     </RCardBody>
                   </RCard>
-                );}))}
+                );})}
               </RGrid>
               </>
             )}
