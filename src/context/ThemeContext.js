@@ -1,81 +1,68 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { colors } from '../styles/colors';
 
 // Tema tanımları
 export const themes = {
-    light: {
-        name: 'light',
-        colors: {
-            // Backgrounds
-            bgPrimary: '#ffffff',
-            bgSecondary: '#f8f9fa',
-            bgTertiary: '#f0f0f0',
+  light: {
+    name: 'light',
+    colors: {
+      bgPrimary:    '#ffffff',
+      bgSecondary:  '#f9fafb',
+      bgTertiary:   '#f4f6f3',
 
-            // Text
-            textPrimary: '#1a1a1a',
-            textSecondary: '#666666',
-            textMuted: '#999999',
+      textPrimary:   '#111827',
+      textSecondary: '#6b7280',
+      textMuted:     '#9ca3af',
 
-            // Brand
-            primary: '#4CAF50',
-            primaryDark: '#45a049',
-            primaryLight: '#e8f5e9',
+      primary:      colors.primary,        // #16a34a
+      primaryDark:  colors.primaryDark,    // #15803d
+      primaryLight: colors.primaryLight,   // #dcfce7
 
-            // Status
-            success: '#4CAF50',
-            warning: '#FF9800',
-            error: '#f44336',
-            info: '#2196F3',
+      success:  colors.success,            // #16a34a
+      warning:  colors.warning,            // #f59e0b
+      error:    colors.danger,             // #ef4444
+      info:     colors.info,               // #3b82f6
 
-            // Border
-            border: '#e0e0e0',
-            borderLight: '#f0f0f0',
+      border:      '#e5e7eb',
+      borderLight: '#f3f4f6',
 
-            // Shadow
-            shadow: 'rgba(0, 0, 0, 0.1)',
-            shadowLight: 'rgba(0, 0, 0, 0.05)',
+      shadow:      'rgba(0, 0, 0, 0.08)',
+      shadowLight: 'rgba(0, 0, 0, 0.04)',
 
-            // Sidebar
-            sidebarBg: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
-            sidebarText: '#a8a8b3',
-        }
-    },
-    dark: {
-        name: 'dark',
-        colors: {
-            // Backgrounds
-            bgPrimary: '#1a1a2e',
-            bgSecondary: '#16213e',
-            bgTertiary: '#0f0f1a',
-
-            // Text
-            textPrimary: '#ffffff',
-            textSecondary: '#a8a8b3',
-            textMuted: '#666666',
-
-            // Brand
-            primary: '#4CAF50',
-            primaryDark: '#45a049',
-            primaryLight: 'rgba(76, 175, 80, 0.2)',
-
-            // Status
-            success: '#4CAF50',
-            warning: '#FF9800',
-            error: '#f44336',
-            info: '#2196F3',
-
-            // Border
-            border: '#2a2a40',
-            borderLight: '#252535',
-
-            // Shadow
-            shadow: 'rgba(0, 0, 0, 0.3)',
-            shadowLight: 'rgba(0, 0, 0, 0.2)',
-
-            // Sidebar
-            sidebarBg: 'linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%)',
-            sidebarText: '#888888',
-        }
+      sidebarBg:   '#18181b',
+      sidebarText: '#71717a',
     }
+  },
+  dark: {
+    name: 'dark',
+    colors: {
+      bgPrimary:   '#18181b',
+      bgSecondary: '#27272a',
+      bgTertiary:  '#09090b',
+
+      textPrimary:   '#f4f4f5',
+      textSecondary: '#a1a1aa',
+      textMuted:     '#71717a',
+
+      primary:      colors.primary,        // #16a34a
+      primaryDark:  colors.primaryDark,
+      primaryLight: 'rgba(22, 163, 74, 0.15)',
+
+      success:  colors.success,
+      warning:  colors.warning,
+      error:    colors.danger,
+      info:     colors.info,
+
+      border:      '#3f3f46',
+      borderLight: '#27272a',
+
+      shadow:      'rgba(0, 0, 0, 0.4)',
+      shadowLight: 'rgba(0, 0, 0, 0.25)',
+
+      sidebarBg:   '#09090b',
+      sidebarText: '#52525b',
+    }
+  }
 };
 
 // Context oluştur

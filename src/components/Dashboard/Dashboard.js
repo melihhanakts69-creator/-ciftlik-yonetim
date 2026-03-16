@@ -8,6 +8,19 @@ import YaklasanDogumlar from '../YaklasanDogumlar';
 import { Skeleton } from '../common/Skeleton';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat } from 'react-icons/fa';
 
+const DASHBOARD_PANEL_KEY = 'dashboardPanelMetrikleri';
+const DEFAULT_PANELS = ['gunlukSut', 'sagmalInek', 'yaklasanDogum', 'saglikSkoru'];
+
+const METRIK_OPTIONS = [
+  { id: 'gunlukSut', label: 'Günlük Süt', icon: '🥛', unit: 'Lt', color: '#16a34a', bg: '#dcfce7', nav: '/sut-kaydi' },
+  { id: 'sagmalInek', label: 'Sağmal İnek', icon: '🐄', unit: 'baş', color: '#2563eb', bg: '#dbeafe', nav: '/inekler' },
+  { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'adet', color: '#d97706', bg: '#fef3c7', nav: null },
+  { id: 'saglikSkoru', label: 'Sağlık Skoru', icon: '❤️', unit: '/100', color: '#16a34a', bg: '#dcfce7', nav: '/saglik-merkezi' },
+  { id: 'yemStok', label: 'Yem Stok', icon: '🌿', unit: '%', color: '#d97706', bg: '#fef3c7', nav: '/yem-merkezi' },
+  { id: 'aylikGelir', label: 'Aylık Gelir', icon: '💰', unit: '₺', color: '#16a34a', bg: '#dcfce7', nav: '/finansal' },
+  { id: 'litreBasinaMaliyet', label: 'Lt Başına Maliyet', icon: '📊', unit: '₺/Lt', color: '#2563eb', bg: '#dbeafe', nav: '/karlilik' },
+];
+
 // --- Styled Components ---
 
 const DashboardContainer = styled.div`
@@ -349,6 +362,19 @@ const ActivityRow = styled.div`
   .act-time { font-size: 11px; color: #9ca3af; margin-top: 1px; }
 `;
 
+const SectionTitle = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
 // --- Helpers ---
 
 const getGreeting = () => {
@@ -365,11 +391,52 @@ const formatTarih = (tarih) => {
   return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
+const getMetrikValue = (stats, metrikId, saglikSkoru) => {
+  if (!stats && metrikId !== 'saglikSkoru') return '0';
+  switch (metrikId) {
+    case 'gunlukSut': return (stats?.bugunSut ?? 0).toFixed(0);
+    case 'sagmalInek': return stats?.sagmal ?? 0;
+    case 'yaklasanDogum': return stats?.yaklaşanDogum ?? stats?.yaklasanDogum ?? 0;
+    case 'saglikSkoru': return saglikSkoru ?? 100;
+    case 'yemStok': return stats?.yemStok ?? 0;
+    case 'aylikGelir': return stats?.aylikGelir ?? 0;
+    case 'litreBasinaMaliyet': return (stats?.litreBasinaMaliyet ?? 0).toFixed(1);
+    default: return '0';
+  }
+};
+
+const getMetrikTrend = (stats, metrikId, saglikSkoruDetay) => {
+  if (!stats && metrikId !== 'saglikSkoru') return '';
+  switch (metrikId) {
+    case 'gunlukSut': return stats?.trendler?.sut > 0 ? `↑ %${stats.trendler.sut}` : 'Son 30 gün ortalaması';
+    case 'sagmalInek': return `${stats?.toplamHayvan?.inek ?? 0} toplam inek`;
+    case 'yaklasanDogum': return 'Önümüzdeki 30 gün';
+    case 'saglikSkoru': return saglikSkoruDetay?.aktifTedavi > 0 ? `${saglikSkoruDetay.aktifTedavi} aktif tedavi` : 'Sürü sağlıklı';
+    case 'yemStok': return 'Stok doluluk';
+    case 'aylikGelir': return 'Bu ay';
+    case 'litreBasinaMaliyet': return 'Ortalama';
+    default: return '';
+  }
+};
+
 // --- Component ---
 
 const Dashboard = ({ kullanici }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [showPanelAyari, setShowPanelAyari] = useState(false);
+  const [dogumAcik, setDogumAcik] = useState(false);
+  const [grafikAcik, setGrafikAcik] = useState(false);
+  const [panelMetrikleri, setPanelMetrikleri] = useState(() => {
+    try {
+      const s = localStorage.getItem(DASHBOARD_PANEL_KEY);
+      if (s) {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr) && arr.length >= 1 && arr.length <= 4) return arr;
+      }
+    } catch (_) {}
+    return [...DEFAULT_PANELS];
+  });
   const [data, setData] = useState({
     stats: null,
     performans: [],
@@ -498,79 +565,116 @@ const Dashboard = ({ kullanici }) => {
       )}
 
       {/* 3. KPI KARTLARI */}
-      <KpiGrid style={{ marginBottom: 16 }}>
-        <KpiCard $clickable onClick={() => navigate('/sut-kaydi')}>
-          <div className="kpi-label">Günlük Süt</div>
-          <div className="kpi-value">
-            {(data.stats?.bugunSut ?? 0).toFixed(0)}
-            <span className="kpi-unit">Lt</span>
-          </div>
-          <div className="kpi-trend" style={{ color: '#16a34a' }}>
-            {data.stats?.trendler?.sut > 0 ? `↑ %${data.stats.trendler.sut}` : 'Son 30 gün ortalaması'}
-          </div>
-          <div className="kpi-bar">
-            <div className="kpi-fill" style={{ width: '78%', background: '#16a34a' }} />
-          </div>
-        </KpiCard>
-
-        <KpiCard $clickable onClick={() => navigate('/inekler')}>
-          <div className="kpi-label">Sağmal İnek</div>
-          <div className="kpi-value">
-            {data.stats?.sagmal ?? 0}
-            <span className="kpi-unit">baş</span>
-          </div>
-          <div className="kpi-trend" style={{ color: '#6b7280' }}>
-            {data.stats?.toplamHayvan?.inek ?? 0} toplam inek
-          </div>
-          <div className="kpi-bar">
-            <div className="kpi-fill" style={{
-              width: `${data.stats?.toplamHayvan?.inek
-                ? (data.stats.sagmal / data.stats.toplamHayvan.inek * 100)
-                : 0}%`,
-              background: '#2563eb'
-            }} />
-          </div>
-        </KpiCard>
-
-        <KpiCard>
-          <div className="kpi-label">Yaklaşan Doğum</div>
-          <div className="kpi-value">
-            {yaklasanDogum}
-            <span className="kpi-unit">adet</span>
-          </div>
-          <div className="kpi-trend" style={{ color: '#d97706' }}>
-            Önümüzdeki 30 gün
-          </div>
-          <div className="kpi-bar">
-            <div className="kpi-fill" style={{
-              width: `${Math.min(yaklasanDogum * 20, 100)}%`,
-              background: '#d97706'
-            }} />
-          </div>
-        </KpiCard>
-
-        <KpiCard $clickable onClick={() => navigate('/saglik-merkezi')}>
-          <div className="kpi-label">Sağlık Skoru</div>
-          <div className="kpi-value" style={{
-            color: (data.saglikSkoru ?? 100) >= 80 ? '#16a34a'
-                 : (data.saglikSkoru ?? 100) >= 60 ? '#d97706' : '#dc2626'
-          }}>
-            {data.saglikSkoru ?? 100}
-            <span className="kpi-unit">/100</span>
-          </div>
-          <div className="kpi-trend" style={{ color: '#6b7280' }}>
-            {data.saglikSkoruDetay?.aktifTedavi > 0
-              ? `${data.saglikSkoruDetay.aktifTedavi} aktif tedavi`
-              : 'Sürü sağlıklı'}
-          </div>
-          <div className="kpi-bar">
-            <div className="kpi-fill" style={{
-              width: `${data.saglikSkoru ?? 100}%`,
-              background: (data.saglikSkoru ?? 100) >= 80 ? '#16a34a' : '#d97706'
-            }} />
-          </div>
-        </KpiCard>
+      <SectionTitle>
+        📊 Özet Kartlar
+        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#9ca3af' }}>{panelMetrikleri.length} kart seçili</span>
+          <button
+            onClick={() => setShowPanelAyari(p => !p)}
+            style={{
+              background: showPanelAyari ? '#fef2f2' : '#f9fafb',
+              border: `1px solid ${showPanelAyari ? '#fecaca' : '#e5e7eb'}`,
+              color: showPanelAyari ? '#dc2626' : '#6b7280',
+              borderRadius: 20, padding: '4px 12px',
+              fontSize: 11, fontWeight: 600, cursor: 'pointer'
+            }}
+          >
+            {showPanelAyari ? 'Kapat' : 'Düzenle ✎'}
+          </button>
+        </div>
+      </SectionTitle>
+      <KpiGrid style={{ marginBottom: showPanelAyari ? 0 : 16 }}>
+        {panelMetrikleri.map((metrikId, idx) => {
+          const opt = METRIK_OPTIONS.find(m => m.id === metrikId) || METRIK_OPTIONS[0];
+          const val = getMetrikValue(data.stats, metrikId, data.saglikSkoru);
+          const trend = getMetrikTrend(data.stats, metrikId, data.saglikSkoruDetay);
+          const pct = metrikId === 'saglikSkoru' ? (data.saglikSkoru ?? 100) :
+            metrikId === 'sagmalInek' && data.stats?.toplamHayvan?.inek
+              ? (data.stats.sagmal / data.stats.toplamHayvan.inek * 100) : 78;
+          const barColor = metrikId === 'saglikSkoru'
+            ? ((data.saglikSkoru ?? 100) >= 80 ? '#16a34a' : '#d97706')
+            : opt.color;
+          return (
+            <KpiCard
+              key={metrikId}
+              $clickable={!!opt.nav}
+              onClick={opt.nav ? () => navigate(opt.nav) : undefined}
+            >
+              <div className="kpi-label">{opt.label}</div>
+              <div className="kpi-value" style={metrikId === 'saglikSkoru' ? {
+                color: (data.saglikSkoru ?? 100) >= 80 ? '#16a34a'
+                     : (data.saglikSkoru ?? 100) >= 60 ? '#d97706' : '#dc2626'
+              } : {}}>
+                {val}
+                <span className="kpi-unit">{opt.unit}</span>
+              </div>
+              <div className="kpi-trend" style={{ color: '#6b7280' }}>{trend}</div>
+              <div className="kpi-bar">
+                <div className="kpi-fill" style={{
+                  width: `${Math.min(pct, 100)}%`,
+                  background: barColor
+                }} />
+              </div>
+            </KpiCard>
+          );
+        })}
       </KpiGrid>
+      {showPanelAyari && (
+        <div style={{
+          background: '#f9fafb',
+          border: '1px solid #e5e7eb',
+          borderRadius: 12,
+          padding: 16,
+          marginTop: -12,
+          marginBottom: 16
+        }}>
+          <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.4px' }}>
+            Görmek istediğin kartları seç — max 4
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 12 }}>
+            {METRIK_OPTIONS.map(m => {
+              const secili = panelMetrikleri.includes(m.id);
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => {
+                    if (secili) {
+                      if (panelMetrikleri.length > 1) setPanelMetrikleri(p => p.filter(x => x !== m.id));
+                    } else {
+                      if (panelMetrikleri.length < 4) setPanelMetrikleri(p => [...p, m.id]);
+                    }
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                    background: secili ? '#f0fdf4' : '#fff',
+                    border: `1px solid ${secili ? '#16a34a' : '#e5e7eb'}`,
+                    transition: 'all .15s'
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>{m.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, flex: 1, color: '#374151' }}>{m.label}</span>
+                  <div style={{
+                    width: 14, height: 14, borderRadius: '50%',
+                    background: secili ? '#16a34a' : 'transparent',
+                    border: `1.5px solid ${secili ? '#16a34a' : '#d1d5db'}`,
+                    flexShrink: 0
+                  }} />
+                </div>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => {
+              localStorage.setItem(DASHBOARD_PANEL_KEY, JSON.stringify(panelMetrikleri));
+              setShowPanelAyari(false);
+            }}
+            style={{ width: '100%', padding: '9px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Kaydet
+          </button>
+        </div>
+      )}
 
       {/* 4. 2 KOLON */}
       <TwoCol>
@@ -617,21 +721,56 @@ const Dashboard = ({ kullanici }) => {
             )}
           </Widget>
 
-          {/* SÜT GRAFİĞİ */}
-          <Widget>
-            <h3>
-              Son 7 Gün Süt
-              <Link to="/sut-kaydi" style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>
-                Detaylı →
-              </Link>
-            </h3>
-            <PerformansChart
-              data={data.performans.slice(-7)}
-              type="bar"
-              color="#16a34a"
-              title={null}
-            />
-          </Widget>
+          {/* SÜT GRAFİĞİ — Collapsible */}
+          <div style={{
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: 12,
+            overflow: 'hidden',
+            marginBottom: 20
+          }}>
+            <div
+              onClick={() => setGrafikAcik(p => !p)}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '12px 16px', cursor: 'pointer'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 14 }}>📈</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Süt Performans Grafiği</span>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>Son 30 gün</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {!grafikAcik && (
+                  <span style={{
+                    background: '#dcfce7', color: '#166534',
+                    fontSize: 11, fontWeight: 600,
+                    padding: '3px 9px', borderRadius: 20
+                  }}>
+                    ↑ %{data.stats?.trendler?.sut || 0} trend
+                  </span>
+                )}
+                <span style={{
+                  fontSize: 12, color: '#9ca3af',
+                  display: 'inline-block',
+                  transform: grafikAcik ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform .2s'
+                }}>▾</span>
+              </div>
+            </div>
+
+            {grafikAcik && (
+              <div style={{ borderTop: '1px solid #f3f4f6', padding: 16 }}>
+                <PerformansChart
+                  data={data.performans}
+                  title=""
+                  type="area"
+                  color="#16a34a"
+                />
+              </div>
+            )}
+          </div>
 
           {/* ALT SATIR: Şampiyonlar + Aktiviteler */}
           <BottomRow>
@@ -689,7 +828,50 @@ const Dashboard = ({ kullanici }) => {
         {/* SAĞ PANEL */}
         <SideCol>
           <SuruSaglikSkoru />
-          <YaklasanDogumlar compact />
+          <div style={{
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: 12,
+            overflow: 'hidden'
+          }}>
+            <div
+              onClick={() => setDogumAcik(p => !p)}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '12px 16px', cursor: 'pointer', transition: 'background .15s',
+                background: dogumAcik ? '#fff' : '#fff'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 14 }}>🤰</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Yaklaşan Doğumlar</span>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>30 gün içinde</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {!dogumAcik && (data.stats?.yaklaşanDogum ?? data.stats?.yaklasanDogum ?? 0) > 0 && (
+                  <span style={{
+                    background: '#fef3c7', color: '#92400e',
+                    fontSize: 11, fontWeight: 600,
+                    padding: '3px 9px', borderRadius: 20
+                  }}>
+                    {data.stats?.yaklaşanDogum ?? data.stats?.yaklasanDogum ?? 0} hayvan
+                  </span>
+                )}
+                <span style={{
+                  fontSize: 12, color: '#9ca3af',
+                  display: 'inline-block',
+                  transform: dogumAcik ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform .2s'
+                }}>▾</span>
+              </div>
+            </div>
+
+            {dogumAcik && (
+              <div style={{ borderTop: '1px solid #f3f4f6', padding: '0 16px 12px' }}>
+                <YaklasanDogumlar compact />
+              </div>
+            )}
+          </div>
         </SideCol>
 
       </TwoCol>
