@@ -1,461 +1,365 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
-import { FaBox, FaPlus, FaMinus, FaEdit, FaTrash, FaSearch, FaExclamationTriangle, FaTimes, FaThLarge, FaList, FaLeaf, FaPills, FaVial, FaWrench, FaBoxOpen } from 'react-icons/fa';
+import styled, { keyframes } from 'styled-components';
+import { FaPlus, FaTimes } from 'react-icons/fa';
 import * as api from '../services/api';
 import { toast } from 'react-toastify';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const fadeIn = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`;
-const pulse = keyframes`0%,100%{opacity:1}50%{opacity:.5}`;
-const shimmer = keyframes`0%{background-position:-200% 0}100%{background-position:200% 0}`;
+const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
 
-// ─── Category Config ───────────────────────────────────────────────────────────
-const CAT_CONFIG = {
-  'Yem':      { color: '#16a34a', bg: '#dcfce7', light: '#f0fdf4', icon: FaLeaf,    emoji: '🌿' },
-  'İlaç':     { color: '#dc2626', bg: '#fee2e2', light: '#fef2f2', icon: FaPills,   emoji: '💊' },
-  'Vitamin':  { color: '#ea580c', bg: '#ffedd5', light: '#fff7ed', icon: FaVial,    emoji: '💉' },
-  'Ekipman':  { color: '#2563eb', bg: '#dbeafe', light: '#eff6ff', icon: FaWrench,  emoji: '🔧' },
-  'Diğer':    { color: '#7c3aed', bg: '#ede9fe', light: '#f5f3ff', icon: FaBoxOpen, emoji: '📦' },
-};
-const getCat = k => CAT_CONFIG[k] || CAT_CONFIG['Diğer'];
-
-// ─── Styled ────────────────────────────────────────────────────────────────────
 const PageContainer = styled.div`
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 0 24px 40px;
-  min-height: 100vh;
+  padding: 0 20px 40px;
   font-family: 'Inter', system-ui, sans-serif;
-  animation: ${fadeIn} .4s ease;
+  animation: ${fadeIn} 0.35s ease;
 
   @media (max-width: 768px) {
     padding: 0 12px 80px;
   }
 `;
 
-const PageHeader = styled.div`
-  padding: 20px 0 16px;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 20px;
-
-  @media (max-width: 768px) {
-    padding: 14px 0 12px;
-    margin-bottom: 14px;
-  }
-`;
-
-const HeaderTop = styled.div`
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  margin-bottom: 0;
-`;
-
-const PageTitle = styled.h1`
-  font-size: 20px; font-weight: 700; margin: 0;
-  color: #111827; display: flex; align-items: center; gap: 10px;
-  
-  @media(max-width:768px){ font-size: 18px; }
-`;
-
-const HeaderActions = styled.div`display: flex; align-items: center; gap: 10px; flex-wrap: wrap;`;
-
-const ToggleViewBtns = styled.div`
+const TabRow = styled.div`
   display: flex;
-  background: #f4f4f5;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+`;
+
+const TabBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid ${p => p.$active ? '#16a34a' : '#e5e7eb'};
+  background: ${p => p.$active ? '#dcfce7' : '#fff'};
+  color: ${p => p.$active ? '#166534' : '#6b7280'};
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #16a34a;
+    background: #f0fdf4;
+  }
+`;
+
+const TabBadge = styled.span`
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+`;
+
+const ContentCard = styled.div`
+  background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px; overflow: hidden;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
 `;
 
-const TVBtn = styled.button`
-  display: flex; align-items: center; gap: 5px; padding: 8px 14px;
-  border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.15s;
-  background: ${p => p.$active ? '#e5e7eb' : 'transparent'};
-  color: ${p => p.$active ? '#111827' : '#6b7280'};
-  &:hover { background: #e4e4e7; }
-`;
+const KritikBanner = ({ stoklar, onAlimPlanla }) => (
+  <div style={{
+    background: '#fef3c7',
+    border: '1px solid #fde68a',
+    borderRadius: 10,
+    padding: '10px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  }}>
+    <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+    <span style={{ flex: 1, fontSize: 13, color: '#92400e', fontWeight: 500 }}>
+      {stoklar.length} yem kritik seviyede:{' '}
+      <strong>{stoklar.map(s => s.urunAdi).join(', ')}</strong>
+    </span>
+    <button
+      onClick={onAlimPlanla}
+      style={{
+        background: '#d97706', color: '#fff', border: 'none',
+        borderRadius: 20, padding: '4px 14px',
+        fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap'
+      }}
+    >
+      Alım Planla
+    </button>
+  </div>
+);
 
-const AddBtn = styled.button`
-  background: #16a34a; color:#fff; border:none;
-  padding: 9px 16px; min-height: 48px;
-  border-radius: 8px; font-size: 13px; font-weight: 600;
-  cursor: pointer; display: flex; align-items: center; gap: 8px;
-  transition: background 0.15s;
-  white-space: nowrap;
-  &:hover{background:#15803d;}
-`;
+const StokItem = ({ stok, onGuncelle, onDuzenle }) => {
+  const gun = stok.gunlukTuketim > 0
+    ? Math.floor(stok.miktar / stok.gunlukTuketim)
+    : 999;
 
-const StatRow = styled.div`
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
-  margin-top: 16px;
-  
-  @media(max-width:700px){ grid-template-columns: 1fr 1fr; gap: 8px; }
-`;
+  const renk = gun >= 30 ? '#16a34a' : gun >= 14 ? '#d97706' : '#dc2626';
+  const pct = Math.min((gun / 60) * 100, 100);
 
-const Stat = styled.div`
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px; padding: 16px;
-  
-  .val { font-size: 26px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
-  .lbl { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; }
-  
-  @media(max-width:768px){ padding: 12px; .val{font-size:22px;} }
-`;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '10px 0', borderBottom: '1px solid #f3f4f6'
+    }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+        background: gun < 14 ? '#fef2f2' : '#f0fdf4',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 16
+      }}>
+        🌾
+      </div>
 
-const Content = styled.div`
-  padding: 0;
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+          {stok.urunAdi}
+        </div>
+        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+          {stok.birimFiyat ? `${stok.birimFiyat} ₺/${stok.birim}` : ''}
+          {stok.gunlukTuketim > 0 ? ` · günlük ${stok.gunlukTuketim} ${stok.birim}` : ''}
+        </div>
+      </div>
 
-  @media (max-width: 768px) {
-    padding: 0;
-  }
-`;
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+          {Number(stok.miktar).toLocaleString('tr-TR')} {stok.birim}
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: renk, marginTop: 2 }}>
+          {gun >= 999 ? '—' : `${gun} gün yeter`}
+        </div>
+        <div style={{
+          width: 80, height: 3, background: '#f3f4f6',
+          borderRadius: 2, marginTop: 6, overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%', borderRadius: 2,
+            background: renk,
+            width: `${pct}%`,
+            transition: 'width .6s ease'
+          }} />
+        </div>
+      </div>
 
-const FilterBar = styled.div`
-  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
-`;
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+        <button
+          onClick={() => onGuncelle(stok._id, 'ekle', 100)}
+          style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '3px 8px', fontSize: 11, color: '#166534', cursor: 'pointer' }}
+        >
+          +100
+        </button>
+        <button
+          onClick={() => onDuzenle(stok)}
+          style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, padding: '3px 8px', fontSize: 11, color: '#6b7280', cursor: 'pointer' }}
+        >
+          Düzenle
+        </button>
+      </div>
+    </div>
+  );
+};
 
-const SearchWrap = styled.div`
-  position: relative; flex: 1; min-width: 180px;
-  svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:13px; }
-`;
+const YemDeposu = ({ stoklar, alimOnerisi, onGuncelle, onDuzenle, onYeniStok }) => (
+  <>
+    <ContentCard>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Yem Listesi</span>
+        <button
+          onClick={onYeniStok}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: '#16a34a', color: '#fff', border: 'none',
+            borderRadius: 8, padding: '6px 12px',
+            fontSize: 12, fontWeight: 600, cursor: 'pointer'
+          }}
+        >
+          <FaPlus size={10} /> Yeni Yem
+        </button>
+      </div>
+      {stoklar.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af', fontSize: 13 }}>
+          Henüz yem stoku yok. Yeni Yem ile ekleyin.
+        </div>
+      ) : (
+        stoklar.map(s => (
+          <StokItem key={s._id} stok={s} onGuncelle={onGuncelle} onDuzenle={onDuzenle} />
+        ))
+      )}
+    </ContentCard>
 
-const SearchInput = styled.input`
-  width: 100%; padding: 10px 12px 10px 34px;
-  border: 1.5px solid #e2e8f0; border-radius: 11px;
-  font-size: 14px; background: #fff; outline: none; box-sizing: border-box;
-  transition: border-color .2s;
-  &:focus { border-color: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.1); }
-`;
+    {alimOnerisi?.oneriler?.length > 0 && (
+      <div style={{
+        background: '#fff', border: '1px solid #e5e7eb',
+        borderRadius: 12, padding: 16, marginTop: 16
+      }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', marginBottom: 12
+        }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+            🛒 30 günlük alım önerisi
+          </span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>
+            Toplam tahmini:{' '}
+            <strong style={{ color: '#111827' }}>
+              {(alimOnerisi.toplamMaliyet || 0).toLocaleString('tr-TR')} ₺
+            </strong>
+          </span>
+        </div>
 
-const CatBtn = styled.button`
-  display: flex; align-items: center; gap: 5px;
-  padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
-  border: 1.5px solid ${p => p.$active ? getCat(p.$k).color : '#e2e8f0'};
-  background: ${p => p.$active ? getCat(p.$k).bg : '#fff'};
-  color: ${p => p.$active ? getCat(p.$k).color : '#64748b'};
-  cursor: pointer; transition: all .15s;
-  &:hover { border-color: ${p => getCat(p.$k).color}; background: ${p => getCat(p.$k).light}; }
-  
-  @media(max-width:480px){ padding: 7px 10px; font-size: 11px; }
-`;
+        {alimOnerisi.oneriler.map(o => (
+          <div key={o._id} style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '7px 0', borderBottom: '1px solid #f3f4f6'
+          }}>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 500 }}>{o.urunAdi}</span>
+              <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>
+                {o.yeterlilikGun} gün yeter
+              </span>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>
+              {o.gerekliKg} {o.birim || 'kg'} al
+            </span>
+            {o.tahminiMaliyet > 0 && (
+              <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                ~{o.tahminiMaliyet.toLocaleString('tr-TR')} ₺
+              </span>
+            )}
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: '2px 8px',
+              borderRadius: 20,
+              background: o.oncelik === 'acil' ? '#fef2f2' : '#fef3c7',
+              color: o.oncelik === 'acil' ? '#991b1b' : '#92400e'
+            }}>
+              {o.oncelik === 'acil' ? 'Acil' : 'Bu hafta'}
+            </span>
+          </div>
+        ))}
+      </div>
+    )}
+  </>
+);
 
-const CritBanner = styled.div`
-  background: linear-gradient(135deg, #fef2f2, #fff5f5);
-  border: 1px solid #fecaca;
-  border-left: 4px solid #ef4444;
-  border-radius: 12px; padding: 12px 16px;
-  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-  color: #dc2626; font-size: 13px; font-weight: 600;
-  svg { font-size:16px; flex-shrink:0; }
-`;
+const DigerStokItem = ({ stok, onDuzenle }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '10px 0', borderBottom: '1px solid #f3f4f6'
+  }}>
+    <div style={{
+      width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+      background: '#f3f4f6',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 16
+    }}>
+      💊
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{stok.urunAdi}</div>
+      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+        {stok.kategori} · Min: {stok.kritikSeviye} {stok.birim}
+      </div>
+    </div>
+    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+      <div style={{
+        fontSize: 13, fontWeight: 600,
+        color: stok.miktar <= stok.kritikSeviye ? '#dc2626' : '#111827'
+      }}>
+        {Number(stok.miktar).toLocaleString('tr-TR')} {stok.birim}
+      </div>
+    </div>
+    <button
+      onClick={() => onDuzenle(stok)}
+      style={{
+        background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6,
+        padding: '4px 10px', fontSize: 11, color: '#6b7280', cursor: 'pointer'
+      }}
+    >
+      Düzenle
+    </button>
+  </div>
+);
 
-const ChartCard = styled.div`
-  background: #fff; border-radius: 16px; padding: 18px 20px;
-  box-shadow: 0 1px 8px rgba(0,0,0,.06); margin-bottom: 16px;
-  border: 1px solid #f1f5f9;
-  
-  h3 { font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase;
-       letter-spacing: .5px; margin: 0 0 14px; display: flex; align-items: center; gap: 6px; }
-`;
+const DigerStok = ({ stoklar, onDuzenle, onYeniStok }) => (
+  <ContentCard>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>İlaç & Ekipman</span>
+      <button
+        onClick={onYeniStok}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: '#16a34a', color: '#fff', border: 'none',
+          borderRadius: 8, padding: '6px 12px',
+          fontSize: 12, fontWeight: 600, cursor: 'pointer'
+        }}
+      >
+        <FaPlus size={10} /> Yeni Ekle
+      </button>
+    </div>
+    {stoklar.length === 0 ? (
+      <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af', fontSize: 13 }}>
+        Henüz ilaç/ekipman stoku yok.
+      </div>
+    ) : (
+      stoklar.map(s => (
+        <DigerStokItem key={s._id} stok={s} onDuzenle={onDuzenle} />
+      ))
+    )}
+  </ContentCard>
+);
 
-// ─── Kare (Card) Görünüm ──────────────────────────────────────────────────────
-const Grid = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 14px;
-  
-  @media(max-width:768px){ grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 10px; }
-`;
-
-const Card = styled.div`
-  background: #fff; border-radius: 18px; overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: all .2s;
-  border: 1px solid #f1f5f9;
-  border-top: 3px solid ${p => p.$kritik ? '#ef4444' : p.$catColor || '#4ade80'};
-  animation: ${fadeIn} .3s ease both;
-  
-  &:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.1); }
-`;
-
-const CardBody = styled.div`padding: 16px;`;
-
-const CardHead = styled.div`
-  display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;
-`;
-
-const CardIconWrap = styled.div`
-  width: 38px; height: 38px; border-radius: 11px;
-  background: ${p => p.$bg || '#dcfce7'};
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px; flex-shrink: 0;
-`;
-
-const UrunAdi = styled.div`
-  font-size: 15px; font-weight: 800; color: #0f172a;
-  margin-bottom: 4px; line-height: 1.2;
-`;
-
-const KatBadge = styled.span`
-  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-  background: ${p => getCat(p.$kat).bg};
-  color: ${p => getCat(p.$kat).color};
-`;
-
-const MiktarWrap = styled.div`
-  display: flex; align-items: baseline; gap: 4px; margin: 10px 0 6px;
-`;
-
-const MiktarVal = styled.span`
-  font-size: 30px; font-weight: 900;
-  color: ${p => p.$kritik ? '#ef4444' : '#0f172a'};
-  ${p => p.$kritik && css`animation: ${pulse} 2s ease infinite;`}
-  
-  @media(max-width:768px){ font-size: 24px; }
-`;
-
-const Birim = styled.span`font-size: 13px; color: #94a3b8; font-weight: 600;`;
-
-const ProgressBar = styled.div`
-  height: 5px; background: #f1f5f9; border-radius: 999px;
-  margin-bottom: 8px; overflow: hidden;
-  div {
-    height: 100%; border-radius: 999px; transition: width .5s;
-    background: ${p => p.$pct < 30 ? '#ef4444' : p.$pct < 70 ? '#f59e0b' : '#4ade80'};
-    width: ${p => Math.min(100, p.$pct)}%;
-  }
-`;
-
-const KrtikLabel = styled.div`
-  font-size: 10px; color: #94a3b8; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 4px;
-`;
-
-const ActionBtns = styled.div`
-  display: flex; gap: 6px; padding-top: 12px;
-  border-top: 1px solid #f8fafc;
-`;
-
-const AB = styled.button`
-  flex: ${p => p.$flex || 1}; padding: 8px 6px; border-radius: 9px; border: none;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s;
-  background: ${p => ({ add:'#dcfce7', sub:'#fee2e2', edit:'#dbeafe', del:'transparent' }[p.$t] || '#f1f5f9')};
-  color: ${p => ({ add:'#16a34a', sub:'#dc2626', edit:'#1d4ed8', del:'#cbd5e1' }[p.$t] || '#475569')};
-  &:hover { filter: brightness(.9); transform: scale(1.03); }
-`;
-
-// ─── Liste Görünüm ────────────────────────────────────────────────────────────
-const ListView = styled.div`display: flex; flex-direction: column; gap: 6px;`;
-
-const ListRow = styled.div`
-  display: flex; align-items: center; gap: 12px;
-  background: #fff; border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 1px 5px rgba(0,0,0,.05);
-  border: 1px solid #f1f5f9;
-  border-left: 4px solid ${p => p.$kritik ? '#ef4444' : p.$catColor || '#4ade80'};
-  transition: all .2s; animation: ${fadeIn} .3s ease both;
-  
-  &:hover { box-shadow: 0 4px 18px rgba(0,0,0,.09); transform: translateX(2px); }
-  
-  @media(max-width:600px){ flex-wrap: wrap; gap: 8px; }
-`;
-
-const ListIconWrap = styled.div`
-  width: 40px; height: 40px; border-radius: 11px;
-  background: ${p => p.$bg || '#dcfce7'};
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px; flex-shrink: 0;
-`;
-
-const ListMain = styled.div`flex: 1; min-width: 0;`;
-
-const ListNameRow = styled.div`
-  display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap;
-`;
-
-const ListName = styled.span`
-  font-size: 14px; font-weight: 800; color: #0f172a;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 160px;
-`;
-
-const ListMetaRow = styled.div`
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-`;
-
-const ListStock = styled.div`
-  display: flex; align-items: baseline; gap: 3px; min-width: 70px;
-  .v { font-size: 18px; font-weight: 900; color: ${p => p.$kritik ? '#ef4444' : '#0f172a'}; line-height: 1; }
-  .u { font-size: 11px; color: #94a3b8; font-weight: 600; }
-`;
-
-const ListProgress = styled.div`
-  flex: 1; height: 5px; background: #f1f5f9; border-radius: 999px; overflow: hidden;
-  min-width: 60px; max-width: 160px;
-  div {
-    height: 100%; border-radius: 999px;
-    background: ${p => p.$pct < 30 ? '#ef4444' : p.$pct < 70 ? '#f59e0b' : '#4ade80'};
-    width: ${p => Math.min(100, p.$pct)}%;
-  }
-`;
-
-const ListMinLabel = styled.span`
-  font-size: 10px; color: #94a3b8; white-space: nowrap;
-`;
-
-const ListActions = styled.div`
-  display: flex; gap: 5px; flex-shrink: 0;
-  
-  @media(max-width:600px){ width: 100%; justify-content: flex-end; }
-`;
-
-const ListAB = styled.button`
-  width: 32px; height: 32px; border-radius: 8px; border: none;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; cursor: pointer; transition: all .15s;
-  background: ${p => ({ add:'#dcfce7', sub:'#fee2e2', edit:'#dbeafe', del:'#f8fafc' }[p.$t] || '#f1f5f9')};
-  color: ${p => ({ add:'#16a34a', sub:'#dc2626', edit:'#1d4ed8', del:'#94a3b8' }[p.$t] || '#475569')};
-  &:hover { filter: brightness(.9); transform: scale(1.08); }
-`;
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
-const Overlay = styled.div`
-  position: fixed; inset: 0; background: rgba(15,23,42,.65);
-  backdrop-filter: blur(5px);
-  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
-`;
-
-const Modal = styled.div`
-  background: #fff; border-radius: 22px; padding: 28px;
-  width: 100%; max-width: 500px;
-  box-shadow: 0 24px 60px rgba(0,0,0,.25); animation: ${fadeIn} .25s ease;
-  
-  @media(max-width:480px){ padding: 20px 16px; border-radius: 18px; }
-`;
-
-const ModalTitle = styled.div`
-  font-size: 17px; font-weight: 900; color: #0f172a;
-  margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between;
-`;
-
-const CloseBtn = styled.button`
-  background: #f1f5f9; border: none; color: #64748b; font-size: 14px;
-  cursor: pointer; width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  &:hover { background: #fee2e2; color: #ef4444; }
-`;
-
-const FGrid = styled.div`
-  display: grid; grid-template-columns: ${p => p.$cols || '1fr 1fr'}; gap: 12px; margin-bottom: 12px;
-  @media(max-width:400px){ grid-template-columns: 1fr; }
-`;
-
-const FG = styled.div``;
-const Lbl = styled.label`
-  font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;
-  letter-spacing: .5px; display: block; margin-bottom: 4px;
-`;
-
-const Inp = styled.input`
-  width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  font-size: 14px; outline: none; box-sizing: border-box; transition: border-color .2s;
-  &:focus { border-color: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.1); }
-`;
-
-const Sel = styled.select`
-  width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  font-size: 14px; outline: none; background: #fff; box-sizing: border-box;
-  &:focus { border-color: #4ade80; }
-`;
-
-const TextA = styled.textarea`
-  width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  font-size: 14px; outline: none; resize: vertical; box-sizing: border-box; font-family: inherit;
-  &:focus { border-color: #4ade80; }
-`;
-
-const ModalBtns = styled.div`
-  display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;
-`;
-
-const CancelBtn = styled.button`
-  padding: 10px 20px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  background: #fff; color: #64748b; font-weight: 700; cursor: pointer;
-  &:hover { background: #f8fafc; }
-`;
-
-const SaveBtn = styled.button`
-  padding: 10px 22px; border: none; border-radius: 10px;
-  background: linear-gradient(135deg,#4ade80,#16a34a); color: #fff;
-  font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,222,128,.4); }
-`;
-
-const EmptyState = styled.div`
-  text-align: center; padding: 50px 20px; color: #94a3b8;
-  font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  .icon { font-size: 40px; opacity: .4; }
-`;
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const ANA_SEKMELER = [
-  { key: 'yem', label: 'Yem Deposu', emoji: '🌿' },
-  { key: 'diger', label: 'İlaç & Ekipman', emoji: '💊' },
-];
 const CATS = ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'];
-const PIE_COLORS = ['#16a34a', '#dc2626', '#ea580c', '#2563eb', '#7c3aed'];
 const EMPTY = { urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '', yemKutuphanesiId: undefined };
 
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function StokYonetimi({ embedded }) {
-  const [anaTab, setAnaTab] = useState('yem');
+  const [tab, setTab] = useState('yem');
   const [stoklar, setStoklar] = useState([]);
-  const [yemKutuphanesi, setYemKutuphanesi] = useState([]);
+  const [alimOnerisi, setAlimOnerisi] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
-  const [catFilter, setCatFilter] = useState('Tümü');
   const [showModal, setShowModal] = useState(false);
+  const [showAlimModal, setShowAlimModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
-  const [viewMode, setViewMode] = useState(window.innerWidth < 768 ? 'liste' : 'kare');
-  const upd = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
+  const [yemKutuphanesi, setYemKutuphanesi] = useState([]);
 
-  useEffect(() => { load(); }, []);
-  useEffect(() => { setCatFilter('Tümü'); }, [anaTab]);
+  useEffect(() => {
+    Promise.all([
+      api.getStoklar(),
+      api.getAlimOnerisi().catch(() => ({ data: null })),
+      api.getYemKutuphanesi().catch(() => ({ data: [] }))
+    ]).then(([stokRes, alimRes, ykRes]) => {
+      setStoklar(stokRes.data || []);
+      setAlimOnerisi(alimRes?.data || null);
+      setYemKutuphanesi(Array.isArray(ykRes?.data) ? ykRes.data : []);
+    }).catch(() => toast.error('Stok verileri yüklenemedi'))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const load = async () => {
+  const load = () => {
+    api.getStoklar().then(r => setStoklar(r.data || []));
+    api.getAlimOnerisi().catch(() => null).then(r => setAlimOnerisi(r?.data || null));
+  };
+
+  const yemStoklar = stoklar.filter(s => s.kategori === 'Yem');
+  const digerStoklar = stoklar.filter(s => s.kategori !== 'Yem');
+  const kritikYemler = yemStoklar.filter(s =>
+    s.gunlukTuketim > 0 && (s.miktar / s.gunlukTuketim) < 14
+  );
+  const kritikStoklar = kritikYemler;
+
+  const handleGuncelle = async (id, islem, miktar) => {
     try {
-      setLoading(true);
-      const [r, yk] = await Promise.all([
-        api.getStoklar(),
-        api.getYemKutuphanesi().catch(() => ({ data: [] }))
-      ]);
-      setStoklar(r.data || []);
-      setYemKutuphanesi(Array.isArray(yk?.data) ? yk.data : []);
-    } catch { toast.error('Stok verileri yüklenemedi'); }
-    finally { setLoading(false); }
+      await api.updateStok(id, { miktar, islem });
+      toast.success('Stok güncellendi');
+      load();
+    } catch { toast.error('Güncelleme hatası'); }
   };
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    try {
-      if (editing) await api.updateStok(editing._id, { ...form, islem: 'guncelle' });
-      else await api.createStok(form);
-      toast.success(editing ? 'Stok güncellendi' : 'Yeni stok eklendi');
-      setShowModal(false); setEditing(null); setForm(EMPTY); load();
-    } catch { toast.error('İşlem başarısız'); }
-  };
-
-  const quickUpdate = async (id, type, amt) => {
-    try { await api.updateStok(id, { miktar: amt, islem: type }); load(); }
-    catch { toast.error('Güncelleme hatası'); }
-  };
-
-  const handleDelete = async id => {
-    if (!window.confirm('Bu stoğu silmek istediğinize emin misiniz?')) return;
-    try { await api.deleteStok(id); toast.success('Silindi'); load(); }
-    catch { toast.error('Silme hatası'); }
-  };
-
-  const openEdit = item => {
+  const handleDuzenle = (item) => {
     setEditing(item);
     setForm({
       urunAdi: item.urunAdi, kategori: item.kategori, miktar: item.miktar, birim: item.birim,
@@ -463,258 +367,173 @@ export default function StokYonetimi({ embedded }) {
     });
     setShowModal(true);
   };
-  const openNew = () => { setEditing(null); setForm({ ...EMPTY, kategori: anaTab === 'yem' ? 'Yem' : 'İlaç' }); setShowModal(true); };
 
-  const tabStoklar = anaTab === 'yem' ? stoklar.filter(s => s.kategori === 'Yem') : stoklar.filter(s => s.kategori !== 'Yem');
-  const filtered = tabStoklar.filter(s =>
-    s.urunAdi.toLowerCase().includes(filter.toLowerCase()) &&
-    (catFilter === 'Tümü' || s.kategori === catFilter)
-  );
+  const openYeni = () => {
+    setEditing(null);
+    setForm({ ...EMPTY, kategori: tab === 'yem' ? 'Yem' : 'İlaç' });
+    setShowModal(true);
+  };
 
-  const kritikler = tabStoklar.filter(s => s.miktar <= s.kritikSeviye);
-  const pieData = CATS.map((c, i) => ({ name: c, value: tabStoklar.filter(s => s.kategori === c).length, fill: PIE_COLORS[i] })).filter(d => d.value > 0);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editing) {
+        await api.updateStok(editing._id, { ...form, miktar: Number(form.miktar) });
+        toast.success('Stok güncellendi');
+      } else {
+        await api.createStok(form);
+        toast.success('Stok eklendi');
+      }
+      setShowModal(false);
+      setEditing(null);
+      setForm(EMPTY);
+      load();
+    } catch { toast.error('İşlem başarısız'); }
+  };
+
+  const upd = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
+
+  if (loading) {
+    return (
+      <PageContainer>
+        <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af', fontSize: 14 }}>Yükleniyor…</div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
-      {/* ── Header ────────────────────────────────────────────── */}
-      <PageHeader>
-        <HeaderTop>
-          <PageTitle>📦 Stok Yönetimi</PageTitle>
-          <HeaderActions>
-            <ToggleViewBtns>
-              <TVBtn $active={viewMode === 'kare'} onClick={() => setViewMode('kare')}>
-                <FaThLarge size={11} /> Kare
-              </TVBtn>
-              <TVBtn $active={viewMode === 'liste'} onClick={() => setViewMode('liste')}>
-                <FaList size={11} /> Liste
-              </TVBtn>
-            </ToggleViewBtns>
-            <AddBtn onClick={openNew}><FaPlus /> Yeni Stok</AddBtn>
-          </HeaderActions>
-        </HeaderTop>
+      {kritikStoklar.length > 0 && (
+        <KritikBanner stoklar={kritikStoklar} onAlimPlanla={() => setShowAlimModal(true)} />
+      )}
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          {ANA_SEKMELER.map(s => (
-            <button
-              key={s.key}
-              onClick={() => setAnaTab(s.key)}
-              style={{
-                padding: '10px 18px', borderRadius: 10, border: '1px solid',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                background: anaTab === s.key ? '#dcfce7' : '#fff',
-                color: anaTab === s.key ? '#166534' : '#6b7280',
-                borderColor: anaTab === s.key ? '#16a34a' : '#e5e7eb',
-              }}
-            >
-              {s.emoji} {s.label}
-            </button>
-          ))}
-        </div>
-        <StatRow>
-          <Stat $accent="#4ade80">
-            <div className="val">{tabStoklar.length}</div>
-            <div className="lbl">Toplam Ürün</div>
-          </Stat>
-          <Stat $accent="#f87171">
-            <div className="val">{kritikler.length}</div>
-            <div className="lbl">Kritik Stok</div>
-          </Stat>
-          <Stat $accent="#fb923c">
-            <div className="val">{CATS.filter(c => tabStoklar.some(s => s.kategori === c)).length}</div>
-            <div className="lbl">Kategori</div>
-          </Stat>
-          <Stat $accent="#60a5fa">
-            <div className="val">{tabStoklar.filter(s => s.miktar > s.kritikSeviye).length}</div>
-            <div className="lbl">Yeterli</div>
-          </Stat>
-        </StatRow>
-      </PageHeader>
+      <TabRow>
+        <TabBtn $active={tab === 'yem'} onClick={() => setTab('yem')}>
+          🌿 Yem Deposu
+          {kritikYemler.length > 0 && <TabBadge>{kritikYemler.length}</TabBadge>}
+        </TabBtn>
+        <TabBtn $active={tab === 'diger'} onClick={() => setTab('diger')}>
+          💊 İlaç & Ekipman
+        </TabBtn>
+      </TabRow>
 
-      <Content>
-        {/* ── Kritik uyarı ──────────────────────────────────────── */}
-        {kritikler.length > 0 && (
-          <CritBanner>
-            <FaExclamationTriangle />
-            <div>
-              <strong>{kritikler.length} ürün</strong> kritik seviyenin altında:{' '}
-              {kritikler.map(k => k.urunAdi).join(', ')}
-            </div>
-          </CritBanner>
-        )}
+      {tab === 'yem' && (
+        <YemDeposu
+          stoklar={yemStoklar}
+          alimOnerisi={alimOnerisi}
+          onGuncelle={handleGuncelle}
+          onDuzenle={handleDuzenle}
+          onYeniStok={openYeni}
+        />
+      )}
+      {tab === 'diger' && (
+        <DigerStok stoklar={digerStoklar} onDuzenle={handleDuzenle} onYeniStok={openYeni} />
+      )}
 
-        {/* ── Kategori pie ───────────────────────────────────────── */}
-        {pieData.length > 0 && (
-          <ChartCard>
-            <h3>📊 Kategori Dağılımı</h3>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={4}>
-                  {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                </Pie>
-                <Tooltip formatter={(v, n) => [`${v} ürün`, n]} />
-                <Legend iconType="circle" iconSize={9} />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        )}
-
-        {/* ── Filtreler ──────────────────────────────────────────── */}
-        <FilterBar>
-          <SearchWrap>
-            <FaSearch />
-            <SearchInput value={filter} onChange={e => setFilter(e.target.value)} placeholder="Ürün ara..." />
-          </SearchWrap>
-          {['Tümü', ...(anaTab === 'yem' ? ['Yem'] : CATS.filter(c => c !== 'Yem'))].map(c => (
-            <CatBtn key={c} $active={catFilter === c} $k={c === 'Tümü' ? 'Diğer' : c}
-              onClick={() => setCatFilter(c)}>
-              {c === 'Tümü' ? '🔷 Tümü' : `${getCat(c).emoji} ${c}`}
-            </CatBtn>
-          ))}
-        </FilterBar>
-
-        {/* ── İçerik ────────────────────────────────────────────── */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 50, color: '#94a3b8', fontSize: 14 }}>Yükleniyor...</div>
-        ) : filtered.length === 0 ? (
-          <EmptyState>
-            <div className="icon">📦</div>
-            <div>Ürün bulunamadı</div>
-          </EmptyState>
-        ) : viewMode === 'kare' ? (
-          // ── Kare Görünüm ─────────────────────────────────────
-          <Grid>
-            {filtered.map(item => {
-              const pct = item.kritikSeviye > 0 ? (item.miktar / item.kritikSeviye) * 100 : 100;
-              const kritik = item.miktar <= item.kritikSeviye;
-              const cat = getCat(item.kategori);
-              const Ico = cat.icon;
-              return (
-                <Card key={item._id} $kritik={kritik} $catColor={cat.color}>
-                  <CardBody>
-                    <CardHead>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <UrunAdi>{item.urunAdi}</UrunAdi>
-                        <KatBadge $kat={item.kategori}>{cat.emoji} {item.kategori}</KatBadge>
-                      </div>
-                      <CardIconWrap $bg={kritik ? '#fee2e2' : cat.bg}>
-                        {kritik ? '⚠️' : cat.emoji}
-                      </CardIconWrap>
-                    </CardHead>
-
-                    <MiktarWrap>
-                      <MiktarVal $kritik={kritik}>{item.miktar}</MiktarVal>
-                      <Birim>{item.birim}</Birim>
-                    </MiktarWrap>
-
-                    <ProgressBar $pct={pct}><div /></ProgressBar>
-                    <KrtikLabel>
-                      Min: {item.kritikSeviye} {item.birim}
-                      {item.notlar && <> · <em style={{fontStyle:'italic'}}>{item.notlar.slice(0,20)}{item.notlar.length > 20 ? '…' : ''}</em></>}
-                    </KrtikLabel>
-
-                    <ActionBtns>
-                      <AB $t="sub" onClick={() => quickUpdate(item._id, 'cikar', 1)}><FaMinus size={10} /></AB>
-                      <AB $t="add" onClick={() => quickUpdate(item._id, 'ekle', 1)}><FaPlus size={10} /></AB>
-                      <AB $t="edit" $flex={2} onClick={() => openEdit(item)}><FaEdit size={10} /> Düzenle</AB>
-                      <AB $t="del" $flex={.6} onClick={() => handleDelete(item._id)}><FaTrash size={10} /></AB>
-                    </ActionBtns>
-                  </CardBody>
-                </Card>
-              );
-            })}
-          </Grid>
-        ) : (
-          // ── Liste Görünüm ─────────────────────────────────────
-          <ListView>
-            {filtered.map(item => {
-              const pct = item.kritikSeviye > 0 ? (item.miktar / item.kritikSeviye) * 100 : 100;
-              const kritik = item.miktar <= item.kritikSeviye;
-              const cat = getCat(item.kategori);
-              return (
-                <ListRow key={item._id} $kritik={kritik} $catColor={cat.color}>
-                  <ListIconWrap $bg={kritik ? '#fee2e2' : cat.bg}>
-                    {kritik ? '⚠️' : cat.emoji}
-                  </ListIconWrap>
-
-                  <ListMain>
-                    <ListNameRow>
-                      <ListName>{item.urunAdi}</ListName>
-                      <KatBadge $kat={item.kategori}>{item.kategori}</KatBadge>
-                      {kritik && <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 700, background: '#fee2e2', padding: '1px 6px', borderRadius: 999 }}>KRİTİK</span>}
-                    </ListNameRow>
-                    <ListMetaRow>
-                      <ListStock $kritik={kritik}>
-                        <span className="v">{item.miktar}</span>
-                        <span className="u">{item.birim}</span>
-                      </ListStock>
-                      <ListProgress $pct={pct}><div /></ListProgress>
-                      <ListMinLabel>Min: {item.kritikSeviye} {item.birim}</ListMinLabel>
-                    </ListMetaRow>
-                  </ListMain>
-
-                  <ListActions>
-                    <ListAB $t="sub" title="Çıkar" onClick={() => quickUpdate(item._id, 'cikar', 1)}><FaMinus size={11} /></ListAB>
-                    <ListAB $t="add" title="Ekle" onClick={() => quickUpdate(item._id, 'ekle', 1)}><FaPlus size={11} /></ListAB>
-                    <ListAB $t="edit" title="Düzenle" onClick={() => openEdit(item)}><FaEdit size={11} /></ListAB>
-                    <ListAB $t="del" title="Sil" onClick={() => handleDelete(item._id)}><FaTrash size={11} /></ListAB>
-                  </ListActions>
-                </ListRow>
-              );
-            })}
-          </ListView>
-        )}
-      </Content>
-
-      {/* ── Modal ────────────────────────────────────────────────── */}
+      {/* Edit/Add Modal */}
       {showModal && (
-        <Overlay onClick={() => setShowModal(false)}>
-          <Modal onClick={e => e.stopPropagation()}>
-            <ModalTitle>
-              {editing ? '📝 Stok Düzenle' : '📦 Yeni Stok Ekle'}
-              <CloseBtn onClick={() => setShowModal(false)}><FaTimes /></CloseBtn>
-            </ModalTitle>
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20
+          }}
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 16, padding: 24, maxWidth: 420, width: '100%',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.2)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+                {editing ? 'Stok Düzenle' : 'Yeni Stok Ekle'}
+              </h3>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+                <FaTimes />
+              </button>
+            </div>
             <form onSubmit={handleSubmit}>
-              <FGrid $cols="1fr">
-                <FG><Lbl>Ürün Adı *</Lbl><Inp required value={form.urunAdi} onChange={upd('urunAdi')} placeholder="örn: Penisilin Şurup" /></FG>
-              </FGrid>
-              <FGrid>
-                <FG><Lbl>Kategori</Lbl>
-                  <Sel value={form.kategori} onChange={upd('kategori')}>
-                    {CATS.map(c => <option key={c}>{c}</option>)}
-                  </Sel>
-                </FG>
-                <FG><Lbl>Birim</Lbl>
-                  <Sel value={form.birim} onChange={upd('birim')}>
-                    {['adet', 'kg', 'lt', 'kutu', 'doz', 'torba'].map(b => <option key={b}>{b}</option>)}
-                  </Sel>
-                </FG>
-              </FGrid>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Ürün Adı</label>
+                <input required value={form.urunAdi} onChange={upd('urunAdi')} placeholder="örn: Arpa" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Kategori</label>
+                  <select value={form.kategori} onChange={upd('kategori')} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
+                    {CATS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Birim</label>
+                  <select value={form.birim} onChange={upd('birim')} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
+                    {['adet', 'kg', 'lt', 'kutu', 'doz', 'torba'].map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Miktar</label>
+                  <input type="number" required min={0} step="0.1" value={form.miktar} onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Kritik Seviye</label>
+                  <input type="number" min={0} value={form.kritikSeviye} onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                </div>
+              </div>
               {form.kategori === 'Yem' && (
-                <FG style={{ marginBottom: 12 }}>
-                  <Lbl>Yem kütüphanesinden eşleştir (opsiyonel)</Lbl>
-                  <Sel
-                    value={form.yemKutuphanesiId || ''}
-                    onChange={e => setForm(f => ({ ...f, yemKutuphanesiId: e.target.value || undefined }))}
-                  >
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Yem kütüphanesi (opsiyonel)</label>
+                  <select value={form.yemKutuphanesiId || ''} onChange={e => setForm(p => ({ ...p, yemKutuphanesiId: e.target.value || undefined }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
                     <option value="">— Seç —</option>
-                    {yemKutuphanesi.map(y => (
-                      <option key={y._id} value={y._id}>{y.ad}</option>
-                    ))}
-                  </Sel>
-                </FG>
+                    {yemKutuphanesi.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
+                  </select>
+                </div>
               )}
-              <FGrid>
-                <FG><Lbl>Mevcut Miktar *</Lbl><Inp type="number" required min="0" step=".1" value={form.miktar} onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))} /></FG>
-                <FG><Lbl>Kritik Seviye</Lbl><Inp type="number" required min="0" value={form.kritikSeviye} onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))} /></FG>
-              </FGrid>
-              <FG><Lbl>Notlar</Lbl><TextA rows={3} value={form.notlar} onChange={upd('notlar')} placeholder="Ek açıklamalar..." /></FG>
-              <ModalBtns>
-                <CancelBtn type="button" onClick={() => setShowModal(false)}>İptal</CancelBtn>
-                <SaveBtn type="submit">💾 Kaydet</SaveBtn>
-              </ModalBtns>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 600, cursor: 'pointer' }}>İptal</button>
+                <button type="submit" style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Kaydet</button>
+              </div>
             </form>
-          </Modal>
-        </Overlay>
+          </div>
+        </div>
+      )}
+
+      {/* Alım Önerisi Modal */}
+      {showAlimModal && alimOnerisi?.oneriler?.length > 0 && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20
+          }}
+          onClick={() => setShowAlimModal(false)}
+        >
+          <div
+            style={{
+              background: '#fff', borderRadius: 16, padding: 24, maxWidth: 480, width: '100%',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.2)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>🛒 Alım Önerisi</h3>
+              <button onClick={() => setShowAlimModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><FaTimes /></button>
+            </div>
+            <div style={{ marginBottom: 12, fontSize: 12, color: '#6b7280' }}>
+              Toplam tahmini: <strong style={{ color: '#111827' }}>{(alimOnerisi.toplamMaliyet || 0).toLocaleString('tr-TR')} ₺</strong>
+            </div>
+            {alimOnerisi.oneriler.map(o => (
+              <div key={o._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{o.urunAdi}</span>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>{o.yeterlilikGun} gün</span>
+                <span style={{ fontSize: 12, fontWeight: 600 }}>{o.gerekliKg} kg</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: o.oncelik === 'acil' ? '#fef2f2' : '#fef3c7', color: o.oncelik === 'acil' ? '#991b1b' : '#92400e' }}>{o.oncelik === 'acil' ? 'Acil' : 'Bu hafta'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </PageContainer>
   );

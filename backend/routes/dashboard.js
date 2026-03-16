@@ -449,22 +449,29 @@ router.get('/karlilik', auth, async (req, res) => {
     const TopluSutGirisi = require('../models/TopluSutGirisi');
 
     const bugun = new Date();
-    const ayBaslangic = new Date(bugun.getFullYear(), bugun.getMonth(), 1);
+    const donem = parseInt(req.query.donem) || 1; // 1=bu ay, 3=3 ay, 6=6 ay
+    const ayBaslangic = donem === 1
+      ? new Date(bugun.getFullYear(), bugun.getMonth(), 1)
+      : new Date(bugun.getFullYear(), bugun.getMonth() - (donem - 1), 1);
+    const ayBitis = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate(), 23, 59, 59);
     const oncekiAyBas = new Date(bugun.getFullYear(), bugun.getMonth() - 1, 1);
     const oncekiAyBit = new Date(bugun.getFullYear(), bugun.getMonth(), 0, 23, 59, 59);
 
     // Toplam aktif inek sayısı
     const inekSayisi = await Inek.countDocuments({ userId: uid, durum: 'Aktif' });
 
-    // Bu ayın finansal giderleri (yem, veteriner, ilaç, diğer)
+    const ayBasStr = ayBaslangic.toISOString().slice(0, 10);
+    const ayBitStr = bugun.toISOString().slice(0, 10);
+
+    // Dönem finansal giderleri
     const giderler = await Finansal.aggregate([
-      { $match: { userId: uid, tip: 'gider', tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tip: 'gider', tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
       { $group: { _id: '$kategori', toplam: { $sum: '$miktar' } } }
     ]);
 
-    // Bu ayın geliri (süt satışı + hayvan satışı)
+    // Dönem geliri
     const gelirler = await Finansal.aggregate([
-      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
       { $group: { _id: '$kategori', toplam: { $sum: '$miktar' } } }
     ]);
 
@@ -474,9 +481,9 @@ router.get('/karlilik', auth, async (req, res) => {
     const basBasinaMaliyet = inekSayisi > 0 ? toplamGider / inekSayisi : 0;
     const basBasinaGelir = inekSayisi > 0 ? toplamGelir / inekSayisi : 0;
 
-    // Bu ay toplam süt
+    // Dönem toplam süt
     const sutKayitlari = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
       { $group: { _id: null, toplam: { $sum: '$litre' } } }
     ]);
     const toplamSut = sutKayitlari[0]?.toplam || 0;
@@ -495,15 +502,83 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // En iyi performanslı inekler (süt veriminden karlılık tahmini)
     const topInekler = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: ayBaslangic.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
       { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
       { $unwind: { path: '$inek', preserveNullAndEmptyArrays: true } },
-      { $project: { isim: '$inek.isim', kupeNo: '$inek.kupeNo', toplamSut: 1, ortalama: { $divide: ['$toplamSut', { $max: ['$gunSayisi', 1] }] } } },
+      { $project: { isim: '$inek.isim', kupeNo: '$inek.kupeNo', durum: '$inek.durum', toplamSut: 1, ortalama: { $divide: ['$toplamSut', { $max: ['$gunSayisi', 1] }] } } },
       { $sort: { ortalama: -1 } },
       { $limit: 5 }
     ]);
+
+    // İnek bazlı karlılık (tüm inekler)
+    const YemHareket = require('../models/YemHareket');
+    const ayBasStr = ayBaslangic.toISOString().slice(0, 10);
+    const toplamYemMaliyet = (giderler.find(g => g._id === 'yem') || {}).toplam || 0;
+
+    const saglikMasraflari = await Finansal.aggregate([
+      {
+        $match: {
+          userId: uid,
+          tip: 'gider',
+          kategori: { $in: ['veteriner', 'ilac'] },
+          tarih: { $gte: ayBasStr },
+          ilgiliHayvanId: { $exists: true, $ne: null, $ne: '' }
+        }
+      },
+      { $group: { _id: '$ilgiliHayvanId', toplam: { $sum: '$miktar' } } }
+    ]);
+    const saglikMap = {};
+    saglikMasraflari.forEach(s => { if (s._id) saglikMap[s._id.toString()] = s.toplam; });
+
+    const sutFiyati = toplamSut > 0 ? toplamGelir / toplamSut : 0;
+    const yemPayiBasina = inekSayisi > 0 ? toplamYemMaliyet / inekSayisi : 0;
+
+    const tumIneklerSut = await SutKaydi.aggregate([
+      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
+      { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
+      { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
+      { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
+      { $unwind: { path: '$inek', preserveNullAndEmptyArrays: true } },
+      { $project: { _id: 1, isim: '$inek.isim', kupeNo: '$inek.kupeNo', durum: '$inek.durum', toplamSut: 1 } }
+    ]);
+
+    const inekKarliligi = tumIneklerSut.map(inek => {
+      const inekIdStr = inek._id?.toString();
+      const saglikMasrafi = saglikMap[inekIdStr] || 0;
+      const sutGeliri = (inek.toplamSut || 0) * sutFiyati;
+      const toplamMasraf = yemPayiBasina + saglikMasrafi;
+      const netKar = sutGeliri - toplamMasraf;
+      const litreBasinaMaliyet = inek.toplamSut > 0 ? toplamMasraf / inek.toplamSut : 0;
+
+      return {
+        _id: inek._id,
+        isim: inek.isim,
+        kupeNo: inek.kupeNo,
+        durum: inek.durum || 'Aktif',
+        toplamSut: inek.toplamSut,
+        saglikMasrafi,
+        sutGeliri: +sutGeliri.toFixed(2),
+        yemPayi: +yemPayiBasina.toFixed(2),
+        netKar: +netKar.toFixed(2),
+        litreBasinaMaliyet: +litreBasinaMaliyet.toFixed(2)
+      };
+    }).sort((a, b) => b.netKar - a.netKar);
+
+    // FCR ve Lt başına maliyet (dönem)
+    const ayBitisDate = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate(), 23, 59, 59);
+    let fcrDegeri = 0;
+    let litreBasinaMaliyetDegeri = 0;
+    if (toplamSut > 0) {
+      const yemKgSonuc = await YemHareket.aggregate([
+        { $match: { userId: uid, hareketTipi: 'Tüketim', tarih: { $gte: ayBaslangic, $lte: ayBitisDate } } },
+        { $group: { _id: null, toplamKg: { $sum: '$miktar' } } }
+      ]);
+      const yemKg = yemKgSonuc[0]?.toplamKg || 0;
+      fcrDegeri = +(yemKg / toplamSut).toFixed(2);
+      litreBasinaMaliyetDegeri = +(toplamGider / toplamSut).toFixed(2);
+    }
 
     // Son 6 ay aylık trend
     const altıAyOnce = new Date(bugun.getFullYear(), bugun.getMonth() - 5, 1);
@@ -524,7 +599,13 @@ router.get('/karlilik', auth, async (req, res) => {
     const aylikTrendArr = Object.values(aylarMap).map(a => ({ ...a, net: a.gelir - a.gider }));
 
     res.json({
-      ozet: { toplamGelir, toplamGider, netKar, basBasinaMaliyet, basBasinaGelir, inekSayisi, toplamSut, karDegisim: karDegisim.toFixed(1) },
+      ozet: {
+        toplamGelir, toplamGider, netKar, basBasinaMaliyet, basBasinaGelir,
+        inekSayisi, toplamSut, karDegisim: karDegisim.toFixed(1),
+        fcr: fcrDegeri,
+        litreBasinaMaliyet: litreBasinaMaliyetDegeri
+      },
+      inekKarliligi,
       giderKategoriler: giderler,
       gelirKategoriler: gelirler,
       topInekler,

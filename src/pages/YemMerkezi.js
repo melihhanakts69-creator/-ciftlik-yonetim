@@ -242,7 +242,6 @@ export default function YemMerkezi() {
   const [rasyonAlt, setRasyonAlt] = useState('liste');
   const [yemlemeMod, setYemlemeMod] = useState(() => localStorage.getItem('yemleme_mod') || 'grup');
   const [stokData, setStokData] = useState([]);
-  const [alimOnerisi, setAlimOnerisi] = useState(null);
   const [yemAnaliz, setYemAnaliz] = useState([]);
   const [yemlemeOzet, setYemlemeOzet] = useState({ toplamGrup: 0, yapilanGrup: 0, bekleyenGrup: 0 });
   const [gruplarBasCount, setGruplarBasCount] = useState({});
@@ -252,13 +251,12 @@ export default function YemMerkezi() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [yr, rr, sr, gr, yb, ao, ya] = await Promise.all([
+      const [yr, rr, sr, gr, yb, ya] = await Promise.all([
         api.getYemKutuphanesi(),
         api.getRasyonlar(),
         api.getStoklar({ kategori: 'Yem' }),
         api.getGruplar().catch(() => ({ data: [] })),
         api.getYemlemeBugun().catch(() => ({ data: {} })),
-        api.getAlimOnerisi().catch(() => null),
         api.getYemlemeAnaliz(30).catch(() => ({ data: {} }))
       ]);
       setYemler(Array.isArray(yr?.data) ? yr.data : []);
@@ -268,7 +266,6 @@ export default function YemMerkezi() {
       setStokData(stokArr);
       setKritikSayisi(stokArr.filter(s => s && (s.miktar ?? 0) <= (s.kritikSeviye ?? 0)).length);
       setGruplar(Array.isArray(gr?.data) ? gr.data : []);
-      if (ao?.data) setAlimOnerisi(ao.data);
       if (ya?.data?.analiz) setYemAnaliz(ya.data.analiz);
 
       const yemlemeData = yb?.data;
@@ -389,62 +386,7 @@ export default function YemMerkezi() {
           </TabBar>
 
           <TabContent>
-            {tab === 'stok' && (
-              <>
-                {kritikYemler.length > 0 && (
-                  <div style={{
-                    background: '#fef3c7', border: '1px solid #fde68a',
-                    borderRadius: 10, padding: '10px 14px',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    marginBottom: 14, fontSize: 13
-                  }}>
-                    <span>⚠️</span>
-                    <span style={{ fontWeight: 500, color: '#92400e' }}>
-                      {kritikYemler.length} yem kritik seviyede:
-                      <strong> {kritikYemler.map(y => y.yemTipi || y.urunAdi || y.ad).join(', ')}</strong>
-                    </span>
-                  </div>
-                )}
-                {alimOnerisi?.oneriler?.length > 0 && (
-                  <div style={{
-                    background: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 10,
-                    padding: 14,
-                    marginBottom: 14
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
-                        🛒 Alım Önerisi — 30 günlük stok için
-                      </span>
-                      <span style={{ fontSize: 12, color: '#6b7280' }}>
-                        Tahmini toplam: <strong style={{ color: '#111827' }}>{(alimOnerisi.toplamMaliyet || 0).toLocaleString('tr-TR')} ₺</strong>
-                      </span>
-                    </div>
-                    {alimOnerisi.oneriler.map(o => (
-                      <div key={o._id} style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '7px 0', borderBottom: '1px solid #f3f4f6'
-                      }}>
-                        <div style={{ flex: 1 }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{o.urunAdi}</span>
-                          <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{o.yeterlilikGun} gün yeter</span>
-                        </div>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{o.gerekliKg} kg al</span>
-                        <span style={{
-                          fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                          background: o.oncelik === 'acil' ? '#fef2f2' : '#fef3c7',
-                          color: o.oncelik === 'acil' ? '#991b1b' : '#92400e'
-                        }}>
-                          {o.oncelik === 'acil' ? 'Acil' : 'Bu hafta'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <StokYonetimi embedded />
-              </>
-            )}
+            {tab === 'stok' && <StokYonetimi embedded />}
 
             {tab === 'rasyon' && (
               <>

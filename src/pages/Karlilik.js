@@ -5,56 +5,46 @@ import * as api from '../services/api';
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
 
-const Page = styled.div`animation: ${fadeIn} 0.4s ease; font-family: 'Inter', sans-serif; color: #2c3e50;`;
+const Page = styled.div`
+  animation: ${fadeIn} 0.4s ease;
+  font-family: 'Inter', sans-serif;
+  padding: 0 24px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 0 16px 80px;
+  }
+`;
 
 const PageHeader = styled.div`
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 16px; padding: 28px 32px; margin-bottom: 28px; color: white;
-  display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-`;
-const PageTitle = styled.div`
-  h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; }
-  p { margin: 0; color: rgba(255,255,255,0.6); font-size: 14px; }
-`;
-const MonthBadge = styled.div`
-  background: rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 10px;
-  font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9);
+  gap: 16px;
 `;
 
-const MetricRow = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 28px;
-`;
-const MetricCard = styled.div`
-  background: white; border-radius: 14px; padding: 22px 24px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  border-left: 4px solid ${p => p.$color || '#4CAF50'};
-  .label { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .val { font-size: 26px; font-weight: 800; color: ${p => p.$color || '#2c3e50'}; line-height: 1.1; }
-  .sub { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-  .trend { font-size: 12px; font-weight: 700; margin-top: 4px; }
+const SectionCard = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 16px;
 `;
 
-const Grid2 = styled.div`display: grid; grid-template-columns: 1fr 1fr; gap: 24px; @media (max-width: 900px) { grid-template-columns: 1fr; }`;
-
-const SectionCard = styled.div`background: white; border-radius: 14px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 24px;`;
-const SectionTitle = styled.h3`margin: 0 0 18px; font-size: 16px; font-weight: 700; color: #34495e; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;`;
-
-const InekRow = styled.div`
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-  border-radius: 10px; margin-bottom: 8px; background: #f8fafc;
-  border: 1px solid #e2e8f0; transition: all 0.2s;
-  &:hover { background: #f1f5f9; transform: translateX(2px); }
-  .rank { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #64748b; flex-shrink: 0; }
-  .info { flex: 1; }
-  .isim { font-size: 14px; font-weight: 700; color: #2c3e50; }
-  .kupe { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-  .sut { font-size: 15px; font-weight: 800; color: #4CAF50; }
-  .avg { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-`;
-const RankBadge = styled.div`
-  ${p => p.$rank === 1 ? 'background: #fef3c7; color: #d97706;' : p.$rank === 2 ? 'background: #f1f5f9; color: #64748b;' : p.$rank === 3 ? 'background: #fef1e7; color: #c2703e;' : 'background: #e2e8f0; color: #64748b;'}
-  width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: ${p => p.$rank <= 3 ? '16px' : '12px'}; font-weight: 800; flex-shrink: 0;
+const SectionTitle = styled.h3`
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 10px;
 `;
 
 const GiderBar = styled.div`
@@ -65,20 +55,39 @@ const GiderBar = styled.div`
   .tutar { font-size: 12px; font-weight: 700; color: #64748b; width: 80px; text-align: right; }
 `;
 
-const EmptyBox = styled.div`text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px;`;
+const EmptyBox = styled.div`
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+`;
+
+const KpiGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
 
 const AYLAR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+const DONEM_LABELS = { 1: 'Bu Ay', 3: '3 Ay', 6: '6 Ay' };
 
 export default function Karlilik() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [donem, setDonem] = useState(1);
+  const [yemFiyatArtis, setYemFiyatArtis] = useState(0);
 
   useEffect(() => {
-    api.getKarlilik()
+    api.getKarlilik(donem)
       .then(r => setData(r.data))
       .catch(e => console.error('Karlılık verisi alınamadı', e))
       .finally(() => setLoading(false));
-  }, []);
+  }, [donem]);
 
   const bugun = new Date();
   const ayAd = AYLAR[bugun.getMonth()] + ' ' + bugun.getFullYear();
@@ -86,56 +95,228 @@ export default function Karlilik() {
   if (loading) return <Page><SectionCard><EmptyBox>Yükleniyor…</EmptyBox></SectionCard></Page>;
   if (!data) return <Page><SectionCard><EmptyBox>Veri alınamadı.</EmptyBox></SectionCard></Page>;
 
-  const { ozet, topInekler, giderKategoriler, gelirKategoriler, aylikTrend } = data;
+  const { ozet, inekKarliligi = [], giderKategoriler = [], gelirKategoriler = [], aylikTrend = [] } = data;
   const maxGider = Math.max(...(giderKategoriler || []).map(g => g.toplam), 1);
 
   const katLabels = {
     veteriner: 'Veteriner', yem: 'Yem', ilac: 'İlaç', iscilik: 'İşçilik',
-    bakim: 'Bakım', diger: 'Diğer', genel: 'Genel'
+    bakim: 'Bakım', diger: 'Diğer', genel: 'Genel', 'diger-gider': 'Diğer'
   };
 
-  const trendColor = Number(ozet.karDegisim) >= 0 ? '#22c55e' : '#ef4444';
+  const yemGider = giderKategoriler.find(g => g._id === 'yem')?.toplam || 0;
+  const simule = (artis) => {
+    const yemArtisMiktari = yemGider * (artis / 100);
+    const yeniGider = ozet.toplamGider + yemArtisMiktari;
+    const yeniNetKar = ozet.toplamGelir - yeniGider;
+    const yeniLtMaliyet = ozet.toplamSut > 0 ? yeniGider / ozet.toplamSut : 0;
+    return { yeniNetKar, yeniLtMaliyet, yemArtisMiktari };
+  };
 
   return (
     <Page>
       <PageHeader>
-        <PageTitle>
-          <h1>💰 Karlılık Analizi</h1>
-          <p>Baş başına maliyet, gelir/gider dengesi ve verimlilik raporu</p>
-        </PageTitle>
-        <MonthBadge>📅 {ayAd}</MonthBadge>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0 }}>
+            Karlılık Analizi
+          </h1>
+          <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0' }}>
+            {ayAd} · {ozet.inekSayisi || 0} aktif inek
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[1, 3, 6].map(p => (
+            <button
+              key={p}
+              onClick={() => setDonem(p)}
+              style={{
+                padding: '6px 12px', borderRadius: 20, border: '1px solid',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                background: donem === p ? '#dcfce7' : '#fff',
+                color: donem === p ? '#166534' : '#6b7280',
+                borderColor: donem === p ? '#16a34a' : '#e5e7eb'
+              }}
+            >
+              {DONEM_LABELS[p] || p + ' Ay'}
+            </button>
+          ))}
+        </div>
       </PageHeader>
 
-      {/* Metrik Kartları */}
-      <MetricRow>
-        <MetricCard $color="#22c55e">
-          <div className="label">Net Kâr / Zarar</div>
-          <div className="val">{ozet.netKar >= 0 ? '+' : ''}{ozet.netKar.toFixed(0)} ₺</div>
-          <div className="trend" style={{ color: trendColor }}>
-            {Number(ozet.karDegisim) >= 0 ? '▲' : '▼'} {Math.abs(ozet.karDegisim)}% geçen aya göre
+      {/* 4 KPI Kartları */}
+      <KpiGrid>
+        {[
+          { label: 'Net Kâr', value: `${ozet.netKar >= 0 ? '+' : ''}${ozet.netKar.toLocaleString('tr-TR')} ₺`, trend: `↑ %${Math.abs(ozet.karDegisim || 0)} geçen ay`, trendColor: ozet.netKar >= 0 ? '#16a34a' : '#dc2626' },
+          { label: 'Lt Başına Maliyet', value: `${(ozet.litreBasinaMaliyet || 0).toFixed(2)} ₺/Lt`, trend: 'Yem + sağlık toplam', trendColor: '#9ca3af' },
+          { label: 'FCR', value: `${(ozet.fcr || 0).toFixed(1)} kg/Lt`, trend: 'Yem çevirme oranı', trendColor: '#9ca3af' },
+          { label: 'Baş Başına Kâr', value: `${Math.round(ozet.netKar / (ozet.inekSayisi || 1)).toLocaleString('tr-TR')} ₺`, trend: `${ozet.inekSayisi || 0} aktif inek`, trendColor: '#9ca3af' },
+        ].map((k, i) => (
+          <div key={i} style={{
+            background: '#f9fafb', border: '1px solid #e5e7eb',
+            borderRadius: 12, padding: '14px 16px'
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>
+              {k.label}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-.4px', lineHeight: 1 }}>
+              {k.value}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: k.trendColor, marginTop: 5 }}>
+              {k.trend}
+            </div>
           </div>
-        </MetricCard>
-        <MetricCard $color="#3b82f6">
-          <div className="label">Toplam Gelir</div>
-          <div className="val">{ozet.toplamGelir.toFixed(0)} ₺</div>
-          <div className="sub">Bu ay</div>
-        </MetricCard>
-        <MetricCard $color="#ef4444">
-          <div className="label">Toplam Gider</div>
-          <div className="val">{ozet.toplamGider.toFixed(0)} ₺</div>
-          <div className="sub">Bu ay</div>
-        </MetricCard>
-        <MetricCard $color="#f59e0b">
-          <div className="label">Baş Başına Maliyet</div>
-          <div className="val">{ozet.basBasinaMaliyet.toFixed(0)} ₺</div>
-          <div className="sub">{ozet.inekSayisi} aktif inek için</div>
-        </MetricCard>
-        <MetricCard $color="#8b5cf6">
-          <div className="label">Toplam Süt</div>
-          <div className="val">{ozet.toplamSut} L</div>
-          <div className="sub">Bu ay</div>
-        </MetricCard>
-      </MetricRow>
+        ))}
+      </KpiGrid>
+
+      {/* İnek Bazlı Karlılık */}
+      {inekKarliligi && inekKarliligi.length > 0 && (
+        <SectionCard style={{ overflowX: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#111827' }}>
+              İnek Bazlı Karlılık
+            </h3>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>
+              Süt geliri − (yem payı + sağlık masrafı)
+            </span>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '22px 1fr 70px 80px 70px 80px',
+            gap: 8, padding: '6px 0',
+            borderBottom: '1px solid #e5e7eb',
+            fontSize: 10, fontWeight: 600, color: '#9ca3af',
+            textTransform: 'uppercase', letterSpacing: '.4px',
+            minWidth: 480
+          }}>
+            <span>#</span>
+            <span>İnek</span>
+            <span style={{ textAlign: 'right' }}>Süt</span>
+            <span style={{ textAlign: 'right' }}>Lt/Maliyet</span>
+            <span style={{ textAlign: 'right' }}>Sağlık</span>
+            <span style={{ textAlign: 'right' }}>Net Kâr</span>
+          </div>
+
+          {inekKarliligi.map((inek, i) => {
+            const zararda = inek.netKar < 0;
+            return (
+              <div
+                key={inek._id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '22px 1fr 70px 80px 70px 80px',
+                  gap: 8, padding: '9px 0',
+                  borderBottom: '1px solid #f3f4f6',
+                  opacity: zararda ? 0.75 : 1,
+                  alignItems: 'center',
+                  minWidth: 480
+                }}
+              >
+                <div style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  background: i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#d97706' : '#e5e7eb',
+                  color: i < 3 ? '#fff' : '#6b7280',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 700
+                }}>
+                  {i + 1}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>
+                    {inek.isim || 'İsimsiz'}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>
+                    #{inek.kupeNo || '—'} · {inek.durum || 'Aktif'}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', fontSize: 13, fontWeight: 500, color: '#16a34a' }}>
+                  {(inek.toplamSut || 0).toFixed(0)} Lt
+                </div>
+                <div style={{
+                  textAlign: 'right', fontSize: 12, fontWeight: 500,
+                  color: (inek.litreBasinaMaliyet || 0) > 5 ? '#dc2626'
+                    : (inek.litreBasinaMaliyet || 0) > 3.5 ? '#d97706'
+                    : '#16a34a'
+                }}>
+                  {(inek.litreBasinaMaliyet || 0).toFixed(2)} ₺/Lt
+                </div>
+                <div style={{ textAlign: 'right', fontSize: 12, color: '#6b7280' }}>
+                  {(inek.saglikMasrafi || 0) > 0 ? `${(inek.saglikMasrafi || 0).toLocaleString('tr-TR')} ₺` : '—'}
+                </div>
+                <div style={{
+                  textAlign: 'right', fontSize: 13, fontWeight: 700,
+                  color: zararda ? '#dc2626' : '#16a34a'
+                }}>
+                  {zararda ? '' : '+'}{(inek.netKar || 0).toLocaleString('tr-TR')} ₺
+                </div>
+              </div>
+            );
+          })}
+
+          {inekKarliligi.some(i => i.netKar < 0) && (
+            <div style={{
+              marginTop: 10, padding: '8px 12px',
+              background: '#fef3c7', borderRadius: 8,
+              fontSize: 11, color: '#92400e', fontWeight: 500
+            }}>
+              ⚠️ {inekKarliligi.filter(i => i.netKar < 0).length} inek bu ay zarar ettiriyor.
+              Tedavi maliyeti veya düşük süt verimi kontrol edilmeli.
+            </div>
+          )}
+        </SectionCard>
+      )}
+
+      {/* Fiyat Simülatörü */}
+      <SectionCard>
+        <h3 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: '#111827' }}>
+          Fiyat Simülatörü
+        </h3>
+        <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 16px' }}>
+          Karma yem fiyatı değişirse ne olur?
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <span style={{ fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap' }}>Fiyat artışı</span>
+          <input
+            type="range"
+            min="-20"
+            max="50"
+            step="5"
+            value={yemFiyatArtis}
+            onChange={e => setYemFiyatArtis(Number(e.target.value))}
+            style={{ flex: 1 }}
+          />
+          <span style={{
+            fontSize: 14, fontWeight: 700, minWidth: 40, textAlign: 'right',
+            color: yemFiyatArtis > 0 ? '#dc2626' : '#16a34a'
+          }}>
+            {yemFiyatArtis > 0 ? '+' : ''}{yemFiyatArtis}%
+          </span>
+        </div>
+
+        {(() => {
+          const s = simule(yemFiyatArtis);
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 60px', gap: 8, fontSize: 12 }}>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}></div>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', textAlign: 'right' }}>Mevcut</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', textAlign: 'right' }}>Yeni</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', textAlign: 'right' }}>Fark</div>
+
+              {[
+                { lbl: 'Lt başına maliyet', base: `${(ozet.litreBasinaMaliyet || 0).toFixed(2)} ₺`, yeni: `${s.yeniLtMaliyet.toFixed(2)} ₺`, delta: `${(s.yeniLtMaliyet - (ozet.litreBasinaMaliyet || 0)).toFixed(2)} ₺`, neg: yemFiyatArtis > 0 },
+                { lbl: 'Net kâr', base: `${ozet.netKar.toLocaleString('tr-TR')} ₺`, yeni: `${s.yeniNetKar.toLocaleString('tr-TR')} ₺`, delta: `${(s.yeniNetKar - ozet.netKar).toLocaleString('tr-TR')} ₺`, neg: yemFiyatArtis > 0 },
+              ].map((row, i) => (
+                <React.Fragment key={i}>
+                  <span style={{ color: '#374151' }}>{row.lbl}</span>
+                  <span style={{ textAlign: 'right', color: '#374151' }}>{row.base}</span>
+                  <span style={{ textAlign: 'right', fontWeight: 500, color: row.neg ? '#dc2626' : '#16a34a' }}>{row.yeni}</span>
+                  <span style={{ textAlign: 'right', fontWeight: 500, color: row.neg ? '#dc2626' : '#16a34a' }}>{row.delta}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          );
+        })()}
+      </SectionCard>
 
       {/* Aylık Trend Grafiği */}
       {aylikTrend && aylikTrend.length > 0 && (
@@ -145,14 +326,14 @@ export default function Karlilik() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={aylikTrend.map(a => ({
                 ...a,
-                ayLabel: AYLAR[parseInt(a.ay.slice(5, 7)) - 1] || a.ay
+                ayLabel: AYLAR[parseInt((a.ay || '').slice(5, 7), 10) - 1] || a.ay
               }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="ayLabel" stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  formatter={(v, name) => [`${v.toFixed(0)} ₺`, name === 'gelir' ? 'Gelir' : name === 'gider' ? 'Gider' : 'Net Kâr']}
+                  formatter={(v, name) => [`${Number(v).toFixed(0)} ₺`, name === 'gelir' ? 'Gelir' : name === 'gider' ? 'Gider' : 'Net Kâr']]}
                 />
                 <Legend formatter={v => v === 'gelir' ? 'Gelir' : v === 'gider' ? 'Gider' : 'Net Kâr'} />
                 <Bar dataKey="gelir" fill="#22c55e" radius={[4, 4, 0, 0]} />
@@ -168,70 +349,44 @@ export default function Karlilik() {
         </SectionCard>
       )}
 
-      <Grid2>
-        {/* En Verimli İnekler */}
-        <SectionCard>
-          <SectionTitle>🏆 Bu Ay En Fazla Süt Veren İnekler</SectionTitle>
-          {topInekler && topInekler.length > 0 ? (
-            topInekler.map((inek, i) => (
-              <InekRow key={inek._id}>
-                <RankBadge $rank={i + 1}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
-                </RankBadge>
-                <div className="info">
-                  <div className="isim">{inek.isim || 'İsimsiz'}</div>
-                  <div className="kupe">#{inek.kupeNo || '—'}</div>
+      {/* Gider Dağılımı */}
+      <SectionCard>
+        <SectionTitle>📉 Gider Dağılımı</SectionTitle>
+        {giderKategoriler && giderKategoriler.length > 0 ? (
+          <GiderBar>
+            {giderKategoriler.map((g, i) => (
+              <div className="item" key={i}>
+                <span className="kat">{katLabels[g._id] || g._id || 'Diğer'}</span>
+                <div className="bar-bg">
+                  <div className="bar-fill" style={{ width: `${(g.toplam / maxGider) * 100}%` }} />
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="sut">{inek.toplamSut?.toFixed(1)} L</div>
-                  <div className="avg">Ort. {inek.ortalama?.toFixed(1)} L/gün</div>
-                </div>
-              </InekRow>
-            ))
-          ) : (
-            <EmptyBox>Bu ay için süt kaydı bulunamadı.</EmptyBox>
-          )}
-        </SectionCard>
-
-        {/* Gider Kategorileri */}
-        <SectionCard>
-          <SectionTitle>📉 Gider Dağılımı</SectionTitle>
-          {giderKategoriler && giderKategoriler.length > 0 ? (
+                <span className="tutar">{g.toplam.toFixed(0)} ₺</span>
+              </div>
+            ))}
+          </GiderBar>
+        ) : (
+          <EmptyBox>Bu ay için gider kaydı bulunamadı.</EmptyBox>
+        )}
+        {gelirKategoriler && gelirKategoriler.length > 0 && (
+          <>
+            <SectionTitle style={{ marginTop: 24 }}>📈 Gelir Dağılımı</SectionTitle>
             <GiderBar>
-              {giderKategoriler.map((g, i) => (
-                <div className="item" key={i}>
-                  <span className="kat">{katLabels[g._id] || g._id || 'Diğer'}</span>
-                  <div className="bar-bg">
-                    <div className="bar-fill" style={{ width: `${(g.toplam / maxGider) * 100}%` }} />
-                  </div>
-                  <span className="tutar">{g.toplam.toFixed(0)} ₺</span>
-                </div>
-              ))}
-            </GiderBar>
-          ) : (
-            <EmptyBox>Bu ay için gider kaydı bulunamadı.</EmptyBox>
-          )}
-          {gelirKategoriler && gelirKategoriler.length > 0 && (
-            <>
-              <SectionTitle style={{ marginTop: 24 }}>📈 Gelir Dağılımı</SectionTitle>
-              <GiderBar>
-                {gelirKategoriler.map((g, i) => {
-                  const maxGelir = Math.max(...gelirKategoriler.map(x => x.toplam), 1);
-                  return (
-                    <div className="item" key={i}>
-                      <span className="kat">{katLabels[g._id] || g._id || 'Diğer'}</span>
-                      <div className="bar-bg">
-                        <div className="bar-fill" style={{ width: `${(g.toplam / maxGelir) * 100}%`, background: '#22c55e' }} />
-                      </div>
-                      <span className="tutar">{g.toplam.toFixed(0)} ₺</span>
+              {gelirKategoriler.map((g, i) => {
+                const maxGelir = Math.max(...gelirKategoriler.map(x => x.toplam), 1);
+                return (
+                  <div className="item" key={i}>
+                    <span className="kat">{katLabels[g._id] || g._id || 'Diğer'}</span>
+                    <div className="bar-bg">
+                      <div className="bar-fill" style={{ width: `${(g.toplam / maxGelir) * 100}%`, background: '#22c55e' }} />
                     </div>
-                  );
-                })}
-              </GiderBar>
-            </>
-          )}
-        </SectionCard>
-      </Grid2>
+                    <span className="tutar">{g.toplam.toFixed(0)} ₺</span>
+                  </div>
+                );
+              })}
+            </GiderBar>
+          </>
+        )}
+      </SectionCard>
     </Page>
   );
 }
