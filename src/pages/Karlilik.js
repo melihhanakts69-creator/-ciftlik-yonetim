@@ -333,9 +333,9 @@ export default function Karlilik() {
                 <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  formatter={(v, name) => [`${Number(v).toFixed(0)} ₺`, name === 'gelir' ? 'Gelir' : name === 'gider' ? 'Gider' : 'Net Kâr']]}
+                  formatter={(v, name) => [`${Number(v).toFixed(0)} TL`, name === 'gelir' ? 'Gelir' : name === 'gider' ? 'Gider' : 'Net Kar']}
                 />
-                <Legend formatter={v => v === 'gelir' ? 'Gelir' : v === 'gider' ? 'Gider' : 'Net Kâr'} />
+                <Legend formatter={(v) => (v === 'gelir' ? 'Gelir' : v === 'gider' ? 'Gider' : 'Net Kar')} />
                 <Bar dataKey="gelir" fill="#22c55e" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="gider" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="net" radius={[4, 4, 0, 0]}>
