@@ -176,7 +176,7 @@ const Modal = styled.div`
   }
 `;
 
-const BugunYemlemeCard = () => {
+const BugunYemlemeCard = ({ mod = 'grup', compact = false }) => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -236,9 +236,11 @@ const BugunYemlemeCard = () => {
     );
   }
 
+  const gruplar = data.gruplar || [];
+
   return (
     <>
-      <Card>
+      <Card style={compact ? { boxShadow: 'none', padding: 16 } : undefined}>
         <Header $tamamlandi={data.ozet?.tamamlandi}>
           <h3>
             <FaSeedling color={colors.primary} />
@@ -248,37 +250,74 @@ const BugunYemlemeCard = () => {
             {data.ozet?.yapilanGrup || 0}/{data.ozet?.toplamGrup || 0} grup
           </span>
         </Header>
-        <GrupList>
-          {data.gruplar.map((g) => (
-            <GrupItem key={g.grup._id} $yapildi={g.yapildi} $renk={g.grup.renk}>
-              <GrupInfo>
-                <strong>{g.grup.ad}</strong>
-                <span>
-                  {g.basCount} baş · Planlanan: {g.planlanenKg?.toFixed(0) || 0} kg
-                </span>
-              </GrupInfo>
-              <YemleBtn
-                $yapildi={g.yapildi}
-                disabled={g.yapildi || loading}
-                onClick={() => {
-                  if (g.yapildi) return;
-                  if (!g.planlanenKg || g.planlanenKg === 0) {
-                    showError('Gruba rasyon atanmamış. Yem Merkezi\'nden rasyon atayın.');
-                    navigate('/yem-merkezi');
-                    return;
-                  }
-                  setModalGrup(g);
-                }}
-              >
-                {g.yapildi ? (
-                  <><FaCheck /> Yapıldı</>
-                ) : (
-                  <><FaUtensils /> Yemle</>
-                )}
-              </YemleBtn>
-            </GrupItem>
-          ))}
-        </GrupList>
+        {mod === 'grup' ? (
+          <GrupList>
+            {gruplar.map((g) => (
+              <GrupItem key={g.grup._id} $yapildi={g.yapildi} $renk={g.grup.renk}>
+                <GrupInfo>
+                  <strong>{g.grup.ad}</strong>
+                  <span>
+                    {g.basCount} baş · Planlanan: {g.planlanenKg?.toFixed(0) || 0} kg
+                  </span>
+                </GrupInfo>
+                <YemleBtn
+                  $yapildi={g.yapildi}
+                  disabled={g.yapildi || loading}
+                  onClick={() => {
+                    if (g.yapildi) return;
+                    if (!g.planlanenKg || g.planlanenKg === 0) {
+                      showError('Gruba rasyon atanmamış. Yem Merkezi\'nden rasyon atayın.');
+                      navigate('/yem-merkezi');
+                      return;
+                    }
+                    setModalGrup(g);
+                  }}
+                >
+                  {g.yapildi ? (
+                    <><FaCheck /> Yapıldı</>
+                  ) : (
+                    <><FaUtensils /> Yemle</>
+                  )}
+                </YemleBtn>
+              </GrupItem>
+            ))}
+          </GrupList>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {['inek', 'duve', 'buzagi', 'tosun', 'karma'].map(tur => {
+              const turGruplari = gruplar.filter(g => (g.grup?.tip || 'karma') === tur);
+              if (turGruplari.length === 0) return null;
+              const toplamBas = turGruplari.reduce((s, g) => s + (g.basCount || 0), 0);
+              const tamamlandi = turGruplari.every(g => g.yapildi);
+              const turLabel = tur === 'inek' ? 'İnekler' : tur === 'duve' ? 'Düveler' : tur === 'buzagi' ? 'Buzağılar' : tur === 'tosun' ? 'Tosunlar' : 'Karma';
+              const turIcon = tur === 'inek' ? '🐄' : tur === 'duve' ? '🐮' : tur === 'buzagi' ? '🐣' : tur === 'tosun' ? '🐂' : '📋';
+              return (
+                <div
+                  key={tur}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 8,
+                    background: tamamlandi ? '#f0fdf4' : '#f9fafb',
+                    border: `1px solid ${tamamlandi ? '#bbf7d0' : '#e5e7eb'}`
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{turIcon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{turLabel}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af' }}>{toplamBas} baş · {turGruplari.length} grup</div>
+                  </div>
+                  <span style={{
+                    fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
+                    background: tamamlandi ? '#dcfce7' : '#fef3c7',
+                    color: tamamlandi ? '#166534' : '#92400e'
+                  }}>
+                    {tamamlandi ? 'Yapıldı' : 'Bekliyor'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
       {modalGrup && (

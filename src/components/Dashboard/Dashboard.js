@@ -5,6 +5,7 @@ import * as api from '../../services/api';
 import PerformansChart from './PerformansChart';
 import SuruSaglikSkoru from './SuruSaglikSkoru';
 import YaklasanDogumlar from '../YaklasanDogumlar';
+import BugunYemlemeCard from './BugunYemlemeCard';
 import { Skeleton } from '../common/Skeleton';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat } from 'react-icons/fa';
 
@@ -250,7 +251,7 @@ const SideCol = styled.div`
   top: 70px;
 
   @media (max-width: 800px) {
-    position: static;
+    display: none;
   }
 `;
 
@@ -419,6 +420,60 @@ const getMetrikTrend = (stats, metrikId, saglikSkoruDetay) => {
   }
 };
 
+// --- YemlemeCollapsible ---
+const YemlemeCollapsible = () => {
+  const [acik, setAcik] = useState(false);
+  const [mod, setMod] = useState(() =>
+    localStorage.getItem('yemleme_mod') || 'grup'
+  );
+
+  const handleMod = (yeniMod) => {
+    setMod(yeniMod);
+    localStorage.setItem('yemleme_mod', yeniMod);
+  };
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
+      <div
+        onClick={() => setAcik(p => !p)}
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', transition: 'background .15s' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14 }}>🌿</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Günlük Yemleme</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {[
+            { label: 'Grup bazlı', value: 'grup' },
+            { label: 'Tür bazlı', value: 'tur' },
+          ].map(m => (
+            <button
+              key={m.value}
+              onClick={e => { e.stopPropagation(); handleMod(m.value); setAcik(true); }}
+              style={{
+                padding: '3px 9px', borderRadius: 20, border: '1px solid',
+                fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all .15s',
+                background: mod === m.value ? '#fef3c7' : '#fff',
+                color: mod === m.value ? '#92400e' : '#6b7280',
+                borderColor: mod === m.value ? '#f59e0b' : '#e5e7eb',
+              }}
+            >
+              {m.label}
+            </button>
+          ))}
+          <span style={{ fontSize: 12, color: '#9ca3af', transform: acik ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+        </div>
+      </div>
+
+      {acik && (
+        <div style={{ borderTop: '1px solid #f3f4f6', padding: 16 }}>
+          <BugunYemlemeCard mod={mod} compact />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- Component ---
 
 const Dashboard = ({ kullanici }) => {
@@ -427,6 +482,7 @@ const Dashboard = ({ kullanici }) => {
   const [showPanelAyari, setShowPanelAyari] = useState(false);
   const [dogumAcik, setDogumAcik] = useState(false);
   const [grafikAcik, setGrafikAcik] = useState(false);
+  const [grafikSure, setGrafikSure] = useState(7);
   const [panelMetrikleri, setPanelMetrikleri] = useState(() => {
     try {
       const s = localStorage.getItem(DASHBOARD_PANEL_KEY);
@@ -452,13 +508,23 @@ const Dashboard = ({ kullanici }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    api.getDashboardPerformans(grafikSure)
+      .then(r => {
+        if (Array.isArray(r?.data)) {
+          setData(prev => ({ ...prev, performans: r.data }));
+        }
+      })
+      .catch(() => {});
+  }, [grafikSure]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
 
       const results = await Promise.allSettled([
         api.getDashboardStats(),
-        api.getDashboardPerformans(30),
+        api.getDashboardPerformans(grafikSure),
         api.getYapilacaklar(),
         api.getDashboardAktiviteler(10),
         api.getDashboardTopPerformers(),
@@ -721,6 +787,9 @@ const Dashboard = ({ kullanici }) => {
             )}
           </Widget>
 
+          {/* YEMLEME BÖLÜMÜ */}
+          <YemlemeCollapsible />
+
           {/* SÜT GRAFİĞİ — Collapsible */}
           <div style={{
             background: '#fff',
@@ -731,30 +800,36 @@ const Dashboard = ({ kullanici }) => {
           }}>
             <div
               onClick={() => setGrafikAcik(p => !p)}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '12px 16px', cursor: 'pointer'
-              }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 14 }}>📈</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Süt Performans Grafiği</span>
-                <span style={{ fontSize: 11, color: '#9ca3af' }}>Son 30 gün</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {!grafikAcik && (
-                  <span style={{
-                    background: '#dcfce7', color: '#166534',
-                    fontSize: 11, fontWeight: 600,
-                    padding: '3px 9px', borderRadius: 20
-                  }}>
-                    ↑ %{data.stats?.trendler?.sut || 0} trend
-                  </span>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {[
+                  { label: '7G', value: 7 },
+                  { label: '30G', value: 30 },
+                  { label: '90G', value: 90 },
+                ].map(f => (
+                  <button
+                    key={f.value}
+                    onClick={e => { e.stopPropagation(); setGrafikSure(f.value); setGrafikAcik(true); }}
+                    style={{
+                      padding: '3px 9px', borderRadius: 20, border: '1px solid',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all .15s',
+                      background: grafikSure === f.value ? '#dcfce7' : '#fff',
+                      color: grafikSure === f.value ? '#166534' : '#6b7280',
+                      borderColor: grafikSure === f.value ? '#16a34a' : '#e5e7eb',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
                 <span style={{
                   fontSize: 12, color: '#9ca3af',
                   display: 'inline-block',
-                  transform: grafikAcik ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transform: grafikAcik ? 'rotate(180deg)' : 'none',
                   transition: 'transform .2s'
                 }}>▾</span>
               </div>

@@ -104,37 +104,6 @@ const ActionButton = styled.button`
   }
 `;
 
-const TabContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  
-  &::-webkit-scrollbar { height: 4px; }
-  &::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-`;
-
-const TabButton = styled.button`
-  padding: 8px 16px;
-  background: ${props => props.active ? '#16a34a' : 'white'};
-  color: ${props => props.active ? 'white' : '#6b7280'};
-  border: 1px solid ${props => props.active ? '#16a34a' : '#e5e7eb'};
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  white-space: nowrap;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  &:hover {
-    background: ${props => props.active ? '#43A047' : '#f1f1f1'};
-  }
-`;
-
 const NotificationList = styled.div`
   display: flex;
   flex-direction: column;
@@ -142,33 +111,30 @@ const NotificationList = styled.div`
 `;
 
 const NotificationCard = styled.div`
-  background: ${props => props.unread ? 'white' : '#f8f9fa'};
+  background: white;
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: ${props => props.unread ? '0 4px 12px rgba(0,0,0,0.06)' : 'none'};
-  border: ${props => props.unread ? 'none' : '1px solid #eee'};
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid ${props => props.color};
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  border-left: 4px solid ${props => props.color};
-  transition: all 0.2s;
+  gap: 12px;
+  transition: background 0.15s;
+  opacity: ${props => props.unread ? 1 : 0.65};
 
-  &:hover {
-    transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
+  &:hover { background: #f9fafb; }
 `;
 
 const IconWrapper = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   background: ${props => props.bg};
   color: ${props => props.color};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 15px;
   flex-shrink: 0;
 `;
 
@@ -358,7 +324,7 @@ function Bildirimler() {
       case 'tohumlama': return { icon: <FaInfoCircle />, color: '#673AB7', bg: '#EDE7F6' };
       case 'randevu': return { icon: <FaCalendarAlt />, color: '#0d9488', bg: '#ccfbf1' };
       case 'danisma': return { icon: <FaInfoCircle />, color: '#7c3aed', bg: '#ede9fe' };
-      default: return { icon: <FaBell />, color: '#4CAF50', bg: '#E8F5E9' };
+      default: return { icon: <FaBell />, color: '#16a34a', bg: '#dcfce7' };
     }
   };
 
@@ -387,7 +353,18 @@ function Bildirimler() {
   return (
     <PageContainer>
       <PageHeader>
-        <h1><FaBell color="#FFC107" /> Bildirimler</h1>
+        <h1>
+          Bildirimler
+          {bildirimler.filter(b => !b.okundu).length > 0 && (
+            <span style={{
+              background: '#fef2f2', color: '#dc2626',
+              fontSize: 13, fontWeight: 600,
+              padding: '3px 10px', borderRadius: 20
+            }}>
+              {bildirimler.filter(b => !b.okundu).length} okunmamış
+            </span>
+          )}
+        </h1>
         <ButtonGroup>
           <ActionButton onClick={tumunuOkunduYap}>
             <FaCheckDouble /> Tümünü Oku
@@ -398,17 +375,17 @@ function Bildirimler() {
         </ButtonGroup>
       </PageHeader>
 
-      <TabContainer>
+      <FilterRow>
         {filtreler.map(f => (
-          <TabButton
+          <FilterChip
             key={f.id}
-            active={aktifFiltre === f.id}
+            $active={aktifFiltre === f.id}
             onClick={() => setAktifFiltre(f.id)}
           >
-            {f.icon} {f.label}
-          </TabButton>
+            {f.label}
+          </FilterChip>
         ))}
-      </TabContainer>
+      </FilterRow>
 
       <NotificationList>
         {yukleniyor ? (
