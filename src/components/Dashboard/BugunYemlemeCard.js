@@ -259,6 +259,24 @@ const BugunYemlemeCard = ({ mod = 'grup', compact = false }) => {
                   <span>
                     {g.basCount} baş · Planlanan: {g.planlanenKg?.toFixed(0) || 0} kg
                   </span>
+                  {g.grup.rasyonId && (
+                    <div style={{
+                      fontSize: 10,
+                      color: '#16a34a',
+                      fontWeight: 500,
+                      marginTop: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3
+                    }}>
+                      🌿 {g.grup.rasyonId?.ad || g.grup.rasyonAdi || 'Rasyon atanmış'}
+                    </div>
+                  )}
+                  {!g.grup.rasyonId && !g.yapildi && (
+                    <div style={{ fontSize: 10, color: '#d97706', fontWeight: 500, marginTop: 2 }}>
+                      ⚠️ Rasyon atanmamış
+                    </div>
+                  )}
                 </GrupInfo>
                 <YemleBtn
                   $yapildi={g.yapildi}

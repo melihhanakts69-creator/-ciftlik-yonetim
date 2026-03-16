@@ -43,7 +43,9 @@ router.get('/', auth, async (req, res) => {
     if (tip) filter.tip = tip;
     if (aktif !== undefined) filter.aktif = aktif === 'true';
 
-    const gruplar = await Grup.find(filter).sort({ ad: 1 });
+    const gruplar = await Grup.find(filter)
+      .populate('rasyonId', 'ad hedefGrup toplamMaliyet icerik')
+      .sort({ ad: 1 });
 
     res.json(gruplar);
   } catch (error) {
@@ -65,12 +67,14 @@ router.get('/:id/hayvanlar', auth, async (req, res) => {
       Tosun.find({ userId: uid, grupId }).lean()
     ]);
 
+    const toplam = inekler.length + duveler.length + buzagilar.length + tosunlar.length;
     res.json({
       inekler,
       duveler,
       buzagilar,
       tosunlar,
-      toplam: inekler.length + duveler.length + buzagilar.length + tosunlar.length
+      toplam,
+      basCount: toplam
     });
   } catch (err) {
     console.error('Grup hayvanları error:', err);
@@ -84,7 +88,8 @@ router.get('/:id', auth, async (req, res) => {
     const grup = await Grup.findOne({
       _id: req.params.id,
       userId: req.userId
-    });
+    })
+      .populate('rasyonId', 'ad hedefGrup toplamMaliyet icerik');
 
     if (!grup) {
       return res.status(404).json({ message: 'Grup bulunamadı' });
@@ -100,10 +105,11 @@ router.get('/:id', auth, async (req, res) => {
 // Yeni grup oluştur
 router.post('/', auth, async (req, res) => {
   try {
-    const { ad, aciklama, renk, tip, ozellikler } = req.body;
+    const { ad, aciklama, renk, tip, ozellikler, rasyonId } = req.body;
     const grup = new Grup({
       userId: req.userId,
-      ad, aciklama, renk, tip, ozellikler
+      ad, aciklama, renk, tip, ozellikler,
+      rasyonId: rasyonId || null
     });
 
     await grup.save();

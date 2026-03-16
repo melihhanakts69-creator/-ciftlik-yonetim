@@ -22,7 +22,7 @@ const grupSchema = new mongoose.Schema({
   },
   tip: {
     type: String,
-    enum: ['inek', 'duve', 'buzagi', 'tosun', 'karma'], // Karma = karışık
+    enum: ['inek', 'duve', 'buzagi', 'tosun', 'karma', 'sagmal', 'kuru'], // sagmal/kuru = YemMerkezi UI uyumu
     default: 'karma'
   },
   rasyonId: {

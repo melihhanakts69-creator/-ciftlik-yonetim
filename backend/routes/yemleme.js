@@ -103,7 +103,9 @@ router.get('/bugun', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
           _id: grup._id,
           ad: grup.ad,
           renk: grup.renk,
-          tip: grup.tip
+          tip: grup.tip,
+          rasyonId: grup.rasyonId,
+          rasyonAdi: grup.rasyonId?.ad
         },
         basCount,
         planlanenKg,

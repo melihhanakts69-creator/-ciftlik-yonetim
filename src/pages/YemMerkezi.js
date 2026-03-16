@@ -498,22 +498,44 @@ export default function YemMerkezi() {
                         </RAd>
                         <RBadge>{g.tip || 'karma'}</RBadge>
                       </RHead>
-                      <div style={{ marginBottom: 14 }}>
-                        <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 6 }}>Rasyon ata</label>
+                      <div style={{
+                        borderTop: '1px solid #f3f4f6',
+                        paddingTop: 10,
+                        marginTop: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8
+                      }}>
+                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, flexShrink: 0 }}>
+                          Rasyon:
+                        </span>
                         <select
                           value={g.rasyonId?._id || g.rasyonId || ''}
                           onChange={e => handleGrupRasyonGuncelle(g._id, e.target.value || null)}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13 }}
+                          style={{
+                            flex: 1,
+                            padding: '5px 8px',
+                            borderRadius: 7,
+                            border: '1px solid #e5e7eb',
+                            fontSize: 12,
+                            color: g.rasyonId ? '#111827' : '#9ca3af',
+                            background: '#fff',
+                            cursor: 'pointer'
+                          }}
                         >
-                          <option value="">— Rasyon seçin —</option>
+                          <option value="">— Rasyon seç —</option>
                           {rasyonlar.map(r => (
-                            <option key={r._id} value={r._id}>{r.ad} ({r.hedefGrup})</option>
+                            <option key={r._id} value={r._id}>
+                              {r.ad} ({r.hedefGrup})
+                            </option>
                           ))}
                         </select>
+                        {g.rasyonId ? (
+                          <span style={{ fontSize: 16 }} title="Rasyon atanmış">✅</span>
+                        ) : (
+                          <span style={{ fontSize: 16 }} title="Rasyon atanmamış">⚠️</span>
+                        )}
                       </div>
-                      <p style={{ margin: 0, fontSize: 12, color: '#94a3b8' }}>
-                        Gruba rasyon atayın. Dashboard'da günlük yemleme bu gruplara göre yapılır.
-                      </p>
                     </RCardBody>
                   </RCard>
                 ))}
