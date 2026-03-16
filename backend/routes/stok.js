@@ -10,7 +10,9 @@ const Bildirim = require('../models/Bildirim');
 // @access  Private
 router.get('/', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req, res) => {
     try {
-        const stoklar = await Stok.find({ userId: req.userId })
+        const filter = { userId: req.userId };
+        if (req.query.kategori) filter.kategori = req.query.kategori;
+        const stoklar = await Stok.find(filter)
             .populate('yemKutuphanesiId')
             .sort({ urunAdi: 1 });
         res.json(stoklar);
@@ -111,6 +113,50 @@ router.put('/:id', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Hatası');
+    }
+});
+
+// @route   GET /api/stok/alim-onerisi
+router.get('/alim-onerisi', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req, res) => {
+    try {
+        const uid = req.userId;
+        const HEDEF_GUN = 30;
+
+        const yemStoklar = await Stok.find({
+            userId: uid,
+            kategori: 'Yem'
+        }).lean();
+
+        const oneriler = [];
+        for (const s of yemStoklar) {
+            const gunlukTuketim = s.gunlukTuketim || 0;
+            const yeterlilikGun = gunlukTuketim > 0
+                ? Math.floor((s.miktar || 0) / gunlukTuketim)
+                : 999;
+
+            if (yeterlilikGun < HEDEF_GUN && gunlukTuketim > 0) {
+                const eksikGun = HEDEF_GUN - yeterlilikGun;
+                const gerekliKg = Math.ceil(eksikGun * gunlukTuketim);
+                const birimFiyat = s.birimFiyat || 0;
+                const tahminiMaliyet = gerekliKg * birimFiyat;
+                oneriler.push({
+                    _id: s._id,
+                    urunAdi: s.urunAdi,
+                    mevcutKg: s.miktar,
+                    yeterlilikGun,
+                    gerekliKg,
+                    tahminiMaliyet,
+                    oncelik: yeterlilikGun < 7 ? 'acil' : yeterlilikGun < 14 ? 'yuksek' : 'normal'
+                });
+            }
+        }
+        oneriler.sort((a, b) => a.yeterlilikGun - b.yeterlilikGun);
+        const toplamMaliyet = oneriler.reduce((sum, o) => sum + (o.tahminiMaliyet || 0), 0);
+
+        res.json({ oneriler, toplamMaliyet: +toplamMaliyet.toFixed(2), hedefGun: HEDEF_GUN });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Alım önerisi hesaplanamadı' });
     }
 });
 

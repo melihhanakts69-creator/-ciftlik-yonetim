@@ -30,6 +30,10 @@ const stokSchema = new mongoose.Schema({
         type: Number,
         default: 10
     },
+    birimFiyat: {
+        type: Number,
+        default: 0
+    },
     sonGuncelleme: {
         type: Date,
         default: Date.now

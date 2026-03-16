@@ -396,13 +396,19 @@ const EmptyState = styled.div`
 `;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+const ANA_SEKMELER = [
+  { key: 'yem', label: 'Yem Deposu', emoji: '🌿' },
+  { key: 'diger', label: 'İlaç & Ekipman', emoji: '💊' },
+];
 const CATS = ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'];
 const PIE_COLORS = ['#16a34a', '#dc2626', '#ea580c', '#2563eb', '#7c3aed'];
-const EMPTY = { urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '' };
+const EMPTY = { urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '', yemKutuphanesiId: undefined };
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function StokYonetimi() {
+export default function StokYonetimi({ embedded }) {
+  const [anaTab, setAnaTab] = useState('yem');
   const [stoklar, setStoklar] = useState([]);
+  const [yemKutuphanesi, setYemKutuphanesi] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [catFilter, setCatFilter] = useState('Tümü');
@@ -413,10 +419,18 @@ export default function StokYonetimi() {
   const upd = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { setCatFilter('Tümü'); }, [anaTab]);
 
   const load = async () => {
-    try { setLoading(true); const r = await api.getStoklar(); setStoklar(r.data); }
-    catch { toast.error('Stok verileri yüklenemedi'); }
+    try {
+      setLoading(true);
+      const [r, yk] = await Promise.all([
+        api.getStoklar(),
+        api.getYemKutuphanesi().catch(() => ({ data: [] }))
+      ]);
+      setStoklar(r.data || []);
+      setYemKutuphanesi(Array.isArray(yk?.data) ? yk.data : []);
+    } catch { toast.error('Stok verileri yüklenemedi'); }
     finally { setLoading(false); }
   };
 
@@ -443,18 +457,22 @@ export default function StokYonetimi() {
 
   const openEdit = item => {
     setEditing(item);
-    setForm({ urunAdi: item.urunAdi, kategori: item.kategori, miktar: item.miktar, birim: item.birim, kritikSeviye: item.kritikSeviye, notlar: item.notlar || '' });
+    setForm({
+      urunAdi: item.urunAdi, kategori: item.kategori, miktar: item.miktar, birim: item.birim,
+      kritikSeviye: item.kritikSeviye, notlar: item.notlar || '', yemKutuphanesiId: item.yemKutuphanesiId || undefined
+    });
     setShowModal(true);
   };
-  const openNew = () => { setEditing(null); setForm(EMPTY); setShowModal(true); };
+  const openNew = () => { setEditing(null); setForm({ ...EMPTY, kategori: anaTab === 'yem' ? 'Yem' : 'İlaç' }); setShowModal(true); };
 
-  const filtered = stoklar.filter(s =>
+  const tabStoklar = anaTab === 'yem' ? stoklar.filter(s => s.kategori === 'Yem') : stoklar.filter(s => s.kategori !== 'Yem');
+  const filtered = tabStoklar.filter(s =>
     s.urunAdi.toLowerCase().includes(filter.toLowerCase()) &&
     (catFilter === 'Tümü' || s.kategori === catFilter)
   );
 
-  const kritikler = stoklar.filter(s => s.miktar <= s.kritikSeviye);
-  const pieData = CATS.map((c, i) => ({ name: c, value: stoklar.filter(s => s.kategori === c).length, fill: PIE_COLORS[i] })).filter(d => d.value > 0);
+  const kritikler = tabStoklar.filter(s => s.miktar <= s.kritikSeviye);
+  const pieData = CATS.map((c, i) => ({ name: c, value: tabStoklar.filter(s => s.kategori === c).length, fill: PIE_COLORS[i] })).filter(d => d.value > 0);
 
   return (
     <PageContainer>
@@ -475,9 +493,26 @@ export default function StokYonetimi() {
           </HeaderActions>
         </HeaderTop>
 
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {ANA_SEKMELER.map(s => (
+            <button
+              key={s.key}
+              onClick={() => setAnaTab(s.key)}
+              style={{
+                padding: '10px 18px', borderRadius: 10, border: '1px solid',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                background: anaTab === s.key ? '#dcfce7' : '#fff',
+                color: anaTab === s.key ? '#166534' : '#6b7280',
+                borderColor: anaTab === s.key ? '#16a34a' : '#e5e7eb',
+              }}
+            >
+              {s.emoji} {s.label}
+            </button>
+          ))}
+        </div>
         <StatRow>
           <Stat $accent="#4ade80">
-            <div className="val">{stoklar.length}</div>
+            <div className="val">{tabStoklar.length}</div>
             <div className="lbl">Toplam Ürün</div>
           </Stat>
           <Stat $accent="#f87171">
@@ -485,11 +520,11 @@ export default function StokYonetimi() {
             <div className="lbl">Kritik Stok</div>
           </Stat>
           <Stat $accent="#fb923c">
-            <div className="val">{CATS.filter(c => stoklar.some(s => s.kategori === c)).length}</div>
+            <div className="val">{CATS.filter(c => tabStoklar.some(s => s.kategori === c)).length}</div>
             <div className="lbl">Kategori</div>
           </Stat>
           <Stat $accent="#60a5fa">
-            <div className="val">{stoklar.filter(s => s.miktar > s.kritikSeviye).length}</div>
+            <div className="val">{tabStoklar.filter(s => s.miktar > s.kritikSeviye).length}</div>
             <div className="lbl">Yeterli</div>
           </Stat>
         </StatRow>
@@ -529,7 +564,7 @@ export default function StokYonetimi() {
             <FaSearch />
             <SearchInput value={filter} onChange={e => setFilter(e.target.value)} placeholder="Ürün ara..." />
           </SearchWrap>
-          {['Tümü', ...CATS].map(c => (
+          {['Tümü', ...(anaTab === 'yem' ? ['Yem'] : CATS.filter(c => c !== 'Yem'))].map(c => (
             <CatBtn key={c} $active={catFilter === c} $k={c === 'Tümü' ? 'Diğer' : c}
               onClick={() => setCatFilter(c)}>
               {c === 'Tümü' ? '🔷 Tümü' : `${getCat(c).emoji} ${c}`}
@@ -654,6 +689,20 @@ export default function StokYonetimi() {
                   </Sel>
                 </FG>
               </FGrid>
+              {form.kategori === 'Yem' && (
+                <FG style={{ marginBottom: 12 }}>
+                  <Lbl>Yem kütüphanesinden eşleştir (opsiyonel)</Lbl>
+                  <Sel
+                    value={form.yemKutuphanesiId || ''}
+                    onChange={e => setForm(f => ({ ...f, yemKutuphanesiId: e.target.value || undefined }))}
+                  >
+                    <option value="">— Seç —</option>
+                    {yemKutuphanesi.map(y => (
+                      <option key={y._id} value={y._id}>{y.ad}</option>
+                    ))}
+                  </Sel>
+                </FG>
+              )}
               <FGrid>
                 <FG><Lbl>Mevcut Miktar *</Lbl><Inp type="number" required min="0" step=".1" value={form.miktar} onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))} /></FG>
                 <FG><Lbl>Kritik Seviye</Lbl><Inp type="number" required min="0" value={form.kritikSeviye} onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))} /></FG>

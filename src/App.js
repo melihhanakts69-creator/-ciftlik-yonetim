@@ -24,7 +24,6 @@ import Raporlar from './pages/Raporlar';
 import YemMerkezi from './pages/YemMerkezi';
 import SaglikMerkezi from './pages/SaglikMerkezi';
 import Takvim from './pages/Takvim';
-import StokYonetimi from './pages/StokYonetimi';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 import VeterinerDashboard from './pages/VeterinerDashboard';
@@ -168,7 +167,7 @@ function App() {
             <Route path="/takvim" element={<Takvim />} />
             <Route path="/saglik-merkezi" element={<SaglikMerkezi />} />
             <Route path="/yem-merkezi" element={<YemMerkezi />} />
-            <Route path="/stok-yonetimi" element={<StokYonetimi />} />
+            <Route path="/stok-yonetimi" element={<Navigate to="/yem-merkezi" replace />} />
             <Route path="/aktiviteler" element={<Aktiviteler />} />
             <Route path="/raporlar" element={<Raporlar />} />
           </>}

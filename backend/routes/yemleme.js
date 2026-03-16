@@ -245,6 +245,54 @@ router.post('/', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   }
 });
 
+// Yemleme tutarlılık analizi
+router.get('/analiz', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
+  try {
+    const userId = req.userId;
+    const gun = parseInt(req.query.gun) || 30;
+
+    const baslangic = new Date();
+    baslangic.setDate(baslangic.getDate() - gun);
+    const baslangicStr = baslangic.toISOString().split('T')[0];
+
+    const gruplar = await Grup.find({ userId, aktif: true }).lean();
+
+    const analiz = await Promise.all(gruplar.map(async (g) => {
+      const yapilan = await YemlemeSafari.countDocuments({
+        userId,
+        grupId: g._id,
+        tarih: { $gte: baslangicStr }
+      });
+
+      const tutarlilik = gun > 0 ? Math.round((yapilan / gun) * 100) : 0;
+
+      const sonYemleme = await YemlemeSafari.findOne({ userId, grupId: g._id })
+        .sort({ tarih: -1 }).select('tarih').lean();
+
+      const sonYemlemeFark = sonYemleme
+        ? Math.floor((Date.now() - new Date(sonYemleme.tarih + 'T00:00:00')) / 86400000)
+        : null;
+
+      return {
+        grupId: g._id,
+        grupAdi: g.ad,
+        grupRenk: g.renk || '#16a34a',
+        yapilanGun: yapilan,
+        toplamGun: gun,
+        tutarlilik,
+        sonYemleme: sonYemleme?.tarih || null,
+        sonYemlemeFark,
+        uyari: sonYemlemeFark !== null && sonYemlemeFark >= 2
+      };
+    }));
+
+    res.json({ gun, analiz });
+  } catch (err) {
+    console.error('Yemleme analiz error:', err);
+    res.status(500).json({ message: 'Analiz alınamadı' });
+  }
+});
+
 // Geçmiş yemleme kayıtları
 router.get('/gecmis', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {

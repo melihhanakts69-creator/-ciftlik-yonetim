@@ -7,7 +7,23 @@ const mongoose = require('mongoose');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
+const Tosun = require('../models/Tosun');
 const Bildirim = require('../models/Bildirim');
+const Grup = require('../models/Grup');
+const Rasyon = require('../models/Rasyon');
+const Stok = require('../models/Stok');
+
+async function getGrupBasCount(userId, grupId) {
+  const uid = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+  const gid = mongoose.Types.ObjectId.isValid(grupId) ? new mongoose.Types.ObjectId(grupId) : grupId;
+  const [inek, duve, buzagi, tosun] = await Promise.all([
+    Inek.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' }),
+    Duve.countDocuments({ userId: uid, grupId: gid }),
+    Buzagi.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' }),
+    Tosun.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' })
+  ]);
+  return inek + duve + buzagi + tosun;
+}
 
 async function otomatikGorevleriKontrolEt(userId) {
   try {
@@ -294,6 +310,102 @@ async function otomatikGorevleriKontrolEt(userId) {
           hatirlatmaTarihi: bugun,
           metadata: { tip: 'tohumlama_zamani', gecenGun }
         });
+      }
+    }
+
+    // ── RASYON UYUMSUZLUK KONTROLÜ ──────────────────────────────
+    const gruplar = await Grup.find({ userId: uid, aktif: true })
+      .populate('rasyonId')
+      .lean();
+
+    for (const grup of gruplar) {
+      const basCount = await getGrupBasCount(userId, grup._id);
+      if (basCount === 0) continue;
+
+      if (!grup.rasyonId) {
+        const varMi = await Bildirim.findOne({
+          userId: uid,
+          'metadata.tip': 'rasyon_eksik',
+          'metadata.grupId': grup._id.toString(),
+          tamamlandi: false,
+          createdAt: { $gte: new Date(Date.now() - 7 * 86400000) }
+        });
+        if (!varMi) {
+          await Bildirim.create({
+            userId: uid,
+            tip: 'yem',
+            oncelik: 'normal',
+            baslik: `Rasyon Eksik: ${grup.ad}`,
+            mesaj: `${grup.ad} grubunda ${basCount} hayvan var ama rasyon atanmamış. Yem Merkezi > Gruplar'dan rasyon atayın.`,
+            hatirlatmaTarihi: bugun,
+            metadata: { tip: 'rasyon_eksik', grupId: grup._id.toString() }
+          });
+        }
+        continue;
+      }
+
+      const rasyon = grup.rasyonId;
+
+      for (const kalem of (rasyon.icerik || [])) {
+        const yemAdi = kalem.yemAdi || (kalem.yemId && typeof kalem.yemId === 'object' ? kalem.yemId.ad : null);
+        if (!yemAdi) continue;
+
+        const stok = await Stok.findOne({
+          userId: uid,
+          kategori: 'Yem',
+          urunAdi: { $regex: new RegExp(yemAdi.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }
+        });
+
+        if (!stok || (stok.miktar || 0) <= 0) {
+          const varMi = await Bildirim.findOne({
+            userId: uid,
+            'metadata.tip': 'rasyon_stok_yok',
+            'metadata.yemAdi': yemAdi,
+            tamamlandi: false,
+            createdAt: { $gte: new Date(Date.now() - 3 * 86400000) }
+          });
+          if (!varMi) {
+            await Bildirim.create({
+              userId: uid,
+              tip: 'stok',
+              oncelik: 'acil',
+              baslik: `Rasyon Uygulanamıyor: ${grup.ad}`,
+              mesaj: `${grup.ad} rasyonundaki "${yemAdi}" stokta yok veya tükendi. Yemleme yapılamıyor.`,
+              hatirlatmaTarihi: bugun,
+              metadata: { tip: 'rasyon_stok_yok', grupId: grup._id.toString(), yemAdi }
+            });
+          }
+        }
+      }
+
+      if (grup.tip === 'sagmal' || grup.tip === 'inek') {
+        const transitInek = await Inek.findOne({
+          userId: uid,
+          grupId: grup._id,
+          gebelikDurumu: 'Gebe',
+          tohumlamaTarihi: { $lte: new Date(Date.now() - 223 * 86400000) }
+        });
+        if (transitInek) {
+          const varMi = await Bildirim.findOne({
+            userId: uid,
+            'metadata.tip': 'gecis_donemi',
+            hayvanId: transitInek._id,
+            tamamlandi: false
+          });
+          if (!varMi) {
+            await Bildirim.create({
+              userId: uid,
+              tip: 'yem',
+              oncelik: 'yuksek',
+              baslik: `Geçiş Dönemi: ${transitInek.isim || transitInek.kupeNo}`,
+              mesaj: `Doğuma 60 günden az kaldı. Bu hayvan için geçiş (transition) rasyonuna geçmeyi düşünün.`,
+              hayvanId: transitInek._id,
+              hayvanTipi: 'inek',
+              hatirlatmaTarihi: bugun,
+              metadata: { tip: 'gecis_donemi' }
+            });
+          }
+        }
       }
     }
   } catch (err) {

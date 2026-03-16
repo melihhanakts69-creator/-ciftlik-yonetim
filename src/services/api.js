@@ -153,6 +153,7 @@ export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
 
 // DASHBOARD
 export const getDashboardStats = () => api.get('/dashboard/stats');
+export const getFCR = (gun = 7) => api.get(`/dashboard/fcr?gun=${gun}`);
 export const getDashboardPerformans = (gun = 30) => api.get(`/dashboard/performans/sut?gun=${gun}`);
 export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
 export const getDashboardAktiviteler = (limit = 10) => api.get(`/dashboard/aktiviteler?limit=${limit}`);
@@ -177,6 +178,7 @@ export const rasyonDagit = (data) => api.post('/yem-yonetim/dagit', data);
 
 // Günlük grup yemleme (yeni profesyonel sistem)
 export const getYemlemeBugun = () => api.get('/yemleme/bugun');
+export const getYemlemeAnaliz = (gun = 30) => api.get(`/yemleme/analiz?gun=${gun}`);
 export const postYemleme = (data) => api.post('/yemleme', data);
 export const getYemlemeGecmis = (params) => {
   const q = new URLSearchParams(params).toString();
@@ -222,7 +224,11 @@ export const deleteAsiKaydi = (id) => api.delete(`/saglik/asi/${id}`);
 export const getTakvim = (ay, yil) => api.get(`/takvim?ay=${ay}&yil=${yil}`);
 
 // STOK MODÜLÜ
-export const getStoklar = () => api.get('/stok');
+export const getStoklar = (params = {}) => {
+  const q = new URLSearchParams(params).toString();
+  return api.get(q ? `/stok?${q}` : '/stok');
+};
+export const getAlimOnerisi = () => api.get('/stok/alim-onerisi');
 export const createStok = (data) => api.post('/stok', data);
 export const updateStok = (id, data) => api.put(`/stok/${id}`, data);
 export const deleteStok = (id) => api.delete(`/stok/${id}`);

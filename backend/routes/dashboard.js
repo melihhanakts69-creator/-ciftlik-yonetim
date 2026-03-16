@@ -681,4 +681,66 @@ async function calculateTrends(uid) {
   }
 }
 
+// FCR ve litre başına maliyet
+router.get('/fcr', auth, async (req, res) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.userId);
+    const gun = parseInt(req.query.gun) || 7;
+
+    const baslangic = new Date();
+    baslangic.setDate(baslangic.getDate() - gun);
+    baslangic.setHours(0, 0, 0, 0);
+    const baslangicStr = baslangic.toISOString().split('T')[0];
+
+    const YemHareket = require('../models/YemHareket');
+
+    const sutSonuc = await SutKaydi.aggregate([
+      { $match: { userId: uid, tarih: { $gte: baslangicStr } } },
+      { $group: { _id: null, toplamLitre: { $sum: '$litre' } } }
+    ]);
+    const toplamLitre = sutSonuc[0]?.toplamLitre || 0;
+
+    const yemMaliyetSonuc = await YemHareket.aggregate([
+      {
+        $match: {
+          userId: uid,
+          hareketTipi: 'Tüketim',
+          tarih: { $gte: baslangic }
+        }
+      },
+      { $group: { _id: null, toplamMaliyet: { $sum: '$toplamTutar' } } }
+    ]);
+    const toplamYemMaliyet = yemMaliyetSonuc[0]?.toplamMaliyet || 0;
+
+    const yemKgSonuc = await YemHareket.aggregate([
+      {
+        $match: {
+          userId: uid,
+          hareketTipi: 'Tüketim',
+          tarih: { $gte: baslangic }
+        }
+      },
+      { $group: { _id: null, toplamKg: { $sum: '$miktar' } } }
+    ]);
+    const yemKg = yemKgSonuc[0]?.toplamKg || 0;
+
+    const fcr = toplamLitre > 0 ? +(yemKg / toplamLitre).toFixed(2) : 0;
+    const litreBasinaMaliyet = toplamLitre > 0
+      ? +(toplamYemMaliyet / toplamLitre).toFixed(2)
+      : 0;
+
+    res.json({
+      gun,
+      toplamLitre: +toplamLitre.toFixed(1),
+      toplamYemKg: +yemKg.toFixed(1),
+      toplamYemMaliyet: +toplamYemMaliyet.toFixed(2),
+      fcr,
+      litreBasinaMaliyet
+    });
+  } catch (err) {
+    console.error('FCR error:', err);
+    res.status(500).json({ message: 'FCR hesaplanamadı', detail: err.message });
+  }
+});
+
 module.exports = router;

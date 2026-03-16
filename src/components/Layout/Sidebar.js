@@ -229,6 +229,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
     ];
     yonetimItems = [
+      { path: '/yem-merkezi', name: 'Yem & Stok', icon: <FaSeedling /> },
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/ayarlar', name: 'Profilim', icon: <FaCog /> },
@@ -253,8 +254,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/tosunlar', name: 'Tosunlar', icon: <FaMars /> },
     ];
     yonetimItems = [
-      { path: '/stok-yonetimi', name: 'Stok Yönetimi', icon: <FaWarehouse /> },
-      { path: '/yem-merkezi', name: 'Yem Merkezi', icon: <FaSeedling /> },
+      { path: '/yem-merkezi', name: 'Yem & Stok', icon: <FaSeedling /> },
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
       { path: '/karlilik', name: 'Karlılık Analizi', icon: <FaChartPie /> },

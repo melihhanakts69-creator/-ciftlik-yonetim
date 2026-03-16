@@ -18,8 +18,9 @@ const METRIK_OPTIONS = [
   { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'adet', color: '#d97706', bg: '#fef3c7', nav: null },
   { id: 'saglikSkoru', label: 'Sağlık Skoru', icon: '❤️', unit: '/100', color: '#16a34a', bg: '#dcfce7', nav: '/saglik-merkezi' },
   { id: 'yemStok', label: 'Yem Stok', icon: '🌿', unit: '%', color: '#d97706', bg: '#fef3c7', nav: '/yem-merkezi' },
+  { id: 'fcr', label: 'Yem Çevirme', icon: '📊', unit: 'kg/Lt', color: '#2563eb', bg: '#dbeafe', nav: '/yem-merkezi' },
   { id: 'aylikGelir', label: 'Aylık Gelir', icon: '💰', unit: '₺', color: '#16a34a', bg: '#dcfce7', nav: '/finansal' },
-  { id: 'litreBasinaMaliyet', label: 'Lt Başına Maliyet', icon: '📊', unit: '₺/Lt', color: '#2563eb', bg: '#dbeafe', nav: '/karlilik' },
+  { id: 'litreBasinaMaliyet', label: 'Lt Başına Maliyet', icon: '💰', unit: '₺/Lt', color: '#d97706', bg: '#fef3c7', nav: '/karlilik' },
 ];
 
 // --- Styled Components ---
@@ -400,8 +401,9 @@ const getMetrikValue = (stats, metrikId, saglikSkoru) => {
     case 'yaklasanDogum': return stats?.yaklaşanDogum ?? stats?.yaklasanDogum ?? 0;
     case 'saglikSkoru': return saglikSkoru ?? 100;
     case 'yemStok': return stats?.yemStok ?? 0;
+    case 'fcr': return stats?.fcr ?? '—';
     case 'aylikGelir': return stats?.aylikGelir ?? 0;
-    case 'litreBasinaMaliyet': return (stats?.litreBasinaMaliyet ?? 0).toFixed(1);
+    case 'litreBasinaMaliyet': return stats?.litreBasinaMaliyet != null ? Number(stats.litreBasinaMaliyet).toFixed(1) : '—';
     default: return '0';
   }
 };
@@ -414,6 +416,7 @@ const getMetrikTrend = (stats, metrikId, saglikSkoruDetay) => {
     case 'yaklasanDogum': return 'Önümüzdeki 30 gün';
     case 'saglikSkoru': return saglikSkoruDetay?.aktifTedavi > 0 ? `${saglikSkoruDetay.aktifTedavi} aktif tedavi` : 'Sürü sağlıklı';
     case 'yemStok': return 'Stok doluluk';
+    case 'fcr': return 'Son 7 gün';
     case 'aylikGelir': return 'Bu ay';
     case 'litreBasinaMaliyet': return 'Ortalama';
     default: return '';
@@ -529,15 +532,22 @@ const Dashboard = ({ kullanici }) => {
         api.getDashboardAktiviteler(10),
         api.getDashboardTopPerformers(),
         api.getSaglikSkoru(),
-        api.getSutYasak()
+        api.getSutYasak(),
+        api.getFCR(7)
       ]);
 
       const yapilacaklarRaw = results[2].status === 'fulfilled' && results[2].value?.data
         ? [...(results[2].value.data.geciken || []), ...(results[2].value.data.bugun || [])]
         : [];
 
+      let stats = results[0].status === 'fulfilled' ? results[0].value?.data : null;
+      if (stats && results[7].status === 'fulfilled' && results[7].value?.data) {
+        const fcrData = results[7].value.data;
+        stats = { ...stats, fcr: fcrData.fcr, litreBasinaMaliyet: fcrData.litreBasinaMaliyet };
+      }
+
       setData({
-        stats: results[0].status === 'fulfilled' ? results[0].value?.data : null,
+        stats,
         performans: results[1].status === 'fulfilled' && Array.isArray(results[1].value?.data) ? results[1].value.data : [],
         yapilacaklar: yapilacaklarRaw,
         aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value?.data) ? results[3].value.data : [],
