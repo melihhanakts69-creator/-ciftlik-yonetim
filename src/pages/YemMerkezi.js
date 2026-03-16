@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import {
-  FaLeaf, FaClipboardList, FaCheckCircle, FaTrash, FaCalculator,
-  FaBoxOpen, FaExclamationTriangle, FaChartPie, FaSearch, FaUserMd, FaPlus,
-  FaRobot, FaTimes
+  FaLeaf, FaClipboardList, FaCheckCircle, FaTrash,
+  FaBoxOpen, FaExclamationTriangle, FaChartPie, FaPlus,
+  FaSeedling
 } from 'react-icons/fa';
 import * as api from '../services/api';
-import { useIsMobile } from '../hooks/useMediaQuery';
 import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 import YemEkleModal from '../components/Yem/YemEkleModal';
 import YemDeposu from '../components/YemDeposu';
 import YemDanismani from '../components/Yem/YemDanismani';
+import BugunYemlemeCard from '../components/Dashboard/BugunYemlemeCard';
 import { showSuccess, showError } from '../utils/toast';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
@@ -159,43 +159,6 @@ const TabBtn = styled.button`
     .icon-left { gap: 6px; }
   }
 `;
-const NewBadge = styled.span`
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
-  font-size:9px;padding:2px 6px;border-radius:999px;font-weight:800;
-  animation: ${pulseGlow} 2s ease-in-out infinite;
-`;
-
-const AiBanner = styled.div`
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
-  border: 1.5px solid #86efac; border-radius: 14px;
-  padding: 14px 18px; margin-bottom: 16px;
-  animation: ${fadeIn} .4s ease;
-  
-  @media (max-width: 768px) { padding: 12px 14px; gap: 10px; }
-`;
-const AiBannerIcon = styled.div`
-  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
-  background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 18px;
-  animation: ${pulseGlow} 2.5s ease-in-out infinite;
-`;
-const AiBannerText = styled.div`
-  flex: 1;
-  .title { font-size: 14px; font-weight: 800; color: #065f46; }
-  .sub { font-size: 12px; color: #16a34a; margin-top: 2px; }
-`;
-const AiBannerBtn = styled.button`
-  padding: 8px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
-  background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
-  transition: all .2s; flex-shrink: 0;
-  &:hover { filter: brightness(1.1); transform: translateY(-1px); }
-`;
-const AiBannerClose = styled.button`
-  background: none; border: none; color: #86efac; cursor: pointer; padding: 4px; flex-shrink: 0;
-  &:hover { color: #16a34a; }
-`;
-
 // ─── Rasyon Kartları ───────────────────────────────────────────────
 const RGrid = styled.div`display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;`;
 const RCard = styled.div`
@@ -237,20 +200,6 @@ const EmptyMsg = styled.div`
   p{margin:0;font-size:14px;line-height:1.6;}
 `;
 
-// ─── Kütüphane ─────────────────────────────────────────────────────
-const LibCard = styled.div`
-  background:#fff;border-radius:16px;padding:24px;
-  box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);border:1px solid #e2e8f0;
-`;
-const LibTop = styled.div`display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;`;
-const SearchBox = styled.div`position:relative;svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;}`;
-const SInp = styled.input`
-  padding:9px 14px 9px 34px;border:1.5px solid #e2e8f0;border-radius:10px;
-  font-size:13px;outline:none;background:#f8fafc;color:#1e293b;width:240px;
-  &::placeholder{color:#94a3b8;}
-  &:focus{border-color:#10b981;background:#fff;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
-`;
-const LibBtnGroup = styled.div`display:flex;gap:8px;`;
 const Btn = styled.button`
   padding:9px 18px;border:none;border-radius:10px;font-size:13px;font-weight:700;
   cursor:pointer;display:flex;align-items:center;gap:7px;transition:.2s;color:#fff;
@@ -258,38 +207,6 @@ const Btn = styled.button`
   box-shadow:0 2px 6px rgba(0,0,0,0.12);
   &:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.15);}
 `;
-const Table = styled.table`width:100%;border-collapse:collapse;font-size:13px;`;
-const TH = styled.th`
-  text-align:left;padding:10px 16px;color:#64748b;font-weight:700;
-  font-size:11px;text-transform:uppercase;letter-spacing:.5px;
-  border-bottom:2px solid #f1f5f9;background:#f8fafc;
-`;
-const TD = styled.td`
-  padding:13px 16px;border-bottom:1px solid #f8fafc;color:#334155;font-weight:500;
-  &:first-child{font-weight:700;color:#0f172a;}
-`;
-const PriceBadge = styled.span`
-  background:#ecfdf5;color:#065f46;padding:4px 10px;border-radius:8px;
-  font-size:12px;font-weight:700;border:1px solid #d1fae5;
-`;
-
-const YemKutuphaneCardWrap = styled.div`
-  display: flex; flex-direction: column; gap: 12px;
-  @media (min-width: 769px) { display: none; }
-`;
-const YemKutuphaneCard = styled.div`
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  .ad { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
-  .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; margin-bottom: 4px; }
-  .row strong { color: #334155; }
-  .fiyat { margin-top: 10px; }
-`;
-
-const TableWrap = styled.div`
-  @media (max-width: 768px) { display: none; }
-`;
-
 const ModalOverlay = styled.div`
   position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;z-index:1100;padding:16px;
@@ -312,7 +229,6 @@ const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`
 
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
-  const isMobile = useIsMobile();
   const location = useLocation();
   const [tab, setTab] = useState('stok');
   const [yemler, setYemler] = useState([]);
@@ -323,32 +239,49 @@ export default function YemMerkezi() {
   const [showAddModal, setShowAddModal] = useState(!!location.state?.openAdd);
   const [showGrupEkleModal, setShowGrupEkleModal] = useState(false);
   const [grupForm, setGrupForm] = useState({ ad: '', tip: 'sagmal' });
-  const [search, setSearch] = useState('');
-  const [showAiBanner, setShowAiBanner] = useState(() => !sessionStorage.getItem('yem_ai_banner_dismissed'));
+  const [rasyonAlt, setRasyonAlt] = useState('liste');
+  const [yemlemeMod, setYemlemeMod] = useState(() => localStorage.getItem('yemleme_mod') || 'grup');
+  const [stokData, setStokData] = useState([]);
+  const [yemlemeOzet, setYemlemeOzet] = useState({ toplamGrup: 0, yapilanGrup: 0, bekleyenGrup: 0 });
+  const [gruplarBasCount, setGruplarBasCount] = useState({});
 
   useEffect(() => { loadData(); }, [tab]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [yr, rr, sr, gr] = await Promise.all([
+      const [yr, rr, sr, gr, yb] = await Promise.all([
         api.getYemKutuphanesi(),
         api.getRasyonlar(),
         api.getYemStok(),
-        api.getGruplar().catch(() => ({ data: [] }))
+        api.getGruplar().catch(() => ({ data: [] })),
+        api.getYemlemeBugun().catch(() => ({ data: {} }))
       ]);
       setYemler(Array.isArray(yr?.data) ? yr.data : []);
       const rasyonData = rr?.data;
       setRasyonlar(Array.isArray(rasyonData) ? rasyonData : (Array.isArray(rasyonData?.data) ? rasyonData.data : []));
-      const stokData = Array.isArray(sr?.data) ? sr.data : [];
-      setKritikSayisi(stokData.filter(s => s && (s.miktar ?? 0) <= (s.minimumStok ?? 0)).length);
+      const stokArr = Array.isArray(sr?.data) ? sr.data : [];
+      setStokData(stokArr);
+      setKritikSayisi(stokArr.filter(s => s && (s.miktar ?? 0) <= (s.minimumStok ?? 0)).length);
       setGruplar(Array.isArray(gr?.data) ? gr.data : []);
+
+      const yemlemeData = yb?.data;
+      if (yemlemeData?.gruplar) {
+        const basMap = {};
+        yemlemeData.gruplar.forEach(g => { basMap[g.grup?._id] = g.basCount ?? 0; });
+        setGruplarBasCount(basMap);
+        setYemlemeOzet({
+          toplamGrup: yemlemeData.ozet?.toplamGrup ?? 0,
+          yapilanGrup: yemlemeData.ozet?.yapilanGrup ?? 0,
+          bekleyenGrup: yemlemeData.ozet?.bekleyenGrup ?? 0
+        });
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   const handleCreateRasyon = async (data) => {
-    try { await api.createRasyon(data); showSuccess('Rasyon oluşturuldu! 🎉'); setTab('rasyon'); loadData(); }
+    try { await api.createRasyon(data); showSuccess('Rasyon oluşturuldu! 🎉'); setRasyonAlt('liste'); loadData(); }
     catch { showError('Hata oluştu'); }
   };
 
@@ -365,8 +298,6 @@ export default function YemMerkezi() {
     await api.deleteRasyon(id);
     loadData();
   };
-
-  const filteredYemler = yemler.filter(y => y.ad.toLowerCase().includes(search.toLowerCase()));
 
   const handleGrupRasyonGuncelle = async (grupId, rasyonId) => {
     try {
@@ -395,13 +326,13 @@ export default function YemMerkezi() {
   };
 
   const TABS = [
-    { key: 'stok', label: 'Stok & Depo', icon: <FaBoxOpen /> },
+    { key: 'stok', label: 'Stok', icon: <FaBoxOpen />, badge: null },
+    { key: 'rasyon', label: 'Rasyonlar', icon: <FaChartPie />, badge: rasyonlar.length || null },
     { key: 'gruplar', label: 'Gruplar', icon: <FaClipboardList />, badge: gruplar.length || null },
-    { key: 'rasyon', label: 'Rasyonlarım', icon: <FaChartPie />, badge: rasyonlar.length || null },
-    { key: 'hesapla', label: 'Hesaplayıcı', icon: <FaCalculator /> },
-    { key: 'danisman', label: 'Yem Danışmanı', icon: <FaUserMd />, isNew: true },
-    { key: 'kutuphane', label: 'Yem Kütüphanesi', icon: <FaLeaf /> },
+    { key: 'yemleme', label: 'Günlük Yemleme', icon: <FaSeedling />, badge: null },
   ];
+
+  const kritikYemler = stokData.filter(s => s && (s.miktar ?? 0) <= (s.minimumStok ?? 0));
 
   return (
     <Page>
@@ -411,7 +342,7 @@ export default function YemMerkezi() {
             <HeaderIcon>🌿</HeaderIcon>
             <div>
               <HeaderTitle>Yem Yönetim Merkezi</HeaderTitle>
-              <HeaderSub>Stok takibi · Rasyon planlama · Günlük yemleme · AI danışman</HeaderSub>
+              <HeaderSub>Stok takibi · Rasyon planlama · Günlük yemleme</HeaderSub>
             </div>
           </HeaderLeft>
           <HeaderBtns>
@@ -445,31 +376,96 @@ export default function YemMerkezi() {
                   {t.icon} {t.label}
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  {t.isNew && <NewBadge>YENİ</NewBadge>}
-                  {t.badge && <span style={{ background: '#ecfdf5', color: '#065f46', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>{t.badge}</span>}
+                  {t.badge != null && t.badge > 0 && <span style={{ background: '#ecfdf5', color: '#065f46', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>{t.badge}</span>}
                 </div>
               </TabBtn>
             ))}
           </TabBar>
 
           <TabContent>
-            {/* AI Danışman Keşif Banneri */}
-            {showAiBanner && tab !== 'danisman' && (
-              <AiBanner>
-                <AiBannerIcon><FaRobot /></AiBannerIcon>
-                <AiBannerText>
-                  <div className="title">Ziraat AI Yem Danışmanı</div>
-                  <div className="sub">Rasyon optimizasyonu, besin analizi ve yemleme önerileri için AI'dan yardım alın</div>
-                </AiBannerText>
-                <AiBannerBtn onClick={() => setTab('danisman')}>Dene</AiBannerBtn>
-                <AiBannerClose onClick={() => { setShowAiBanner(false); sessionStorage.setItem('yem_ai_banner_dismissed', '1'); }}>
-                  <FaTimes size={14} />
-                </AiBannerClose>
-              </AiBanner>
+            {tab === 'stok' && (
+              <>
+                {kritikYemler.length > 0 && (
+                  <div style={{
+                    background: '#fef3c7', border: '1px solid #fde68a',
+                    borderRadius: 10, padding: '10px 14px',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    marginBottom: 14, fontSize: 13
+                  }}>
+                    <span>⚠️</span>
+                    <span style={{ fontWeight: 500, color: '#92400e' }}>
+                      {kritikYemler.length} yem kritik seviyede:
+                      <strong> {kritikYemler.map(y => y.yemTipi || y.urunAdi || y.ad).join(', ')}</strong>
+                    </span>
+                  </div>
+                )}
+                <YemDeposu isEmbedded={true} />
+              </>
             )}
-            {tab === 'danisman' && <YemDanismani />}
-            {tab === 'stok' && <YemDeposu isEmbedded={true} />}
-            {tab === 'hesapla' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
+
+            {tab === 'rasyon' && (
+              <>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                  {[
+                    { key: 'liste', label: 'Rasyonlarım' },
+                    { key: 'olustur', label: '+ Yeni Rasyon' },
+                    { key: 'ai', label: '🤖 AI Öner' },
+                  ].map(a => (
+                    <button
+                      key={a.key}
+                      onClick={() => setRasyonAlt(a.key)}
+                      style={{
+                        padding: '6px 14px', borderRadius: 20, border: '1px solid',
+                        fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        background: rasyonAlt === a.key ? '#dcfce7' : '#fff',
+                        color: rasyonAlt === a.key ? '#166534' : '#6b7280',
+                        borderColor: rasyonAlt === a.key ? '#16a34a' : '#e5e7eb',
+                      }}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+                {rasyonAlt === 'liste' && (
+                  <RGrid>
+                    {rasyonlar.length === 0 ? (
+                      <EmptyMsg>
+                        <div className="icon">🌿</div>
+                        <p>Henüz rasyon tanımlamadınız.<br />
+                          <strong style={{ color: '#10b981' }}>+ Yeni Rasyon</strong> ile oluşturun.</p>
+                        <Btn style={{ marginTop: 16 }} onClick={() => setRasyonAlt('olustur')}>
+                          <FaPlus /> Yeni Rasyon Oluştur
+                        </Btn>
+                      </EmptyMsg>
+                    ) : rasyonlar.map(r => (
+                      <RCard key={r._id}>
+                        <RCardBody>
+                          <RHead>
+                            <RAd>{r.ad}</RAd>
+                            <RBadge>{r.hedefGrup?.toUpperCase()}</RBadge>
+                          </RHead>
+                          <RMaliyet>{r.toplamMaliyet?.toFixed(2) ?? '0'} TL<span>/ Baş</span></RMaliyet>
+                          <RIngredients>
+                            {r.icerik?.map((item, i) => (
+                              <div key={i}>
+                                <span className="iname"><FaLeaf size={9} color="#10b981" />{item.yemId?.ad || 'Silinmiş Yem'}</span>
+                                <span className="iamt">{item.miktar} kg</span>
+                              </div>
+                            ))}
+                          </RIngredients>
+                          <RActions>
+                            <RBtn $primary onClick={() => handleYemle(r._id)}><FaCheckCircle /> Yemle</RBtn>
+                            <RBtn $danger $flex={.5} onClick={() => handleDeleteRasyon(r._id)}><FaTrash /></RBtn>
+                          </RActions>
+                        </RCardBody>
+                      </RCard>
+                    ))}
+                  </RGrid>
+                )}
+                {rasyonAlt === 'olustur' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
+                {rasyonAlt === 'ai' && <YemDanismani />}
+              </>
+            )}
 
             {tab === 'gruplar' && (
               <>
@@ -488,7 +484,11 @@ export default function YemMerkezi() {
                       <FaPlus /> İlk Grubu Oluştur
                     </Btn>
                   </EmptyMsg>
-                ) : gruplar.map(g => (
+                ) : gruplar.map(g => {
+                  const basCount = gruplarBasCount[g._id] ?? '—';
+                  const rasyonAdi = g.rasyonId?.ad || (g.rasyonId && typeof g.rasyonId === 'object' ? g.rasyonId.ad : null);
+                  const kgPerBas = g.rasyonId?.icerik?.reduce((s, i) => s + (i.miktar || 0), 0);
+                  return (
                   <RCard key={g._id}>
                     <RCardBody>
                       <RHead>
@@ -496,12 +496,20 @@ export default function YemMerkezi() {
                           <span style={{ width: 12, height: 12, borderRadius: 4, background: g.renk || '#10b981' }} />
                           {g.ad}
                         </RAd>
-                        <RBadge>{g.tip || 'karma'}</RBadge>
+                        <RBadge>{basCount !== '—' ? `${basCount} baş` : (g.tip || 'karma')}</RBadge>
                       </RHead>
+                      {g.rasyonId ? (
+                        <div style={{ fontSize: 12, color: '#16a34a', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          🌿 {rasyonAdi || 'Rasyon atanmış'}
+                          {kgPerBas != null && kgPerBas > 0 && <span style={{ color: '#9ca3af', marginLeft: 4 }}>→ {kgPerBas.toFixed(1)} kg/baş/gün</span>}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 12, color: '#d97706', marginBottom: 10 }}>⚠️ Rasyon atanmamış — Yemleme hesaplanamaz</div>
+                      )}
                       <div style={{
                         borderTop: '1px solid #f3f4f6',
                         paddingTop: 10,
-                        marginTop: 10,
+                        marginTop: 4,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8
@@ -538,103 +546,49 @@ export default function YemMerkezi() {
                       </div>
                     </RCardBody>
                   </RCard>
-                ))}
+                );}))}
               </RGrid>
               </>
             )}
 
-            {tab === 'rasyon' && (
-              <RGrid>
-                {rasyonlar.length === 0 ? (
-                  <EmptyMsg>
-                    <div className="icon">🌿</div>
-                    <p>Henüz rasyon tanımlamadınız.<br />
-                      <strong style={{ color: '#10b981' }}>Hesaplayıcı</strong> sekmesinden yeni bir rasyon oluşturun.</p>
-                  </EmptyMsg>
-                ) : rasyonlar.map(r => (
-                  <RCard key={r._id}>
-                    <RCardBody>
-                      <RHead>
-                        <RAd>{r.ad}</RAd>
-                        <RBadge>{r.hedefGrup?.toUpperCase()}</RBadge>
-                      </RHead>
-                      <RMaliyet>{r.toplamMaliyet.toFixed(2)} TL<span>/ Baş</span></RMaliyet>
-                      <RIngredients>
-                        {r.icerik.map((item, i) => (
-                          <div key={i}>
-                            <span className="iname"><FaLeaf size={9} color="#10b981" />{item.yemId?.ad || 'Silinmiş Yem'}</span>
-                            <span className="iamt">{item.miktar} kg</span>
-                          </div>
-                        ))}
-                      </RIngredients>
-                      <RActions>
-                        <RBtn $primary onClick={() => handleYemle(r._id)}><FaCheckCircle /> Yemle</RBtn>
-                        <RBtn $danger $flex={.5} onClick={() => handleDeleteRasyon(r._id)}><FaTrash /></RBtn>
-                      </RActions>
-                    </RCardBody>
-                  </RCard>
-                ))}
-              </RGrid>
-            )}
-
-            {tab === 'kutuphane' && (
-              <LibCard>
-                <LibTop>
-                  <SearchBox>
-                    <FaSearch />
-                    <SInp value={search} onChange={e => setSearch(e.target.value)} placeholder="Yem ara..." />
-                  </SearchBox>
-                  <LibBtnGroup>
-                    <Btn $blue onClick={async () => {
-                      if (!window.confirm('Depodaki yemler kütüphaneye aktarılacak. Onaylıyor musun?')) return;
-                      setLoading(true);
-                      try { const r = await api.syncStokToLibrary(); showSuccess(`${r.data.added} yem eklendi, ${r.data.matched} tanımlandı.`); loadData(); }
-                      catch { showError('Hata oluştu'); }
-                      finally { setLoading(false); }
-                    }}><FaClipboardList /> Akıllı Eşitle</Btn>
-                    <Btn onClick={() => setShowAddModal(true)}><FaPlus /> Yeni Yem</Btn>
-                  </LibBtnGroup>
-                </LibTop>
-                {isMobile ? (
-                  <YemKutuphaneCardWrap>
-                    {filteredYemler.length === 0 ? (
-                      <div style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</div>
-                    ) : (
-                      filteredYemler.map(y => (
-                        <YemKutuphaneCard key={y._id}>
-                          <div className="ad">{y.ad}</div>
-                          <div className="row"><span>KM</span><strong>%{y.kuruMadde}</strong></div>
-                          <div className="row"><span>Protein</span><strong>%{y.protein}</strong></div>
-                          <div className="row"><span>Enerji</span><strong>{y.enerji} Mcal</strong></div>
-                          <div className="row fiyat"><span>Birim Fiyat</span><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></div>
-                        </YemKutuphaneCard>
-                      ))
-                    )}
-                  </YemKutuphaneCardWrap>
-                ) : (
-                  <TableWrap>
-                    <Table>
-                      <thead>
-                        <tr>
-                          <TH>Yem Adı</TH><TH>KM (%)</TH><TH>Protein (%)</TH><TH>Enerji (Mcal)</TH><TH>Birim Fiyat</TH>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredYemler.map(y => (
-                          <tr key={y._id}>
-                            <TD>{y.ad}</TD>
-                            <TD>{y.kuruMadde}</TD>
-                            <TD>{y.protein}</TD>
-                            <TD>{y.enerji}</TD>
-                            <TD><PriceBadge>{y.birimFiyat} TL/Kg</PriceBadge></TD>
-                          </tr>
-                        ))}
-                        {filteredYemler.length === 0 && <tr><TD colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: 24 }}>Yem bulunamadı</TD></tr>}
-                      </tbody>
-                    </Table>
-                  </TableWrap>
-                )}
-              </LibCard>
+            {tab === 'yemleme' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 16 }}>
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>Toplam Grup</div>
+                    <div style={{ fontSize: 22, fontWeight: 700 }}>{yemlemeOzet.toplamGrup}</div>
+                  </div>
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#166534', marginBottom: 4 }}>Yapılan</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: '#16a34a' }}>{yemlemeOzet.yapilanGrup}</div>
+                  </div>
+                  <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#92400e', marginBottom: 4 }}>Bekleyen</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: '#d97706' }}>{yemlemeOzet.bekleyenGrup}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                  {[
+                    { key: 'grup', label: 'Grup bazlı' },
+                    { key: 'tur', label: 'Tür bazlı' },
+                  ].map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => { setYemlemeMod(m.key); localStorage.setItem('yemleme_mod', m.key); }}
+                      style={{
+                        padding: '6px 14px', borderRadius: 20, border: '1px solid',
+                        fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        background: yemlemeMod === m.key ? '#dcfce7' : '#fff',
+                        color: yemlemeMod === m.key ? '#166534' : '#6b7280',
+                        borderColor: yemlemeMod === m.key ? '#16a34a' : '#e5e7eb',
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+                <BugunYemlemeCard mod={yemlemeMod} compact={false} />
+              </>
             )}
 
             {showAddModal && (
