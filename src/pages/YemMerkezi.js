@@ -11,7 +11,6 @@ import RasyonHesaplayici from '../components/Yem/RasyonHesaplayici';
 import YemEkleModal from '../components/Yem/YemEkleModal';
 import StokYonetimi from './StokYonetimi';
 import YemDanismani from '../components/Yem/YemDanismani';
-import BugunYemlemeCard from '../components/Dashboard/BugunYemlemeCard';
 import { showSuccess, showError } from '../utils/toast';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
@@ -101,12 +100,11 @@ const BodyWrap = styled.div`
 
 const TabLayout = styled.div`
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 0;
   }
 `;
 
@@ -116,47 +114,69 @@ const TabContent = styled.div`
   min-width: 0;
 `;
 
-// ── Tab Bar ────────────────────────────────────────────────────────
-const TabBar = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: transparent;
-  margin-bottom: 22px;
-  width: 100%;
-  max-width: 300px;
-  flex-shrink: 0;
+const PageLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: flex-start;
 
-  @media (max-width: 768px) {
-    flex-direction: row;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 4px;
-    margin-bottom: 16px;
-    gap: 6px;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
   }
 `;
-const TabBtn = styled.button`
-  padding: 12px 18px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: all .2s;
-  background: ${p => p.$active ? 'linear-gradient(135deg,#065f46,#047857)' : '#fff'};
-  color: ${p => p.$active ? '#fff' : '#475569'};
-  box-shadow: ${p => p.$active ? '0 4px 12px rgba(6,95,70,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
-  border: 1px solid ${p => p.$active ? 'transparent' : '#e2e8f0'};
-  &:hover { transform: translateX(4px); box-shadow: 0 4px 14px rgba(0,0,0,.1); }
-  .icon-left { display: flex; align-items: center; gap: 10px; }
 
-  @media (max-width: 768px) {
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 20px;
-    flex-shrink: 0;
-    white-space: nowrap;
-    &:hover { transform: none; }
-    .icon-left { gap: 6px; }
+const MainCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+`;
+
+const SideCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 70px;
+
+  @media (max-width: 900px) {
+    position: static;
+  }
+`;
+
+const TabBar = styled.div`
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+`;
+
+const TabBtn = styled.button`
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: ${p => p.$active ? '500' : '400'};
+  color: ${p => p.$active ? '#16a34a' : '#6b7280'};
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid ${p => p.$active ? '#16a34a' : 'transparent'};
+  margin-bottom: -1px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s;
+
+  .badge {
+    background: #dc2626;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 500;
+    padding: 1px 5px;
+    border-radius: 10px;
   }
 `;
 // ─── Rasyon Kartları ───────────────────────────────────────────────
@@ -227,36 +247,317 @@ const ModalSelect = styled.select`
 `;
 const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`;
 
-const YemlemeAnalizKartlari = () => {
-  const [analiz, setAnaliz] = useState([]);
+const AiBanner = ({ setTab, setRasyonAlt }) => {
+  const [oneri, setOneri] = useState('');
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    api.getYemlemeAnaliz(30).then(r => setAnaliz(r.data?.analiz || [])).catch(() => {});
+    api.getAiYemOnerisi().then(r => {
+      if (r?.data?.mesaj) setOneri(r.data.mesaj);
+    }).catch(() => null).finally(() => setLoading(false));
   }, []);
-  if (analiz.length === 0) return null;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, marginBottom: 16 }}>
-      {analiz.map(g => (
-        <div key={g.grupId} style={{
-          background: '#fff', border: `1px solid ${g.uyari ? '#fde68a' : '#e5e7eb'}`,
-          borderRadius: 10, padding: '10px 12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: g.grupRenk || '#16a34a' }} />
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{g.grupAdi}</span>
+    <div style={{
+      background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+      border: '1px solid #bbf7d0',
+      borderRadius: 12, padding: 16,
+      display: 'flex', alignItems: 'flex-start', gap: 12
+    }}>
+      <div style={{
+        width: 38, height: 38, borderRadius: 10, background: '#16a34a',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 20, flexShrink: 0, color: '#fff'
+      }}>🤖</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 4 }}>AI Yemleme Önerisi — Bugün</div>
+        {loading ? (
+          <div style={{ fontSize: 12, color: '#16a34a', opacity: .7 }}>Analiz yapılıyor...</div>
+        ) : oneri ? (
+          <div style={{ fontSize: 12, color: '#166534', lineHeight: 1.5 }}>{oneri}</div>
+        ) : (
+          <div style={{ fontSize: 12, color: '#166534', opacity: .7 }}>
+            Yem tüketimi ve süt verisi analiz ediliyor. Yeterli veri birikince öneriler çıkacak.
           </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: g.tutarlilik >= 80 ? '#16a34a' : g.tutarlilik >= 50 ? '#d97706' : '#dc2626' }}>
-            %{g.tutarlilik}
-          </div>
-          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>
-            {g.yapilanGun}/{g.toplamGun} gün
-          </div>
-          {g.uyari && (
-            <div style={{ fontSize: 10, color: '#d97706', fontWeight: 500, marginTop: 4 }}>
-              ⚠️ {g.sonYemlemeFark} gündür yapılmadı
-            </div>
-          )}
+        )}
+        <button
+          onClick={() => { setTab('rasyon'); setRasyonAlt?.('ai'); }}
+          style={{
+            background: '#16a34a', color: '#fff', border: 'none',
+            borderRadius: 7, padding: '6px 12px', fontSize: 11,
+            fontWeight: 600, cursor: 'pointer', marginTop: 10
+          }}
+        >Detaylı Analiz →</button>
+      </div>
+    </div>
+  );
+};
+
+const YemlemeListesi = ({ gruplar, gruplarBasCount, rasyonlar, yemlemeMod, setYemlemeMod, onYemlemeYapildi, setTab }) => {
+  const [yemlemeData, setYemlemeData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [modalGrup, setModalGrup] = useState(null);
+  useEffect(() => {
+    api.getYemlemeBugun().then(r => setYemlemeData(r.data)).catch(() => {});
+  }, []);
+  const handleYemleme = async (grup, planlananlaAyni = true, verilenKalemler) => {
+    setLoading(true);
+    try {
+      await api.postYemleme({
+        grupId: grup.grup._id,
+        tarih: yemlemeData.tarih,
+        planlananlaAyni,
+        verilenKalemler
+      });
+      setModalGrup(null);
+      api.getYemlemeBugun().then(r => setYemlemeData(r.data));
+      onYemlemeYapildi?.();
+      showSuccess('Yemleme kaydedildi!');
+    } catch (err) {
+      showError(err.response?.data?.message || 'İşlem başarısız');
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (!yemlemeData) return null;
+  const grupListesi = yemlemeData.gruplar || [];
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>Günlük Yemleme</span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[{ key: 'grup', label: 'Grup bazlı' }, { key: 'tur', label: 'Tür bazlı' }].map(m => (
+            <button key={m.key} onClick={() => { setYemlemeMod(m.key); localStorage.setItem('yemleme_mod', m.key); }}
+              style={{ padding: '4px 10px', borderRadius: 20, border: '1px solid', fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                background: yemlemeMod === m.key ? '#dcfce7' : '#fff', color: yemlemeMod === m.key ? '#166534' : '#6b7280',
+                borderColor: yemlemeMod === m.key ? '#16a34a' : '#e5e7eb' }}>{m.label}</button>
+          ))}
         </div>
-      ))}
+      </div>
+      {grupListesi.length === 0 ? (
+        <div style={{ padding: '32px 20px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Aktif grup yok. Gruplar sekmesinden grup oluşturun.</div>
+      ) : grupListesi.map(g => {
+        const rasyonAdi = g.grup.rasyonId?.ad;
+        const kgPerBas = g.grup.rasyonId?.icerik?.reduce((s, i) => s + (i.miktar || 0), 0);
+        const hasRasyon = !!g.grup.rasyonId;
+        return (
+          <div key={g.grup._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #f3f4f6', background: g.yapildi ? '#fff' : '#fafafa', opacity: g.yapildi ? .85 : 1 }}>
+            <div style={{ width: 4, height: 44, borderRadius: 2, background: g.grup.renk || '#16a34a', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2 }}>{g.grup.ad}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af' }}>{g.basCount} baş{kgPerBas ? ` · ${kgPerBas.toFixed(1)} kg/baş` : ''}</div>
+              {hasRasyon ? <div style={{ fontSize: 10, color: '#16a34a', fontWeight: 500, marginTop: 2 }}>🌿 {rasyonAdi}</div> : <div style={{ fontSize: 10, color: '#d97706', fontWeight: 500, marginTop: 2 }}>⚠️ Rasyon atanmamış</div>}
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{g.planlanenKg ? `${g.planlanenKg.toFixed(0)} kg` : '—'}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>planlanan</div>
+            </div>
+            {g.yapildi ? (
+              <div style={{ padding: '6px 14px', borderRadius: 7, background: '#dcfce7', color: '#166534', fontSize: 12, fontWeight: 500, flexShrink: 0 }}>✓ Yapıldı</div>
+            ) : hasRasyon ? (
+              <button onClick={() => setModalGrup(g)} disabled={loading} style={{ padding: '7px 14px', borderRadius: 7, background: '#16a34a', color: '#fff', border: 'none', fontSize: 12, fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>🍽️ Yemle</button>
+            ) : (
+              <button onClick={() => setTab('gruplar')} style={{ padding: '6px 12px', borderRadius: 7, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: 11, fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>Rasyon Ata</button>
+            )}
+          </div>
+        );
+      })}
+      {modalGrup && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: 20 }} onClick={() => setModalGrup(null)}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%' }} onClick={e => e.stopPropagation()}>
+            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: '#111827' }}>{modalGrup.grup.ad}</h4>
+            <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px' }}>{modalGrup.basCount} baş · Planlanan: <strong>{modalGrup.planlanenKg?.toFixed(0)} kg</strong></p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={() => handleYemleme(modalGrup, true)} style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>✓ Evet, planlanan kadar verildi ({modalGrup.planlanenKg?.toFixed(0)} kg)</button>
+              <button onClick={() => setModalGrup(null)} style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 500, fontSize: 14, cursor: 'pointer' }}>İptal</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const StokOzet = ({ stokData, onTumunuGor }) => {
+  const yemStoklar = stokData.filter(s => s && s.kategori === 'Yem').slice(0, 5);
+  if (yemStoklar.length === 0) return null;
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>Yem Stoku</span>
+        <button onClick={onTumunuGor} style={{ fontSize: 11, color: '#16a34a', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Tümünü gör →</button>
+      </div>
+      {yemStoklar.map(s => {
+        const gun = (s.gunlukTuketim || 0) > 0 ? Math.floor((s.miktar || 0) / s.gunlukTuketim) : 999;
+        const renk = gun >= 30 ? '#16a34a' : gun >= 14 ? '#d97706' : '#dc2626';
+        const pct = Math.min((gun / 60) * 100, 100);
+        return (
+          <div key={s._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', borderBottom: '1px solid #f9fafb' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 7, background: gun < 14 ? '#fef2f2' : '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🌾</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{s.urunAdi || s.ad || 'Yem'}</div>
+              <div style={{ height: 3, background: '#f3f4f6', borderRadius: 2, marginTop: 4, overflow: 'hidden', width: '100%' }}>
+                <div style={{ height: '100%', background: renk, width: `${pct}%`, borderRadius: 2, transition: 'width .6s' }} />
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{Number(s.miktar || 0).toLocaleString('tr-TR')} {s.birim || 'kg'}</div>
+              <div style={{ fontSize: 10, fontWeight: 500, color: renk, marginTop: 1 }}>{gun >= 999 ? '—' : `${gun} gün`}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const RasyonOzet = ({ rasyonlar, gruplar, gruplarBasCount }) => {
+  if (rasyonlar.length === 0) return null;
+  const aktifRasyonlar = rasyonlar.filter(r => gruplar.some(g => g.rasyonId?._id === r._id || g.rasyonId === r._id));
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>Aktif Rasyonlar</span>
+      </div>
+      {aktifRasyonlar.slice(0, 4).map(r => {
+        const kullanilan = gruplar.filter(g => g.rasyonId?._id === r._id || g.rasyonId === r._id);
+        const toplamBas = kullanilan.reduce((s, g) => s + (gruplarBasCount[g._id] || 0), 0);
+        return (
+          <div key={r._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #f9fafb' }}>
+            <div style={{ width: 3, height: 36, borderRadius: 2, background: '#16a34a', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{r.ad}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{toplamBas} baş · {r.icerik?.length || 0} bileşen</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{(r.toplamMaliyet || 0).toFixed(2)} ₺</div>
+              <div style={{ fontSize: 10, color: '#9ca3af' }}>baş/gün</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const BugunOzetPanel = ({ yemlemeData, gunlukMaliyet }) => {
+  const ozet = yemlemeData?.ozet || {};
+  const pct = ozet.toplamGrup > 0 ? Math.round((ozet.yapilanGrup / ozet.toplamGrup) * 100) : 0;
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>Bugün Özeti</span>
+      </div>
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', border: `5px solid ${pct === 100 ? '#16a34a' : '#dcfce7'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: pct === 100 ? '#16a34a' : '#374151' }}>%{pct}</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{ozet.yapilanGrup}/{ozet.toplamGrup} grup yapıldı</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{ozet.bekleyenGrup > 0 ? `${ozet.bekleyenGrup} grup bekliyor` : 'Tümü tamamlandı'}</div>
+          </div>
+        </div>
+        {[{ lbl: 'Tahmini maliyet', val: `${(gunlukMaliyet || 0).toLocaleString('tr-TR')} ₺` }, { lbl: 'Aktif grup', val: `${ozet.toplamGrup}` }].map((row, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '5px 0', borderBottom: i < 1 ? '1px solid #f3f4f6' : 'none' }}>
+            <span style={{ color: '#9ca3af' }}>{row.lbl}</span>
+            <span style={{ fontWeight: 500, color: '#111827' }}>{row.val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const AlimOnerisiPanel = ({ alimOnerisi }) => {
+  if (!alimOnerisi?.oneriler?.length) return null;
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>Alım Önerisi</span>
+      </div>
+      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {alimOnerisi.oneriler.map(o => (
+          <div key={o._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid #f9fafb' }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{o.urunAdi}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>{o.gerekliKg} kg · ~{(o.tahminiMaliyet || 0).toLocaleString('tr-TR')} ₺</div>
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: o.oncelik === 'acil' ? '#fef2f2' : '#fef3c7', color: o.oncelik === 'acil' ? '#991b1b' : '#92400e' }}>
+              {o.oncelik === 'acil' ? 'Acil' : 'Bu hafta'}
+            </span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, paddingTop: 6, borderTop: '1px solid #e5e7eb' }}>
+          <span style={{ color: '#9ca3af', fontWeight: 500 }}>Toplam tahmini</span>
+          <span style={{ fontWeight: 500, color: '#111827' }}>{(alimOnerisi.toplamMaliyet || 0).toLocaleString('tr-TR')} ₺</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TutarlilikPanel = ({ yemAnaliz }) => {
+  if (!yemAnaliz?.length) return null;
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>30 Günlük Tutarlılık</span>
+      </div>
+      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {yemAnaliz.map(g => (
+          <div key={g.grupId} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: g.grupRenk || '#16a34a', flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 12, color: '#374151' }}>{g.grupAdi}</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: g.tutarlilik >= 80 ? '#16a34a' : g.tutarlilik >= 50 ? '#d97706' : '#dc2626' }}>%{g.tutarlilik}</div>
+          </div>
+        ))}
+        {yemAnaliz.some(g => g.uyari) && (
+          <div style={{ fontSize: 11, color: '#d97706', padding: '6px 8px', background: '#fffbeb', borderRadius: 6, marginTop: 2 }}>
+            ⚠️ {yemAnaliz.filter(g => g.uyari).map(g => g.grupAdi).join(', ')} — düzensiz yemleme
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const GecmisYemleme = () => {
+  const [gecmis, setGecmis] = useState([]);
+  const [gun, setGun] = useState(7);
+  useEffect(() => {
+    const bitis = new Date().toISOString().split('T')[0];
+    const baslangic = new Date();
+    baslangic.setDate(baslangic.getDate() - gun);
+    const basStr = baslangic.toISOString().split('T')[0];
+    api.getYemlemeGecmis({ baslangic: basStr, bitis, limit: 100 }).then(r => setGecmis(r.data || [])).catch(() => {});
+  }, [gun]);
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[7, 14, 30].map(g => (
+          <button key={g} onClick={() => setGun(g)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid', fontSize: 11, fontWeight: 500, cursor: 'pointer', background: gun === g ? '#dcfce7' : '#fff', color: gun === g ? '#166534' : '#6b7280', borderColor: gun === g ? '#16a34a' : '#e5e7eb' }}>Son {g} Gün</button>
+        ))}
+      </div>
+      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+        {gecmis.length === 0 ? (
+          <div style={{ padding: '32px 20px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Bu dönemde yemleme kaydı yok</div>
+        ) : gecmis.map((kayit, i) => (
+          <div key={kayit._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: i < gecmis.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{kayit.grupId?.ad || 'Grup'}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{kayit.tarih} · {kayit.basCount} baş</div>
+            </div>
+            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{(kayit.verilenKg || 0).toFixed(0)} kg</div>
+              <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kayit.maliyet || 0).toLocaleString('tr-TR')} ₺</div>
+            </div>
+            {kayit.sapmaYuzde && Math.abs(kayit.sapmaYuzde) > 5 && (
+              <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#fef3c7', color: '#92400e' }}>
+                {kayit.sapmaYuzde > 0 ? '+' : ''}{kayit.sapmaYuzde.toFixed(0)}% sapma
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -264,7 +565,7 @@ const YemlemeAnalizKartlari = () => {
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
   const location = useLocation();
-  const [tab, setTab] = useState('stok');
+  const [tab, setTab] = useState('bugun');
   const [yemler, setYemler] = useState([]);
   const [rasyonlar, setRasyonlar] = useState([]);
   const [gruplar, setGruplar] = useState([]);
@@ -278,18 +579,23 @@ export default function YemMerkezi() {
   const [stokData, setStokData] = useState([]);
   const [yemlemeOzet, setYemlemeOzet] = useState({ toplamGrup: 0, yapilanGrup: 0, bekleyenGrup: 0 });
   const [gruplarBasCount, setGruplarBasCount] = useState({});
+  const [yemlemeData, setYemlemeData] = useState(null);
+  const [alimOnerisi, setAlimOnerisi] = useState(null);
+  const [yemAnaliz, setYemAnaliz] = useState([]);
 
   useEffect(() => { loadData(); }, [tab]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [yr, rr, sr, gr, yb] = await Promise.all([
+      const [yr, rr, sr, gr, yb, ya, ao] = await Promise.all([
         api.getYemKutuphanesi(),
         api.getRasyonlar(),
         api.getStoklar({ kategori: 'Yem' }),
         api.getGruplar().catch(() => ({ data: [] })),
-        api.getYemlemeBugun().catch(() => ({ data: {} }))
+        api.getYemlemeBugun().catch(() => ({ data: {} })),
+        api.getYemlemeAnaliz(30).catch(() => ({ data: {} })),
+        api.getAlimOnerisi().catch(() => ({ data: null }))
       ]);
       setYemler(Array.isArray(yr?.data) ? yr.data : []);
       const rasyonData = rr?.data;
@@ -298,21 +604,30 @@ export default function YemMerkezi() {
       setStokData(stokArr);
       setKritikSayisi(stokArr.filter(s => s && (s.miktar ?? 0) <= (s.kritikSeviye ?? 0)).length);
       setGruplar(Array.isArray(gr?.data) ? gr.data : []);
+      setYemlemeData(yb?.data || null);
+      setYemAnaliz(ya?.data?.analiz || []);
+      setAlimOnerisi(ao?.data || null);
 
-      const yemlemeData = yb?.data;
-      if (yemlemeData?.gruplar) {
+      const yemlemeDataRes = yb?.data;
+      if (yemlemeDataRes?.gruplar) {
         const basMap = {};
-        yemlemeData.gruplar.forEach(g => { basMap[g.grup?._id] = g.basCount ?? 0; });
+        yemlemeDataRes.gruplar.forEach(g => { basMap[g.grup?._id] = g.basCount ?? 0; });
         setGruplarBasCount(basMap);
         setYemlemeOzet({
-          toplamGrup: yemlemeData.ozet?.toplamGrup ?? 0,
-          yapilanGrup: yemlemeData.ozet?.yapilanGrup ?? 0,
-          bekleyenGrup: yemlemeData.ozet?.bekleyenGrup ?? 0
+          toplamGrup: yemlemeDataRes.ozet?.toplamGrup ?? 0,
+          yapilanGrup: yemlemeDataRes.ozet?.yapilanGrup ?? 0,
+          bekleyenGrup: yemlemeDataRes.ozet?.bekleyenGrup ?? 0
         });
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
+
+  const gunlukMaliyet = gruplar.reduce((total, g) => {
+    const rasyonMaliyet = g.rasyonId?.toplamMaliyet ?? rasyonlar.find(r => r._id === (g.rasyonId?._id || g.rasyonId))?.toplamMaliyet ?? 0;
+    const basCount = gruplarBasCount[g._id] || 0;
+    return total + (rasyonMaliyet * basCount);
+  }, 0);
 
   const handleCreateRasyon = async (data) => {
     try { await api.createRasyon(data); showSuccess('Rasyon oluşturuldu! 🎉'); setRasyonAlt('liste'); loadData(); }
@@ -360,13 +675,15 @@ export default function YemMerkezi() {
   };
 
   const TABS = [
-    { key: 'stok', label: 'Stok', icon: <FaBoxOpen />, badge: null },
-    { key: 'rasyon', label: 'Rasyonlar', icon: <FaChartPie />, badge: rasyonlar.length || null },
-    { key: 'gruplar', label: 'Gruplar', icon: <FaClipboardList />, badge: gruplar.length || null },
-    { key: 'yemleme', label: 'Günlük Yemleme', icon: <FaSeedling />, badge: null },
+    { key: 'bugun', label: 'Bugün', icon: '📅', badge: null },
+    { key: 'stok', label: 'Stok', icon: '📦', badge: kritikSayisi || null },
+    { key: 'rasyon', label: 'Rasyonlar', icon: '🌿', badge: rasyonlar.length || null },
+    { key: 'gruplar', label: 'Gruplar', icon: '👥', badge: gruplar.length || null },
+    { key: 'gecmis', label: 'Geçmiş', icon: '📋', badge: null },
   ];
 
   const kritikYemler = stokData.filter(s => s && (s.miktar ?? 0) <= (s.kritikSeviye ?? 0));
+  const toplamBas = gruplar.reduce((s, g) => s + (gruplarBasCount[g._id] || 0), 0);
 
   return (
     <Page>
@@ -388,35 +705,49 @@ export default function YemMerkezi() {
       </PageHeader>
 
       <BodyWrap>
-        <StatRow>
-          <Stat>
-            <div className="ico"><FaClipboardList /></div>
-            <div><div className="lbl">Aktif Rasyonlar</div><div className="val">{rasyonlar.length}</div></div>
-          </Stat>
-          <Stat>
-            <div className="ico"><FaBoxOpen /></div>
-            <div><div className="lbl">Tanımlı Yemler</div><div className="val">{yemler.length}</div></div>
-          </Stat>
-          <Stat>
-            <div className="ico"><FaExclamationTriangle /></div>
-            <div><div className="lbl">Kritik Stok</div><div className="val">{kritikSayisi}</div></div>
-          </Stat>
-        </StatRow>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+          {[
+            { label: 'Bugün Yemleme', value: `${yemlemeOzet.yapilanGrup}/${yemlemeOzet.toplamGrup} grup`, sub: yemlemeOzet.bekleyenGrup > 0 ? `${yemlemeOzet.bekleyenGrup} bekliyor` : 'Tamamlandı', subColor: yemlemeOzet.bekleyenGrup > 0 ? '#d97706' : '#16a34a' },
+            { label: 'Günlük Yem Maliyeti', value: `${gunlukMaliyet.toLocaleString('tr-TR')} ₺`, sub: toplamBas > 0 ? `${(gunlukMaliyet / toplamBas).toFixed(1)} ₺/baş` : '—', subColor: '#9ca3af' },
+            { label: 'Kritik Stok', value: `${kritikSayisi} ürün`, sub: kritikSayisi > 0 ? 'Alım gerekiyor' : 'Stok yeterli', subColor: kritikSayisi > 0 ? '#dc2626' : '#16a34a' },
+          ].map((k, i) => (
+            <div key={i} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 4 }}>{k.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 500, color: '#111827', letterSpacing: '-.3px' }}>{k.value}</div>
+              <div style={{ fontSize: 11, color: k.subColor, marginTop: 3 }}>{k.sub}</div>
+            </div>
+          ))}
+        </div>
         <TabLayout>
           <TabBar>
             {TABS.map(t => (
               <TabBtn key={t.key} $active={tab === t.key} onClick={() => setTab(t.key)}>
-                <div className="icon-left">
-                  {t.icon} {t.label}
-                </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {t.badge != null && t.badge > 0 && <span style={{ background: '#ecfdf5', color: '#065f46', borderRadius: 999, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>{t.badge}</span>}
-                </div>
+                <span>{t.icon}</span>
+                <span>{t.label}</span>
+                {t.badge != null && t.badge > 0 && <span className="badge">{t.badge}</span>}
               </TabBtn>
             ))}
           </TabBar>
 
           <TabContent>
+            {tab === 'bugun' && (
+              <PageLayout>
+                <MainCol>
+                  <AiBanner setTab={setTab} setRasyonAlt={setRasyonAlt} />
+                  <YemlemeListesi gruplar={gruplar} gruplarBasCount={gruplarBasCount} rasyonlar={rasyonlar} yemlemeMod={yemlemeMod} setYemlemeMod={setYemlemeMod} onYemlemeYapildi={loadData} setTab={setTab} />
+                  <StokOzet stokData={stokData} onTumunuGor={() => setTab('stok')} />
+                  <RasyonOzet rasyonlar={rasyonlar} gruplar={gruplar} gruplarBasCount={gruplarBasCount} />
+                </MainCol>
+                <SideCol>
+                  <BugunOzetPanel yemlemeData={yemlemeData} gunlukMaliyet={gunlukMaliyet} />
+                  <AlimOnerisiPanel alimOnerisi={alimOnerisi} />
+                  <TutarlilikPanel yemAnaliz={yemAnaliz} />
+                </SideCol>
+              </PageLayout>
+            )}
+
+            {tab === 'gecmis' && <GecmisYemleme />}
+
             {tab === 'stok' && <StokYonetimi embedded />}
 
             {tab === 'rasyon' && (
@@ -564,47 +895,6 @@ export default function YemMerkezi() {
                   </RCard>
                 );})}
               </RGrid>
-              </>
-            )}
-
-            {tab === 'yemleme' && (
-              <>
-                <YemlemeAnalizKartlari />
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 16 }}>
-                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>Toplam Grup</div>
-                    <div style={{ fontSize: 22, fontWeight: 700 }}>{yemlemeOzet.toplamGrup}</div>
-                  </div>
-                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 11, color: '#166534', marginBottom: 4 }}>Yapılan</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#16a34a' }}>{yemlemeOzet.yapilanGrup}</div>
-                  </div>
-                  <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 11, color: '#92400e', marginBottom: 4 }}>Bekleyen</div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: '#d97706' }}>{yemlemeOzet.bekleyenGrup}</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-                  {[
-                    { key: 'grup', label: 'Grup bazlı' },
-                    { key: 'tur', label: 'Tür bazlı' },
-                  ].map(m => (
-                    <button
-                      key={m.key}
-                      onClick={() => { setYemlemeMod(m.key); localStorage.setItem('yemleme_mod', m.key); }}
-                      style={{
-                        padding: '6px 14px', borderRadius: 20, border: '1px solid',
-                        fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                        background: yemlemeMod === m.key ? '#dcfce7' : '#fff',
-                        color: yemlemeMod === m.key ? '#166534' : '#6b7280',
-                        borderColor: yemlemeMod === m.key ? '#16a34a' : '#e5e7eb',
-                      }}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-                <BugunYemlemeCard mod={yemlemeMod} compact={false} />
               </>
             )}
 

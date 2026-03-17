@@ -448,19 +448,29 @@ router.get('/karlilik', auth, async (req, res) => {
     const SaglikKaydi = require('../models/SaglikKaydi');
     const TopluSutGirisi = require('../models/TopluSutGirisi');
 
-    const bugun = new Date();
     const gun = parseInt(req.query.gun) || 30;
+    const bugun = new Date();
     const ayBaslangic = new Date(bugun);
     ayBaslangic.setDate(ayBaslangic.getDate() - gun);
+    const oncekiDonemBas = new Date(bugun);
+    oncekiDonemBas.setDate(bugun.getDate() - gun * 2);
+    const oncekiDonemBit = new Date(bugun);
+    oncekiDonemBit.setDate(bugun.getDate() - gun - 1);
     const ayBitis = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate(), 23, 59, 59);
-    const oncekiAyBas = new Date(bugun.getFullYear(), bugun.getMonth() - 1, 1);
-    const oncekiAyBit = new Date(bugun.getFullYear(), bugun.getMonth(), 0, 23, 59, 59);
-
-    // Toplam aktif inek sayısı
-    const inekSayisi = await Inek.countDocuments({ userId: uid, durum: 'Aktif' });
 
     const ayBasStr = ayBaslangic.toISOString().slice(0, 10);
     const ayBitStr = bugun.toISOString().slice(0, 10);
+    const oncekiBasStr = oncekiDonemBas.toISOString().slice(0, 10);
+    const oncekiBitStr = oncekiDonemBit.toISOString().slice(0, 10);
+
+    // Toplam hayvan sayısı (inek, düve, buzağı, tosun)
+    const [inekSayisi, duveSayisi, buzagiSayisi, tosunSayisi] = await Promise.all([
+      Inek.countDocuments({ userId: uid, durum: 'Aktif' }),
+      Duve.countDocuments({ userId: uid }),
+      Buzagi.countDocuments({ userId: uid, durum: 'Aktif' }),
+      Tosun.countDocuments({ userId: uid, durum: 'Aktif' })
+    ]);
+    const toplamHayvan = inekSayisi + duveSayisi + buzagiSayisi + tosunSayisi;
 
     // Dönem finansal giderleri
     const giderler = await Finansal.aggregate([
@@ -480,6 +490,17 @@ router.get('/karlilik', auth, async (req, res) => {
     const basBasinaMaliyet = inekSayisi > 0 ? toplamGider / inekSayisi : 0;
     const basBasinaGelir = inekSayisi > 0 ? toplamGelir / inekSayisi : 0;
 
+    // Yem ve sağlık giderleri (kategori bazlı)
+    const yemGiderleri = giderler.filter(g => ['yem', 'Yem', 'yem_alim', 'yem_deposu'].includes(g._id));
+    const saglikGiderleri = giderler.filter(g => ['veteriner', 'ilac', 'İlaç', 'Veteriner', 'saglik'].includes(g._id));
+    const toplamYemMaliyet = yemGiderleri.reduce((s, g) => s + g.toplam, 0);
+    const toplamSaglikMaliyet = saglikGiderleri.reduce((s, g) => s + g.toplam, 0);
+    const hayvanBasinaYem = toplamHayvan > 0 ? toplamYemMaliyet / toplamHayvan : 0;
+    const hayvanBasinaSaglik = toplamHayvan > 0 ? toplamSaglikMaliyet / toplamHayvan : 0;
+    const hayvanBasinaToplamGider = toplamHayvan > 0 ? toplamGider / toplamHayvan : 0;
+    const hayvanBasinaGelir = toplamHayvan > 0 ? toplamGelir / toplamHayvan : 0;
+    const hayvanBasinaKar = hayvanBasinaGelir - hayvanBasinaToplamGider;
+
     // Dönem toplam süt
     const sutKayitlari = await SutKaydi.aggregate([
       { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
@@ -487,17 +508,17 @@ router.get('/karlilik', auth, async (req, res) => {
     ]);
     const toplamSut = sutKayitlari[0]?.toplam || 0;
 
-    // Önceki ay kar karşılaştırması
+    // Önceki dönem kar karşılaştırması (gun bazlı)
     const oncekiGider = await Finansal.aggregate([
-      { $match: { userId: uid, tip: 'gider', tarih: { $gte: oncekiAyBas.toISOString().slice(0, 10), $lte: oncekiAyBit.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tip: 'gider', tarih: { $gte: oncekiBasStr, $lte: oncekiBitStr } } },
       { $group: { _id: null, toplam: { $sum: '$miktar' } } }
     ]);
     const oncekiGelir = await Finansal.aggregate([
-      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: oncekiAyBas.toISOString().slice(0, 10), $lte: oncekiAyBit.toISOString().slice(0, 10) } } },
+      { $match: { userId: uid, tip: 'gelir', tarih: { $gte: oncekiBasStr, $lte: oncekiBitStr } } },
       { $group: { _id: null, toplam: { $sum: '$miktar' } } }
     ]);
     const oncekiNetKar = (oncekiGelir[0]?.toplam || 0) - (oncekiGider[0]?.toplam || 0);
-    const karDegisim = oncekiNetKar !== 0 ? ((netKar - oncekiNetKar) / Math.abs(oncekiNetKar)) * 100 : 0;
+    const karDegisim = oncekiNetKar !== 0 ? (((netKar - oncekiNetKar) / Math.abs(oncekiNetKar)) * 100).toFixed(1) : 0;
 
     // En iyi performanslı inekler (süt veriminden karlılık tahmini)
     const topInekler = await SutKaydi.aggregate([
@@ -513,8 +534,6 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // İnek bazlı karlılık (tüm inekler)
     const YemHareket = require('../models/YemHareket');
-    const ayBasStr = ayBaslangic.toISOString().slice(0, 10);
-    const toplamYemMaliyet = (giderler.find(g => g._id === 'yem') || {}).toplam || 0;
 
     const saglikMasraflari = await Finansal.aggregate([
       {
@@ -600,9 +619,18 @@ router.get('/karlilik', auth, async (req, res) => {
     res.json({
       ozet: {
         toplamGelir, toplamGider, netKar, basBasinaMaliyet, basBasinaGelir,
-        inekSayisi, toplamSut, karDegisim: karDegisim.toFixed(1),
+        inekSayisi, toplamSut, karDegisim,
         fcr: fcrDegeri,
-        litreBasinaMaliyet: litreBasinaMaliyetDegeri
+        litreBasinaMaliyet: litreBasinaMaliyetDegeri,
+        toplamHayvan,
+        hayvanBasinaYem: +hayvanBasinaYem.toFixed(2),
+        hayvanBasinaSaglik: +hayvanBasinaSaglik.toFixed(2),
+        hayvanBasinaToplamGider: +hayvanBasinaToplamGider.toFixed(2),
+        hayvanBasinaGelir: +hayvanBasinaGelir.toFixed(2),
+        hayvanBasinaKar: +hayvanBasinaKar.toFixed(2),
+        toplamYemMaliyet: +toplamYemMaliyet.toFixed(2),
+        toplamSaglikMaliyet: +toplamSaglikMaliyet.toFixed(2),
+        yemGiderOrani: toplamGider > 0 ? +((toplamYemMaliyet / toplamGider) * 100).toFixed(1) : 0,
       },
       inekKarliligi,
       giderKategoriler: giderler,

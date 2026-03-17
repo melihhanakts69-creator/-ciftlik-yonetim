@@ -184,6 +184,7 @@ export const getYemlemeGecmis = (params) => {
   const q = new URLSearchParams(params).toString();
   return api.get(`/yemleme/gecmis?${q}`);
 };
+export const getAiYemOnerisi = () => api.get('/ai/yem-oneri').catch(() => ({ data: {} }));
 
 // Gruplar (rasyon atama için)
 export const getGruplar = () => api.get('/gruplar');

@@ -121,7 +121,7 @@ export default function Karlilik() {
             Karlılık Analizi
           </h1>
           <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0' }}>
-            {ayAd} · {ozet.inekSayisi || 0} aktif inek
+            {ayAd} · {ozet.toplamHayvan ?? ozet.inekSayisi || 0} baş toplam
           </p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -146,10 +146,10 @@ export default function Karlilik() {
       {/* 4 KPI Kartları */}
       <KpiGrid>
         {[
-          { label: 'Net Kâr', value: `${ozet.netKar >= 0 ? '+' : ''}${ozet.netKar.toLocaleString('tr-TR')} ₺`, trend: `↑ %${Math.abs(ozet.karDegisim || 0)} geçen ay`, trendColor: ozet.netKar >= 0 ? '#16a34a' : '#dc2626' },
+          { label: 'Net Kâr', value: `${ozet.netKar >= 0 ? '+' : ''}${ozet.netKar.toLocaleString('tr-TR')} ₺`, trend: `↑ %${Math.abs(ozet.karDegisim || 0)} önceki dönem`, trendColor: ozet.netKar >= 0 ? '#16a34a' : '#dc2626' },
           { label: 'Lt Başına Maliyet', value: `${(ozet.litreBasinaMaliyet || 0).toFixed(2)} ₺/Lt`, trend: 'Yem + sağlık toplam', trendColor: '#9ca3af' },
           { label: 'FCR', value: `${(ozet.fcr || 0).toFixed(1)} kg/Lt`, trend: 'Yem çevirme oranı', trendColor: '#9ca3af' },
-          { label: 'Baş Başına Kâr', value: `${Math.round(ozet.netKar / (ozet.inekSayisi || 1)).toLocaleString('tr-TR')} ₺`, trend: `${ozet.inekSayisi || 0} aktif inek`, trendColor: '#9ca3af' },
+          { label: 'Baş Başına Kâr', value: `${(ozet.hayvanBasinaKar ?? ozet.netKar / (ozet.inekSayisi || 1)).toLocaleString('tr-TR')} ₺`, trend: `${ozet.toplamHayvan ?? ozet.inekSayisi || 0} baş toplam`, trendColor: '#9ca3af' },
         ].map((k, i) => (
           <div key={i} style={{
             background: '#f9fafb', border: '1px solid #e5e7eb',
@@ -167,6 +167,54 @@ export default function Karlilik() {
           </div>
         ))}
       </KpiGrid>
+
+      {/* Hayvan Başı Analiz Kartları */}
+      {ozet.toplamHayvan > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 14 }}>
+            Hayvan Başına Analiz — {ozet.toplamHayvan} baş toplam
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+            {[
+              { label: 'Yem Gideri', value: `${(ozet.hayvanBasinaYem || 0).toFixed(0)} ₺`, color: '#d97706', pct: `Toplam giderin %${ozet.yemGiderOrani || 0}'i` },
+              { label: 'Sağlık Gideri', value: `${(ozet.hayvanBasinaSaglik || 0).toFixed(0)} ₺`, color: '#3b82f6', pct: 'Vet + ilaç' },
+              { label: 'Toplam Gider', value: `${(ozet.hayvanBasinaToplamGider || 0).toFixed(0)} ₺`, color: '#ef4444', pct: 'Tüm kategoriler' },
+              { label: 'Gelir', value: `${(ozet.hayvanBasinaGelir || 0).toFixed(0)} ₺`, color: '#16a34a', pct: 'Süt + satış' },
+              { label: 'Net Kâr', value: `${(ozet.hayvanBasinaKar || 0) >= 0 ? '+' : ''}${(ozet.hayvanBasinaKar || 0).toFixed(0)} ₺`, color: (ozet.hayvanBasinaKar || 0) >= 0 ? '#16a34a' : '#ef4444', pct: 'Baş başına' },
+            ].map((item, i) => (
+              <div key={i} style={{ textAlign: 'center', padding: '12px 8px', background: '#f9fafb', borderRadius: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>{item.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: item.color, letterSpacing: '-.3px' }}>{item.value}</div>
+                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>{item.pct}</div>
+              </div>
+            ))}
+          </div>
+          {ozet.toplamGider > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>Gider yapısı</div>
+              <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', gap: 1 }}>
+                <div style={{ width: `${ozet.yemGiderOrani || 0}%`, background: '#d97706', minWidth: 0 }} title={`Yem: %${ozet.yemGiderOrani}`} />
+                <div style={{ width: `${ozet.toplamGider > 0 ? ((ozet.toplamSaglikMaliyet || 0) / ozet.toplamGider * 100).toFixed(0) : 0}%`, background: '#3b82f6', minWidth: 0 }} title="Sağlık" />
+                <div style={{ flex: 1, background: '#e5e7eb', minWidth: 0 }} title="Diğer" />
+              </div>
+              <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
+                <span style={{ fontSize: 10, color: '#d97706', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: '#d97706', display: 'inline-block' }} />
+                  Yem %{ozet.yemGiderOrani || 0}
+                </span>
+                <span style={{ fontSize: 10, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: '#3b82f6', display: 'inline-block' }} />
+                  Sağlık %{ozet.toplamGider > 0 ? ((ozet.toplamSaglikMaliyet / ozet.toplamGider) * 100).toFixed(0) : 0}
+                </span>
+                <span style={{ fontSize: 10, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: '#e5e7eb', display: 'inline-block' }} />
+                  Diğer
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* İnek Bazlı Karlılık */}
       {inekKarliligi && inekKarliligi.length > 0 && (
