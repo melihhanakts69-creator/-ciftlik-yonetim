@@ -59,7 +59,7 @@ const InputGroup = styled.div`
     width: 100%; padding: 9px 11px; border: 1.5px solid #e2e8f0; border-radius: 9px;
     font-size: 13px; outline: none; background: #f8fafc; box-sizing: border-box;
     color: #1e293b;
-    &:focus { border-color: #10b981; background: #fff; box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
+    &:focus { border-color: #16a34a; background: #fff; box-shadow: 0 0 0 3px rgba(22,163,74,.1); }
   }
 `;
 
@@ -94,7 +94,7 @@ const FeedRow = styled.div`
   select, input {
     width: 100%; padding: 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px;
     font-size: 13px; outline: none; background: #f8fafc; box-sizing: border-box;
-    &:focus { border-color: #10b981; background: #fff; }
+    &:focus { border-color: #16a34a; background: #fff; }
   }
 
   @media (max-width: 600px) {

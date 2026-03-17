@@ -12,14 +12,14 @@ const CIFTCI_EYLEMLER = [
   { label: 'Doğum', icon: '🐄', bg: '#fce7f3', color: '#db2777', path: '/inekler', state: { openDogum: true } },
   { label: 'Muayene', icon: '🩺', bg: '#e0f2fe', color: '#0284c7', path: '/saglik-merkezi' },
   { label: 'İlaç', icon: '💊', bg: '#fdf4ff', color: '#9333ea', path: '/stok-yonetimi' },
-  { label: 'Tohumlama', icon: '🔬', bg: '#ecfdf5', color: '#059669', path: '/inekler', state: { openTohumlama: true } },
+  { label: 'Tohumlama', icon: '🔬', bg: '#ecfdf5', color: '#16a34a', path: '/inekler', state: { openTohumlama: true } },
 ];
 
 const VET_EYLEMLER = [
   { label: 'Kayıt Ekle', icon: '📋', bg: '#dbeafe', color: '#2563eb', path: '/hastalar', state: { openAdd: true } },
   { label: 'Randevu', icon: '📅', bg: '#fef3c7', color: '#d97706', path: '/takvim', state: { openAdd: true } },
   { label: 'Reçete', icon: '💊', bg: '#fdf4ff', color: '#9333ea', path: '/hastalar', state: { openRecete: true } },
-  { label: 'Fatura', icon: '🧾', bg: '#ecfdf5', color: '#059669', path: '/finans', state: { openAdd: true } },
+  { label: 'Fatura', icon: '🧾', bg: '#ecfdf5', color: '#16a34a', path: '/finans', state: { openAdd: true } },
 ];
 
 const slideUp = keyframes`

@@ -49,7 +49,7 @@ const TitleContent = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: #10b981;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -65,7 +65,7 @@ const ActionButton = styled.button`
   box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
   
   &:hover {
-    background: #059669;
+    background: #16a34a;
     box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3);
   }
 `;
@@ -410,7 +410,7 @@ const SummaryBox = styled.div`
   .total {
     font-size: 24px;
     font-weight: 700;
-    color: #10b981;
+    color: #16a34a;
     display: flex;
     align-items: baseline;
     gap: 4px;
@@ -455,12 +455,12 @@ const ButtonRow = styled.div`
   }
   
   .btn-success {
-    background: #10b981;
+    background: #16a34a;
     border: none;
     color: white;
     
     &:hover:not(:disabled) {
-      background: #059669;
+      background: #16a34a;
     }
     
     &:disabled {
@@ -620,7 +620,7 @@ const EmptyStateBtn = styled.button`
   gap: 8px;
   padding: 12px 24px;
   min-height: 48px;
-  background: #10b981;
+  background: #16a34a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -628,7 +628,7 @@ const EmptyStateBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  &:hover { background: #059669; }
+  &:hover { background: #16a34a; }
 `;
 
 // Simple Calendar
@@ -715,7 +715,7 @@ const SimpleCalendar = styled.div`
         width: 4px;
         height: 4px;
         border-radius: 50%;
-        background: #10b981;
+        background: #16a34a;
         position: absolute;
         bottom: 6px;
       }
@@ -865,7 +865,7 @@ export default function SutKaydi() {
           <div className="metric-value">{stats.toplamAy} <span>Litre</span></div>
         </MetricCard>
 
-        <MetricCard $delay="0.05s" $bg="#f0fdf4" $color="#10b981">
+        <MetricCard $delay="0.05s" $bg="#f0fdf4" $color="#16a34a">
           <div className="metric-header">
             <div className="metric-title">Günlük Ortalama</div>
             <div className="metric-icon"><FiActivity /></div>
@@ -895,7 +895,7 @@ export default function SutKaydi() {
         <SectionPanel>
           <PanelHeader>
             <h2>
-              {adim === 1 ? <><FiPlus style={{ color: '#64748b' }} /> Veri Giriş Formu</> : <><FiCheckCircle style={{ color: '#10b981' }} /> Kayıt Onayı</>}
+              {adim === 1 ? <><FiPlus style={{ color: '#64748b' }} /> Veri Giriş Formu</> : <><FiCheckCircle style={{ color: '#16a34a' }} /> Kayıt Onayı</>}
             </h2>
           </PanelHeader>
 

@@ -265,7 +265,7 @@ const DayCell = styled.div`
     justify-content: center;
     border-radius: 50%;
     color: ${props => props.$isToday ? 'white' : '#334155'};
-    background: ${props => props.$isToday ? '#10b981' : 'transparent'};
+    background: ${props => props.$isToday ? '#16a34a' : 'transparent'};
     
     @media (max-width: 768px) { font-size: 11px; width: 20px; height: 20px; }
   }
@@ -358,7 +358,7 @@ const AgendaDayNum = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: ${p => p.$isToday ? '#10b981' : 'white'};
+  background: ${p => p.$isToday ? '#16a34a' : 'white'};
   color: ${p => p.$isToday ? 'white' : '#0f172a'};
   border: ${p => p.$isToday ? 'none' : '1.5px solid #e2e8f0'};
   display: flex;
@@ -478,7 +478,7 @@ const CFG = {
   saglik: { bg: '#fffbeb', color: '#d97706', icon: <FiAlertCircle />, label: 'Sağlık İşlemi' },
   kontrol: { bg: '#fff7ed', color: '#ea580c', icon: <FiActivity />, label: 'Kontrol' },
   bildirim: { bg: '#f5f3ff', color: '#8b5cf6', icon: <FiBell />, label: 'Hatırlatma' },
-  sut: { bg: '#f0fdf4', color: '#10b981', icon: <FiDroplet />, label: 'Süt Kaydı' },
+  sut: { bg: '#f0fdf4', color: '#16a34a', icon: <FiDroplet />, label: 'Süt Kaydı' },
   alis: { bg: '#f1f5f9', color: '#475569', icon: <FiTruck />, label: 'Alış İşlemi' },
   satis: { bg: '#f1f5f9', color: '#475569', icon: <FiTruck />, label: 'Satış İşlemi' },
   buzagi_dogum: { bg: '#fefce8', color: '#ca8a04', icon: <FiHeart />, label: 'Buzağı' },
@@ -491,7 +491,7 @@ const FILTER_GROUPS = [
   { key: 'dogum', label: 'Doğum', bg: '#fef2f2', color: '#ef4444' },
   { key: 'saglik', label: 'Sağlık', bg: '#fffbeb', color: '#d97706' },
   { key: 'bildirim', label: 'Hatırlatma', bg: '#f5f3ff', color: '#8b5cf6' },
-  { key: 'sut', label: 'Süt', bg: '#f0fdf4', color: '#10b981' },
+  { key: 'sut', label: 'Süt', bg: '#f0fdf4', color: '#16a34a' },
   { key: 'alis_satis', label: 'Ticaret', bg: '#f1f5f9', color: '#475569' },
   { key: 'randevu', label: 'Randevu', bg: '#ccfbf1', color: '#0d9488' },
 ];
@@ -750,7 +750,7 @@ export default function Takvim() {
                     <AgendaDayInfo>
                       <div className="day-name">
                         {DAY_NAMES_FULL[weekDay]}, {strMonths[currentDate.getMonth()]} {currentDate.getFullYear()}
-                        {isT && <span style={{ marginLeft: 8, fontSize: 11, background: '#10b981', color: 'white', padding: '1px 7px', borderRadius: 10, fontWeight: 700 }}>Bugün</span>}
+                        {isT && <span style={{ marginLeft: 8, fontSize: 11, background: '#16a34a', color: 'white', padding: '1px 7px', borderRadius: 10, fontWeight: 700 }}>Bugün</span>}
                       </div>
                       <div className="day-count">{dayEvts.length} etkinlik</div>
                     </AgendaDayInfo>

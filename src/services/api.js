@@ -158,7 +158,7 @@ export const getDashboardPerformans = (gun = 30) => api.get(`/dashboard/performa
 export const getYapilacaklar = () => api.get('/dashboard/yapilacaklar');
 export const getDashboardAktiviteler = (limit = 10) => api.get(`/dashboard/aktiviteler?limit=${limit}`);
 export const getDashboardTopPerformers = () => api.get('/dashboard/top-performers');
-export const getKarlilik = (donem = 1) => api.get(`/dashboard/karlilik?donem=${donem}`);
+export const getKarlilik = (gun = 30) => api.get(`/dashboard/karlilik?gun=${gun}`);
 export const getSutYasak = () => api.get('/dashboard/sut-yasak');
 export const getSaglikSkoru = () => api.get('/dashboard/saglik-skoru');
 

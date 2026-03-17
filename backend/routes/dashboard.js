@@ -449,10 +449,9 @@ router.get('/karlilik', auth, async (req, res) => {
     const TopluSutGirisi = require('../models/TopluSutGirisi');
 
     const bugun = new Date();
-    const donem = parseInt(req.query.donem) || 1; // 1=bu ay, 3=3 ay, 6=6 ay
-    const ayBaslangic = donem === 1
-      ? new Date(bugun.getFullYear(), bugun.getMonth(), 1)
-      : new Date(bugun.getFullYear(), bugun.getMonth() - (donem - 1), 1);
+    const gun = parseInt(req.query.gun) || 30;
+    const ayBaslangic = new Date(bugun);
+    ayBaslangic.setDate(ayBaslangic.getDate() - gun);
     const ayBitis = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate(), 23, 59, 59);
     const oncekiAyBas = new Date(bugun.getFullYear(), bugun.getMonth() - 1, 1);
     const oncekiAyBit = new Date(bugun.getFullYear(), bugun.getMonth(), 0, 23, 59, 59);

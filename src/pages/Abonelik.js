@@ -17,25 +17,25 @@ const PlanGrid = styled.div`
 `;
 const PlanCard = styled.div`
   background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  border: 2px solid ${p => p.$aktif ? '#4CAF50' : '#e2e8f0'};
+  border: 2px solid ${p => p.$aktif ? '#16a34a' : '#e2e8f0'};
   position: relative; transition: all 0.2s;
   &:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 `;
 const PlanBadge = styled.div`
   position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  background: #4CAF50; color: white; padding: 4px 16px; border-radius: 20px;
+  background: #16a34a; color: white; padding: 4px 16px; border-radius: 20px;
   font-size: 11px; font-weight: 800; text-transform: uppercase;
 `;
 const PlanName = styled.div`font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 4px;`;
 const PlanFiyat = styled.div`
-  font-size: 36px; font-weight: 900; color: #4CAF50; line-height: 1;
+  font-size: 36px; font-weight: 900; color: #16a34a; line-height: 1;
   span { font-size: 14px; font-weight: 500; color: #94a3b8; }
 `;
 const PlanAciklama = styled.p`font-size: 13px; color: #64748b; line-height: 1.6; margin: 12px 0 20px;`;
 const PlanBtn = styled.button`
   width: 100%; padding: 13px; border: none; border-radius: 10px; cursor: pointer;
   font-size: 14px; font-weight: 700; transition: all 0.2s;
-  background: ${p => p.$aktif ? '#4CAF50' : '#f1f5f9'};
+  background: ${p => p.$aktif ? '#16a34a' : '#f1f5f9'};
   color: ${p => p.$aktif ? 'white' : '#475569'};
   &:hover { background: ${p => p.$aktif ? '#43a047' : '#e2e8f0'}; }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -191,7 +191,7 @@ export default function Abonelik() {
                 plan.key === 'isletme' ? 'API erişimi & öncelikli destek' : 'Bildirim sistemi'
               ].map((ozellik, j) => (
                 <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 13, color: '#475569' }}>
-                  <span style={{ color: '#4CAF50', fontWeight: 800 }}>✓</span> {ozellik}
+                  <span style={{ color: '#16a34a', fontWeight: 800 }}>✓</span> {ozellik}
                 </div>
               ))}
             </div>

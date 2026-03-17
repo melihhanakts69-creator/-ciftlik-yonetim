@@ -253,7 +253,14 @@ function Tosunlar() {
         placeholder="Tosun ara..."
       />
 
-      {viewMode === 'table' ? (
+      {filteredTosunlar.length === 0 && !loading ? (
+        <div style={{ textAlign:'center', padding:'48px 24px', background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', marginTop:20 }}>
+          <span style={{ fontSize:48, display:'block', marginBottom:16 }}>🐂</span>
+          <h3 style={{ margin:'0 0 8px', fontSize:18, color:'#111827', fontWeight:700 }}>Henüz tosun eklenmemiş</h3>
+          <p style={{ margin:'0 0 20px', fontSize:14, color:'#6b7280' }}>+ Ekle butonuna basarak ilk kaydı oluştur</p>
+          <button onClick={() => { resetForm(); setTosunEkrani(true); }} style={{ background:'#16a34a', color:'#fff', border:'none', borderRadius:10, padding:'12px 24px', fontWeight:600, fontSize:15, cursor:'pointer' }}>+ Ekle</button>
+        </div>
+      ) : viewMode === 'table' ? (
         <ResponsiveTable>
           <table>
             <thead>

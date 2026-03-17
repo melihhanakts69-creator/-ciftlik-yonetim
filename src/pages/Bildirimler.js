@@ -185,7 +185,7 @@ const ActionButtons = styled.div`
     align-items: center;
     justify-content: center;
 
-    &.check { color: #4CAF50; &:hover { background: #E8F5E9; } }
+    &.check { color: #16a34a; &:hover { background: #dcfce7; } }
     &.delete { color: #ef5350; &:hover { background: #FFEBEE; } }
   }
 `;

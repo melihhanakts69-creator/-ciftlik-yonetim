@@ -74,6 +74,35 @@ const InfoItem = styled.div`padding: 12px 14px; background: #f8fafc; border-radi
 const Label = styled.span`font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 4px;`;
 const Value = styled.span`font-size: 14px; color: #0f172a; font-weight: 600;`;
 const StatusBadge = styled.span`padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-block;`;
+const TabBar = styled.div`display: flex; gap: 0; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; overflow-x: auto; scrollbar-width: none;`;
+const Tab = styled.button`
+  padding: 10px 16px; border: none; background: transparent; font-size: 13px;
+  font-weight: ${p => p.$active ? '600' : '500'}; color: ${p => p.$active ? '#16a34a' : '#6b7280'};
+  border-bottom: 2px solid ${p => p.$active ? '#16a34a' : 'transparent'}; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+`;
+
+const TimelineTab = ({ hayvanId }) => {
+  const [events, setEvents] = useState([]);
+  useEffect(() => { api.getTimeline(hayvanId).then(r => setEvents(r.data || [])).catch(() => {}); }, [hayvanId]);
+  if (events.length === 0) return <div style={{ textAlign: 'center', padding: '32px 20px', color: '#9ca3af', fontSize: 13 }}>Henüz kayıt yok</div>;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {events.map((ev, i) => (
+        <div key={ev._id} style={{ display: 'flex', gap: 12, paddingBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: ev.tip === 'dogum' ? '#16a34a' : ev.tip === 'saglik' ? '#ef4444' : ev.tip === 'tohumlama' ? '#8b5cf6' : '#3b82f6', flexShrink: 0 }} />
+            {i < events.length - 1 && <div style={{ width: 1, flex: 1, background: '#e5e7eb', marginTop: 4 }} />}
+          </div>
+          <div style={{ flex: 1, paddingBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{ev.baslik || ev.tip}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{ev.tarih ? new Date(ev.tarih).toLocaleDateString('tr-TR') : ''}</div>
+            {ev.aciklama && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{ev.aciklama}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const DuveDetay = () => {
     const { id } = useParams();
@@ -81,6 +110,7 @@ const DuveDetay = () => {
 
     const [duve, setDuve] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [aktifSekme, setAktifSekme] = useState('genel');
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [editForm, setEditForm] = useState({});
@@ -350,13 +380,10 @@ const DuveDetay = () => {
                         </Card>
                     )}
 
-                    {/* SAĞLIK GEÇMİŞİ */}
-                    <SaglikGecmisi hayvanId={id} />
                 </div>
 
                 {/* SAĞ KOLON */}
                 <SidePanel>
-                    {/* NOTLAR */}
                     <Card>
                         <CardTitle>📝 Notlar</CardTitle>
                         <p style={{ color: '#666', lineHeight: '1.5' }}>
@@ -365,6 +392,14 @@ const DuveDetay = () => {
                     </Card>
                 </SidePanel>
             </DetailGrid>
+            )}
+
+            {aktifSekme === 'saglik' && (
+                <Card>
+                    <CardTitle>🏥 Sağlık Geçmişi</CardTitle>
+                    <SaglikGecmisi hayvanId={id} />
+                </Card>
+            )}
 
             {/* DOĞUM MODALI */}
             {showDogumModal && (

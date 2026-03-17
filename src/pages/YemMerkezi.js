@@ -227,6 +227,40 @@ const ModalSelect = styled.select`
 `;
 const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`;
 
+const YemlemeAnalizKartlari = () => {
+  const [analiz, setAnaliz] = useState([]);
+  useEffect(() => {
+    api.getYemlemeAnaliz(30).then(r => setAnaliz(r.data?.analiz || [])).catch(() => {});
+  }, []);
+  if (analiz.length === 0) return null;
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, marginBottom: 16 }}>
+      {analiz.map(g => (
+        <div key={g.grupId} style={{
+          background: '#fff', border: `1px solid ${g.uyari ? '#fde68a' : '#e5e7eb'}`,
+          borderRadius: 10, padding: '10px 12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: g.grupRenk || '#16a34a' }} />
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{g.grupAdi}</span>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: g.tutarlilik >= 80 ? '#16a34a' : g.tutarlilik >= 50 ? '#d97706' : '#dc2626' }}>
+            %{g.tutarlilik}
+          </div>
+          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>
+            {g.yapilanGun}/{g.toplamGun} gün
+          </div>
+          {g.uyari && (
+            <div style={{ fontSize: 10, color: '#d97706', fontWeight: 500, marginTop: 4 }}>
+              ⚠️ {g.sonYemlemeFark} gündür yapılmadı
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // ─── Component ────────────────────────────────────────────────────
 export default function YemMerkezi() {
   const location = useLocation();
@@ -242,7 +276,6 @@ export default function YemMerkezi() {
   const [rasyonAlt, setRasyonAlt] = useState('liste');
   const [yemlemeMod, setYemlemeMod] = useState(() => localStorage.getItem('yemleme_mod') || 'grup');
   const [stokData, setStokData] = useState([]);
-  const [yemAnaliz, setYemAnaliz] = useState([]);
   const [yemlemeOzet, setYemlemeOzet] = useState({ toplamGrup: 0, yapilanGrup: 0, bekleyenGrup: 0 });
   const [gruplarBasCount, setGruplarBasCount] = useState({});
 
@@ -251,13 +284,12 @@ export default function YemMerkezi() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [yr, rr, sr, gr, yb, ya] = await Promise.all([
+      const [yr, rr, sr, gr, yb] = await Promise.all([
         api.getYemKutuphanesi(),
         api.getRasyonlar(),
         api.getStoklar({ kategori: 'Yem' }),
         api.getGruplar().catch(() => ({ data: [] })),
-        api.getYemlemeBugun().catch(() => ({ data: {} })),
-        api.getYemlemeAnaliz(30).catch(() => ({ data: {} }))
+        api.getYemlemeBugun().catch(() => ({ data: {} }))
       ]);
       setYemler(Array.isArray(yr?.data) ? yr.data : []);
       const rasyonData = rr?.data;
@@ -266,7 +298,6 @@ export default function YemMerkezi() {
       setStokData(stokArr);
       setKritikSayisi(stokArr.filter(s => s && (s.miktar ?? 0) <= (s.kritikSeviye ?? 0)).length);
       setGruplar(Array.isArray(gr?.data) ? gr.data : []);
-      if (ya?.data?.analiz) setYemAnaliz(ya.data.analiz);
 
       const yemlemeData = yb?.data;
       if (yemlemeData?.gruplar) {
@@ -538,33 +569,7 @@ export default function YemMerkezi() {
 
             {tab === 'yemleme' && (
               <>
-                {yemAnaliz.length > 0 && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8, marginBottom: 16 }}>
-                    {yemAnaliz.map(g => (
-                      <div key={g.grupId} style={{
-                        background: '#fff',
-                        border: `1px solid ${g.uyari ? '#fde68a' : '#e5e7eb'}`,
-                        borderRadius: 10, padding: 12
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: g.grupRenk || '#10b981', flexShrink: 0 }} />
-                          <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{g.grupAdi}</span>
-                        </div>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: g.tutarlilik >= 80 ? '#16a34a' : g.tutarlilik >= 50 ? '#d97706' : '#dc2626' }}>
-                          %{g.tutarlilik}
-                        </div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-                          {g.yapilanGun}/{g.toplamGun} gün yapıldı
-                        </div>
-                        {g.uyari && (
-                          <div style={{ fontSize: 10, color: '#d97706', fontWeight: 600, marginTop: 4 }}>
-                            ⚠️ {g.sonYemlemeFark} gündür yapılmadı
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <YemlemeAnalizKartlari />
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 16 }}>
                   <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>Toplam Grup</div>

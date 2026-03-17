@@ -119,6 +119,35 @@ const StatusBadge = styled.span`
   padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: inline-block;
 `;
 
+const TimelineTab = ({ inekId }) => {
+  const [events, setEvents] = useState([]);
+  useEffect(() => {
+    api.getTimeline(inekId).then(r => setEvents(r.data || [])).catch(() => {});
+  }, [inekId]);
+  if (events.length === 0) return (
+    <div style={{ textAlign: 'center', padding: '32px 20px', color: '#9ca3af', fontSize: 13 }}>
+      Henüz kayıt yok
+    </div>
+  );
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {events.map((ev, i) => (
+        <div key={ev._id} style={{ display: 'flex', gap: 12, paddingBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: ev.tip === 'dogum' ? '#16a34a' : ev.tip === 'saglik' ? '#ef4444' : ev.tip === 'tohumlama' ? '#8b5cf6' : '#3b82f6', flexShrink: 0 }} />
+            {i < events.length - 1 && <div style={{ width: 1, flex: 1, background: '#e5e7eb', marginTop: 4 }} />}
+          </div>
+          <div style={{ flex: 1, paddingBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{ev.baslik || ev.tip}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{ev.tarih ? new Date(ev.tarih).toLocaleDateString('tr-TR') : ''}</div>
+            {ev.aciklama && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{ev.aciklama}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const InekDetay = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -332,12 +361,20 @@ const InekDetay = () => {
                 {[
                     { key: 'genel', label: '📋 Genel' },
                     { key: 'laktasyon', label: '📈 Verim' },
+                    { key: 'timeline', label: 'Geçmiş' },
                 ].map(s => (
                     <Tab key={s.key} $active={aktifSekme === s.key} onClick={() => { setAktifSekme(s.key); if (s.key === 'laktasyon') fetchLaktasyon(); }}>
                         {s.label}
                     </Tab>
                 ))}
             </TabBar>
+
+            {aktifSekme === 'timeline' && (
+                <Card>
+                    <CardTitle>Geçmiş</CardTitle>
+                    <TimelineTab inekId={id} />
+                </Card>
+            )}
 
             {/* LAKTASYON GRAFİĞİ SEKMESİ */}
             {aktifSekme === 'laktasyon' && (

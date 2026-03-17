@@ -42,7 +42,7 @@ const InputGroup = styled.div`
   label { font-weight: 700; font-size: 0.85rem; color: #475569; }
   input { 
     padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; color: #1e293b; background: #f8fafc; transition: .2s;
-    &:focus { border-color: #10b981; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
+    &:focus { border-color: #16a34a; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(22,163,74,.1); }
   }
 `;
 const SearchWrap = styled.div`
@@ -70,7 +70,7 @@ const ActionButtons = styled.div`display: flex; justify-content: flex-end; gap: 
 const Button = styled.button`
   padding: 12px 24px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: .2s; font-size: 0.95rem;
   &.cancel { background: #f1f5f9; color: #475569; &:hover { background: #e2e8f0; } }
-  &.save { background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,.3); &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,185,129,.4); } }
+  &.save { background: linear-gradient(135deg, #16a34a, #16a34a); color: white; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(22,163,74,.3); &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(22,163,74,.4); } }
 `;
 
 // --- GLOBAL MASTER FEED DB ---

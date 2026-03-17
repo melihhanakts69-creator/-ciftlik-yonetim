@@ -83,7 +83,7 @@ const ExportGroup = styled.div`
 const ExportBtn = styled.button`
   display: flex; align-items: center; gap: 6px;
   padding: 8px 14px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
-  background: ${p => p.$pdf ? '#ef4444' : '#10b981'}; color: white;
+  background: ${p => p.$pdf ? '#ef4444' : '#16a34a'}; color: white;
   transition: all 0.2s;
   &:hover { background: ${p => p.$pdf ? '#dc2626' : '#059669'}; transform: translateY(-1px); }
 `;
@@ -97,11 +97,11 @@ const PeriodBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${props => props.$active ? '#4CAF50' : 'transparent'};
+  background: ${props => props.$active ? '#16a34a' : 'transparent'};
   color: ${props => props.$active ? 'white' : '#666'};
 
   &:hover {
-    background: ${props => props.$active ? '#4CAF50' : '#f0f0f0'};
+    background: ${props => props.$active ? '#16a34a' : '#f0f0f0'};
   }
 `;
 
@@ -137,11 +137,11 @@ const Tab = styled.button`
   transition: all 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
-  background: ${props => props.$active ? '#4CAF50' : 'transparent'};
+  background: ${props => props.$active ? '#16a34a' : 'transparent'};
   color: ${props => props.$active ? 'white' : '#666'};
 
   &:hover {
-    background: ${props => props.$active ? '#4CAF50' : '#f5f5f5'};
+    background: ${props => props.$active ? '#16a34a' : '#f5f5f5'};
   }
 
   svg { font-size: 14px; }
@@ -170,7 +170,7 @@ const StatCard = styled.div`
   border-radius: 16px;
   padding: 18px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  border-left: 4px solid ${props => props.color || '#4CAF50'};
+  border-left: 4px solid ${props => props.color || '#16a34a'};
   transition: all 0.2s;
 
   &:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
@@ -192,7 +192,7 @@ const StatCard = styled.div`
   .trend {
     font-size: 11px; font-weight: 600;
     display: flex; align-items: center; gap: 4px; margin-top: 4px;
-    color: ${props => props.trendUp ? '#4CAF50' : '#ef5350'};
+    color: ${props => props.trendUp ? '#16a34a' : '#ef5350'};
   }
   
   @media (max-width: 480px) { padding: 14px 12px; border-radius: 12px; }
@@ -324,12 +324,12 @@ const ModalContent = styled.div`
 
 const ActionBtn = styled.button`
   padding: 10px 18px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-  background: ${p => p.$primary ? '#10b981' : '#e2e8f0'};
+  background: ${p => p.$primary ? '#16a34a' : '#e2e8f0'};
   color: ${p => p.$primary ? '#fff' : '#475569'};
   &:hover { background: ${p => p.$primary ? '#059669' : '#cbd5e1'}; }
 `;
 
-const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4'];
+const COLORS = ['#16a34a', '#2196F3', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4'];
 
 const ViewToggleRow = styled.div`
   display: flex;
@@ -499,14 +499,14 @@ const Raporlar = () => {
     const gebe = inekler.filter(i => i.gebe || i.durum === 'Gebe').length + duveler.filter(d => d.gebe || d.durum === 'Gebe').length;
 
     const dagilim = [
-      { name: 'İnek', value: inekler.length, color: '#4CAF50' },
+      { name: 'İnek', value: inekler.length, color: '#16a34a' },
       { name: 'Düve', value: duveler.length, color: '#2196F3' },
       { name: 'Buzağı', value: buzagilar.length, color: '#FF9800' },
       { name: 'Tosun', value: tosunlar.length, color: '#9C27B0' }
     ].filter(d => d.value > 0);
 
     const durumDagilim = [
-      { name: 'Sağmal', value: sagmal, color: '#4CAF50' },
+      { name: 'Sağmal', value: sagmal, color: '#16a34a' },
       { name: 'Kuru', value: inekler.length - sagmal, color: '#FF9800' },
       { name: 'Gebe', value: gebe, color: '#E91E63' }
     ].filter(d => d.value > 0);
@@ -517,7 +517,7 @@ const Raporlar = () => {
     return (
       <>
         <Grid>
-          <StatCard color="#4CAF50"><div className="label">Toplam Hayvan</div><div className="value">{toplam}</div><div className="unit">Baş</div></StatCard>
+          <StatCard color="#16a34a"><div className="label">Toplam Hayvan</div><div className="value">{toplam}</div><div className="unit">Baş</div></StatCard>
           <StatCard color="#2196F3"><div className="label">Sağmal İnek</div><div className="value">{sagmal}</div><div className="unit">Baş</div></StatCard>
           <StatCard color="#E91E63"><div className="label">Gebe Hayvan</div><div className="value">{gebe}</div><div className="unit">Baş</div></StatCard>
           <StatCard color="#9C27B0"><div className="label">Buzağı</div><div className="value">{buzagilar.length}</div><div className="unit">Baş</div></StatCard>
@@ -591,7 +591,7 @@ const Raporlar = () => {
     return (
       <>
         <Grid>
-          <StatCard color="#4CAF50"><div className="label">Toplam Üretim</div><div className="value">{toplamSut.toFixed(0)}</div><div className="unit">Litre ({period} gün)</div></StatCard>
+          <StatCard color="#16a34a"><div className="label">Toplam Üretim</div><div className="value">{toplamSut.toFixed(0)}</div><div className="unit">Litre ({period} gün)</div></StatCard>
           <StatCard color="#2196F3"><div className="label">Günlük Ortalama</div><div className="value">{ortSut.toFixed(1)}</div><div className="unit">Lt/Gün</div></StatCard>
           <StatCard color="#FF9800" trendUp><div className="label">En Yüksek</div><div className="value">{maxSut.toFixed(1)}</div><div className="unit">Lt</div></StatCard>
           <StatCard color="#ef5350"><div className="label">En Düşük</div><div className="value">{minSut.toFixed(1)}</div><div className="unit">Lt</div></StatCard>
@@ -605,15 +605,15 @@ const Raporlar = () => {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="sutGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#4CAF50" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="tarih" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <RechartsTooltip contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
-                  <Area type="monotone" dataKey="miktar" stroke="#4CAF50" strokeWidth={2} fill="url(#sutGrad)" name="Süt (Lt)" />
+                  <Area type="monotone" dataKey="miktar" stroke="#16a34a" strokeWidth={2} fill="url(#sutGrad)" name="Süt (Lt)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : <EmptyState>Bu dönem için süt verisi bulunamadı</EmptyState>}
@@ -654,9 +654,9 @@ const Raporlar = () => {
     return (
       <>
         <Grid>
-          <StatCard color="#4CAF50" trendUp><div className="label">Toplam Gelir</div><div className="value">{genelGelir.toLocaleString('tr-TR')}</div><div className="unit">₺</div></StatCard>
+          <StatCard color="#16a34a" trendUp><div className="label">Toplam Gelir</div><div className="value">{genelGelir.toLocaleString('tr-TR')}</div><div className="unit">₺</div></StatCard>
           <StatCard color="#ef5350"><div className="label">Toplam Gider</div><div className="value">{genelGider.toLocaleString('tr-TR')}</div><div className="unit">₺</div></StatCard>
-          <StatCard color={net >= 0 ? '#4CAF50' : '#ef5350'} trendUp={net >= 0}>
+          <StatCard color={net >= 0 ? '#16a34a' : '#ef5350'} trendUp={net >= 0}>
             <div className="label">Net Kâr/Zarar</div>
             <div className="value">{net >= 0 ? '+' : ''}{net.toLocaleString('tr-TR')}</div>
             <div className="unit">₺</div>
@@ -679,7 +679,7 @@ const Raporlar = () => {
                 <YAxis tick={{ fontSize: 11 }} />
                 <RechartsTooltip formatter={(val) => `${val.toLocaleString('tr-TR')} ₺`} />
                 <Bar dataKey="tutar" radius={[8, 8, 0, 0]} name="Tutar (₺)">
-                  <Cell fill="#4CAF50" />
+                  <Cell fill="#16a34a" />
                   <Cell fill="#ef5350" />
                   <Cell fill={net >= 0 ? '#2196F3' : '#FF9800'} />
                 </Bar>
@@ -729,7 +729,7 @@ const Raporlar = () => {
         <Grid>
           <StatCard color="#E91E63"><div className="label">Toplam Kayıt</div><div className="value">{kayitlar.length}</div><div className="unit">Adet</div></StatCard>
           <StatCard color="#FF9800"><div className="label">Aktif Tedavi</div><div className="value">{aktif}</div><div className="unit">Devam Eden</div></StatCard>
-          <StatCard color="#4CAF50"><div className="label">İyileşen</div><div className="value">{iyilesen}</div><div className="unit">Başarılı</div></StatCard>
+          <StatCard color="#16a34a"><div className="label">İyileşen</div><div className="value">{iyilesen}</div><div className="unit">Başarılı</div></StatCard>
           <StatCard color="#ef5350"><div className="label">Sağlık Gideri</div><div className="value">{toplamMaliyet.toLocaleString('tr-TR')}</div><div className="unit">₺</div></StatCard>
         </Grid>
 
@@ -762,7 +762,7 @@ const Raporlar = () => {
                 <RechartsTooltip />
                 <Bar dataKey="sayi" radius={[8, 8, 0, 0]} name="Adet">
                   <Cell fill="#FF9800" />
-                  <Cell fill="#4CAF50" />
+                  <Cell fill="#16a34a" />
                   <Cell fill="#ef5350" />
                 </Bar>
               </BarChart>

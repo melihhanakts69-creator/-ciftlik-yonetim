@@ -74,16 +74,17 @@ const KpiGrid = styled.div`
 `;
 
 const AYLAR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-const DONEM_LABELS = { 1: 'Bu Ay', 3: '3 Ay', 6: '6 Ay' };
+const DONEM_GUN = { 'Bu Ay': 30, '3 Ay': 90, '6 Ay': 180 };
 
 export default function Karlilik() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [donem, setDonem] = useState(1);
+  const [donem, setDonem] = useState('Bu Ay');
   const [yemFiyatArtis, setYemFiyatArtis] = useState(0);
 
   useEffect(() => {
-    api.getKarlilik(donem)
+    setLoading(true);
+    api.getKarlilik(DONEM_GUN[donem] || 30)
       .then(r => setData(r.data))
       .catch(e => console.error('Karlılık verisi alınamadı', e))
       .finally(() => setLoading(false));
@@ -124,7 +125,7 @@ export default function Karlilik() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[1, 3, 6].map(p => (
+          {['Bu Ay', '3 Ay', '6 Ay'].map(p => (
             <button
               key={p}
               onClick={() => setDonem(p)}
@@ -136,7 +137,7 @@ export default function Karlilik() {
                 borderColor: donem === p ? '#16a34a' : '#e5e7eb'
               }}
             >
-              {DONEM_LABELS[p] || p + ' Ay'}
+              {p}
             </button>
           ))}
         </div>
