@@ -6,6 +6,7 @@ import PerformansChart from './PerformansChart';
 import SuruSaglikSkoru from './SuruSaglikSkoru';
 import YaklasanDogumlar from '../YaklasanDogumlar';
 import BugunYemlemeCard from './BugunYemlemeCard';
+import GorevListesi from './GorevListesi';
 import { Skeleton } from '../common/Skeleton';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat } from 'react-icons/fa';
 
@@ -500,6 +501,9 @@ const Dashboard = ({ kullanici }) => {
     stats: null,
     performans: [],
     yapilacaklar: [],
+    geciken: [],
+    bugunGorev: [],
+    yaklaşanGorev: [],
     aktiviteler: [],
     topCows: [],
     sutYasaklar: [],
@@ -536,9 +540,9 @@ const Dashboard = ({ kullanici }) => {
         api.getFCR(7)
       ]);
 
-      const yapilacaklarRaw = results[2].status === 'fulfilled' && results[2].value?.data
-        ? [...(results[2].value.data.geciken || []), ...(results[2].value.data.bugun || [])]
-        : [];
+      const yapilacaklarData = results[2].status === 'fulfilled' && results[2].value?.data
+        ? results[2].value.data
+        : { geciken: [], bugun: [], yaklaşan: [] };
 
       let stats = results[0].status === 'fulfilled' ? results[0].value?.data : null;
       if (stats && results[7].status === 'fulfilled' && results[7].value?.data) {
@@ -549,7 +553,14 @@ const Dashboard = ({ kullanici }) => {
       setData({
         stats,
         performans: results[1].status === 'fulfilled' && Array.isArray(results[1].value?.data) ? results[1].value.data : [],
-        yapilacaklar: yapilacaklarRaw,
+        yapilacaklar: [
+          ...(yapilacaklarData.geciken || []),
+          ...(yapilacaklarData.bugun || []),
+          ...(yapilacaklarData.yaklaşan || [])
+        ],
+        geciken: yapilacaklarData.geciken || [],
+        bugunGorev: yapilacaklarData.bugun || [],
+        yaklaşanGorev: yapilacaklarData.yaklaşan || [],
         aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value?.data) ? results[3].value.data : [],
         topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].value?.data) ? results[4].value.data : [],
         saglikSkoru: results[5].status === 'fulfilled' && results[5].value?.data ? results[5].value.data.skor : null,
@@ -756,44 +767,36 @@ const Dashboard = ({ kullanici }) => {
       <TwoCol>
         <MainCol>
 
-          {/* BUGÜNÜN GÖREVLERİ */}
+          {/* GÖREVLER — 3 grup: gecikmiş / bugün / bu hafta */}
           <Widget>
             <h3>
-              Bugünün Görevleri
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                Görevler
+                {data.geciken.length > 0 && (
+                  <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#fef2f2', color: '#991b1b' }}>
+                    {data.geciken.length} gecikmiş
+                  </span>
+                )}
+                <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#f3f4f6', color: '#6b7280' }}>
+                  {data.geciken.length + data.bugunGorev.length + data.yaklaşanGorev.length} toplam
+                </span>
+              </span>
               <Link to="/bildirimler" style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>
                 Tümü →
               </Link>
             </h3>
-            {data.yapilacaklar?.length === 0 ? (
+
+            {data.geciken.length === 0 && data.bugunGorev.length === 0 && data.yaklaşanGorev.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px 0', color: '#9ca3af', fontSize: 13 }}>
-                ✅ Bugün yapılacak bir şey yok
+                ✅ Bekleyen görev yok
               </div>
             ) : (
-              data.yapilacaklar.slice(0, 5).map((gorev, i) => (
-                <TaskItem key={gorev._id || i}>
-                  <div className="dot" style={{
-                    background: gorev.oncelik === 'acil' ? '#dc2626'
-                              : gorev.oncelik === 'yuksek' ? '#d97706'
-                              : '#16a34a'
-                  }} />
-                  <div className="task-body">
-                    <div className="task-name">{gorev.baslik}</div>
-                    <div className="task-when">{(gorev.mesaj || gorev.aciklama || '').slice(0, 60)}</div>
-                  </div>
-                  <span className="tag" style={{
-                    background: gorev.oncelik === 'acil' ? '#fef2f2'
-                              : gorev.oncelik === 'yuksek' ? '#fef3c7'
-                              : '#dcfce7',
-                    color: gorev.oncelik === 'acil' ? '#991b1b'
-                         : gorev.oncelik === 'yuksek' ? '#92400e'
-                         : '#166534'
-                  }}>
-                    {gorev.oncelik === 'acil' ? 'Acil'
-                     : gorev.oncelik === 'yuksek' ? 'Bugün'
-                     : 'Planla'}
-                  </span>
-                </TaskItem>
-              ))
+              <GorevListesi
+                geciken={data.geciken}
+                bugun={data.bugunGorev}
+                yaklaşan={data.yaklaşanGorev}
+                onRefresh={fetchData}
+              />
             )}
           </Widget>
 

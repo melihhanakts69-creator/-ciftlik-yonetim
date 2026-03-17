@@ -75,13 +75,13 @@ const Button = styled.button`
 
 // --- GLOBAL MASTER FEED DB ---
 const MASTER_DB = [
-  { ad: 'Mısır Silajı', kategori: 'Kaba Yem', kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
-  { ad: 'Yonca Silajı', kategori: 'Kaba Yem', kuruMadde: 35, protein: 18, enerji: 2.2, nisasta: 2 },
+  { ad: 'Arpa Ezme', kategori: 'Tahıl', kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
   { ad: 'Yonca Kuru Otu', kategori: 'Kaba Yem', kuruMadde: 90, protein: 16, enerji: 2.1, nisasta: 2 },
+  { ad: 'Yonca Silajı', kategori: 'Kaba Yem', kuruMadde: 35, protein: 18, enerji: 2.2, nisasta: 2 },
+  { ad: 'Mısır Silajı', kategori: 'Kaba Yem', kuruMadde: 32, protein: 8, enerji: 2.5, nisasta: 30 },
   { ad: 'Buğday Samanı', kategori: 'Kaba Yem', kuruMadde: 90, protein: 3, enerji: 1.6, nisasta: 0 },
   { ad: 'Arpa Samanı', kategori: 'Kaba Yem', kuruMadde: 90, protein: 3.5, enerji: 1.65, nisasta: 0 },
   { ad: 'Ryegrass', kategori: 'Kaba Yem', kuruMadde: 20, protein: 16, enerji: 2.5, nisasta: 10 },
-  { ad: 'Arpa Ezme', kategori: 'Tahıl', kuruMadde: 88, protein: 11, enerji: 2.8, nisasta: 55 },
   { ad: 'Mısır Flake', kategori: 'Tahıl', kuruMadde: 88, protein: 9, enerji: 3.2, nisasta: 72 },
   { ad: 'Soya Küspesi', kategori: 'Protein', kuruMadde: 90, protein: 48, enerji: 3.3, nisasta: 5 },
   { ad: 'Ayçiçek Küspesi (%28)', kategori: 'Protein', kuruMadde: 90, protein: 28, enerji: 2.0, nisasta: 2 },
@@ -158,7 +158,7 @@ const YemEkleModal = ({ onClose, onSave }) => {
 
         <Form onSubmit={handleSubmit}>
           <InputGroup>
-            <label>Yem Kütüphanesinden Ara (Örn: Mısır Silajı)</label>
+            <label>Yem Kütüphanesinden Ara (Örn: Arpa, Yonca, Soya Küspesi)</label>
             <SearchWrap>
               <FaSearch className="icon" />
               <input
