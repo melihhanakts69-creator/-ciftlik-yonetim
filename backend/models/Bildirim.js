@@ -154,18 +154,20 @@ bildirimSchema.statics.bugununkiler = async function (userId) {
       $gte: bugun,
       $lt: yarin
     },
+    tamamlandi: false,
     aktif: true
   })
     .sort({ oncelik: -1, hatirlatmaTarihi: 1 });
 };
 
-// Statik method: Gecikmiş bildirimler
+// Statik method: Gecikmiş bildirimler (dün ve öncesi — bugünküler bugununkiler'de)
 bildirimSchema.statics.gecikmisler = async function (userId) {
-  const simdi = new Date();
+  const bugunBaslangic = new Date();
+  bugunBaslangic.setHours(0, 0, 0, 0);
 
   return await this.find({
     userId: new mongoose.Types.ObjectId(userId),
-    hatirlatmaTarihi: { $lt: simdi },
+    hatirlatmaTarihi: { $lt: bugunBaslangic },
     tamamlandi: false,
     aktif: true
   })
