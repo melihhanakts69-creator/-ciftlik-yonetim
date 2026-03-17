@@ -127,13 +127,8 @@ const BodyWrap = styled.div`
 
 const TabLayout = styled.div`
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0;
-  }
+  flex-direction: column;
+  gap: 0;
 `;
 
 const TabContent = styled.div`
@@ -147,48 +142,35 @@ const TabContent = styled.div`
 
 const TabBar = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: transparent;
-  margin-bottom: 22px;
-  width: 100%;
-  max-width: 300px;
-  flex-shrink: 0;
-
-  @media (max-width: 768px) {
-    flex-direction: row;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 4px;
-    margin-bottom: 16px;
-    gap: 6px;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
-  }
+  flex-direction: row;
+  gap: 4px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0;
+  &::-webkit-scrollbar { display: none; }
 `;
 const Tab = styled.button`
-  padding: 12px 18px; border: none; border-radius: 12px;
-  cursor: pointer; font-weight: 700; font-size: 14px;
-  white-space: nowrap; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
-  background: ${p => p.active ? `linear-gradient(135deg, ${colors.dangerDark}, ${colors.danger})` : '#fff'};
-  color: ${p => p.active ? '#fff' : '#475569'};
-  box-shadow: ${p => p.active ? '0 4px 12px rgba(190,18,60,.25)' : '0 1px 3px rgba(0,0,0,0.05)'};
-  border: 1px solid ${p => p.active ? 'transparent' : '#e2e8f0'};
-  &:hover {
-    transform: translateX(4px);
-    box-shadow: 0 4px 14px rgba(0,0,0,.1);
-    color: ${p => p.active ? '#fff' : '#be123c'};
-  }
+  padding: 9px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: ${p => p.active ? '500' : '400'};
+  font-size: 13px;
+  color: ${p => p.active ? '#16a34a' : '#6b7280'};
+  border-bottom: 2px solid ${p => p.active ? '#16a34a' : 'transparent'};
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 
-  @media (max-width: 768px) {
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 20px;
-    gap: 6px;
-    flex-shrink: 0;
-    &:hover { transform: none; }
+  &:hover {
+    color: #16a34a;
+    transform: none;
   }
 `;
 
@@ -202,30 +184,30 @@ const FilterSelect = styled.select`
 `;
 
 const CardList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
   animation: ${fadeIn} 0.7s ease;
 `;
 
 const RecordCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   display: flex;
-  gap: 16px;
-  transition: all 0.2s;
-  border-left: 5px solid ${props => props.color};
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 0.5px solid #f3f4f6;
+  transition: background 0.12s;
+  cursor: default;
 
-  &:hover {
-    transform: translateX(4px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  }
+  &:hover { background: #fafafa; }
+  &:last-child { border-bottom: none; }
+
   @media (max-width: 768px) {
     flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
-    padding: 16px;
+    padding: 14px;
     button, .actions button { min-height: 44px; min-width: 44px; }
   }
 `;
@@ -1170,34 +1152,78 @@ function SaglikMerkezi() {
             <BodyWrap style={{ paddingTop: 16 }}>
                 <StatGrid>
                     <StatCard>
-                        <StatIcon><FaHeartbeat /></StatIcon>
+                        <StatIcon style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' }}>
+                            <FaHeartbeat />
+                        </StatIcon>
                         <StatInfo>
-                            <div className="value">{istatistikler?.aktifTedavi || 0}</div>
+                            <div className="value" style={{ color: istatistikler?.aktifTedavi > 0 ? '#dc2626' : '#111827' }}>
+                                {istatistikler?.aktifTedavi || 0}
+                            </div>
                             <div className="label">Aktif Tedavi</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon><FaSyringe /></StatIcon>
+                        <StatIcon style={{ background: '#dbeafe', color: '#2563eb', borderColor: '#bfdbfe' }}>
+                            <FaSyringe />
+                        </StatIcon>
                         <StatInfo>
                             <div className="value">{istatistikler?.buAyAsi || 0}</div>
                             <div className="label">Bu Ay Aşı</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon><FaClock /></StatIcon>
+                        <StatIcon style={{ background: '#fef3c7', color: '#d97706', borderColor: '#fde68a' }}>
+                            <FaClock />
+                        </StatIcon>
                         <StatInfo>
-                            <div className="value">{istatistikler?.yaklasanKontrol || 0}</div>
+                            <div className="value" style={{ color: istatistikler?.yaklasanKontrol > 0 ? '#d97706' : '#111827' }}>
+                                {istatistikler?.yaklasanKontrol || 0}
+                            </div>
                             <div className="label">Yaklaşan Kontrol</div>
                         </StatInfo>
                     </StatCard>
                     <StatCard>
-                        <StatIcon><FaMoneyBillWave /></StatIcon>
+                        <StatIcon style={{ background: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0' }}>
+                            <FaMoneyBillWave />
+                        </StatIcon>
                         <StatInfo>
                             <div className="value">₺{(istatistikler?.aylikMaliyet || 0).toLocaleString('tr-TR')}</div>
                             <div className="label">Aylık Sağlık Gideri</div>
                         </StatInfo>
                     </StatCard>
                 </StatGrid>
+
+                {/* AI DANIŞMAN BAR — her zaman görünür */}
+                <div
+                    style={{
+                        background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)',
+                        border: '1px solid #ddd6fe',
+                        borderRadius: 10,
+                        padding: '10px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        marginBottom: 16,
+                        cursor: 'pointer',
+                    }}
+                    onClick={() => setAktifTab('ai')}
+                >
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#fff', flexShrink: 0 }}>
+                        🤖
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#5b21b6' }}>
+                            Sağlık AI Danışmanı
+                        </div>
+                        <div style={{ fontSize: 11, color: '#7c3aed', opacity: .8, marginTop: 1 }}>
+                            Hastalık teşhisi, ilaç bilgisi ve tedavi önerileri için tıkla
+                        </div>
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#5b21b6', background: '#fff', padding: '5px 12px', borderRadius: 20, border: '1px solid #ddd6fe', flexShrink: 0 }}>
+                        Danışmana Sor →
+                    </div>
+                </div>
+
                 <TabLayout>
                     {/* TAB BAR */}
                     <TabBar>
@@ -1210,16 +1236,8 @@ function SaglikMerkezi() {
                         <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
                             ⏰ Yaklaşan İşlemler
                         </Tab>
-
-                        <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}
-                            style={{
-                                background: aktifTab === 'ai' ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'linear-gradient(135deg,#faf5ff,#f3e8ff)',
-                                color: aktifTab === 'ai' ? '#fff' : '#7c3aed',
-                                borderColor: aktifTab === 'ai' ? 'transparent' : '#ddd6fe',
-                                fontWeight: 800
-                            }}>
-                            <FaRobot /> 🤖 AI Danışman
-                            {aktifTab !== 'ai' && <span style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 9, padding: '2px 6px', borderRadius: 999, fontWeight: 800, marginLeft: 2 }}>AI</span>}
+                        <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}>
+                            🤖 AI Danışman
                         </Tab>
                         <Tab active={aktifTab === 'veterinerler'} onClick={() => setAktifTab('veterinerler')}>
                             🩺 Veterinerler
@@ -1263,38 +1281,43 @@ function SaglikMerkezi() {
                                             const style = getTipStyle(k.tip);
                                             const durumBadge = getDurumBadge(k.durum);
                                             return (
-                                                <RecordCard key={k._id} color={style.color}>
+                                                <RecordCard key={k._id}>
                                                     <RecordIcon bg={style.bg} color={style.color}>
                                                         {style.icon}
                                                     </RecordIcon>
                                                     <RecordContent>
-                                                        <div className="top-row">
-                                                            <div>
-                                                                <h3>{k.tani}</h3>
-                                                                <div className="hayvan-info">
-                                                                    {hayvanTipiLabel[k.hayvanTipi] || k.hayvanTipi}
-                                                                    {k.hayvanIsim && ` • ${k.hayvanIsim}`}
-                                                                    {k.hayvanKupeNo && ` (${k.hayvanKupeNo})`}
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2 }}>
+                                                                    {k.tani}
+                                                                </div>
+                                                                <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                                                    {k.hayvanIsim && <span>🐄 {k.hayvanIsim} ({k.hayvanKupeNo})</span>}
+                                                                    {k.tedavi && <span>💊 {k.tedavi.slice(0, 30)}</span>}
+                                                                    {k.veteriner && <span>🩺 {k.veteriner}</span>}
+                                                                    {k.maliyet > 0 && <span>₺{k.maliyet.toLocaleString('tr-TR')}</span>}
+                                                                    <span>📅 {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
+                                                                    {k.sonrakiKontrol && (
+                                                                        <span style={{ color: new Date(k.sonrakiKontrol) < new Date() ? '#dc2626' : '#d97706', fontWeight: 500 }}>
+                                                                            Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             </div>
-                                                            <Badge bg={durumBadge.bg} color={durumBadge.color}>
-                                                                {durumBadge.label}
-                                                            </Badge>
-                                                        </div>
-                                                        {k.tedavi && <div style={{ fontSize: '13px', color: '#555', marginBottom: '4px' }}>💊 {k.tedavi}</div>}
-                                                        <div className="detail-row">
-                                                            <span className="detail"><FaCalendarAlt /> {new Date(k.tarih).toLocaleDateString('tr-TR')}</span>
-                                                            {k.veteriner && <span className="detail"><FaStethoscope /> {k.veteriner}</span>}
-                                                            {k.maliyet > 0 && <span className="detail"><FaMoneyBillWave /> ₺{k.maliyet.toLocaleString('tr-TR')}</span>}
-                                                            {k.sonrakiKontrol && <span className="detail"><FaClock /> Kontrol: {new Date(k.sonrakiKontrol).toLocaleDateString('tr-TR')}</span>}
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                                                                <Badge bg={durumBadge.bg} color={durumBadge.color}>{durumBadge.label}</Badge>
+                                                                {k.durum === 'devam_ediyor' && (
+                                                                    <button
+                                                                        onClick={() => handleIyilesti(k._id)}
+                                                                        style={{ fontSize: 11, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 500 }}
+                                                                    >
+                                                                        ✓ İyileşti
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </RecordContent>
                                                     <ActionBtns>
-                                                        {k.durum === 'devam_ediyor' && (
-                                                            <button className="iyilesti" onClick={() => handleIyilesti(k._id)} title="İyileşti olarak işaretle">
-                                                                <FaCheckCircle /> İyileşti
-                                                            </button>
-                                                        )}
                                                         <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
                                                     </ActionBtns>
                                                 </RecordCard>
@@ -1340,7 +1363,7 @@ function SaglikMerkezi() {
                                                 </div>
                                                 <CardList style={{ marginBottom: 0 }}>
                                                     {items.map(a => (
-                                                        <RecordCard key={a._id} color={grp.color}>
+                                                        <RecordCard key={a._id}>
                                                             <RecordIcon bg={grp.bg} color={grp.color}>
                                                                 <FaSyringe />
                                                             </RecordIcon>
@@ -1380,73 +1403,90 @@ function SaglikMerkezi() {
                         )}
 
                         {/* YAKLAŞAN İŞLEMLER TAB */}
-                        {aktifTab === 'yaklasan' && (
-                            <CardList>
-                                {(() => {
-                                    const yaklasanItems = [
-                                        ...kayitlar
-                                            .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
-                                            .map(k => ({ ...k, _itemType: 'kontrol', _sortDate: k.sonrakiKontrol })),
-                                        ...asilar
-                                            .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
-                                            .map(a => ({ ...a, _itemType: 'asi', _sortDate: a.sonrakiTarih }))
-                                    ].sort((a, b) => new Date(a._sortDate) - new Date(b._sortDate));
+                        {aktifTab === 'yaklasan' && (() => {
+                            const now = new Date();
+                            const haftaSonra = new Date(); haftaSonra.setDate(now.getDate() + 7);
+                            const aySonra = new Date(); aySonra.setDate(now.getDate() + 30);
 
-                                    if (yaklasanItems.length === 0) {
-                                        return (
-                                            <EmptyState>
-                                                <FaCheckCircle />
-                                                <p>Yaklaşan işlem yok — her şey yolunda! 🎉</p>
-                                            </EmptyState>
-                                        );
-                                    }
+                            const tumItems = [
+                                ...kayitlar
+                                    .filter(k => k.sonrakiKontrol && k.durum === 'devam_ediyor')
+                                    .map(k => ({
+                                        _id: k._id, _tip: 'kontrol',
+                                        baslik: `Kontrol: ${k.tani}`,
+                                        hayvan: `${k.hayvanIsim || ''} ${k.hayvanKupeNo ? `(${k.hayvanKupeNo})` : ''}`.trim(),
+                                        tarih: new Date(k.sonrakiKontrol),
+                                        ikon: '🩺', ikonBg: '#dbeafe'
+                                    })),
+                                ...asilar
+                                    .filter(a => a.sonrakiTarih && a.durum !== 'yapildi')
+                                    .map(a => ({
+                                        _id: a._id, _tip: 'asi',
+                                        baslik: `Aşı: ${a.asiAdi}`,
+                                        hayvan: a.hayvanTipi === 'hepsi' ? 'Toplu sürü' : `${a.hayvanIsim || ''} ${a.hayvanKupeNo ? `(${a.hayvanKupeNo})` : ''}`.trim(),
+                                        tarih: new Date(a.sonrakiTarih),
+                                        ikon: '💉', ikonBg: '#f3e8ff'
+                                    }))
+                            ].sort((a, b) => a.tarih - b.tarih);
 
-                                    return yaklasanItems.map(item => {
-                                        const gecikti = new Date(item._sortDate) < new Date();
-                                        if (item._itemType === 'kontrol') {
-                                            return (
-                                                <RecordCard key={item._id} color={gecikti ? '#f44336' : '#2196F3'}>
-                                                    <RecordIcon bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#f44336' : '#2196F3'}>
-                                                        <FaStethoscope />
-                                                    </RecordIcon>
-                                                    <RecordContent>
-                                                        <div className="top-row">
-                                                            <h3>Kontrol: {item.tani}</h3>
-                                                            <Badge bg={gecikti ? '#FFEBEE' : '#E3F2FD'} color={gecikti ? '#C62828' : '#1565C0'}>
-                                                                {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiKontrol).toLocaleDateString('tr-TR')}`}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="hayvan-info">
-                                                            {hayvanTipiLabel[item.hayvanTipi]} {item.hayvanIsim && `• ${item.hayvanIsim}`}
-                                                        </div>
-                                                    </RecordContent>
-                                                </RecordCard>
-                                            );
-                                        } else {
-                                            return (
-                                                <RecordCard key={item._id} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                                    <RecordIcon bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#f44336' : '#9C27B0'}>
-                                                        <FaSyringe />
-                                                    </RecordIcon>
-                                                    <RecordContent>
-                                                        <div className="top-row">
-                                                            <h3>Aşı: {item.asiAdi}</h3>
-                                                            <Badge bg={gecikti ? '#FFEBEE' : '#F3E5F5'} color={gecikti ? '#C62828' : '#7B1FA2'}>
-                                                                {gecikti ? '⚠️ GECİKTİ' : `📅 ${new Date(item.sonrakiTarih).toLocaleDateString('tr-TR')}`}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="hayvan-info">
-                                                            {item.hayvanTipi === 'hepsi' ? '🐄 Toplu' : hayvanTipiLabel[item.hayvanTipi]}
-                                                            {item.hayvanIsim && ` • ${item.hayvanIsim}`}
-                                                        </div>
-                                                    </RecordContent>
-                                                </RecordCard>
-                                            );
-                                        }
-                                    });
-                                })()}
-                            </CardList>
-                        )}
+                            const gecikmiş = tumItems.filter(i => i.tarih < now);
+                            const buHafta = tumItems.filter(i => i.tarih >= now && i.tarih <= haftaSonra);
+                            const buAy = tumItems.filter(i => i.tarih > haftaSonra && i.tarih <= aySonra);
+
+                            const GrupBaslik = ({ label, count, renk }) => count > 0 && (
+                                <div style={{ fontSize: 10, fontWeight: 500, color: renk, textTransform: 'uppercase', letterSpacing: '.5px', padding: '8px 14px 4px', background: '#f9fafb', borderBottom: '0.5px solid #f3f4f6' }}>
+                                    {label} ({count})
+                                </div>
+                            );
+
+                            const ItemRow = ({ item }) => {
+                                const geciktiMi = item.tarih < now;
+                                const gunFark = Math.ceil(Math.abs(item.tarih - now) / 86400000);
+                                return (
+                                    <div
+                                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: '0.5px solid #f3f4f6', transition: 'background .12s' }}
+                                        onMouseOver={e => { e.currentTarget.style.background = '#fafafa'; }}
+                                        onMouseOut={e => { e.currentTarget.style.background = ''; }}
+                                    >
+                                        <div style={{ width: 32, height: 32, borderRadius: 8, background: geciktiMi ? '#fef2f2' : item.ikonBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>
+                                            {item.ikon}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{item.baslik}</div>
+                                            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+                                                🐄 {item.hayvan || '—'}
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            fontSize: 11, fontWeight: 500, padding: '3px 9px', borderRadius: 20, flexShrink: 0,
+                                            background: geciktiMi ? '#fef2f2' : buHafta.includes(item) ? '#fef3c7' : '#ede9fe',
+                                            color: geciktiMi ? '#991b1b' : buHafta.includes(item) ? '#92400e' : '#5b21b6'
+                                        }}>
+                                            {geciktiMi ? `${gunFark}g gecikmiş` : `${gunFark} gün`}
+                                        </span>
+                                    </div>
+                                );
+                            };
+
+                            if (tumItems.length === 0) {
+                                return (
+                                    <div style={{ textAlign: 'center', padding: '48px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', color: '#9ca3af', fontSize: 13 }}>
+                                        ✅ Yaklaşan işlem yok — her şey yolunda!
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+                                    <GrupBaslik label="⏰ Gecikmiş" count={gecikmiş.length} renk="#dc2626" />
+                                    {gecikmiş.map(i => <ItemRow key={i._id} item={i} />)}
+                                    <GrupBaslik label="📅 Bu Hafta" count={buHafta.length} renk="#d97706" />
+                                    {buHafta.map(i => <ItemRow key={i._id} item={i} />)}
+                                    <GrupBaslik label="📆 Bu Ay" count={buAy.length} renk="#6b7280" />
+                                    {buAy.map(i => <ItemRow key={i._id} item={i} />)}
+                                </div>
+                            );
+                        })()}
 
                         {/* 🤖 AI DANIŞMAN TAB */}
                         {aktifTab === 'ai' && (
