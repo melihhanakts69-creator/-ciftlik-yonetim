@@ -121,7 +121,7 @@ export default function Karlilik() {
             Karlılık Analizi
           </h1>
           <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0' }}>
-            {ayAd} · {ozet.toplamHayvan ?? ozet.inekSayisi || 0} baş toplam
+            {ayAd} · {(ozet.toplamHayvan ?? ozet.inekSayisi) || 0} baş toplam
           </p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -149,7 +149,7 @@ export default function Karlilik() {
           { label: 'Net Kâr', value: `${ozet.netKar >= 0 ? '+' : ''}${ozet.netKar.toLocaleString('tr-TR')} ₺`, trend: `↑ %${Math.abs(ozet.karDegisim || 0)} önceki dönem`, trendColor: ozet.netKar >= 0 ? '#16a34a' : '#dc2626' },
           { label: 'Lt Başına Maliyet', value: `${(ozet.litreBasinaMaliyet || 0).toFixed(2)} ₺/Lt`, trend: 'Yem + sağlık toplam', trendColor: '#9ca3af' },
           { label: 'FCR', value: `${(ozet.fcr || 0).toFixed(1)} kg/Lt`, trend: 'Yem çevirme oranı', trendColor: '#9ca3af' },
-          { label: 'Baş Başına Kâr', value: `${(ozet.hayvanBasinaKar ?? ozet.netKar / (ozet.inekSayisi || 1)).toLocaleString('tr-TR')} ₺`, trend: `${ozet.toplamHayvan ?? ozet.inekSayisi || 0} baş toplam`, trendColor: '#9ca3af' },
+          { label: 'Baş Başına Kâr', value: `${(ozet.hayvanBasinaKar ?? ozet.netKar / (ozet.inekSayisi || 1)).toLocaleString('tr-TR')} ₺`, trend: `${(ozet.toplamHayvan ?? ozet.inekSayisi) || 0} baş toplam`, trendColor: '#9ca3af' },
         ].map((k, i) => (
           <div key={i} style={{
             background: '#f9fafb', border: '1px solid #e5e7eb',
