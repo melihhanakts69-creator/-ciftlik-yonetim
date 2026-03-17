@@ -150,6 +150,8 @@ export const getAlisSatisOzet = (type, params) => { // type: 'alis' or 'satis'
 export const createSatisIslemi = (data) => api.post('/alis-satis/satis', data);
 export const createAlisIslemi = (data) => api.post('/alis-satis/alis', data);
 export const getHayvanGecmisi = (id) => api.get(`/alis-satis/hayvan/${id}`);
+export const postBuzagilama = (data) => api.post('/alis-satis/buzagilama', data);
+export const postOlumKaydi = (data) => api.post('/alis-satis/olum', data);
 
 // DASHBOARD
 export const getDashboardStats = () => api.get('/dashboard/stats');

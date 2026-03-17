@@ -486,6 +486,33 @@ router.get('/karlilik', auth, async (req, res) => {
 
     const toplamGider = giderler.reduce((s, g) => s + g.toplam, 0);
     const toplamGelir = gelirler.reduce((s, g) => s + g.toplam, 0);
+
+    // Buzağılama gelirleri (piyasa değeri)
+    const buzagilamaGeliri = await AlisSatis.aggregate([
+      {
+        $match: {
+          userId: uid,
+          tip: 'buzagilama',
+          tarih: { $gte: new Date(ayBasStr) }
+        }
+      },
+      { $group: { _id: null, toplam: { $sum: '$buzagiDegeri' }, count: { $sum: 1 } } }
+    ]);
+    const toplamBuzagiGeliri = buzagilamaGeliri[0]?.toplam || 0;
+
+    // Ölüm kayıpları (piyasa değeri)
+    const olumKayiplari = await AlisSatis.aggregate([
+      {
+        $match: {
+          userId: uid,
+          tip: 'olum',
+          tarih: { $gte: new Date(ayBasStr) }
+        }
+      },
+      { $group: { _id: null, toplam: { $sum: '$fiyat' } } }
+    ]);
+    const toplamOlumKaybi = olumKayiplari[0]?.toplam || 0;
+
     const netKar = toplamGelir - toplamGider;
     const basBasinaMaliyet = inekSayisi > 0 ? toplamGider / inekSayisi : 0;
     const basBasinaGelir = inekSayisi > 0 ? toplamGelir / inekSayisi : 0;
@@ -631,6 +658,9 @@ router.get('/karlilik', auth, async (req, res) => {
         toplamYemMaliyet: +toplamYemMaliyet.toFixed(2),
         toplamSaglikMaliyet: +toplamSaglikMaliyet.toFixed(2),
         yemGiderOrani: toplamGider > 0 ? +((toplamYemMaliyet / toplamGider) * 100).toFixed(1) : 0,
+        toplamBuzagiGeliri: +toplamBuzagiGeliri.toFixed(2),
+        toplamOlumKaybi: +toplamOlumKaybi.toFixed(2),
+        buzagiSayisi: buzagilamaGeliri[0]?.count || 0,
       },
       inekKarliligi,
       giderKategoriler: giderler,

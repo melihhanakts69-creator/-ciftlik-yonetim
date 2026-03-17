@@ -337,6 +337,8 @@ export default function StokYonetimi({ embedded }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [yemKutuphanesi, setYemKutuphanesi] = useState([]);
+  const [yemDetay, setYemDetay] = useState(null);
+  const [aktifIlaclar, setAktifIlaclar] = useState([]);
 
   useEffect(() => {
     Promise.all([
@@ -349,6 +351,30 @@ export default function StokYonetimi({ embedded }) {
       setYemKutuphanesi(Array.isArray(ykRes?.data) ? ykRes.data : []);
     }).catch(() => toast.error('Stok verileri yüklenemedi'))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api.getSaglikKayitlari({ durum: 'devam_ediyor' })
+      .then(r => {
+        const kayitlar = r.data?.kayitlar ?? r.data ?? [];
+        const arr = Array.isArray(kayitlar) ? kayitlar : [];
+        const ilaclar = [];
+        arr.forEach(kayit => {
+          (kayit.ilaclar || []).forEach(ilac => {
+            if (ilac.ilacAdi) {
+              ilaclar.push({
+                ilacAdi: ilac.ilacAdi,
+                doz: ilac.doz,
+                hayvanIsim: kayit.hayvanIsim || kayit.hayvanKupeNo,
+                tarih: kayit.tarih,
+                kayitId: kayit._id,
+              });
+            }
+          });
+        });
+        setAktifIlaclar(ilaclar);
+      })
+      .catch(() => {});
   }, []);
 
   const load = () => {
@@ -373,6 +399,9 @@ export default function StokYonetimi({ embedded }) {
 
   const handleDuzenle = (item) => {
     setEditing(item);
+    const yemId = item.yemKutuphanesiId?._id || item.yemKutuphanesiId;
+    const yem = yemId ? yemKutuphanesi.find(y => String(y._id) === String(yemId)) : null;
+    setYemDetay(yem || null);
     const skt = item.sonKullanmaTarihi;
     setForm({
       urunAdi: item.urunAdi,
@@ -392,6 +421,7 @@ export default function StokYonetimi({ embedded }) {
 
   const openYeni = () => {
     setEditing(null);
+    setYemDetay(null);
     setForm({ ...EMPTY, kategori: tab === 'yem' ? 'Yem' : 'İlaç' });
     setShowModal(true);
   };
@@ -459,7 +489,33 @@ export default function StokYonetimi({ embedded }) {
         />
       )}
       {tab === 'diger' && (
-        <DigerStok stoklar={digerStoklar} onDuzenle={handleDuzenle} onYeniStok={openYeni} />
+        <>
+          {aktifIlaclar.length > 0 && (
+            <div style={{
+              background: '#fff', border: '1px solid #fde68a',
+              borderRadius: 12, overflow: 'hidden', marginBottom: 12
+            }}>
+              <div style={{ padding: '10px 14px', background: '#fffbeb', borderBottom: '1px solid #fde68a', fontSize: 12, fontWeight: 600, color: '#92400e' }}>
+                💊 Aktif Tedavide Kullanılan İlaçlar ({aktifIlaclar.length})
+              </div>
+              {aktifIlaclar.map((ilac, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: i < aktifIlaclar.length - 1 ? '1px solid #f9fafb' : 'none' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 7, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>💊</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{ilac.ilacAdi}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+                      🐄 {ilac.hayvanIsim} · {ilac.doz || 'Doz belirtilmemiş'} · {new Date(ilac.tarih).toLocaleDateString('tr-TR')}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: '#fef2f2', color: '#991b1b' }}>
+                    Aktif
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <DigerStok stoklar={digerStoklar} onDuzenle={handleDuzenle} onYeniStok={openYeni} />
+        </>
       )}
 
       {/* Edit/Add Modal */}
@@ -603,12 +659,40 @@ export default function StokYonetimi({ embedded }) {
                   </label>
                   <select
                     value={form.yemKutuphanesiId || ''}
-                    onChange={e => setForm(p => ({ ...p, yemKutuphanesiId: e.target.value || undefined }))}
+                    onChange={e => {
+                      const secilenId = e.target.value || undefined;
+                      const secilenYem = yemKutuphanesi.find(y => y._id === secilenId);
+                      setForm(p => ({ ...p, yemKutuphanesiId: secilenId, ...(secilenYem?.birimFiyat != null ? { birimFiyat: secilenYem.birimFiyat } : {}) }));
+                      setYemDetay(secilenYem || null);
+                    }}
                     style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}
                   >
                     <option value="">— Seç (opsiyonel) —</option>
                     {yemKutuphanesi.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
                   </select>
+                  {yemDetay && (
+                    <div style={{
+                      background: '#f0fdf4', border: '1px solid #bbf7d0',
+                      borderRadius: 8, padding: '10px 14px', marginTop: 4
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: '#166534', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.4px' }}>
+                        Besin Değerleri (1 kg)
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                        {[
+                          { lbl: 'Kuru Madde', val: `%${yemDetay.kuruMadde || 0}` },
+                          { lbl: 'Ham Protein', val: `%${yemDetay.protein || 0}` },
+                          { lbl: 'Enerji', val: `${yemDetay.enerji || 0} Mcal` },
+                          { lbl: 'Nişasta', val: `%${yemDetay.nisasta || 0}` },
+                        ].map((item, i) => (
+                          <div key={i} style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: 10, color: '#16a34a', marginBottom: 2 }}>{item.lbl}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#166534' }}>{item.val}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

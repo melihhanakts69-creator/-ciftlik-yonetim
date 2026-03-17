@@ -194,6 +194,14 @@ const RecommendationBox = styled.div`
 `;
 
 // --- CONSTANTS ---
+const NRC_NORMLAR = {
+  sagmal: { protein: { min: 16, max: 19, label: 'Ham Protein' }, enerji: { min: 2.6, max: 2.9, label: 'ME (Mcal/kg)' }, kuruMadde: { min: 85, max: 90, label: 'Kuru Madde %' } },
+  kuru: { protein: { min: 12, max: 14, label: 'Ham Protein' }, enerji: { min: 2.2, max: 2.5, label: 'ME (Mcal/kg)' }, kuruMadde: { min: 85, max: 90, label: 'Kuru Madde %' } },
+  genc_duve: { protein: { min: 14, max: 16, label: 'Ham Protein' }, enerji: { min: 2.4, max: 2.7, label: 'ME (Mcal/kg)' }, kuruMadde: { min: 85, max: 90, label: 'Kuru Madde %' } },
+  buzagi: { protein: { min: 18, max: 22, label: 'Ham Protein' }, enerji: { min: 2.8, max: 3.2, label: 'ME (Mcal/kg)' }, kuruMadde: { min: 85, max: 90, label: 'Kuru Madde %' } },
+  besi: { protein: { min: 13, max: 16, label: 'Ham Protein' }, enerji: { min: 2.8, max: 3.1, label: 'ME (Mcal/kg)' }, kuruMadde: { min: 85, max: 90, label: 'Kuru Madde %' } },
+};
+
 const NUTRIENT_TARGETS = {
   sagmal: { protein: [16, 18], enerji: [2.6, 2.8], km: [20, 24] },
   besi: { protein: [13, 15], enerji: [2.7, 2.9], km: [10, 15] },
@@ -424,6 +432,70 @@ const RasyonHesaplayici = ({ yemler = [], onSave }) => {
             <span className="text">{rec.text}</span>
           </RecommendationBox>
         ))}
+
+        {/* NRC Norm Karşılaştırması */}
+        {hedefGrup && NRC_NORMLAR[hedefGrup] && (() => {
+          const icerik = secilenYemler.filter(x => x.yemId && x.miktar > 0);
+          const toplamProtein = icerik.reduce((s, item) => {
+            const yem = yemler.find(y => y._id === item.yemId);
+            return s + ((yem?.protein || 0) * item.miktar / 100);
+          }, 0);
+          const toplamEnerji = icerik.reduce((s, item) => {
+            const yem = yemler.find(y => y._id === item.yemId);
+            return s + ((yem?.enerji || 0) * item.miktar);
+          }, 0);
+          const toplamKM = icerik.reduce((s, item) => {
+            const yem = yemler.find(y => y._id === item.yemId);
+            return s + ((yem?.kuruMadde || 0) * item.miktar / 100);
+          }, 0);
+          const toplamKg = icerik.reduce((s, item) => s + (item.miktar || 0), 0);
+          const kmYuzde = toplamKg > 0 ? (toplamKM / toplamKg) * 100 : 0;
+          const proteinYuzde = toplamKg > 0 ? (toplamProtein / toplamKg) * 100 : 0;
+          const enerjiOrt = toplamKg > 0 ? toplamEnerji / toplamKg : 0;
+
+          const normlar = NRC_NORMLAR[hedefGrup];
+
+          const DegerSatiri = ({ lbl, deger, norm, birim }) => {
+            const tamam = deger >= norm.min && deger <= norm.max;
+            const dusuk = deger < norm.min;
+            const renk = tamam ? '#16a34a' : dusuk ? '#dc2626' : '#d97706';
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ flex: 1, fontSize: 12, color: '#374151' }}>{lbl}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: renk }}>
+                  {deger.toFixed(1)}{birim}
+                </div>
+                <div style={{ fontSize: 10, color: '#9ca3af', minWidth: 70, textAlign: 'right' }}>
+                  Hedef: {norm.min}–{norm.max}
+                </div>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: renk, flexShrink: 0 }} />
+              </div>
+            );
+          };
+
+          return (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 10 }}>
+                NRC Norm Karşılaştırması
+              </div>
+              <DegerSatiri key="protein" lbl="Ham Protein" deger={proteinYuzde} norm={normlar.protein} birim="%" />
+              <DegerSatiri key="enerji" lbl="ME (Mcal/kg)" deger={enerjiOrt} norm={normlar.enerji} birim="" />
+              <DegerSatiri key="km" lbl="Kuru Madde" deger={kmYuzde} norm={normlar.kuruMadde} birim="%" />
+
+              <div style={{
+                marginTop: 10, padding: '8px 12px', borderRadius: 8,
+                background: (proteinYuzde >= normlar.protein.min && enerjiOrt >= normlar.enerji.min) ? '#f0fdf4' : '#fef2f2',
+                fontSize: 12,
+                color: (proteinYuzde >= normlar.protein.min && enerjiOrt >= normlar.enerji.min) ? '#166534' : '#991b1b',
+                fontWeight: 500
+              }}>
+                {(proteinYuzde >= normlar.protein.min && enerjiOrt >= normlar.enerji.min)
+                  ? '✅ Rasyon NRC normlarını karşılıyor'
+                  : '⚠️ Rasyon bazı normlara ulaşmıyor — yemleri gözden geçir'}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Karışım Oranları Pie Chart */}
         {pieData.length > 1 && (

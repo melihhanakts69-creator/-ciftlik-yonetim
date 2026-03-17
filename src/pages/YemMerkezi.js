@@ -247,50 +247,6 @@ const ModalSelect = styled.select`
 `;
 const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`;
 
-const AiBanner = ({ onOpenAiModal }) => {
-  const [oneri, setOneri] = useState('');
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    api.getAiYemOnerisi().then(r => {
-      if (r?.data?.mesaj) setOneri(r.data.mesaj);
-    }).catch(() => null).finally(() => setLoading(false));
-  }, []);
-  return (
-    <div style={{
-      background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-      border: '1px solid #bbf7d0',
-      borderRadius: 12, padding: 16,
-      display: 'flex', alignItems: 'flex-start', gap: 12
-    }}>
-      <div style={{
-        width: 38, height: 38, borderRadius: 10, background: '#16a34a',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 20, flexShrink: 0, color: '#fff'
-      }}>🤖</div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 4 }}>AI Yemleme Önerisi — Bugün</div>
-        {loading ? (
-          <div style={{ fontSize: 12, color: '#16a34a', opacity: .7 }}>Analiz yapılıyor...</div>
-        ) : oneri ? (
-          <div style={{ fontSize: 12, color: '#166534', lineHeight: 1.5 }}>{oneri}</div>
-        ) : (
-          <div style={{ fontSize: 12, color: '#166534', opacity: .7 }}>
-            Yem tüketimi ve süt verisi analiz ediliyor. Yeterli veri birikince öneriler çıkacak.
-          </div>
-        )}
-        <button
-          onClick={() => onOpenAiModal?.()}
-          style={{
-            background: '#16a34a', color: '#fff', border: 'none',
-            borderRadius: 7, padding: '6px 12px', fontSize: 11,
-            fontWeight: 600, cursor: 'pointer', marginTop: 10
-          }}
-        >Detaylı Analiz →</button>
-      </div>
-    </div>
-  );
-};
-
 const YemlemeListesi = ({ gruplar, gruplarBasCount, rasyonlar, yemlemeMod, setYemlemeMod, onYemlemeYapildi, setTab }) => {
   const [yemlemeData, setYemlemeData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -771,7 +727,6 @@ export default function YemMerkezi() {
             {tab === 'bugun' && (
               <PageLayout>
                 <MainCol>
-                  <AiBanner onOpenAiModal={() => setShowAiModal(true)} />
                   <YemlemeListesi gruplar={gruplar} gruplarBasCount={gruplarBasCount} rasyonlar={rasyonlar} yemlemeMod={yemlemeMod} setYemlemeMod={setYemlemeMod} onYemlemeYapildi={loadData} setTab={setTab} />
                   <StokOzet stokData={stokData} onTumunuGor={() => setTab('stok')} />
                   <RasyonOzet rasyonlar={rasyonlar} gruplar={gruplar} gruplarBasCount={gruplarBasCount} />

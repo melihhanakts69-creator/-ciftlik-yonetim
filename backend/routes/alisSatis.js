@@ -320,6 +320,84 @@ router.get('/ozet/kar-zarar', auth, checkRole(['ciftci']), async (req, res) => {
   }
 });
 
+// Buzağılama kaydı — ineğin buzağıladığı an piyasa değeri girilir
+router.post('/buzagilama', auth, checkRole(['ciftci']), async (req, res) => {
+  try {
+    const { hayvanId, hayvanTipi = 'inek', anneKupeNo, buzagiDegeri, tarih, notlar } = req.body;
+    if (!buzagiDegeri || buzagiDegeri <= 0) {
+      return res.status(400).json({ message: 'Buzağı piyasa değeri girilmeli' });
+    }
+    const kayit = new AlisSatis({
+      userId: req.userId,
+      tip: 'buzagilama',
+      hayvanId,
+      hayvanTipi,
+      fiyat: buzagiDegeri,
+      buzagiDegeri,
+      aliciSatici: 'Sürü içi doğum',
+      tarih: tarih || new Date(),
+      notlar,
+      anneHayvanId: hayvanId,
+      durum: 'tamamlandi'
+    });
+    await kayit.save();
+
+    const Finansal = require('../models/Finansal');
+    await Finansal.create({
+      userId: req.userId,
+      tip: 'gelir',
+      kategori: 'buzagilama',
+      miktar: buzagiDegeri,
+      tarih: (tarih || new Date()).toISOString().slice(0, 10),
+      aciklama: `Buzağılama — ${anneKupeNo || 'Küpe no yok'} — Buzağı piyasa değeri`,
+      ilgiliHayvanId: hayvanId
+    });
+
+    res.status(201).json({ message: 'Buzağılama kaydedildi', kayit });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Ölüm kaydı — piyasa değeri kaybı olarak yazılır
+router.post('/olum', auth, checkRole(['ciftci']), async (req, res) => {
+  try {
+    const { hayvanId, hayvanTipi = 'inek', kupeNo, piyasaDegeri, olumNedeni, tarih, notlar } = req.body;
+    if (!piyasaDegeri || piyasaDegeri <= 0) {
+      return res.status(400).json({ message: 'Hayvanın piyasa değeri girilmeli' });
+    }
+    const kayit = new AlisSatis({
+      userId: req.userId,
+      tip: 'olum',
+      hayvanId,
+      hayvanTipi,
+      kupe_no: kupeNo,
+      fiyat: piyasaDegeri,
+      aliciSatici: 'Ölüm',
+      olumNedeni,
+      tarih: tarih || new Date(),
+      notlar,
+      durum: 'tamamlandi'
+    });
+    await kayit.save();
+
+    const Finansal = require('../models/Finansal');
+    await Finansal.create({
+      userId: req.userId,
+      tip: 'gider',
+      kategori: 'olum_kaybi',
+      miktar: piyasaDegeri,
+      tarih: (tarih || new Date()).toISOString().slice(0, 10),
+      aciklama: `Hayvan ölümü — ${kupeNo || 'Küpe no yok'} — ${olumNedeni || ''}`,
+      ilgiliHayvanId: hayvanId
+    });
+
+    res.status(201).json({ message: 'Ölüm kaydedildi', kayit });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Veresiye borçlar
 router.get('/ozet/veresiye', auth, checkRole(['ciftci']), async (req, res) => {
   try {

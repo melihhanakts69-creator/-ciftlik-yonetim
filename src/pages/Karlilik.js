@@ -216,6 +216,37 @@ export default function Karlilik() {
         </div>
       )}
 
+      {/* Sürü Hareketleri — Piyasa Değeri Etkisi */}
+      {(ozet.toplamBuzagiGeliri > 0 || ozet.toplamOlumKaybi > 0) && (
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 14 }}>
+            Sürü Hareketleri — Piyasa Değeri Etkisi
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 11, color: '#166534', fontWeight: 500, marginBottom: 6 }}>🐄 Buzağılama Geliri</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: '#16a34a' }}>
+                +{(ozet.toplamBuzagiGeliri || 0).toLocaleString('tr-TR')} ₺
+              </div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                Bu dönem doğan buzağıların piyasa değeri
+              </div>
+            </div>
+            <div style={{ background: ozet.toplamOlumKaybi > 0 ? '#fef2f2' : '#f9fafb', border: `1px solid ${ozet.toplamOlumKaybi > 0 ? '#fecaca' : '#e5e7eb'}`, borderRadius: 10, padding: '14px 16px' }}>
+              <div style={{ fontSize: 11, color: ozet.toplamOlumKaybi > 0 ? '#991b1b' : '#9ca3af', fontWeight: 500, marginBottom: 6 }}>
+                💔 Ölüm Kayıpları
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: ozet.toplamOlumKaybi > 0 ? '#dc2626' : '#9ca3af' }}>
+                {ozet.toplamOlumKaybi > 0 ? `-${(ozet.toplamOlumKaybi).toLocaleString('tr-TR')} ₺` : 'Yok'}
+              </div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                Ölen hayvanların piyasa değeri kaybı
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* İnek Bazlı Karlılık */}
       {inekKarliligi && inekKarliligi.length > 0 && (
         <SectionCard style={{ overflowX: 'auto' }}>

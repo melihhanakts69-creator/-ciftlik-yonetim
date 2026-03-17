@@ -9,7 +9,7 @@ const alisSatisSchema = new mongoose.Schema({
   tip: {
     type: String,
     required: true,
-    enum: ['alis', 'satis'],
+    enum: ['alis', 'satis', 'buzagilama', 'olum', 'deger_artisi'],
     default: 'alis'
   },
   hayvanId: {
@@ -90,6 +90,19 @@ const alisSatisSchema = new mongoose.Schema({
     type: String,
     enum: ['tamamlandi', 'beklemede', 'iptal'],
     default: 'tamamlandi'
+  },
+  // Buzağılama/ölüm için ek alanlar
+  buzagiDegeri: {
+    type: Number,
+    default: 0  // Doğan buzağının anlık piyasa değeri
+  },
+  olumNedeni: {
+    type: String,
+    trim: true
+  },
+  anneHayvanId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null  // Buzağılamada annenin ID'si
   }
 }, {
   timestamps: true
