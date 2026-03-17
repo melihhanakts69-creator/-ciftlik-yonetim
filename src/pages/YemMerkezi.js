@@ -247,7 +247,7 @@ const ModalSelect = styled.select`
 `;
 const ModalActions = styled.div`display:flex;gap:10px;justify-content:flex-end;`;
 
-const AiBanner = ({ setTab, setRasyonAlt }) => {
+const AiBanner = ({ onOpenAiModal }) => {
   const [oneri, setOneri] = useState('');
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -279,7 +279,7 @@ const AiBanner = ({ setTab, setRasyonAlt }) => {
           </div>
         )}
         <button
-          onClick={() => { setTab('rasyon'); setRasyonAlt?.('ai'); }}
+          onClick={() => onOpenAiModal?.()}
           style={{
             background: '#16a34a', color: '#fff', border: 'none',
             borderRadius: 7, padding: '6px 12px', fontSize: 11,
@@ -582,6 +582,9 @@ export default function YemMerkezi() {
   const [yemlemeData, setYemlemeData] = useState(null);
   const [alimOnerisi, setAlimOnerisi] = useState(null);
   const [yemAnaliz, setYemAnaliz] = useState([]);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [acikGruplar, setAcikGruplar] = useState({});
+  const toggleGrup = (id) => setAcikGruplar(p => ({ ...p, [id]: !p[id] }));
 
   useEffect(() => { loadData(); }, [tab]);
 
@@ -729,11 +732,46 @@ export default function YemMerkezi() {
             ))}
           </TabBar>
 
+          {/* AI DANIŞMAN — her zaman görünür yatay bar */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+              border: '1px solid #bbf7d0',
+              borderRadius: 10,
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 16,
+              cursor: 'pointer',
+            }}
+            onClick={() => setShowAiModal(true)}
+          >
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, background: '#16a34a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, color: '#fff', flexShrink: 0
+            }}>
+              🤖
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#166534' }}>
+                Ziraat AI — Yem & Rasyon Danışmanı
+              </div>
+              <div style={{ fontSize: 11, color: '#16a34a', opacity: .8, marginTop: 1 }}>
+                Rasyon optimizasyonu, stok analizi ve yemleme önerileri için tıkla
+              </div>
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#166534', background: '#fff', padding: '5px 12px', borderRadius: 20, border: '1px solid #bbf7d0', flexShrink: 0 }}>
+              Danışmana Sor →
+            </div>
+          </div>
+
           <TabContent>
             {tab === 'bugun' && (
               <PageLayout>
                 <MainCol>
-                  <AiBanner setTab={setTab} setRasyonAlt={setRasyonAlt} />
+                  <AiBanner onOpenAiModal={() => setShowAiModal(true)} />
                   <YemlemeListesi gruplar={gruplar} gruplarBasCount={gruplarBasCount} rasyonlar={rasyonlar} yemlemeMod={yemlemeMod} setYemlemeMod={setYemlemeMod} onYemlemeYapildi={loadData} setTab={setTab} />
                   <StokOzet stokData={stokData} onTumunuGor={() => setTab('stok')} />
                   <RasyonOzet rasyonlar={rasyonlar} gruplar={gruplar} gruplarBasCount={gruplarBasCount} />
@@ -756,7 +794,6 @@ export default function YemMerkezi() {
                   {[
                     { key: 'liste', label: 'Rasyonlarım' },
                     { key: 'olustur', label: '+ Yeni Rasyon' },
-                    { key: 'ai', label: '🤖 AI Öner' },
                   ].map(a => (
                     <button
                       key={a.key}
@@ -810,94 +847,207 @@ export default function YemMerkezi() {
                   </RGrid>
                 )}
                 {rasyonAlt === 'olustur' && <RasyonHesaplayici yemler={yemler} onSave={handleCreateRasyon} />}
-                {rasyonAlt === 'ai' && <YemDanismani />}
               </>
             )}
 
             {tab === 'gruplar' && (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                  <Btn onClick={() => setShowGrupEkleModal(true)}>
-                    <FaPlus /> Grup Ekle
-                  </Btn>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Üst bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 13, color: '#6b7280' }}>
+                    {gruplar.length} grup · {Object.values(gruplarBasCount).reduce((s, v) => s + v, 0)} baş toplam
+                  </div>
+                  <button
+                    onClick={() => setShowGrupEkleModal(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <FaPlus size={10} /> Grup Ekle
+                  </button>
                 </div>
-                <RGrid>
+
                 {gruplar.length === 0 ? (
-                  <EmptyMsg>
-                    <div className="icon">📋</div>
-                    <p>Henüz grup tanımlamadınız.<br />
-                      <strong>Grup Ekle</strong> ile yeni grup oluşturun, sonra hayvanlarınıza bu grupları atayın.</p>
-                    <Btn style={{ marginTop: 16 }} onClick={() => setShowGrupEkleModal(true)}>
-                      <FaPlus /> İlk Grubu Oluştur
-                    </Btn>
-                  </EmptyMsg>
+                  <div style={{ textAlign: 'center', padding: '48px 24px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 6 }}>Henüz grup yok</div>
+                    <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>
+                      Gruplar hayvanlarını kategorize etmeni sağlar. Her gruba bir rasyon atanır ve günlük yemleme bu gruplara göre hesaplanır.
+                    </div>
+                    <button onClick={() => setShowGrupEkleModal(true)} style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                      İlk Grubu Oluştur
+                    </button>
+                  </div>
                 ) : gruplar.map(g => {
-                  const basCount = gruplarBasCount[g._id] ?? '—';
-                  const rasyonAdi = g.rasyonId?.ad || (g.rasyonId && typeof g.rasyonId === 'object' ? g.rasyonId.ad : null);
-                  const kgPerBas = g.rasyonId?.icerik?.reduce((s, i) => s + (i.miktar || 0), 0);
+                  const basCount = gruplarBasCount[g._id] || 0;
+                  const rasyonAdi = g.rasyonId?.ad;
+                  const icerik = g.rasyonId?.icerik || [];
+                  const kgPerBas = icerik.reduce((s, i) => s + (i.miktar || 0), 0);
+                  const gunlukToplamKg = kgPerBas * basCount;
+                  const gunlukMaliyetGrup = (g.rasyonId?.toplamMaliyet || 0) * basCount;
+                  const acik = acikGruplar[g._id];
+
                   return (
-                  <RCard key={g._id}>
-                    <RCardBody>
-                      <RHead>
-                        <RAd style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ width: 12, height: 12, borderRadius: 4, background: g.renk || '#10b981' }} />
-                          {g.ad}
-                        </RAd>
-                        <RBadge>{basCount !== '—' ? `${basCount} baş` : (g.tip || 'karma')}</RBadge>
-                      </RHead>
-                      {g.rasyonId ? (
-                        <div style={{ fontSize: 12, color: '#16a34a', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          🌿 {rasyonAdi || 'Rasyon atanmış'}
-                          {kgPerBas != null && kgPerBas > 0 && <span style={{ color: '#9ca3af', marginLeft: 4 }}>→ {kgPerBas.toFixed(1)} kg/baş/gün</span>}
+                    <div key={g._id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+                      {/* Grup başlık satırı */}
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer', transition: 'background .15s' }}
+                        onClick={() => toggleGrup(g._id)}
+                      >
+                        <div style={{ width: 4, height: 36, borderRadius: 2, background: g.renk || '#16a34a', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {g.ad}
+                            <span style={{ fontSize: 11, fontWeight: 500, background: '#f3f4f6', color: '#6b7280', padding: '2px 8px', borderRadius: 20 }}>
+                              {basCount} baş
+                            </span>
+                          </div>
+                          {rasyonAdi ? (
+                            <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 500, marginTop: 2 }}>
+                              🌿 {rasyonAdi} · {kgPerBas.toFixed(1)} kg/baş · {gunlukToplamKg.toFixed(0)} kg/gün
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: 11, color: '#d97706', fontWeight: 500, marginTop: 2 }}>
+                              ⚠️ Rasyon atanmamış — yemleme hesaplanamıyor
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div style={{ fontSize: 12, color: '#d97706', marginBottom: 10 }}>⚠️ Rasyon atanmamış — Yemleme hesaplanamaz</div>
-                      )}
-                      <div style={{
-                        borderTop: '1px solid #f3f4f6',
-                        paddingTop: 10,
-                        marginTop: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8
-                      }}>
-                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, flexShrink: 0 }}>
-                          Rasyon:
-                        </span>
-                        <select
-                          value={g.rasyonId?._id || g.rasyonId || ''}
-                          onChange={e => handleGrupRasyonGuncelle(g._id, e.target.value || null)}
-                          style={{
-                            flex: 1,
-                            padding: '5px 8px',
-                            borderRadius: 7,
-                            border: '1px solid #e5e7eb',
-                            fontSize: 12,
-                            color: g.rasyonId ? '#111827' : '#9ca3af',
-                            background: '#fff',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <option value="">— Rasyon seç —</option>
-                          {rasyonlar.map(r => (
-                            <option key={r._id} value={r._id}>
-                              {r.ad} ({r.hedefGrup})
-                            </option>
-                          ))}
-                        </select>
-                        {g.rasyonId ? (
-                          <span style={{ fontSize: 16 }} title="Rasyon atanmış">✅</span>
-                        ) : (
-                          <span style={{ fontSize: 16 }} title="Rasyon atanmamış">⚠️</span>
-                        )}
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          {gunlukMaliyetGrup > 0 && (
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                              {gunlukMaliyetGrup.toFixed(0)} ₺/gün
+                            </div>
+                          )}
+                          <div style={{ fontSize: 10, color: '#9ca3af' }}>
+                            {g.tip || 'karma'}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', transform: acik ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>▾</div>
                       </div>
-                    </RCardBody>
-                  </RCard>
-                );})}
-              </RGrid>
-              </>
+
+                      {/* Açılan detay */}
+                      {acik && (
+                        <div style={{ borderTop: '1px solid #f3f4f6', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          {/* Rasyon atama */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', flexShrink: 0 }}>Rasyon:</span>
+                            <select
+                              value={g.rasyonId?._id || g.rasyonId || ''}
+                              onChange={e => handleGrupRasyonGuncelle(g._id, e.target.value || null)}
+                              style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#111827', background: '#fff', cursor: 'pointer' }}
+                            >
+                              <option value="">— Rasyon seç —</option>
+                              {rasyonlar.map(r => (
+                                <option key={r._id} value={r._id}>
+                                  {r.ad} — {r.hedefGrup} — {(r.toplamMaliyet || 0).toFixed(2)} ₺/baş
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => { setTab('rasyon'); setRasyonAlt('olustur'); }}
+                              style={{ fontSize: 11, color: '#16a34a', background: 'none', border: '1px solid #bbf7d0', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
+                            >
+                              + Yeni Rasyon
+                            </button>
+                          </div>
+
+                          {/* Rasyon içeriği — varsa göster */}
+                          {icerik.length > 0 && (
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 8 }}>
+                                Rasyon İçeriği — {basCount} baş için günlük toplam
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid #f3f4f6', borderRadius: 8, overflow: 'hidden' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px', gap: 8, padding: '7px 12px', background: '#f9fafb', fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px' }}>
+                                  <span>Yem</span>
+                                  <span style={{ textAlign: 'right' }}>kg/baş</span>
+                                  <span style={{ textAlign: 'right' }}>Toplam</span>
+                                  <span style={{ textAlign: 'right' }}>Stok</span>
+                                </div>
+                                {icerik.map((item, i) => {
+                                  const yemId = item.yemId?._id || item.yemId;
+                                  const yemAd = item.yemId?.ad || item.yemAdi || '';
+                                  const stokItem = stokData.find(s =>
+                                    (yemId && s.yemKutuphanesiId && String(s.yemKutuphanesiId) === String(yemId)) ||
+                                    (yemAd && s.urunAdi?.toLowerCase() === yemAd.toLowerCase())
+                                  );
+                                  const stokGun = stokItem?.gunlukTuketim > 0
+                                    ? Math.floor(stokItem.miktar / stokItem.gunlukTuketim)
+                                    : null;
+
+                                  return (
+                                    <div
+                                      key={i}
+                                      style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px', gap: 8, padding: '8px 12px', borderTop: i > 0 ? '1px solid #f9fafb' : 'none', alignItems: 'center' }}
+                                    >
+                                      <span style={{ fontSize: 12, color: '#374151' }}>
+                                        {item.yemId?.ad || item.yemAdi || 'Bilinmiyor'}
+                                      </span>
+                                      <span style={{ fontSize: 12, fontWeight: 500, color: '#111827', textAlign: 'right' }}>
+                                        {item.miktar} kg
+                                      </span>
+                                      <span style={{ fontSize: 12, fontWeight: 500, color: '#111827', textAlign: 'right' }}>
+                                        {(item.miktar * basCount).toFixed(0)} kg
+                                      </span>
+                                      <span style={{
+                                        fontSize: 11, fontWeight: 500, textAlign: 'right',
+                                        color: stokGun === null ? '#9ca3af' : stokGun < 7 ? '#dc2626' : stokGun < 14 ? '#d97706' : '#16a34a'
+                                      }}>
+                                        {stokGun === null ? '—' : `${stokGun}g`}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px', gap: 8, padding: '8px 12px', background: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>Toplam</span>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111827', textAlign: 'right' }}>{kgPerBas.toFixed(1)} kg</span>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a', textAlign: 'right' }}>{gunlukToplamKg.toFixed(0)} kg</span>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: '#111827', textAlign: 'right' }}>{gunlukMaliyetGrup.toFixed(0)} ₺</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Aksiyonlar */}
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              onClick={() => alert('Hayvan atama yakında eklenecek')}
+                              style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                            >
+                              Hayvanları Gör
+                            </button>
+                            <button
+                              onClick={() => api.deleteGrup(g._id).then(loadData).catch(() => showError('Silinemedi'))}
+                              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', fontSize: 12, cursor: 'pointer' }}
+                            >
+                              Sil
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
 
+            {showAiModal && (
+              <div
+                style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: 20 }}
+                onClick={() => setShowAiModal(false)}
+              >
+                <div
+                  style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 800, maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>🤖 Ziraat AI Danışmanı</div>
+                    <button onClick={() => setShowAiModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18 }}>✕</button>
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <YemDanismani />
+                  </div>
+                </div>
+              </div>
+            )}
             {showAddModal && (
               <YemEkleModal onClose={() => setShowAddModal(false)} onSave={() => { loadData(); setShowAddModal(false); }} />
             )}

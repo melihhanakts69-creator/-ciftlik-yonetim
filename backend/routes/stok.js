@@ -27,7 +27,7 @@ router.get('/', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req, r
 // @access  Private
 router.post('/', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req, res) => {
     try {
-        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, yemKutuphanesiId } = req.body;
+        const { urunAdi, kategori, miktar, birim, kritikSeviye, birimFiyat, sonKullanmaTarihi, lotNo, tedarikci, notlar, yemKutuphanesiId } = req.body;
 
         const yeniStok = new Stok({
             userId: req.userId,
@@ -36,7 +36,11 @@ router.post('/', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req, 
             miktar,
             birim,
             kritikSeviye,
-            notlar,
+            birimFiyat: birimFiyat || 0,
+            sonKullanmaTarihi: sonKullanmaTarihi || null,
+            lotNo: lotNo || '',
+            tedarikci: tedarikci || '',
+            notlar: notlar || '',
             yemKutuphanesiId: yemKutuphanesiId || undefined
         });
 
@@ -57,7 +61,7 @@ router.put('/:id', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req
         if (!stok) return res.status(404).json({ msg: 'Stok bulunamadı' });
         if (stok.userId.toString() !== req.userId) return res.status(401).json({ msg: 'Yetkisiz işlem' });
 
-        const { urunAdi, kategori, miktar, birim, kritikSeviye, notlar, yemKutuphanesiId, islem } = req.body;
+        const { urunAdi, kategori, miktar, birim, kritikSeviye, birimFiyat, sonKullanmaTarihi, lotNo, tedarikci, notlar, yemKutuphanesiId, islem } = req.body;
 
         // Eğer işlem 'ekle' veya 'cikar' ise miktarı güncelle
         if (islem === 'ekle') {
@@ -71,7 +75,11 @@ router.put('/:id', auth, checkRole(['ciftci', 'sutcu', 'veteriner']), async (req
             if (miktar !== undefined) stok.miktar = miktar;
             if (birim) stok.birim = birim;
             if (kritikSeviye !== undefined) stok.kritikSeviye = kritikSeviye;
-            if (notlar) stok.notlar = notlar;
+            if (birimFiyat !== undefined) stok.birimFiyat = birimFiyat || 0;
+            if (sonKullanmaTarihi !== undefined) stok.sonKullanmaTarihi = sonKullanmaTarihi || null;
+            if (lotNo !== undefined) stok.lotNo = lotNo || '';
+            if (tedarikci !== undefined) stok.tedarikci = tedarikci || '';
+            if (notlar !== undefined) stok.notlar = notlar || '';
             if (yemKutuphanesiId !== undefined) stok.yemKutuphanesiId = yemKutuphanesiId || undefined;
         }
 

@@ -313,7 +313,19 @@ const DigerStok = ({ stoklar, onDuzenle, onYeniStok }) => (
 );
 
 const CATS = ['Yem', 'İlaç', 'Vitamin', 'Ekipman', 'Diğer'];
-const EMPTY = { urunAdi: '', kategori: 'Diğer', miktar: 0, birim: 'adet', kritikSeviye: 10, notlar: '', yemKutuphanesiId: undefined };
+const EMPTY = {
+  urunAdi: '',
+  kategori: 'Diğer',
+  miktar: 0,
+  birim: 'adet',
+  kritikSeviye: 10,
+  birimFiyat: 0,
+  sonKullanmaTarihi: '',
+  lotNo: '',
+  tedarikci: '',
+  notlar: '',
+  yemKutuphanesiId: undefined
+};
 
 export default function StokYonetimi({ embedded }) {
   const [tab, setTab] = useState('yem');
@@ -361,9 +373,19 @@ export default function StokYonetimi({ embedded }) {
 
   const handleDuzenle = (item) => {
     setEditing(item);
+    const skt = item.sonKullanmaTarihi;
     setForm({
-      urunAdi: item.urunAdi, kategori: item.kategori, miktar: item.miktar, birim: item.birim,
-      kritikSeviye: item.kritikSeviye, notlar: item.notlar || '', yemKutuphanesiId: item.yemKutuphanesiId || undefined
+      urunAdi: item.urunAdi,
+      kategori: item.kategori,
+      miktar: item.miktar,
+      birim: item.birim,
+      kritikSeviye: item.kritikSeviye ?? 10,
+      birimFiyat: item.birimFiyat ?? 0,
+      sonKullanmaTarihi: skt ? (typeof skt === 'string' ? skt.slice(0, 10) : new Date(skt).toISOString().slice(0, 10)) : '',
+      lotNo: item.lotNo || '',
+      tedarikci: item.tedarikci || '',
+      notlar: item.notlar || '',
+      yemKutuphanesiId: item.yemKutuphanesiId || undefined
     });
     setShowModal(true);
   };
@@ -376,12 +398,22 @@ export default function StokYonetimi({ embedded }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const payload = {
+      ...form,
+      miktar: Number(form.miktar),
+      kritikSeviye: Number(form.kritikSeviye),
+      birimFiyat: Number(form.birimFiyat) || 0,
+      sonKullanmaTarihi: form.sonKullanmaTarihi || null,
+      lotNo: form.lotNo || '',
+      tedarikci: form.tedarikci || '',
+      notlar: form.notlar || ''
+    };
     try {
       if (editing) {
-        await api.updateStok(editing._id, { ...form, miktar: Number(form.miktar) });
+        await api.updateStok(editing._id, payload);
         toast.success('Stok güncellendi');
       } else {
-        await api.createStok(form);
+        await api.createStok(payload);
         toast.success('Stok eklendi');
       }
       setShowModal(false);
@@ -433,68 +465,187 @@ export default function StokYonetimi({ embedded }) {
       {/* Edit/Add Modal */}
       {showModal && (
         <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20
-          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
           onClick={() => setShowModal(false)}
         >
           <div
-            style={{
-              background: '#fff', borderRadius: 16, padding: 24, maxWidth: 420, width: '100%',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.2)'
-            }}
+            style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 520, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.2)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#111827' }}>
                 {editing ? 'Stok Düzenle' : 'Yeni Stok Ekle'}
               </h3>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
-                <FaTimes />
-              </button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18 }}>✕</button>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Ürün Adı</label>
-                <input required value={form.urunAdi} onChange={upd('urunAdi')} placeholder="örn: Arpa" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+
+            <form onSubmit={handleSubmit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Ürün Adı *</label>
+                <input
+                  required
+                  value={form.urunAdi}
+                  onChange={upd('urunAdi')}
+                  placeholder="örn: Arpa, Penisilin, Şırınga"
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Kategori</label>
-                  <select value={form.kategori} onChange={upd('kategori')} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
-                    {CATS.map(c => <option key={c} value={c}>{c}</option>)}
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Kategori *</label>
+                  <select value={form.kategori} onChange={upd('kategori')} style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                    <option value="Yem">🌿 Yem</option>
+                    <option value="İlaç">💊 İlaç</option>
+                    <option value="Antibiyotik">🧪 Antibiyotik</option>
+                    <option value="Vitamin">💉 Vitamin</option>
+                    <option value="Aşı">🩺 Aşı</option>
+                    <option value="Ekipman">🔧 Ekipman</option>
+                    <option value="Diğer">📦 Diğer</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Birim</label>
-                  <select value={form.birim} onChange={upd('birim')} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
-                    {['adet', 'kg', 'lt', 'kutu', 'doz', 'torba'].map(b => <option key={b} value={b}>{b}</option>)}
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Birim *</label>
+                  <select value={form.birim} onChange={upd('birim')} style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                    <option value="kg">kg</option>
+                    <option value="lt">litre</option>
+                    <option value="adet">adet</option>
+                    <option value="doz">doz</option>
+                    <option value="kutu">kutu</option>
+                    <option value="torba">torba</option>
+                    <option value="şişe">şişe</option>
+                    <option value="ml">ml</option>
+                    <option value="gram">gram</option>
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Miktar</label>
-                  <input type="number" required min={0} step="0.1" value={form.miktar} onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Mevcut Miktar *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="number" required min={0} step="0.1"
+                      value={form.miktar}
+                      onChange={e => setForm(p => ({ ...p, miktar: Number(e.target.value) }))}
+                      style={{ width: '100%', padding: '9px 36px 9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9ca3af' }}>{form.birim}</span>
+                  </div>
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Kritik Seviye</label>
-                  <input type="number" min={0} value={form.kritikSeviye} onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Birim Fiyat</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="number" min={0} step="0.01"
+                      value={form.birimFiyat}
+                      onChange={e => setForm(p => ({ ...p, birimFiyat: Number(e.target.value) }))}
+                      placeholder="0.00"
+                      style={{ width: '100%', padding: '9px 36px 9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9ca3af' }}>₺/{form.birim}</span>
+                  </div>
                 </div>
               </div>
-              {form.kategori === 'Yem' && (
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Yem kütüphanesi (opsiyonel)</label>
-                  <select value={form.yemKutuphanesiId || ''} onChange={e => setForm(p => ({ ...p, yemKutuphanesiId: e.target.value || undefined }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14 }}>
-                    <option value="">— Seç —</option>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Kritik Seviye</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="number" min={0}
+                      value={form.kritikSeviye}
+                      onChange={e => setForm(p => ({ ...p, kritikSeviye: Number(e.target.value) }))}
+                      style={{ width: '100%', padding: '9px 36px 9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                    <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: '#9ca3af' }}>{form.birim}</span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Tedarikçi</label>
+                  <input
+                    value={form.tedarikci}
+                    onChange={upd('tedarikci')}
+                    placeholder="Tedarikçi adı"
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {['İlaç', 'Antibiyotik', 'Vitamin', 'Aşı'].includes(form.kategori) && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: 12, background: '#fafafa', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Son Kullanma Tarihi</label>
+                    <input
+                      type="date"
+                      value={form.sonKullanmaTarihi || ''}
+                      onChange={upd('sonKullanmaTarihi')}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Lot / Seri No</label>
+                    <input
+                      value={form.lotNo || ''}
+                      onChange={upd('lotNo')}
+                      placeholder="LOT12345"
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {form.kategori === 'Yem' && yemKutuphanesi.length > 0 && (
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>
+                    Yem Kütüphanesi Eşleştirme
+                    <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: 6, color: '#9ca3af' }}>(rasyon hesabı için)</span>
+                  </label>
+                  <select
+                    value={form.yemKutuphanesiId || ''}
+                    onChange={e => setForm(p => ({ ...p, yemKutuphanesiId: e.target.value || undefined }))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}
+                  >
+                    <option value="">— Seç (opsiyonel) —</option>
                     {yemKutuphanesi.map(y => <option key={y._id} value={y._id}>{y.ad}</option>)}
                   </select>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 600, cursor: 'pointer' }}>İptal</button>
-                <button type="submit" style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Kaydet</button>
+
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 5 }}>Notlar</label>
+                <textarea
+                  value={form.notlar || ''}
+                  onChange={upd('notlar')}
+                  placeholder="Ek bilgi veya hatırlatma..."
+                  rows={2}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {form.miktar > 0 && form.birimFiyat > 0 && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#166534' }}>Toplam stok değeri</span>
+                  <span style={{ fontWeight: 600, color: '#16a34a' }}>
+                    {(form.miktar * form.birimFiyat).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 500, fontSize: 13, cursor: 'pointer' }}
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 2, padding: '10px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                >
+                  {editing ? 'Güncelle' : 'Kaydet'}
+                </button>
               </div>
             </form>
           </div>

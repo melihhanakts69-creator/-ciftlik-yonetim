@@ -41,6 +41,18 @@ const stokSchema = new mongoose.Schema({
     notlar: {
         type: String
     },
+    sonKullanmaTarihi: {
+        type: Date,
+        default: null
+    },
+    lotNo: {
+        type: String,
+        default: ''
+    },
+    tedarikci: {
+        type: String,
+        default: ''
+    },
     yemKutuphanesiId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'YemKutuphanesi',
