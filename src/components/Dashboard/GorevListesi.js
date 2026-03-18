@@ -133,15 +133,20 @@ const GorevListesi = ({ geciken = [], bugun = [], yaklaşan = [], devamEdenTedav
 
   const handleTamamla = async (gorev, e) => {
     e.stopPropagation();
+    const id = gorev._id;
     try {
       if (gorev._kaynak === 'saglik') {
-        await api.updateSaglikKaydi(gorev._id, { durum: 'iyilesti' });
+        await api.updateSaglikKaydi(id, { durum: 'iyilesti' });
       } else {
-        await api.bildirimTamamlandiIsaretle(gorev._id);
+        await api.bildirimTamamlandiIsaretle(id);
       }
-      setTamamlananlar(p => ({ ...p, [gorev._id]: true }));
-      if (typeof onRefresh === 'function') setTimeout(onRefresh, 500);
-    } catch {}
+      setTamamlananlar(p => ({ ...p, [id]: true }));
+      if (typeof onRefresh === 'function') {
+        setTimeout(() => onRefresh(), 300);
+      }
+    } catch (err) {
+      console.error('Tamamla hatası:', err);
+    }
   };
 
   const handleTikla = (gorev) => {

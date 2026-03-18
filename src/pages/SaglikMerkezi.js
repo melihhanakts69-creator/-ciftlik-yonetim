@@ -498,11 +498,15 @@ const getTipStyle = (tip) => {
         case 'muayene': return { icon: <FaStethoscope />, color: '#2196F3', bg: '#E3F2FD', label: 'Muayene' };
         case 'ameliyat': return { icon: <FaCut />, color: '#E91E63', bg: '#FCE4EC', label: 'Ameliyat' };
         case 'dogum_komplikasyonu': return { icon: <FaBaby />, color: '#795548', bg: '#EFEBE9', label: 'Doğum Komp.' };
+        case 'tohumlama': return { icon: '🌡️', color: '#1565C0', bg: '#E3F2FD', label: 'Tohumlama' };
         default: return { icon: <FaHeartbeat />, color: '#607D8B', bg: '#ECEFF1', label: 'Diğer' };
     }
 };
 
-const getDurumBadge = (durum) => {
+const getDurumBadge = (durum, tip) => {
+    if (tip === 'tohumlama' && durum === 'devam_ediyor') {
+        return { bg: '#E3F2FD', color: '#1565C0', label: '🌡️ Kontrol Bekleyen' };
+    }
     switch (durum) {
         case 'devam_ediyor': return { bg: '#FFF3E0', color: '#E65100', label: '⏳ Devam Ediyor' };
         case 'iyilesti': return { bg: '#E8F5E9', color: '#2E7D32', label: '✅ İyileşti' };
@@ -1304,7 +1308,7 @@ function SaglikMerkezi() {
                                     ) : (
                                         kayitlar.map(k => {
                                             const style = getTipStyle(k.tip);
-                                            const durumBadge = getDurumBadge(k.durum);
+                                            const durumBadge = getDurumBadge(k.durum, k.tip);
                                             return (
                                                 <RecordCard key={k._id}>
                                                     <RecordIcon bg={style.bg} color={style.color}>
@@ -1331,7 +1335,7 @@ function SaglikMerkezi() {
                                                             </div>
                                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
                                                                 <Badge bg={durumBadge.bg} color={durumBadge.color}>{durumBadge.label}</Badge>
-                                                                {k.durum === 'devam_ediyor' && (
+                                                                {k.durum === 'devam_ediyor' && k.tip !== 'tohumlama' && (
                                                                     <button
                                                                         onClick={() => handleIyilesti(k._id)}
                                                                         style={{ fontSize: 11, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 500 }}

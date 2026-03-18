@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import * as api from '../../services/api';
@@ -526,6 +526,22 @@ const Dashboard = ({ kullanici }) => {
       .catch(() => {});
   }, [grafikSure]);
 
+  const refreshYapilacaklar = useCallback(async () => {
+    try {
+      const r = await api.getYapilacaklar();
+      const d = r?.data ?? {};
+      setData(prev => ({
+        ...prev,
+        geciken: d.geciken ?? [],
+        bugunGorev: d.bugun ?? [],
+        yaklaşanGorev: d.yaklaşan ?? [],
+        devamEdenTedaviler: d.devamEdenTedaviler ?? []
+      }));
+    } catch (e) {
+      console.error('Yapilacaklar refresh error:', e);
+    }
+  }, []);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -780,7 +796,7 @@ const Dashboard = ({ kullanici }) => {
                   </span>
                 )}
                 <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#f3f4f6', color: '#6b7280' }}>
-                  {data.geciken.length + data.bugunGorev.length + data.yaklaşanGorev.length} toplam
+                  {(data.geciken?.length || 0) + (data.bugunGorev?.length || 0) + (data.yaklaşanGorev?.length || 0) + (data.devamEdenTedaviler?.length || 0)} toplam
                 </span>
               </span>
               <Link to="/bildirimler" style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>
@@ -788,17 +804,17 @@ const Dashboard = ({ kullanici }) => {
               </Link>
             </h3>
 
-            {data.geciken.length === 0 && data.bugunGorev.length === 0 && data.yaklaşanGorev.length === 0 ? (
+            {(!data.geciken?.length && !data.bugunGorev?.length && !data.yaklaşanGorev?.length && !data.devamEdenTedaviler?.length) ? (
               <div style={{ textAlign: 'center', padding: '24px 0', color: '#9ca3af', fontSize: 13 }}>
                 ✅ Bekleyen görev yok
               </div>
             ) : (
               <GorevListesi
-                geciken={data.geciken}
-                bugun={data.bugunGorev}
-                yaklaşan={data.yaklaşanGorev}
+                geciken={data.geciken || []}
+                bugun={data.bugunGorev || []}
+                yaklaşan={data.yaklaşanGorev || []}
                 devamEdenTedaviler={data.devamEdenTedaviler || []}
-                onRefresh={fetchData}
+                onRefresh={refreshYapilacaklar}
               />
             )}
           </Widget>

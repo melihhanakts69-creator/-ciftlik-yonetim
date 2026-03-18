@@ -224,12 +224,11 @@ router.get('/yapilacaklar', auth, async (req, res) => {
     // Yaklaşan bildirimler (7 gün)
     const yaklaşanlar = await Bildirim.yaklaşanlar(uid, 7);
 
-    // Devam eden tedaviler (ilaç kullanan, tohumlama/asi hariç)
+    // Devam eden tedaviler (tohumlama/asi hariç — ilacı olan veya tedavi kaydı)
     const devamEdenTedaviler = await SaglikKaydi.find({
       userId: uid,
       durum: 'devam_ediyor',
-      tip: { $nin: ['tohumlama', 'asi'] },
-      'ilaclar.0': { $exists: true }
+      tip: { $nin: ['tohumlama', 'asi'] }
     })
       .select('_id tani hayvanIsim hayvanKupeNo hayvanId hayvanTipi ilaclar tarih')
       .sort({ tarih: -1 })
