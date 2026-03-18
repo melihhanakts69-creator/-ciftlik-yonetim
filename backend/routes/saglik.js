@@ -10,6 +10,8 @@ const Bildirim = require('../models/Bildirim');
 const Finansal = require('../models/Finansal');
 const User = require('../models/User');
 const Tenant = require('../models/Tenant');
+const Inek = require('../models/Inek');
+const Duve = require('../models/Duve');
 const mongoose = require('mongoose');
 
 // Çiftçinin veterinerleri (beni müşteri olarak ekleyen aktif veterinerler)
@@ -31,6 +33,66 @@ router.get('/veterinerlerim', auth, checkRole(['ciftci']), async (req, res) => {
         res.json(list || []);
     } catch (error) {
         console.error('Veterinerlerim hatasi:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
+// Tohumlar / Belirsiz Gebeler — 28 günden az olan, tohumlama yapılmış düve/inekler
+router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
+    try {
+        const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
+        const yirmiSekizGunOnce = new Date(bugun);
+        yirmiSekizGunOnce.setDate(yirmiSekizGunOnce.getDate() - 28);
+
+        const bekleyenler = [];
+
+        // İnekler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        const inekler = await Inek.find({
+            userId: req.userId,
+            tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
+            gebelikDurumu: 'Belirsiz'
+        }).lean();
+
+        for (const inek of inekler) {
+            const tohum = new Date(inek.tohumlamaTarihi);
+            const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+            if (gecenGun < 28) {
+                bekleyenler.push({
+                    hayvan: inek,
+                    hayvanTipi: 'inek',
+                    tohumlamaTarihi: inek.tohumlamaTarihi,
+                    gecenGun
+                });
+            }
+        }
+
+        // Düveler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        const duveler = await Duve.find({
+            userId: req.userId,
+            tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
+            gebelikDurumu: 'Belirsiz'
+        }).lean();
+
+        for (const duve of duveler) {
+            const tohum = new Date(duve.tohumlamaTarihi);
+            const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+            if (gecenGun < 28) {
+                bekleyenler.push({
+                    hayvan: duve,
+                    hayvanTipi: 'duve',
+                    tohumlamaTarihi: duve.tohumlamaTarihi,
+                    gecenGun
+                });
+            }
+        }
+
+        // Tarihe göre sırala (en eski tohumlama önce)
+        bekleyenler.sort((a, b) => new Date(a.tohumlamaTarihi) - new Date(b.tohumlamaTarihi));
+
+        res.json(bekleyenler);
+    } catch (error) {
+        console.error('Belirsiz gebeler hatası:', error);
         res.status(500).json({ message: 'Sunucu hatası.' });
     }
 });

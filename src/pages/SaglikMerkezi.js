@@ -903,7 +903,7 @@ function SaglikMerkezi() {
     const [aktifTab, setAktifTab] = useState(openTab || 'kayitlar');
 
     useEffect(() => {
-        if (openTab && ['kayitlar', 'devamEdenler', 'asilar', 'yaklasan', 'ai', 'veterinerler'].includes(openTab)) {
+        if (openTab && ['kayitlar', 'devamEdenler', 'asilar', 'yaklasan', 'ai', 'veterinerler', 'tohumlar'].includes(openTab)) {
             setAktifTab(openTab);
         }
     }, [openTab]);
@@ -920,6 +920,8 @@ function SaglikMerkezi() {
     const [hayvanArama, setHayvanArama] = useState('');
     const [hayvanTipFiltre, setHayvanTipFiltre] = useState('');
     const [asiHayvanArama, setAsiHayvanArama] = useState('');
+    const [belirsizGebeler, setBelirsizGebeler] = useState([]);
+    const [belirsizYukleniyor, setBelirsizYukleniyor] = useState(false);
 
     // Form state
     const [form, setForm] = useState({
@@ -1004,6 +1006,52 @@ function SaglikMerkezi() {
     useEffect(() => {
         if (aktifTab === 'devamEdenler') devamEdenlerYukle();
     }, [aktifTab, devamEdenlerYukle]);
+
+    const belirsizGebelerYukle = useCallback(async () => {
+        setBelirsizYukleniyor(true);
+        try {
+            const r = await api.getBelirsizGebeler();
+            setBelirsizGebeler(Array.isArray(r.data) ? r.data : []);
+        } catch (err) {
+            setBelirsizGebeler([]);
+        } finally {
+            setBelirsizYukleniyor(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (aktifTab === 'tohumlar') belirsizGebelerYukle();
+    }, [aktifTab, belirsizGebelerYukle]);
+
+    const handleBelirsizGebe = async (item) => {
+        try {
+            const h = item.hayvan;
+            if (item.hayvanTipi === 'duve') {
+                await api.updateDuve(h._id, { gebelikDurumu: 'Gebe', tohumlamaTarihi: item.tohumlamaTarihi });
+            } else {
+                await api.updateInek(h._id, { gebelikDurumu: 'Gebe', tohumlamaTarihi: item.tohumlamaTarihi });
+            }
+            toast.success(`${h.isim} gebe olarak kaydedildi`);
+            belirsizGebelerYukle();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Güncellenemedi');
+        }
+    };
+
+    const handleBelirsizGebeDegil = async (item) => {
+        try {
+            const h = item.hayvan;
+            if (item.hayvanTipi === 'duve') {
+                await api.updateDuve(h._id, { gebelikDurumu: 'Gebe Değil', tohumlamaTarihi: null });
+            } else {
+                await api.updateInek(h._id, { gebelikDurumu: 'Gebe Değil', tohumlamaTarihi: null });
+            }
+            toast.success(`${h.isim} gebe değil — tohum bekleyenlere eklendi`);
+            belirsizGebelerYukle();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Güncellenemedi');
+        }
+    };
 
     // Sağlık kaydı oluştur
     const handleSaglikSubmit = async (e) => {
@@ -1264,6 +1312,9 @@ function SaglikMerkezi() {
                         </Tab>
                         <Tab active={aktifTab === 'yaklasan'} onClick={() => setAktifTab('yaklasan')}>
                             ⏰ Yaklaşan İşlemler
+                        </Tab>
+                        <Tab active={aktifTab === 'tohumlar'} onClick={() => setAktifTab('tohumlar')}>
+                            🌡️ Tohumlar / Belirsiz Gebeler
                         </Tab>
                         <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}>
                             🤖 AI Danışman
@@ -1567,6 +1618,72 @@ function SaglikMerkezi() {
                                 </div>
                             );
                         })()}
+
+                        {/* TOHUMLAR / BELİRSİZ GEBELER TAB */}
+                        {aktifTab === 'tohumlar' && (
+                            <>
+                                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+                                    28 günden az olan, tohumlama yapılmış düve ve inekler. Gebelik kontrolü yapıldığında Gebe veya Gebe Değil olarak işaretleyin.
+                                </div>
+                                <CardList>
+                                    {belirsizYukleniyor ? (
+                                        <EmptyState><p>Yükleniyor...</p></EmptyState>
+                                    ) : belirsizGebeler.length === 0 ? (
+                                        <EmptyState>
+                                            <FaBaby />
+                                            <p>Tohumlar / Belirsiz gebeler listesi boş</p>
+                                            <p style={{ fontSize: '13px', marginTop: '8px' }}>28 günden az süredir tohumlama yapılmış ve henüz kontrol edilmemiş hayvan burada görünür</p>
+                                        </EmptyState>
+                                    ) : (
+                                        belirsizGebeler.map(item => {
+                                            const h = item.hayvan;
+                                            const tipLabel = item.hayvanTipi === 'duve' ? '🐮 Düve' : '🐄 İnek';
+                                            return (
+                                                <RecordCard key={`${item.hayvanTipi}-${h._id}`}>
+                                                    <RecordIcon bg="#fef3c7" color="#d97706">
+                                                        🌡️
+                                                    </RecordIcon>
+                                                    <RecordContent>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                                    {h.isim} ({h.kupeNo})
+                                                                </div>
+                                                                <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                                                    <span>{tipLabel}</span>
+                                                                    <span>📅 Tohumlama: {new Date(item.tohumlamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                                    <span style={{ color: '#d97706', fontWeight: 600 }}>⏱ {item.gecenGun} gün</span>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                                                                <button
+                                                                    onClick={() => handleBelirsizGebe(item)}
+                                                                    style={{
+                                                                        fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
+                                                                        background: '#16a34a', color: '#fff', border: 'none', cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    ✅ Gebe
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleBelirsizGebeDegil(item)}
+                                                                    style={{
+                                                                        fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
+                                                                        background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    ❌ Gebe Değil
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </RecordContent>
+                                                </RecordCard>
+                                            );
+                                        })
+                                    )}
+                                </CardList>
+                            </>
+                        )}
 
                         {/* 🤖 AI DANIŞMAN TAB */}
                         {aktifTab === 'ai' && (
