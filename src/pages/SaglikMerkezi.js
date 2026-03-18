@@ -899,11 +899,12 @@ function SaglikMerkezi() {
     const [aktifTab, setAktifTab] = useState(openTab || 'kayitlar');
 
     useEffect(() => {
-        if (openTab && ['kayitlar', 'asilar', 'yaklasan', 'ai', 'veterinerler'].includes(openTab)) {
+        if (openTab && ['kayitlar', 'devamEdenler', 'asilar', 'yaklasan', 'ai', 'veterinerler'].includes(openTab)) {
             setAktifTab(openTab);
         }
     }, [openTab]);
     const [kayitlar, setKayitlar] = useState([]);
+    const [devamEdenlerKayitlar, setDevamEdenlerKayitlar] = useState([]);
     const [asilar, setAsilar] = useState([]);
     const [istatistikler, setIstatistikler] = useState(null);
     const [yukleniyor, setYukleniyor] = useState(true);
@@ -922,7 +923,8 @@ function SaglikMerkezi() {
         tarih: new Date().toISOString().split('T')[0],
         tani: '', belirtiler: '', tedavi: '', veteriner: '',
         maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
-        tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: ''
+        tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: '',
+        gunlukMiktar: '', gunlukBirim: 'ml'
     });
 
     const [asiForm, setAsiForm] = useState({
@@ -986,6 +988,19 @@ function SaglikMerkezi() {
     useEffect(() => { veriYukle(); }, [veriYukle]);
     useEffect(() => { hayvanYukle(); }, [hayvanYukle]);
 
+    const devamEdenlerYukle = useCallback(async () => {
+        const r = await api.getSaglikKayitlari({ durum: 'devam_ediyor' });
+        const arr = r.data?.kayitlar ?? r.data ?? [];
+        const filtered = (Array.isArray(arr) ? arr : []).filter(k =>
+            !['tohumlama', 'asi'].includes(k.tip) && (k.ilaclar?.length > 0)
+        );
+        setDevamEdenlerKayitlar(filtered);
+    }, []);
+
+    useEffect(() => {
+        if (aktifTab === 'devamEdenler') devamEdenlerYukle();
+    }, [aktifTab, devamEdenlerYukle]);
+
     // Sağlık kaydı oluştur
     const handleSaglikSubmit = async (e) => {
         e.preventDefault();
@@ -1007,6 +1022,10 @@ function SaglikMerkezi() {
                     ilac.kullanilanMiktar = parseFloat(form.kullanilanMiktar);
                     ilac.birim = 'ml';
                 }
+                if (form.durum === 'devam_ediyor' && form.gunlukMiktar && parseFloat(form.gunlukMiktar) > 0) {
+                    ilac.gunlukMiktar = parseFloat(form.gunlukMiktar);
+                    ilac.gunlukBirim = form.gunlukBirim || 'ml';
+                }
                 return ilac;
             }).filter(x => x.ilacAdi) : [];
 
@@ -1027,6 +1046,7 @@ function SaglikMerkezi() {
             setModalAcik(false);
             resetForms();
             veriYukle();
+            devamEdenlerYukle();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Kayıt oluşturulamadı');
         }
@@ -1079,6 +1099,7 @@ function SaglikMerkezi() {
             await api.updateSaglikKaydi(id, { durum: 'iyilesti' });
             toast.success('İyileşti olarak işaretlendi');
             veriYukle();
+            devamEdenlerYukle();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Güncellenemedi');
         }
@@ -1090,7 +1111,8 @@ function SaglikMerkezi() {
             tarih: new Date().toISOString().split('T')[0],
             tani: '', belirtiler: '', tedavi: '', veteriner: '',
             maliyet: '', durum: 'devam_ediyor', sonrakiKontrol: '', notlar: '',
-            tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: ''
+            tahminiZarar: '', ilacAd: '', kullanilanMiktar: '', arinmaSut: '', arinmaEt: '',
+            gunlukMiktar: '', gunlukBirim: 'ml'
         });
         setAsiForm({
             hayvanId: '', hayvanTipi: 'hepsi', asiAdi: '',
@@ -1230,6 +1252,9 @@ function SaglikMerkezi() {
                         <Tab active={aktifTab === 'kayitlar'} onClick={() => setAktifTab('kayitlar')}>
                             🏥 Sağlık Kayıtları
                         </Tab>
+                        <Tab active={aktifTab === 'devamEdenler'} onClick={() => setAktifTab('devamEdenler')}>
+                            💊 Devam Eden Tedaviler
+                        </Tab>
                         <Tab active={aktifTab === 'asilar'} onClick={() => setAktifTab('asilar')}>
                             💉 Aşı Takvimi
                         </Tab>
@@ -1320,6 +1345,57 @@ function SaglikMerkezi() {
                                                     <ActionBtns>
                                                         <button className="delete" onClick={() => handleSil(k._id, 'saglik')}><FaTrash /></button>
                                                     </ActionBtns>
+                                                </RecordCard>
+                                            );
+                                        })
+                                    )}
+                                </CardList>
+                            </>
+                        )}
+
+                        {/* DEVAM EDEN TEDAVİLER TAB */}
+                        {aktifTab === 'devamEdenler' && (
+                            <>
+                                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+                                    İlaç kullanan devam eden tedaviler. Tohumlama ve aşı kayıtları burada gösterilmez.
+                                </div>
+                                <CardList>
+                                    {devamEdenlerKayitlar.length === 0 ? (
+                                        <EmptyState>
+                                            <FaPills />
+                                            <p>Devam eden tedavi yok</p>
+                                            <p style={{ fontSize: '13px', marginTop: '8px' }}>İyileşti butonuna basana kadar ilaç stoktan günlük düşülür</p>
+                                        </EmptyState>
+                                    ) : (
+                                        devamEdenlerKayitlar.map(k => {
+                                            const style = getTipStyle(k.tip);
+                                            return (
+                                                <RecordCard key={k._id}>
+                                                    <RecordIcon bg={style.bg} color={style.color}>
+                                                        {style.icon}
+                                                    </RecordIcon>
+                                                    <RecordContent>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2 }}>
+                                                                    {k.tani}
+                                                                </div>
+                                                                <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                                                    {k.hayvanIsim && <span>🐄 {k.hayvanIsim} ({k.hayvanKupeNo})</span>}
+                                                                    <span>💊 {(k.ilaclar || []).map(i => i.ilacAdi).filter(Boolean).join(', ')}</span>
+                                                                    {k.ilaclar?.some(i => (i.gunlukMiktar || 0) > 0) && (
+                                                                        <span style={{ color: '#d97706', fontWeight: 500 }}>Günlük stok düşümü aktif</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleIyilesti(k._id)}
+                                                                style={{ fontSize: 11, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
+                                                            >
+                                                                ✓ İyileşti
+                                                            </button>
+                                                        </div>
+                                                    </RecordContent>
                                                 </RecordCard>
                                             );
                                         })
@@ -1631,6 +1707,24 @@ function SaglikMerkezi() {
                                                 <input type="number" min="0" value={form.arinmaEt} onChange={e => setForm({ ...form, arinmaEt: e.target.value })} placeholder="Opsiyonel" />
                                             </FormGroup>
                                         </FormRow>
+
+                                        {form.durum === 'devam_ediyor' && (
+                                            <FormRow>
+                                                <FormGroup>
+                                                    <label>Günlük kullanım miktarı <span style={{ color: '#9ca3af', fontSize: 11 }}>(stoktan her gün düşülür)</span></label>
+                                                    <input type="number" min="0" step="0.1" value={form.gunlukMiktar} onChange={e => setForm({ ...form, gunlukMiktar: e.target.value })} placeholder="Örn: 10" />
+                                                </FormGroup>
+                                                <FormGroup>
+                                                    <label>Birim</label>
+                                                    <select value={form.gunlukBirim} onChange={e => setForm({ ...form, gunlukBirim: e.target.value })}>
+                                                        <option value="ml">ml</option>
+                                                        <option value="adet">adet</option>
+                                                        <option value="kutu">kutu</option>
+                                                        <option value="gram">gram</option>
+                                                    </select>
+                                                </FormGroup>
+                                            </FormRow>
+                                        )}
 
                                         <FormRow>
                                             <FormGroup>

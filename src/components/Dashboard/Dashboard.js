@@ -504,6 +504,7 @@ const Dashboard = ({ kullanici }) => {
     geciken: [],
     bugunGorev: [],
     yaklaşanGorev: [],
+    devamEdenTedaviler: [],
     aktiviteler: [],
     topCows: [],
     sutYasaklar: [],
@@ -542,7 +543,7 @@ const Dashboard = ({ kullanici }) => {
 
       const yapilacaklarData = results[2].status === 'fulfilled' && results[2].value?.data
         ? results[2].value.data
-        : { geciken: [], bugun: [], yaklaşan: [] };
+        : { geciken: [], bugun: [], yaklaşan: [], devamEdenTedaviler: [] };
 
       let stats = results[0].status === 'fulfilled' ? results[0].value?.data : null;
       if (stats && results[7].status === 'fulfilled' && results[7].value?.data) {
@@ -561,6 +562,7 @@ const Dashboard = ({ kullanici }) => {
         geciken: yapilacaklarData.geciken || [],
         bugunGorev: yapilacaklarData.bugun || [],
         yaklaşanGorev: yapilacaklarData.yaklaşan || [],
+        devamEdenTedaviler: yapilacaklarData.devamEdenTedaviler || [],
         aktiviteler: results[3].status === 'fulfilled' && Array.isArray(results[3].value?.data) ? results[3].value.data : [],
         topCows: results[4].status === 'fulfilled' && Array.isArray(results[4].value?.data) ? results[4].value.data : [],
         saglikSkoru: results[5].status === 'fulfilled' && results[5].value?.data ? results[5].value.data.skor : null,
@@ -795,6 +797,7 @@ const Dashboard = ({ kullanici }) => {
                 geciken={data.geciken}
                 bugun={data.bugunGorev}
                 yaklaşan={data.yaklaşanGorev}
+                devamEdenTedaviler={data.devamEdenTedaviler || []}
                 onRefresh={fetchData}
               />
             )}

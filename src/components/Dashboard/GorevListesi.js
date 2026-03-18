@@ -18,11 +18,15 @@ const getTipIkon = (tip) => {
     yem: { ico: '🌾', bg: '#fef3c7' },
     stok: { ico: '📦', bg: '#fef3c7' },
     saglik: { ico: '❤️', bg: '#fef2f2' },
+    saglik_tedavi: { ico: '💊', bg: '#fef2f2' },
   };
   return map[tip] || { ico: '📋', bg: '#f3f4f6' };
 };
 
 const getZaman = (gorev, grup) => {
+  if (gorev._kaynak === 'saglik') {
+    return { text: 'Devam ediyor', color: '#d97706' };
+  }
   if (grup === 'geciken') {
     const tarih = new Date(gorev.hatirlatmaTarihi);
     const fark = Math.floor((Date.now() - tarih) / 86400000);
@@ -38,6 +42,7 @@ const getZaman = (gorev, grup) => {
 };
 
 const getTag = (gorev, grup) => {
+  if (gorev._kaynak === 'saglik') return { label: 'Tedavi', bg: '#fef3c7', color: '#92400e' };
   if (grup === 'geciken') return { label: 'Gecikmiş', bg: '#fef2f2', color: '#991b1b' };
   if (gorev.oncelik === 'acil') return { label: 'Acil', bg: '#fef2f2', color: '#991b1b' };
   if (gorev.oncelik === 'yuksek') return { label: 'Bugün', bg: '#fef3c7', color: '#92400e' };
@@ -122,20 +127,28 @@ const GorevSatir = ({ gorev, grup, onTamamla, onTikla, tamamlandi }) => {
 };
 
 // ─── Main component ────────────────────────────────────────────────────────
-const GorevListesi = ({ geciken = [], bugun = [], yaklaşan = [], onRefresh }) => {
+const GorevListesi = ({ geciken = [], bugun = [], yaklaşan = [], devamEdenTedaviler = [], onRefresh }) => {
   const navigate = useNavigate();
   const [tamamlananlar, setTamamlananlar] = useState({});
 
   const handleTamamla = async (gorev, e) => {
     e.stopPropagation();
     try {
-      await api.bildirimTamamlandiIsaretle(gorev._id);
+      if (gorev._kaynak === 'saglik') {
+        await api.updateSaglikKaydi(gorev._id, { durum: 'iyilesti' });
+      } else {
+        await api.bildirimTamamlandiIsaretle(gorev._id);
+      }
       setTamamlananlar(p => ({ ...p, [gorev._id]: true }));
       if (typeof onRefresh === 'function') setTimeout(onRefresh, 500);
     } catch {}
   };
 
   const handleTikla = (gorev) => {
+    if (gorev._kaynak === 'saglik') {
+      navigate('/saglik-merkezi');
+      return;
+    }
     if (gorev.hayvanId && gorev.hayvanTipi === 'inek') {
       navigate(`/inek-detay/${gorev.hayvanId}`);
     } else if (gorev.tip === 'stok') {
@@ -189,6 +202,22 @@ const GorevListesi = ({ geciken = [], bugun = [], yaklaşan = [], onRefresh }) =
               key={g._id}
               gorev={g}
               grup="yaklaşan"
+              tamamlandi={!!tamamlananlar[g._id]}
+              onTamamla={handleTamamla}
+              onTikla={handleTikla}
+            />
+          ))}
+        </>
+      )}
+
+      {devamEdenTedaviler.length > 0 && (
+        <>
+          <GrupBaslik label="💊 Devam Eden Tedaviler" renk="#d97706" />
+          {devamEdenTedaviler.slice(0, 3).map(g => (
+            <GorevSatir
+              key={g._id}
+              gorev={g}
+              grup="devamEden"
               tamamlandi={!!tamamlananlar[g._id]}
               onTamamla={handleTamamla}
               onTikla={handleTikla}

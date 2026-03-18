@@ -197,14 +197,23 @@ router.get('/finansal', auth, async (req, res) => {
 });
 
 const { otomatikGorevleriKontrolEt } = require('../jobs/otomatikGorevler');
+const { gunlukIlacDusumunuUygula } = require('../jobs/gunlukIlacDusum');
+const SaglikKaydi = require('../models/SaglikKaydi');
 
-// Bugünün yapılacakları (bildirimler)
+// Bugünün yapılacakları (bildirimler + devam eden tedaviler)
 router.get('/yapilacaklar', auth, async (req, res) => {
   try {
     const uid = new mongoose.Types.ObjectId(req.userId);
 
     // 1. OTOMATİK GÖREV OLUŞTURMA (hem burada hem cron'da çalışır)
     await otomatikGorevleriKontrolEt(uid);
+
+    // 2. Günlük ilaç stok düşümü (devam eden tedavilerde gunlukMiktar > 0)
+    try {
+      await gunlukIlacDusumunuUygula(uid);
+    } catch (e) {
+      console.error('[yapilacaklar] Gunluk ilac dusum hatasi:', e.message);
+    }
 
     // Bugünün bildirimleri
     const bugununkiler = await Bildirim.bugununkiler(uid);
@@ -215,10 +224,34 @@ router.get('/yapilacaklar', auth, async (req, res) => {
     // Yaklaşan bildirimler (7 gün)
     const yaklaşanlar = await Bildirim.yaklaşanlar(uid, 7);
 
+    // Devam eden tedaviler (ilaç kullanan, tohumlama/asi hariç)
+    const devamEdenTedaviler = await SaglikKaydi.find({
+      userId: uid,
+      durum: 'devam_ediyor',
+      tip: { $nin: ['tohumlama', 'asi'] },
+      'ilaclar.0': { $exists: true }
+    })
+      .select('_id tani hayvanIsim hayvanKupeNo hayvanId hayvanTipi ilaclar tarih')
+      .sort({ tarih: -1 })
+      .lean();
+
+    const devamEdenGorevler = devamEdenTedaviler.map(k => ({
+      _id: k._id,
+      _kaynak: 'saglik',
+      tip: 'saglik_tedavi',
+      baslik: `💊 ${k.tani} — ${k.hayvanIsim || k.hayvanKupeNo || 'Hayvan'}`,
+      mesaj: (k.ilaclar || []).map(i => i.ilacAdi).filter(Boolean).join(', '),
+      hayvanId: k.hayvanId,
+      hayvanTipi: k.hayvanTipi,
+      kupe_no: k.hayvanKupeNo,
+      metadata: { saglikKaydiId: k._id.toString() }
+    }));
+
     res.json({
       bugun: bugununkiler,
       geciken: gecikmisler,
-      yaklaşan: yaklaşanlar
+      yaklaşan: yaklaşanlar,
+      devamEdenTedaviler: devamEdenGorevler
     });
   } catch (error) {
     console.error('Yapılacaklar error:', error);

@@ -33,7 +33,7 @@ const saglikKaydiSchema = new mongoose.Schema({
     tip: {
         type: String,
         required: true,
-        enum: ['hastalik', 'tedavi', 'asi', 'muayene', 'ameliyat', 'dogum_komplikasyonu']
+        enum: ['hastalik', 'tedavi', 'asi', 'muayene', 'ameliyat', 'dogum_komplikasyonu', 'tohumlama']
     },
     tarih: {
         type: Date,
@@ -60,7 +60,10 @@ const saglikKaydiSchema = new mongoose.Schema({
         arinmaSuresiSut: { type: Number, default: 0 },
         arinmaSuresiEt: { type: Number, default: 0 },
         kullanilanMiktar: { type: Number, default: 0 },
-        birim: { type: String, default: 'ml' }
+        birim: { type: String, default: 'ml' },
+        gunlukMiktar: { type: Number, default: 0 },
+        gunlukBirim: { type: String, default: 'ml' },
+        sonDusumTarihi: { type: Date, default: null }
     }],
     veteriner: {
         type: String,

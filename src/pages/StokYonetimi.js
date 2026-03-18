@@ -360,6 +360,7 @@ export default function StokYonetimi({ embedded }) {
         const arr = Array.isArray(kayitlar) ? kayitlar : [];
         const ilaclar = [];
         arr.forEach(kayit => {
+          if (kayit.tip === 'tohumlama' || kayit.tip === 'asi') return;
           (kayit.ilaclar || []).forEach(ilac => {
             if (ilac.ilacAdi) {
               ilaclar.push({

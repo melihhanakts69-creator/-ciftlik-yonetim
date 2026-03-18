@@ -1,13 +1,19 @@
 /**
- * Cron Scheduler — Otomatik bildirim görevleri
+ * Cron Scheduler — Otomatik bildirim görevleri + günlük ilaç stok düşümü
  * Render/Heroku'da çalışır (sleep mode'da bile cron tetiklenir).
  */
 const cron = require('node-cron');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { otomatikGorevleriKontrolEt } = require('./otomatikGorevler');
+const { tumCiftcilerIcinGunlukIlacDusum } = require('./gunlukIlacDusum');
 
 function startScheduler() {
+  // Her gün 06:00'da günlük ilaç stok düşümü (devam eden tedavilerde gunlukMiktar > 0 olanlar)
+  cron.schedule('0 6 * * *', async () => {
+    await tumCiftcilerIcinGunlukIlacDusum();
+  }, { timezone: 'Europe/Istanbul' });
+
   // Her 6 saatte bir tüm çiftçi hesapları için otomatik görevleri çalıştır
   cron.schedule('0 */6 * * *', async () => {
     if (mongoose.connection.readyState !== 1) {
@@ -30,7 +36,7 @@ function startScheduler() {
     }
   }, { timezone: 'Europe/Istanbul' });
 
-  console.log('✅ Scheduler başlatıldı (her 6 saatte bir otomatik bildirimler)');
+  console.log('✅ Scheduler başlatıldı (her 6 saatte otomatik bildirimler, her gün 06:00 ilaç düşümü)');
 }
 
 module.exports = { startScheduler };
