@@ -198,7 +198,6 @@ router.get('/finansal', auth, async (req, res) => {
 
 const { otomatikGorevleriKontrolEt } = require('../jobs/otomatikGorevler');
 const { gunlukIlacDusumunuUygula } = require('../jobs/gunlukIlacDusum');
-const SaglikKaydi = require('../models/SaglikKaydi');
 
 // Bugünün yapılacakları (bildirimler + devam eden tedaviler)
 router.get('/yapilacaklar', auth, async (req, res) => {
