@@ -17,10 +17,10 @@ async function getGrupBasCount(userId, grupId) {
   const uid = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
   const gid = mongoose.Types.ObjectId.isValid(grupId) ? new mongoose.Types.ObjectId(grupId) : grupId;
   const [inek, duve, buzagi, tosun] = await Promise.all([
-    Inek.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' }),
-    Duve.countDocuments({ userId: uid, grupId: gid }),
-    Buzagi.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' }),
-    Tosun.countDocuments({ userId: uid, grupId: gid, durum: 'Aktif' })
+    Inek.countDocuments({ userId: uid, grupId: gid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }),
+    Duve.countDocuments({ userId: uid, grupId: gid, aktif: { $ne: false } }),
+    Buzagi.countDocuments({ userId: uid, grupId: gid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }),
+    Tosun.countDocuments({ userId: uid, grupId: gid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } })
   ]);
   return inek + duve + buzagi + tosun;
 }
@@ -32,10 +32,10 @@ async function otomatikGorevleriKontrolEt(userId) {
     const yediGunSonra = new Date();
     yediGunSonra.setDate(bugun.getDate() + 7);
 
-    // 1. DOĞUM YAKLAŞIYOR (7 gün içinde)
+    // 1. DOĞUM YAKLAŞIYOR (7 gün içinde) — aktif hayvanlar
     const gebeler = await Promise.all([
-      Inek.find({ userId: uid, gebelikDurumu: 'Gebe' }),
-      Duve.find({ userId: uid, gebelikDurumu: 'Gebe' })
+      Inek.find({ userId: uid, gebelikDurumu: 'Gebe', durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }),
+      Duve.find({ userId: uid, gebelikDurumu: 'Gebe', aktif: { $ne: false } })
     ]);
     const tumGebeler = [...gebeler[0], ...gebeler[1]];
 
@@ -137,10 +137,11 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 3. KIZGINLIK KONTROLÜ
+    // 3. KIZGINLIK KONTROLÜ — aktif inekler
     const kizginlikAdaylari = await Inek.find({
       userId: uid,
-      durum: 'Aktif',
+      durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] },
+      aktif: { $ne: false },
       gebelikDurumu: { $in: ['Gebe Değil', 'Belirsiz'] }
     });
 
@@ -181,8 +182,8 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 4. SÜTTEN KESME (75-95 gün arası buzağılar)
-    const buzagilar = await Buzagi.find({ userId: uid });
+    // 4. SÜTTEN KESME (75-95 gün arası buzağılar) — aktif buzağılar
+    const buzagilar = await Buzagi.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } });
     for (const buzagi of buzagilar) {
       if (!buzagi.dogumTarihi) continue;
       const dogum = new Date(buzagi.dogumTarihi);
@@ -210,11 +211,13 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 5. GEBELİK MUAYENESİ (tohumlamadan 35-45 gün)
+    // 5. GEBELİK MUAYENESİ (tohumlamadan 35-45 gün) — aktif inekler
     const tohumlananlar = await Inek.find({
       userId: uid,
       gebelikDurumu: 'Belirsiz',
-      tohumlamaTarihi: { $exists: true, $ne: null }
+      tohumlamaTarihi: { $exists: true, $ne: null },
+      durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] },
+      aktif: { $ne: false }
     }).lean();
 
     for (const inek of tohumlananlar) {
@@ -244,13 +247,15 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 6. POSTPARTUM KONTROL (doğumdan 12-21 gün)
+    // 6. POSTPARTUM KONTROL (doğumdan 12-21 gün) — aktif inekler
     const yeniDogan = await Inek.find({
       userId: uid,
       sonBuzagilamaTarihi: {
         $gte: new Date(bugun - 21 * 86400000),
         $lte: new Date(bugun - 12 * 86400000)
-      }
+      },
+      durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] },
+      aktif: { $ne: false }
     }).lean();
 
     for (const inek of yeniDogan) {
@@ -278,14 +283,15 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 7. TOHUMLAMA ZAMANI (doğumdan 60+ gün, hâlâ gebe değil)
+    // 7. TOHUMLAMA ZAMANI (doğumdan 60+ gün, hâlâ gebe değil) — aktif inekler
     const tohumlanacaklar = await Inek.find({
       userId: uid,
       gebelikDurumu: 'Gebe Değil',
       sonBuzagilamaTarihi: {
         $lte: new Date(bugun - 60 * 86400000)
       },
-      durum: 'Aktif'
+      durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] },
+      aktif: { $ne: false }
     }).lean();
 
     for (const inek of tohumlanacaklar) {

@@ -6,11 +6,13 @@ const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
 const Timeline = require('../models/Timeline');
+const Bildirim = require('../models/Bildirim');
+const AsiTakvimi = require('../models/AsiTakvimi');
 
-// TÜM İNEKLERİ GETİR
+// TÜM İNEKLERİ GETİR (Silindi hariç)
 router.get('/', auth, async (req, res) => {
   try {
-    const query = { userId: req.userId };
+    const query = { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } };
     if (req.tenantId) {
       query.tenantId = req.tenantId;
     }
@@ -25,8 +27,11 @@ router.get('/', auth, async (req, res) => {
 // YAKLAŞAN DOĞUMLAR (30 GÜN İÇİNDE) - İNEK + DÜVE
 router.get('/yaklasan-dogumlar', auth, async (req, res) => {
   try {
-    const inekler = await Inek.find({ userId: req.userId });
-    const duveler = await Duve.find({ userId: req.userId });
+    const inekQuery = { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } };
+    const duveQuery = { userId: req.userId, aktif: { $ne: false } };
+    if (req.tenantId) inekQuery.tenantId = req.tenantId;
+    const inekler = await Inek.find(inekQuery);
+    const duveler = await Duve.find(duveQuery);
 
     const bugun = new Date();
     const yaklasanlar = [];
@@ -190,7 +195,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// İNEK SİL
+// İNEK SİL (soft delete)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const filter = {
@@ -201,11 +206,27 @@ router.delete('/:id', auth, async (req, res) => {
       filter.tenantId = req.tenantId;
     }
 
-    const inek = await Inek.findOneAndDelete(filter);
+    const inek = await Inek.findOneAndUpdate(
+      filter,
+      { durum: 'Silindi', aktif: false, silinmeTarihi: new Date() },
+      { new: true }
+    );
 
     if (!inek) {
       return res.status(404).json({ message: 'İnek bulunamadı' });
     }
+
+    // İlişkili aktif bildirimleri deaktive et
+    await Bildirim.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, tamamlandi: false },
+      { aktif: false, tamamlandi: true }
+    );
+
+    // İlişkili aşı takvimini iptal et
+    await AsiTakvimi.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, durum: 'bekliyor' },
+      { durum: 'iptal' }
+    );
 
     res.json({ message: 'İnek silindi', inek });
   } catch (error) {

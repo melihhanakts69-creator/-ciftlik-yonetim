@@ -30,8 +30,10 @@ const tosunSchema = new mongoose.Schema({
   durum: {
     type: String,
     default: 'Aktif',
-    enum: ['Aktif', 'Satıldı', 'Öldü']
+    enum: ['Aktif', 'Satıldı', 'Öldü', 'Silindi']
   },
+  aktif: { type: Boolean, default: true },
+  silinmeTarihi: { type: Date, default: null },
   grupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Grup',

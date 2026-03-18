@@ -81,6 +81,8 @@ const Buzagi = require('../models/Buzagi');
 const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
 const Timeline = require('../models/Timeline');
+const Bildirim = require('../models/Bildirim');
+const AsiTakvimi = require('../models/AsiTakvimi');
 
 // Helper to get model by type
 const getModelByType = (type) => {
@@ -144,11 +146,31 @@ router.post('/satis', auth, checkRole(['ciftci']), async (req, res) => {
       await yeniFinansal.save({ session });
     }
 
-    // 3. Hayvanı Envanterden Düş (Delete)
+    // 3. Hayvanı Satıldı olarak işaretle (soft delete)
     const Model = getModelByType(hayvanTipi);
     if (Model) {
-      const deleted = await Model.findOneAndDelete({ _id: hayvanId, userId: req.userId }).session(session);
-      if (!deleted) throw new Error('Satılacak hayvan bulunamadı.');
+      const hasDurum = ['inek', 'buzagi', 'tosun'].includes(hayvanTipi);
+      const updateData = hasDurum
+        ? { durum: 'Satıldı', aktif: false, silinmeTarihi: new Date() }
+        : { aktif: false, silinmeTarihi: new Date() };
+      const updated = await Model.findOneAndUpdate(
+        { _id: hayvanId, userId: req.userId },
+        updateData,
+        { new: true }
+      ).session(session);
+      if (!updated) throw new Error('Satılacak hayvan bulunamadı.');
+
+      // Bildirimleri kapat
+      await Bildirim.updateMany(
+        { userId: req.userId, hayvanId, tamamlandi: false },
+        { aktif: false, tamamlandi: true }
+      ).session(session);
+
+      // Aşı takvimini iptal et
+      await AsiTakvimi.updateMany(
+        { userId: req.userId, hayvanId, durum: 'bekliyor' },
+        { durum: 'iptal' }
+      ).session(session);
     } else {
       throw new Error('Geçersiz hayvan tipi.');
     }
@@ -399,6 +421,26 @@ router.post('/olum', auth, checkRole(['ciftci']), async (req, res) => {
       durum: 'tamamlandi'
     });
     await kayit.save();
+
+    // Hayvanı Öldü olarak işaretle
+    if (hayvanId) {
+      const Model = getModelByType(hayvanTipi);
+      if (Model) {
+        const hasDurum = ['inek', 'buzagi', 'tosun'].includes(hayvanTipi);
+        const updateData = hasDurum
+          ? { durum: 'Öldü', aktif: false, silinmeTarihi: new Date() }
+          : { aktif: false, silinmeTarihi: new Date() };
+        await Model.findByIdAndUpdate(hayvanId, updateData);
+        await Bildirim.updateMany(
+          { userId: req.userId, hayvanId, tamamlandi: false },
+          { aktif: false, tamamlandi: true }
+        );
+        await AsiTakvimi.updateMany(
+          { userId: req.userId, hayvanId, durum: 'bekliyor' },
+          { durum: 'iptal' }
+        );
+      }
+    }
 
     const Finansal = require('../models/Finansal');
     await Finansal.create({

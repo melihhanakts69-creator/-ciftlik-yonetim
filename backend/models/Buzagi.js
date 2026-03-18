@@ -59,8 +59,10 @@ const buzagiSchema = new mongoose.Schema({
   durum: {
     type: String,
     default: 'Aktif',
-    enum: ['Aktif', 'Satıldı', 'Öldü', 'Düveye Geçti', 'Tosuna Geçti']
+    enum: ['Aktif', 'Satıldı', 'Öldü', 'Düveye Geçti', 'Tosuna Geçti', 'Silindi']
   },
+  aktif: { type: Boolean, default: true },
+  silinmeTarihi: { type: Date, default: null },
   grupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Grup',

@@ -6,6 +6,8 @@ const Buzagi = require('../models/Buzagi');
 const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
 const Timeline = require('../models/Timeline');
+const Bildirim = require('../models/Bildirim');
+const AsiTakvimi = require('../models/AsiTakvimi');
 
 // TÜM BUZAĞILARI GETİR
 router.get('/', auth, async (req, res) => {
@@ -48,17 +50,27 @@ router.post('/', auth, planCheck, async (req, res) => {
   }
 });
 
-// BUZAĞI SİL
+// BUZAĞI SİL (soft delete)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const buzagi = await Buzagi.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.userId
-    });
+    const buzagi = await Buzagi.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { durum: 'Silindi', aktif: false, silinmeTarihi: new Date() },
+      { new: true }
+    );
 
     if (!buzagi) {
       return res.status(404).json({ message: 'Buzağı bulunamadı' });
     }
+
+    await Bildirim.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, tamamlandi: false },
+      { aktif: false, tamamlandi: true }
+    );
+    await AsiTakvimi.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, durum: 'bekliyor' },
+      { durum: 'iptal' }
+    );
 
     res.json({ message: 'Buzağı silindi', buzagi });
   } catch (error) {
@@ -68,7 +80,7 @@ router.delete('/:id', auth, async (req, res) => {
 // OTOMATİK DÜVE/TOSUN GEÇİŞİ KONTROL
 router.get('/kontrol-gecis', auth, async (req, res) => {
   try {
-    const buzagilar = await Buzagi.find({ userId: req.userId });
+    const buzagilar = await Buzagi.find({ userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } });
     const gecisler = [];
     const bugun = new Date();
 

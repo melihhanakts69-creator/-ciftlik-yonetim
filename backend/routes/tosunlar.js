@@ -3,6 +3,8 @@ const router = express.Router();
 const Tosun = require('../models/Tosun');
 const auth = require('../middleware/auth');
 const planCheck = require('../middleware/planCheck');
+const Bildirim = require('../models/Bildirim');
+const AsiTakvimi = require('../models/AsiTakvimi');
 
 // TÜMÜNÜ GETİR
 router.get('/', auth, async (req, res) => {
@@ -49,19 +51,29 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// SİL
+// SİL (soft delete)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const tosun = await Tosun.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.userId
-    });
+    const tosun = await Tosun.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { durum: 'Silindi', aktif: false, silinmeTarihi: new Date() },
+      { new: true }
+    );
 
     if (!tosun) {
       return res.status(404).json({ message: 'Tosun bulunamadı' });
     }
 
-    res.json({ message: 'Tosun silindi' });
+    await Bildirim.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, tamamlandi: false },
+      { aktif: false, tamamlandi: true }
+    );
+    await AsiTakvimi.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, durum: 'bekliyor' },
+      { durum: 'iptal' }
+    );
+
+    res.json({ message: 'Tosun silindi', tosun });
   } catch (error) {
     res.status(500).json({ message: 'Silme başarısız' });
   }

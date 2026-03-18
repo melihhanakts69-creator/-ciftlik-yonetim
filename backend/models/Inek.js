@@ -44,8 +44,10 @@ const inekSchema = new mongoose.Schema({
   durum: {
     type: String,
     default: 'Aktif',
-    enum: ['Aktif', 'Satıldı', 'Öldü', 'Kuru Dönemde']
+    enum: ['Aktif', 'Satıldı', 'Öldü', 'Kuru Dönemde', 'Silindi']
   },
+  aktif: { type: Boolean, default: true },
+  silinmeTarihi: { type: Date, default: null },
   tohumlamaTarihi: {
     type: Date,
     default: null

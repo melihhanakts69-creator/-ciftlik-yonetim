@@ -12,7 +12,19 @@ const User = require('../models/User');
 const Tenant = require('../models/Tenant');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
+const Buzagi = require('../models/Buzagi');
+const Tosun = require('../models/Tosun');
 const mongoose = require('mongoose');
+
+const getModelByHayvanTipi = (tip) => {
+  switch (tip) {
+    case 'inek': return Inek;
+    case 'duve': return Duve;
+    case 'buzagi': return Buzagi;
+    case 'tosun': return Tosun;
+    default: return null;
+  }
+};
 
 // Çiftçinin veterinerleri (beni müşteri olarak ekleyen aktif veterinerler)
 // Vet musteriler'de çiftlik sahibi User _id tutulur; çiftçi girişinde req.userId veya tenant owner kullanılır
@@ -55,11 +67,13 @@ router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async 
         const seenHayvanIds = new Set();
         const bekleyenler = [];
 
-        // 1) İnekler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        // 1) İnekler: tohumlamaTarihi var, 28 günden az, Belirsiz (aktif olanlar)
         const inekler = await Inek.find({
             userId: uid,
             tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
-            gebelikDurumu: 'Belirsiz'
+            gebelikDurumu: 'Belirsiz',
+            durum: { $ne: 'Silindi' },
+            aktif: { $ne: false }
         }).lean();
 
         for (const inek of inekler) {
@@ -77,11 +91,12 @@ router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async 
             }
         }
 
-        // 2) Düveler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        // 2) Düveler: tohumlamaTarihi var, 28 günden az, Belirsiz (aktif olanlar)
         const duveler = await Duve.find({
             userId: uid,
             tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
-            gebelikDurumu: 'Belirsiz'
+            gebelikDurumu: 'Belirsiz',
+            aktif: { $ne: false }
         }).lean();
 
         for (const duve of duveler) {
@@ -167,7 +182,9 @@ router.get('/gebeler', auth, checkRole(['ciftci', 'veteriner']), async (req, res
         const inekler = await Inek.find({
             userId: uid,
             gebelikDurumu: 'Gebe',
-            tohumlamaTarihi: { $exists: true, $ne: null }
+            tohumlamaTarihi: { $exists: true, $ne: null },
+            durum: { $ne: 'Silindi' },
+            aktif: { $ne: false }
         }).lean();
 
         for (const inek of inekler) {
@@ -189,7 +206,8 @@ router.get('/gebeler', auth, checkRole(['ciftci', 'veteriner']), async (req, res
         const duveler = await Duve.find({
             userId: uid,
             gebelikDurumu: 'Gebe',
-            tohumlamaTarihi: { $exists: true, $ne: null }
+            tohumlamaTarihi: { $exists: true, $ne: null },
+            aktif: { $ne: false }
         }).lean();
 
         for (const duve of duveler) {
@@ -488,6 +506,30 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
             }
         }
 
+        // Ölüm ise hayvanı güncelle (durum: Öldü, aktif: false) + Bildirim/AsiTakvimi kapat
+        if (kayit.durum === 'oldu' && kayit.hayvanId) {
+            const Model = getModelByHayvanTipi(kayit.hayvanTipi);
+            if (Model) {
+                try {
+                    const hasDurum = ['inek', 'buzagi', 'tosun'].includes(kayit.hayvanTipi);
+                    const updateData = hasDurum
+                        ? { durum: 'Öldü', aktif: false, silinmeTarihi: new Date() }
+                        : { aktif: false, silinmeTarihi: new Date() };
+                    await Model.findByIdAndUpdate(kayit.hayvanId, updateData);
+                    await Bildirim.updateMany(
+                        { userId: req.userId, hayvanId: kayit.hayvanId, tamamlandi: false },
+                        { aktif: false, tamamlandi: true }
+                    );
+                    await AsiTakvimi.updateMany(
+                        { userId: req.userId, hayvanId: kayit.hayvanId, durum: 'bekliyor' },
+                        { durum: 'iptal' }
+                    );
+                } catch (err) {
+                    console.error('Ölüm hayvan güncelleme hatası:', err.message);
+                }
+            }
+        }
+
         // Ölüm ise tahmini zarar Finansal gider olarak ekle
         const tahminiZarar = parseFloat(req.body.tahminiZarar);
         if (kayit.durum === 'oldu' && tahminiZarar > 0) {
@@ -550,6 +592,30 @@ router.put('/:id', auth, checkRole(['ciftci', 'veteriner']), async (req, res) =>
             { ...safeBody },
             { new: true, runValidators: true }
         );
+
+        // Durum 'oldu' olarak güncellendiyse hayvanı güncelle + Bildirim/AsiTakvimi kapat
+        if (kayit.durum === 'oldu' && kayit.hayvanId) {
+            const Model = getModelByHayvanTipi(kayit.hayvanTipi);
+            if (Model) {
+                try {
+                    const hasDurum = ['inek', 'buzagi', 'tosun'].includes(kayit.hayvanTipi);
+                    const updateData = hasDurum
+                        ? { durum: 'Öldü', aktif: false, silinmeTarihi: new Date() }
+                        : { aktif: false, silinmeTarihi: new Date() };
+                    await Model.findByIdAndUpdate(kayit.hayvanId, updateData);
+                    await Bildirim.updateMany(
+                        { userId: req.userId, hayvanId: kayit.hayvanId, tamamlandi: false },
+                        { aktif: false, tamamlandi: true }
+                    );
+                    await AsiTakvimi.updateMany(
+                        { userId: req.userId, hayvanId: kayit.hayvanId, durum: 'bekliyor' },
+                        { durum: 'iptal' }
+                    );
+                } catch (err) {
+                    console.error('Ölüm (güncelleme) hayvan güncelleme hatası:', err.message);
+                }
+            }
+        }
 
         // Durum 'oldu' olarak güncellendiyse ve tahmini zarar varsa Finansal gider ekle
         const tahminiZarar = parseFloat(reqTahminiZarar);
@@ -665,10 +731,11 @@ router.post('/asi', auth, checkRole(['ciftci', 'veteriner']), async (req, res) =
             for (const tip of hedefTipler) {
                 const Model = modelMap[tip];
                 if (!Model) continue;
-                const hayvanlar = await Model.find({
-                    userId: req.userId,
-                    durum: 'Aktif'
-                }).lean();
+                const hayvanFilter = { userId: req.userId, aktif: { $ne: false } };
+                if (tip !== 'duve') {
+                    hayvanFilter.durum = { $nin: ['Silindi', 'Satıldı', 'Öldü'] };
+                }
+                const hayvanlar = await Model.find(hayvanFilter).lean();
 
                 toplamHayvan += hayvanlar.length;
 

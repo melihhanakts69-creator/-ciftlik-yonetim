@@ -6,12 +6,14 @@ const Duve = require('../models/Duve');
 const Inek = require('../models/Inek');
 const Buzagi = require('../models/Buzagi');
 const Timeline = require('../models/Timeline');
+const Bildirim = require('../models/Bildirim');
+const AsiTakvimi = require('../models/AsiTakvimi');
 
 
-// TÜM DÜVELERİ GETİR
+// TÜM DÜVELERİ GETİR (Silindi/aktif olmayan hariç)
 router.get('/', auth, async (req, res) => {
   try {
-    const duveler = await Duve.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const duveler = await Duve.find({ userId: req.userId, aktif: { $ne: false } }).sort({ createdAt: -1 });
     res.json(duveler);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -65,17 +67,27 @@ router.post('/', auth, planCheck, async (req, res) => {
   }
 });
 
-// DÜVE SİL
+// DÜVE SİL (soft delete)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const duve = await Duve.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.userId
-    });
+    const duve = await Duve.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { aktif: false, silinmeTarihi: new Date() },
+      { new: true }
+    );
 
     if (!duve) {
       return res.status(404).json({ message: 'Düve bulunamadı' });
     }
+
+    await Bildirim.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, tamamlandi: false },
+      { aktif: false, tamamlandi: true }
+    );
+    await AsiTakvimi.updateMany(
+      { userId: req.userId, hayvanId: req.params.id, durum: 'bekliyor' },
+      { durum: 'iptal' }
+    );
 
     res.json({ message: 'Düve silindi', duve });
   } catch (error) {

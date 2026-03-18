@@ -54,7 +54,9 @@ const duveSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Grup',
     default: null
-  }
+  },
+  aktif: { type: Boolean, default: true },
+  silinmeTarihi: { type: Date, default: null }
 }, {
   timestamps: true
 });

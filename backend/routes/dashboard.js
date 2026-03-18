@@ -26,20 +26,23 @@ router.get('/stats', auth, async (req, res) => {
 
     const uid = new mongoose.Types.ObjectId(req.userId);
 
-    // Toplam hayvan sayıları
-    const toplamInek = await Inek.countDocuments({ userId: uid });
-    const toplamDuve = await Duve.countDocuments({ userId: uid });
-    const toplamBuzagi = await Buzagi.countDocuments({ userId: uid });
-    const toplamTosun = await Tosun.countDocuments({ userId: uid });
+    // Toplam hayvan sayıları (Silindi/Satıldı/Öldü hariç)
+    const aktifFilterInek = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
+    const aktifFilterDuve = { userId: uid, aktif: { $ne: false } };
+    const aktifFilterBuzagi = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
+    const aktifFilterTosun = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
+    const toplamInek = await Inek.countDocuments(aktifFilterInek);
+    const toplamDuve = await Duve.countDocuments(aktifFilterDuve);
+    const toplamBuzagi = await Buzagi.countDocuments(aktifFilterBuzagi);
+    const toplamTosun = await Tosun.countDocuments(aktifFilterTosun);
 
-    // Gebe hayvanlar (Field adı düzeltmeleri)
-    const gebeInek = await Inek.countDocuments({ userId: uid, gebelikDurumu: 'Gebe' });
-    const gebeDuve = await Duve.countDocuments({ userId: uid, gebelikDurumu: 'Gebe' });
+    // Gebe hayvanlar (aktif olanlar)
+    const gebeInek = await Inek.countDocuments({ ...aktifFilterInek, gebelikDurumu: 'Gebe' });
+    const gebeDuve = await Duve.countDocuments({ ...aktifFilterDuve, gebelikDurumu: 'Gebe' });
 
     // Sağmal inekler: Süt veren inekler (kuru dönemdekiler hariç)
-    // durum 'Aktif' = sağmal; durum 'Kuru Dönemde' = kuruya ayrılmış
     const sagmalInek = await Inek.countDocuments({
-      userId: uid,
+      ...aktifFilterInek,
       durum: 'Aktif'
     });
 
@@ -64,11 +67,10 @@ router.get('/stats', auth, async (req, res) => {
       }
     ]);
 
-    // Yaklaşan doğumlar (30 gün içinde)
-    // Sadece Gebe olanları çekip JS tarafında hesaplayacağız
+    // Yaklaşan doğumlar (30 gün içinde) — aktif hayvanlar
     const gebeler = await Promise.all([
-      Inek.find({ userId: uid, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo'),
-      Duve.find({ userId: uid, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo')
+      Inek.find({ ...aktifFilterInek, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo'),
+      Duve.find({ ...aktifFilterDuve, gebelikDurumu: 'Gebe' }).select('tohumlamaTarihi isim kupeNo')
     ]);
 
     const otuzGunSonra = new Date();
@@ -331,10 +333,10 @@ router.get('/aktiviteler', auth, async (req, res) => {
     const uid = new mongoose.Types.ObjectId(req.userId);
     const limit = parseInt(req.query.limit) || 10;
 
-    // Son eklenen hayvanlar
-    const sonInekler = await Inek.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonDuveler = await Duve.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonBuzagilar = await Buzagi.find({ userId: uid }).sort({ createdAt: -1 }).limit(5).lean();
+    // Son eklenen hayvanlar (aktif olanlar)
+    const sonInekler = await Inek.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonDuveler = await Duve.find({ userId: uid, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonBuzagilar = await Buzagi.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
 
     // Tüm hayvanları birleştir ve tip ekle
     const sonHayvanlar = [
