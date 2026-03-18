@@ -80,6 +80,7 @@ const Inek = require('../models/Inek');
 const Buzagi = require('../models/Buzagi');
 const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
+const Timeline = require('../models/Timeline');
 
 // Helper to get model by type
 const getModelByType = (type) => {
@@ -196,8 +197,10 @@ router.post('/alis', auth, checkRole(['ciftci']), async (req, res) => {
 
     // Add type-specific fields
     if (hayvanTipi === 'inek' || hayvanTipi === 'duve') {
-      if (gebelikDurumu) animalData.gebelikDurumu = gebelikDurumu;
-      if (tohumlamaTarihi) animalData.tohumlamaTarihi = tohumlamaTarihi;
+      animalData.gebelikDurumu = gebelikDurumu || 'Belirsiz';
+      if (tohumlamaTarihi && String(tohumlamaTarihi).trim() !== '') {
+        animalData.tohumlamaTarihi = tohumlamaTarihi;
+      }
       if (anneKupeNo) animalData.anneKupeNo = anneKupeNo;
       if (hayvanTipi === 'inek') {
         animalData.yas = yas; // Inek schema might use Number for age? double check model if needed, usually dynamic but let's pass if schema allows
@@ -213,6 +216,22 @@ router.post('/alis', auth, checkRole(['ciftci']), async (req, res) => {
     }
 
     const [newAnimal] = await Model.create([animalData], { session });
+
+    // Tohumlama varsa Timeline (belirsiz-gebeler ile uyum)
+    if ((hayvanTipi === 'inek' || hayvanTipi === 'duve') && tohumlamaTarihi && String(tohumlamaTarihi).trim() !== '') {
+      try {
+        await Timeline.create({
+          userId: req.userId,
+          hayvanId: newAnimal._id.toString(),
+          hayvanTipi,
+          tip: 'tohumlama',
+          tarih: typeof tohumlamaTarihi === 'string' ? tohumlamaTarihi : new Date(tohumlamaTarihi).toISOString().split('T')[0],
+          aciklama: 'Satın alırken tohumlama kaydı'
+        });
+      } catch (err) {
+        console.error('Alış tohumlama timeline hatası:', err.message);
+      }
+    }
 
     // 2. Alış/Satış Kaydı (History)
     const alisKaydi = new AlisSatis({

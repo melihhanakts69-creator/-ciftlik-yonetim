@@ -1060,13 +1060,20 @@ function SaglikMerkezi() {
             toast.error('Lütfen bir hayvan seçin');
             return;
         }
+        if (form.tip === 'tohumlama') {
+            const seciliHayvan = hayvanlar.find(h => h._id === form.hayvanId);
+            if (!seciliHayvan || !['inek', 'duve'].includes(seciliHayvan.tip)) {
+                toast.error('Tohumlama için sadece inek veya düve seçebilirsiniz');
+                return;
+            }
+        }
         if (form.durum === 'oldu' && (!form.tahminiZarar || parseFloat(form.tahminiZarar) <= 0)) {
             toast.error('Ölüm durumunda tahmini zarar (TL) giriniz');
             return;
         }
         try {
             const seciliHayvan = hayvanlar.find(h => h._id === form.hayvanId);
-            const ilaclar = form.ilacAd ? form.ilacAd.split(',').map((x, idx) => {
+            const ilaclar = form.tip === 'tohumlama' ? [] : (form.ilacAd ? form.ilacAd.split(',').map((x, idx) => {
                 const ilac = { ilacAdi: x.trim() };
                 if (form.arinmaSut && parseFloat(form.arinmaSut) > 0) ilac.arinmaSuresiSut = parseFloat(form.arinmaSut);
                 if (form.arinmaEt && parseFloat(form.arinmaEt) > 0) ilac.arinmaSuresiEt = parseFloat(form.arinmaEt);
@@ -1079,10 +1086,13 @@ function SaglikMerkezi() {
                     ilac.gunlukBirim = form.gunlukBirim || 'ml';
                 }
                 return ilac;
-            }).filter(x => x.ilacAdi) : [];
+            }).filter(x => x.ilacAdi) : []);
+
+            const taniDeger = form.tip === 'tohumlama' ? 'Suni Tohumlama' : form.tani;
 
             const data = {
                 ...form,
+                tani: taniDeger,
                 hayvanTipi: seciliHayvan?.tip || form.hayvanTipi,
                 hayvanIsim: seciliHayvan?.isim || '',
                 hayvanKupeNo: seciliHayvan?.kupeNo || '',
@@ -1094,11 +1104,12 @@ function SaglikMerkezi() {
             };
 
             await api.createSaglikKaydi(data);
-            toast.success('Sağlık kaydı oluşturuldu! 🏥');
+            toast.success(form.tip === 'tohumlama' ? 'Tohumlama kaydedildi! 🌡️' : 'Sağlık kaydı oluşturuldu! 🏥');
             setModalAcik(false);
             resetForms();
             veriYukle();
             devamEdenlerYukle();
+            belirsizGebelerYukle();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Kayıt oluşturulamadı');
         }
@@ -1178,11 +1189,12 @@ function SaglikMerkezi() {
     };
 
     const filtrelenmisHayvanlar = hayvanlar.filter(h => {
+        const tohumlamaTipUygun = form.tip !== 'tohumlama' || ['inek', 'duve'].includes(h.tip);
         const tipUygun = !hayvanTipFiltre || h.tip === hayvanTipFiltre;
         const aramaUygun = !hayvanArama.trim() ||
             (h.isim && h.isim.toLowerCase().includes(hayvanArama.toLowerCase().trim())) ||
             (h.kupeNo && h.kupeNo.toLowerCase().includes(hayvanArama.toLowerCase().trim()));
-        return tipUygun && aramaUygun;
+        return tohumlamaTipUygun && tipUygun && aramaUygun;
     });
 
     const asiFiltrelenmisHayvanlar = hayvanlar.filter(h => {
@@ -1357,7 +1369,9 @@ function SaglikMerkezi() {
                                             <p style={{ fontSize: '13px', marginTop: '8px' }}>İlk kaydı eklemek için yukarıdaki butona tıklayın</p>
                                         </EmptyState>
                                     ) : (
-                                        kayitlar.map(k => {
+                                        kayitlar
+                                            .filter(k => k.tip !== 'tohumlama' && !(k.tip === 'muayene' && k.tani === 'Suni Tohumlama'))
+                                            .map(k => {
                                             const style = getTipStyle(k.tip);
                                             const durumBadge = getDurumBadge(k.durum, k.tip);
                                             return (
@@ -1764,6 +1778,7 @@ function SaglikMerkezi() {
                                                 <select value={form.tip} onChange={e => setForm({ ...form, tip: e.target.value })}>
                                                     <option value="hastalik">🤒 Hastalık</option>
                                                     <option value="tedavi">💊 Tedavi</option>
+                                                    <option value="tohumlama">🌡️ Tohumlama</option>
                                                     <option value="muayene">🩺 Muayene</option>
                                                     <option value="ameliyat">🔪 Ameliyat</option>
                                                     <option value="dogum_komplikasyonu">⚠️ Doğum Komplikasyonu</option>
@@ -1775,6 +1790,7 @@ function SaglikMerkezi() {
                                             </FormGroup>
                                         </FormRow>
 
+                                        {form.tip !== 'tohumlama' && (
                                         <FormGroup>
                                             <label>Tanı / Hastalık Adı *</label>
                                             <input
@@ -1785,6 +1801,12 @@ function SaglikMerkezi() {
                                                 required
                                             />
                                         </FormGroup>
+                                        )}
+                                        {form.tip === 'tohumlama' && (
+                                        <div style={{ padding: '10px 14px', background: '#fef3c7', borderRadius: 10, fontSize: 13, color: '#92400e' }}>
+                                            📅 Yukarıdaki tarih tohumlama tarihi olarak kullanılacak. Hayvan Tohumlar/Belirsiz Gebeler sayfasına eklenecek.
+                                        </div>
+                                        )}
 
                                         <FormGroup>
                                             <label>Belirtiler (virgülle ayırın)</label>

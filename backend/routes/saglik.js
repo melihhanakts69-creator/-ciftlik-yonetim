@@ -38,18 +38,26 @@ router.get('/veterinerlerim', auth, checkRole(['ciftci']), async (req, res) => {
 });
 
 // Tohumlar / Belirsiz Gebeler — 28 günden az olan, tohumlama yapılmış düve/inekler
+// Kaynak: Inek/Duve (tohumlamaTarihi) + SaglikKaydi (tip: tohumlama veya muayene+Suni Tohumlama)
 router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
     try {
+        let uid = req.userId;
+        if (req.tenantId && mongoose.Types.ObjectId.isValid(req.tenantId)) {
+            const tenant = await Tenant.findById(req.tenantId).select('ownerUser').lean();
+            if (tenant?.ownerUser) uid = tenant.ownerUser;
+        }
+
         const bugun = new Date();
         bugun.setHours(0, 0, 0, 0);
         const yirmiSekizGunOnce = new Date(bugun);
         yirmiSekizGunOnce.setDate(yirmiSekizGunOnce.getDate() - 28);
 
+        const seenHayvanIds = new Set();
         const bekleyenler = [];
 
-        // İnekler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        // 1) İnekler: tohumlamaTarihi var, 28 günden az, Belirsiz
         const inekler = await Inek.find({
-            userId: req.userId,
+            userId: uid,
             tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
             gebelikDurumu: 'Belirsiz'
         }).lean();
@@ -58,18 +66,20 @@ router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async 
             const tohum = new Date(inek.tohumlamaTarihi);
             const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
             if (gecenGun < 28) {
+                seenHayvanIds.add(inek._id.toString());
                 bekleyenler.push({
                     hayvan: inek,
                     hayvanTipi: 'inek',
                     tohumlamaTarihi: inek.tohumlamaTarihi,
-                    gecenGun
+                    gecenGun,
+                    kaynak: 'hayvan'
                 });
             }
         }
 
-        // Düveler: tohumlamaTarihi var, 28 günden az, Belirsiz
+        // 2) Düveler: tohumlamaTarihi var, 28 günden az, Belirsiz
         const duveler = await Duve.find({
-            userId: req.userId,
+            userId: uid,
             tohumlamaTarihi: { $exists: true, $ne: null, $gte: yirmiSekizGunOnce },
             gebelikDurumu: 'Belirsiz'
         }).lean();
@@ -78,13 +88,55 @@ router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async 
             const tohum = new Date(duve.tohumlamaTarihi);
             const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
             if (gecenGun < 28) {
+                seenHayvanIds.add(duve._id.toString());
                 bekleyenler.push({
                     hayvan: duve,
                     hayvanTipi: 'duve',
                     tohumlamaTarihi: duve.tohumlamaTarihi,
-                    gecenGun
+                    gecenGun,
+                    kaynak: 'hayvan'
                 });
             }
+        }
+
+        // 3) SaglikKaydi: tohumlama veya Suni Tohumlama kayıtları (henüz hayvanda tohumlamaTarihi olmayan veya farklı kaynak)
+        const tohumlamaKayitlari = await SaglikKaydi.find({
+            userId: uid,
+            durum: 'devam_ediyor',
+            hayvanTipi: { $in: ['inek', 'duve'] },
+            tarih: { $gte: yirmiSekizGunOnce },
+            $or: [
+                { tip: 'tohumlama' },
+                { tip: 'muayene', tani: 'Suni Tohumlama' }
+            ]
+        }).lean();
+
+        for (const kayit of tohumlamaKayitlari) {
+            const hid = kayit.hayvanId?.toString();
+            if (!hid || seenHayvanIds.has(hid)) continue;
+
+            const tohumTarih = kayit.tarih ? new Date(kayit.tarih) : bugun;
+            const gecenGun = Math.floor((bugun - tohumTarih) / (1000 * 60 * 60 * 24));
+            if (gecenGun >= 28) continue;
+
+            let hayvan = null;
+            if (kayit.hayvanTipi === 'inek') {
+                hayvan = await Inek.findOne({ _id: kayit.hayvanId, userId: uid }).lean();
+            } else {
+                hayvan = await Duve.findOne({ _id: kayit.hayvanId, userId: uid }).lean();
+            }
+            if (!hayvan) continue;
+            if (hayvan.gebelikDurumu === 'Gebe' || hayvan.gebelikDurumu === 'Gebe Değil') continue;
+
+            seenHayvanIds.add(hid);
+            bekleyenler.push({
+                hayvan,
+                hayvanTipi: kayit.hayvanTipi,
+                tohumlamaTarihi: tohumTarih,
+                gecenGun,
+                kaynak: 'saglik',
+                saglikKaydiId: kayit._id
+            });
         }
 
         // Tarihe göre sırala (en eski tohumlama önce)
@@ -223,6 +275,32 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
         });
         await kayit.save();
 
+        // ── TOHUMLAMA: Hayvanı güncelle (inek/düve) ─────────────────
+        if (kayit.tip === 'tohumlama' && kayit.hayvanTipi && ['inek', 'duve'].includes(kayit.hayvanTipi) && kayit.hayvanId) {
+            let uid = req.userId;
+            if (req.tenantId && mongoose.Types.ObjectId.isValid(req.tenantId)) {
+                const tenant = await Tenant.findById(req.tenantId).select('ownerUser').lean();
+                if (tenant?.ownerUser) uid = tenant.ownerUser;
+            }
+            const tohumTarih = kayit.tarih ? new Date(kayit.tarih).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+            try {
+                if (kayit.hayvanTipi === 'inek') {
+                    await Inek.findOneAndUpdate(
+                        { _id: kayit.hayvanId, userId: uid },
+                        { tohumlamaTarihi: tohumTarih, gebelikDurumu: 'Belirsiz' }
+                    );
+                } else {
+                    await Duve.findOneAndUpdate(
+                        { _id: kayit.hayvanId, userId: uid },
+                        { tohumlamaTarihi: tohumTarih, gebelikDurumu: 'Belirsiz' }
+                    );
+                }
+            } catch (err) {
+                console.error('Tohumlama hayvan güncelleme hatası:', err.message);
+            }
+        }
+        // ── TOHUMLAMA SONU ────────────────────────────────────────
+
         // ── İLAÇ STOK DÜŞÜM ─────────────────────────────────────
         for (const ilac of kayit.ilaclar || []) {
             if (!ilac.ilacAdi || !(ilac.kullanilanMiktar || ilac.kullanılanMiktar)) continue;
@@ -300,7 +378,18 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
                 asi: 'asi',
                 muayene: 'muayene',
                 ameliyat: 'hastalik',
-                dogum_komplikasyonu: 'dogum'
+                dogum_komplikasyonu: 'dogum',
+                tohumlama: 'tohumlama'
+            };
+
+            const aciklamaMap = {
+                hastalik: '🤒 Hastalık',
+                tedavi: '💊 Tedavi',
+                asi: '💉 Aşı',
+                muayene: '🩺 Muayene',
+                ameliyat: '🔪 Ameliyat',
+                dogum_komplikasyonu: '⚠️ Komplikasyon',
+                tohumlama: '🌡️ Tohumlama'
             };
 
             await Timeline.create({
@@ -309,7 +398,7 @@ router.post('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
                 hayvanTipi: kayit.hayvanTipi,
                 tip: tipMap[kayit.tip] || 'genel',
                 tarih: kayit.tarih.toISOString().split('T')[0],
-                aciklama: `${kayit.tip === 'hastalik' ? '🤒 Hastalık' : kayit.tip === 'tedavi' ? '💊 Tedavi' : kayit.tip === 'asi' ? '💉 Aşı' : kayit.tip === 'muayene' ? '🩺 Muayene' : kayit.tip === 'ameliyat' ? '🔪 Ameliyat' : '⚠️ Komplikasyon'}: ${kayit.tani}`
+                aciklama: `${aciklamaMap[kayit.tip] || 'Kayıt'}: ${kayit.tani}`
             });
         } catch (timelineErr) {
             console.error('Timeline kayıt hatası (kritik değil):', timelineErr.message);

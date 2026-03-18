@@ -297,6 +297,28 @@ router.post('/musteri/:ciftciId/hayvan/:hayvanId/saglik', async (req, res) => {
 
         await yeniKayit.save();
 
+        // ── TOHUMLAMA: Hayvanı güncelle (inek/düve) ─────────────────
+        const isTohumlama = tip === 'tohumlama' || (tip === 'muayene' && tani === 'Suni Tohumlama');
+        if (isTohumlama && hayvanTipi && ['inek', 'duve'].includes(hayvanTipi)) {
+            const tohumTarih = yeniKayit.tarih ? new Date(yeniKayit.tarih).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+            try {
+                if (hayvanTipi === 'inek') {
+                    await Inek.findOneAndUpdate(
+                        { _id: hayvanId, userId: ciftciId },
+                        { tohumlamaTarihi: tohumTarih, gebelikDurumu: 'Belirsiz' }
+                    );
+                } else {
+                    await Duve.findOneAndUpdate(
+                        { _id: hayvanId, userId: ciftciId },
+                        { tohumlamaTarihi: tohumTarih, gebelikDurumu: 'Belirsiz' }
+                    );
+                }
+            } catch (err) {
+                console.error('Tohumlama hayvan güncelleme hatası:', err.message);
+            }
+        }
+        // ── TOHUMLAMA SONU ────────────────────────────────────────
+
         // ── SÜT KORUMA ZİNCİRİ ──────────────────────────────────
         const ilaclarArr = yeniKayit.ilaclar || [];
         const maxArinmaSut = Math.max(0, ...ilaclarArr.map(i => i.arinmaSuresiSut || 0));

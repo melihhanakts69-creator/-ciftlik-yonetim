@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const planCheck = require('../middleware/planCheck');
 const Inek = require('../models/Inek');
-const Duve = require('../models/Duve');  // ← EKLE
+const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
 const Timeline = require('../models/Timeline');
 
@@ -113,6 +113,23 @@ router.post('/', auth, planCheck, async (req, res) => {
     });
 
     await inek.save();
+
+    // Tohumlama varsa Timeline (Tohumlar/Belirsiz Gebeler ile uyum)
+    if (tohumlamaTarihi && String(tohumlamaTarihi).trim() !== '') {
+      try {
+        await Timeline.create({
+          userId: req.userId,
+          hayvanId: inek._id.toString(),
+          hayvanTipi: 'inek',
+          tip: 'tohumlama',
+          tarih: typeof tohumlamaTarihi === 'string' ? tohumlamaTarihi : new Date(tohumlamaTarihi).toISOString().split('T')[0],
+          aciklama: 'İnek eklenirken tohumlama kaydı'
+        });
+      } catch (err) {
+        console.error('İnek tohumlama timeline hatası:', err.message);
+      }
+    }
+
     res.status(201).json(inek);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
