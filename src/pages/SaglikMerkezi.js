@@ -922,6 +922,8 @@ function SaglikMerkezi() {
     const [asiHayvanArama, setAsiHayvanArama] = useState('');
     const [belirsizGebeler, setBelirsizGebeler] = useState([]);
     const [belirsizYukleniyor, setBelirsizYukleniyor] = useState(false);
+    const [gebeler, setGebeler] = useState([]);
+    const [gebelerYukleniyor, setGebelerYukleniyor] = useState(false);
 
     // Form state
     const [form, setForm] = useState({
@@ -1019,9 +1021,24 @@ function SaglikMerkezi() {
         }
     }, []);
 
+    const gebelerYukle = useCallback(async () => {
+        setGebelerYukleniyor(true);
+        try {
+            const r = await api.getGebeler();
+            setGebeler(Array.isArray(r.data) ? r.data : []);
+        } catch (err) {
+            setGebeler([]);
+        } finally {
+            setGebelerYukleniyor(false);
+        }
+    }, []);
+
     useEffect(() => {
-        if (aktifTab === 'tohumlar') belirsizGebelerYukle();
-    }, [aktifTab, belirsizGebelerYukle]);
+        if (aktifTab === 'tohumlar') {
+            belirsizGebelerYukle();
+            gebelerYukle();
+        }
+    }, [aktifTab, belirsizGebelerYukle, gebelerYukle]);
 
     const handleBelirsizGebe = async (item) => {
         try {
@@ -1033,6 +1050,7 @@ function SaglikMerkezi() {
             }
             toast.success(`${h.isim} gebe olarak kaydedildi`);
             belirsizGebelerYukle();
+            gebelerYukle();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Güncellenemedi');
         }
@@ -1048,6 +1066,7 @@ function SaglikMerkezi() {
             }
             toast.success(`${h.isim} gebe değil — tohum bekleyenlere eklendi`);
             belirsizGebelerYukle();
+            gebelerYukle();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Güncellenemedi');
         }
@@ -1110,6 +1129,7 @@ function SaglikMerkezi() {
             veriYukle();
             devamEdenlerYukle();
             belirsizGebelerYukle();
+            gebelerYukle();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Kayıt oluşturulamadı');
         }
@@ -1326,7 +1346,7 @@ function SaglikMerkezi() {
                             ⏰ Yaklaşan İşlemler
                         </Tab>
                         <Tab active={aktifTab === 'tohumlar'} onClick={() => setAktifTab('tohumlar')}>
-                            🌡️ Tohumlar / Belirsiz Gebeler
+                            🌡️ Tohumlar & Gebeler
                         </Tab>
                         <Tab active={aktifTab === 'ai'} onClick={() => setAktifTab('ai')}>
                             🤖 AI Danışman
@@ -1633,69 +1653,123 @@ function SaglikMerkezi() {
                             );
                         })()}
 
-                        {/* TOHUMLAR / BELİRSİZ GEBELER TAB */}
+                        {/* TOHUMLAR / BELİRSİZ GEBELER + GEBELER TAB */}
                         {aktifTab === 'tohumlar' && (
                             <>
-                                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
-                                    28 günden az olan, tohumlama yapılmış düve ve inekler. Gebelik kontrolü yapıldığında Gebe veya Gebe Değil olarak işaretleyin.
+                                {/* GEBELER Bölümü */}
+                                <div style={{ marginBottom: 24 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                        <span style={{ fontSize: 14, fontWeight: 800, color: '#16a34a' }}>🤰 Gebeler</span>
+                                        <span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 999, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>
+                                            {gebeler.length} kayıt
+                                        </span>
+                                    </div>
+                                    <CardList>
+                                        {gebelerYukleniyor ? (
+                                            <EmptyState><p>Yükleniyor...</p></EmptyState>
+                                        ) : gebeler.length === 0 ? (
+                                            <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13, background: '#f9fafb', borderRadius: 12, border: '1px dashed #e5e7eb' }}>
+                                                Onaylanmış gebe hayvan yok
+                                            </div>
+                                        ) : (
+                                            gebeler.map(item => {
+                                                const h = item.hayvan;
+                                                const tipLabel = item.hayvanTipi === 'duve' ? '🐮 Düve' : '🐄 İnek';
+                                                const kalanRenk = item.kalanGun <= 30 ? '#dc2626' : item.kalanGun <= 60 ? '#d97706' : '#16a34a';
+                                                return (
+                                                    <RecordCard key={`gebe-${item.hayvanTipi}-${h._id}`}>
+                                                        <RecordIcon bg="#dcfce7" color="#16a34a">
+                                                            🤰
+                                                        </RecordIcon>
+                                                        <RecordContent>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+                                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                                        {h.isim} ({h.kupeNo})
+                                                                    </div>
+                                                                    <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                                                        <span>{tipLabel}</span>
+                                                                        <span>📅 Tohumlama: {new Date(item.tohumlamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                                        <span>👶 Tahmini Doğum: {new Date(item.tahminiDogum).toLocaleDateString('tr-TR')}</span>
+                                                                        <span style={{ color: kalanRenk, fontWeight: 700 }}>⏱ {item.kalanGun > 0 ? `${item.kalanGun} gün kaldı` : 'Doğum zamanı!'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </RecordContent>
+                                                    </RecordCard>
+                                                );
+                                            })
+                                        )}
+                                    </CardList>
                                 </div>
-                                <CardList>
-                                    {belirsizYukleniyor ? (
-                                        <EmptyState><p>Yükleniyor...</p></EmptyState>
-                                    ) : belirsizGebeler.length === 0 ? (
-                                        <EmptyState>
-                                            <FaBaby />
-                                            <p>Tohumlar / Belirsiz gebeler listesi boş</p>
-                                            <p style={{ fontSize: '13px', marginTop: '8px' }}>28 günden az süredir tohumlama yapılmış ve henüz kontrol edilmemiş hayvan burada görünür</p>
-                                        </EmptyState>
-                                    ) : (
-                                        belirsizGebeler.map(item => {
-                                            const h = item.hayvan;
-                                            const tipLabel = item.hayvanTipi === 'duve' ? '🐮 Düve' : '🐄 İnek';
-                                            return (
-                                                <RecordCard key={`${item.hayvanTipi}-${h._id}`}>
-                                                    <RecordIcon bg="#fef3c7" color="#d97706">
-                                                        🌡️
-                                                    </RecordIcon>
-                                                    <RecordContent>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
-                                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
-                                                                    {h.isim} ({h.kupeNo})
+
+                                {/* TOHUMLAR / BELİRSİZ GEBELER Bölümü */}
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                        <span style={{ fontSize: 14, fontWeight: 800, color: '#d97706' }}>🌡️ Tohumlar / Belirsiz Gebeler</span>
+                                        <span style={{ background: '#fef3c7', color: '#d97706', borderRadius: 999, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>
+                                            {belirsizGebeler.length} kayıt
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+                                        28 günden az olan, tohumlama yapılmış düve ve inekler. Gebelik kontrolü yapıldığında Gebe veya Gebe Değil olarak işaretleyin.
+                                    </div>
+                                    <CardList>
+                                        {belirsizYukleniyor ? (
+                                            <EmptyState><p>Yükleniyor...</p></EmptyState>
+                                        ) : belirsizGebeler.length === 0 ? (
+                                            <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13, background: '#f9fafb', borderRadius: 12, border: '1px dashed #e5e7eb' }}>
+                                                Kontrol bekleyen hayvan yok
+                                            </div>
+                                        ) : (
+                                            belirsizGebeler.map(item => {
+                                                const h = item.hayvan;
+                                                const tipLabel = item.hayvanTipi === 'duve' ? '🐮 Düve' : '🐄 İnek';
+                                                return (
+                                                    <RecordCard key={`belirsiz-${item.hayvanTipi}-${h._id}`}>
+                                                        <RecordIcon bg="#fef3c7" color="#d97706">
+                                                            🌡️
+                                                        </RecordIcon>
+                                                        <RecordContent>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+                                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                                        {h.isim} ({h.kupeNo})
+                                                                    </div>
+                                                                    <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                                                        <span>{tipLabel}</span>
+                                                                        <span>📅 Tohumlama: {new Date(item.tohumlamaTarihi).toLocaleDateString('tr-TR')}</span>
+                                                                        <span style={{ color: '#d97706', fontWeight: 600 }}>⏱ {item.gecenGun} gün</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                                                                    <span>{tipLabel}</span>
-                                                                    <span>📅 Tohumlama: {new Date(item.tohumlamaTarihi).toLocaleDateString('tr-TR')}</span>
-                                                                    <span style={{ color: '#d97706', fontWeight: 600 }}>⏱ {item.gecenGun} gün</span>
+                                                                <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                                                                    <button
+                                                                        onClick={() => handleBelirsizGebe(item)}
+                                                                        style={{
+                                                                            fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
+                                                                            background: '#16a34a', color: '#fff', border: 'none', cursor: 'pointer'
+                                                                        }}
+                                                                    >
+                                                                        ✅ Gebe
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleBelirsizGebeDegil(item)}
+                                                                        style={{
+                                                                            fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
+                                                                            background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer'
+                                                                        }}
+                                                                    >
+                                                                        ❌ Gebe Değil
+                                                                    </button>
                                                                 </div>
                                                             </div>
-                                                            <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
-                                                                <button
-                                                                    onClick={() => handleBelirsizGebe(item)}
-                                                                    style={{
-                                                                        fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
-                                                                        background: '#16a34a', color: '#fff', border: 'none', cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    ✅ Gebe
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleBelirsizGebeDegil(item)}
-                                                                    style={{
-                                                                        fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 8,
-                                                                        background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    ❌ Gebe Değil
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </RecordContent>
-                                                </RecordCard>
-                                            );
-                                        })
-                                    )}
-                                </CardList>
+                                                        </RecordContent>
+                                                    </RecordCard>
+                                                );
+                                            })
+                                        )}
+                                    </CardList>
+                                </div>
                             </>
                         )}
 

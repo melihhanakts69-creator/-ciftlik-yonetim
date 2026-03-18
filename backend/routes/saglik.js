@@ -149,6 +149,73 @@ router.get('/belirsiz-gebeler', auth, checkRole(['ciftci', 'veteriner']), async 
     }
 });
 
+// Gebeler — Onaylanmış gebe inek ve düveler (gebelikDurumu: Gebe, tohumlamaTarihi var)
+router.get('/gebeler', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
+    try {
+        let uid = req.userId;
+        if (req.tenantId && mongoose.Types.ObjectId.isValid(req.tenantId)) {
+            const tenant = await Tenant.findById(req.tenantId).select('ownerUser').lean();
+            if (tenant?.ownerUser) uid = tenant.ownerUser;
+        }
+
+        const bugun = new Date();
+        bugun.setHours(0, 0, 0, 0);
+        const GEBELIK_GUN = 283;
+
+        const gebeler = [];
+
+        const inekler = await Inek.find({
+            userId: uid,
+            gebelikDurumu: 'Gebe',
+            tohumlamaTarihi: { $exists: true, $ne: null }
+        }).lean();
+
+        for (const inek of inekler) {
+            const tohum = new Date(inek.tohumlamaTarihi);
+            const tahminiDogum = new Date(tohum);
+            tahminiDogum.setDate(tahminiDogum.getDate() + GEBELIK_GUN);
+            const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+            const kalanGun = Math.ceil((tahminiDogum - bugun) / (1000 * 60 * 60 * 24));
+            gebeler.push({
+                hayvan: inek,
+                hayvanTipi: 'inek',
+                tohumlamaTarihi: inek.tohumlamaTarihi,
+                tahminiDogum: tahminiDogum.toISOString().split('T')[0],
+                gecenGun,
+                kalanGun
+            });
+        }
+
+        const duveler = await Duve.find({
+            userId: uid,
+            gebelikDurumu: 'Gebe',
+            tohumlamaTarihi: { $exists: true, $ne: null }
+        }).lean();
+
+        for (const duve of duveler) {
+            const tohum = new Date(duve.tohumlamaTarihi);
+            const tahminiDogum = new Date(tohum);
+            tahminiDogum.setDate(tahminiDogum.getDate() + GEBELIK_GUN);
+            const gecenGun = Math.floor((bugun - tohum) / (1000 * 60 * 60 * 24));
+            const kalanGun = Math.ceil((tahminiDogum - bugun) / (1000 * 60 * 60 * 24));
+            gebeler.push({
+                hayvan: duve,
+                hayvanTipi: 'duve',
+                tohumlamaTarihi: duve.tohumlamaTarihi,
+                tahminiDogum: tahminiDogum.toISOString().split('T')[0],
+                gecenGun,
+                kalanGun
+            });
+        }
+
+        gebeler.sort((a, b) => new Date(a.tahminiDogum) - new Date(b.tahminiDogum));
+        res.json(gebeler);
+    } catch (error) {
+        console.error('Gebeler hatası:', error);
+        res.status(500).json({ message: 'Sunucu hatası.' });
+    }
+});
+
 // ============================
 //  SAĞLIK KAYITLARI
 // ============================

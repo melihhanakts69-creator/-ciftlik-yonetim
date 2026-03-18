@@ -209,6 +209,7 @@ export const updateSaglikKaydi = (id, data) => api.put(`/saglik/${id}`, data);
 export const deleteSaglikKaydi = (id) => api.delete(`/saglik/${id}`);
 export const getVeterinerlerim = () => api.get('/saglik/veterinerlerim');
 export const getBelirsizGebeler = () => api.get('/saglik/belirsiz-gebeler');
+export const getGebeler = () => api.get('/saglik/gebeler');
 
 // Danışma (çiftçi–veteriner mesajlaşma)
 export const getDanismaThreads = () => api.get('/danismalar');
