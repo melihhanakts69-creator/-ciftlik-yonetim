@@ -2,8 +2,39 @@ import React from 'react';
 
 export default function VetPageShell({ title, subtitle, actions, children }) {
   return (
-    <div style={{ padding: '20px', background: '#f9fafb', minHeight: '100%' }}>
-      {children}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      <div
+        className="vet-page-topbar"
+        style={{
+          background: '#fff', borderBottom: '1px solid #e5e7eb',
+          padding: '13px 20px', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between',
+          gap: 12, flexWrap: 'wrap', flexShrink: 0,
+          position: 'sticky', top: 56, zIndex: 5,
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0, letterSpacing: '-.2px' }}>
+            {title}
+          </h1>
+          {subtitle && (
+            <p style={{ fontSize: 11, color: '#9ca3af', margin: '2px 0 0' }}>{subtitle}</p>
+          )}
+        </div>
+        {actions && (
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>{actions}</div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, padding: '18px 20px', background: '#f9fafb' }}>
+        {children}
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .vet-page-topbar { top: 50px !important; }
+        }
+      `}</style>
     </div>
   );
 }
