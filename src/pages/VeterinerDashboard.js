@@ -72,6 +72,170 @@ export default function VeterinerDashboard({ kullanici }) {
         <button style={VetBtn.primary} onClick={() => navigate('/hastalar')}>+ Sağlık Kaydı</button>
       </>}
     >
+      {/* SELAMLAMA PANEL */}
+      {(() => {
+        const saat = new Date().getHours();
+        const selam = saat < 12 ? 'Günaydın' : saat < 18 ? 'İyi günler' : 'İyi akşamlar';
+        const bugunRandevuSayisi = data.bugunRandevular.filter(r => r.durum !== 'tamamlandi').length;
+        const aktifTedavi = data.ozet?.devamEdenTedavi || 0;
+        const acikAlacak = data.cari?.toplamBakiye || 0;
+
+        return (
+          <div style={{
+            background: '#1e3a5f',
+            borderRadius: 14,
+            padding: '20px 24px',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}>
+            {/* Sol — selamlama */}
+            <div>
+              <div style={{ fontSize: 13, color: 'rgba(148,163,184,.7)', marginBottom: 4 }}>
+                {new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: '#fff', letterSpacing: '-.3px', marginBottom: 6 }}>
+                {selam}, Dr. {kullanici?.isim?.split(' ')[0] || '—'} 👋
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(148,163,184,.8)' }}>
+                {loading ? 'Yükleniyor...' : (
+                  bugunRandevuSayisi > 0
+                    ? `Bugün ${bugunRandevuSayisi} randevunuz var${aktifTedavi > 0 ? `, ${aktifTedavi} aktif tedavi devam ediyor` : ''}.`
+                    : aktifTedavi > 0
+                      ? `${aktifTedavi} aktif tedaviniz devam ediyor.`
+                      : 'Bugün randevunuz yok, iyi bir gün geçirin.'
+                )}
+              </div>
+            </div>
+
+            {/* Sağ — özet badges + hızlı arama */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              {/* Randevu badge */}
+              {bugunRandevuSayisi > 0 && (
+                <div
+                  onClick={() => navigate('/takvim')}
+                  style={{
+                    background: 'rgba(255,255,255,.1)', borderRadius: 10,
+                    padding: '8px 14px', cursor: 'pointer', border: '1px solid rgba(255,255,255,.12)',
+                    display: 'flex', alignItems: 'center', gap: 7,
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>📅</span>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: '#fff', lineHeight: 1 }}>{bugunRandevuSayisi}</div>
+                    <div style={{ fontSize: 10, color: 'rgba(148,163,184,.8)', marginTop: 1 }}>Randevu</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Aktif tedavi badge */}
+              {aktifTedavi > 0 && (
+                <div
+                  onClick={() => navigate('/hastalar')}
+                  style={{
+                    background: 'rgba(239,68,68,.15)', borderRadius: 10,
+                    padding: '8px 14px', cursor: 'pointer', border: '1px solid rgba(239,68,68,.25)',
+                    display: 'flex', alignItems: 'center', gap: 7,
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>💊</span>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: '#fca5a5', lineHeight: 1 }}>{aktifTedavi}</div>
+                    <div style={{ fontSize: 10, color: 'rgba(252,165,165,.7)', marginTop: 1 }}>Aktif Tedavi</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Açık alacak badge */}
+              {acikAlacak > 0 && (
+                <div
+                  onClick={() => navigate('/finans')}
+                  style={{
+                    background: 'rgba(251,191,36,.1)', borderRadius: 10,
+                    padding: '8px 14px', cursor: 'pointer', border: '1px solid rgba(251,191,36,.2)',
+                    display: 'flex', alignItems: 'center', gap: 7,
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>💰</span>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 600, color: '#fde68a', lineHeight: 1 }}>
+                      {acikAlacak >= 1000 ? `${Math.round(acikAlacak / 1000)}K` : acikAlacak.toLocaleString('tr-TR')} ₺
+                    </div>
+                    <div style={{ fontSize: 10, color: 'rgba(253,230,138,.7)', marginTop: 1 }}>Alacak</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Küpe arama — sadece desktop */}
+              <form
+                onSubmit={handleKupeAra}
+                style={{ display: 'flex', gap: 6 }}
+                className="kupe-form-desktop"
+              >
+                <input
+                  value={kupeQ}
+                  onChange={e => { setKupeQ(e.target.value); setKupeSonuc([]); }}
+                  placeholder="Küpe no ara... (TR-123)"
+                  style={{
+                    padding: '8px 12px', borderRadius: 8,
+                    border: '1px solid rgba(255,255,255,.15)',
+                    background: 'rgba(255,255,255,.08)',
+                    color: '#fff', fontSize: 12, outline: 'none', width: 180,
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={kupeLoading || kupeQ.trim().length < 2}
+                  style={{
+                    background: '#2563eb', color: '#fff', border: 'none',
+                    borderRadius: 8, padding: '8px 12px', fontSize: 12,
+                    fontWeight: 500, cursor: 'pointer',
+                  }}
+                >
+                  {kupeLoading ? '...' : 'Ara'}
+                </button>
+              </form>
+            </div>
+
+            {/* Küpe arama sonuçları */}
+            {kupeSonuc.length > 0 && (
+              <div style={{
+                width: '100%',
+                background: '#fff', borderRadius: 8,
+                border: '1px solid #e5e7eb', overflow: 'hidden',
+                marginTop: 4,
+              }}>
+                {kupeSonuc.map((r, i) => (
+                  <div
+                    key={i}
+                    onClick={() => navigate(`/hastalar/${r.ciftciId}`)}
+                    style={{
+                      padding: '9px 12px', borderBottom: '1px solid #f3f4f6',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = '#f9fafb'}
+                    onMouseOut={e => e.currentTarget.style.background = ''}
+                  >
+                    <span style={{ fontSize: 13 }}>🐄</span>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>
+                        {r.ciftlikAdi || r.ciftciIsim}
+                      </div>
+                      <div style={{ fontSize: 10, color: '#9ca3af' }}>
+                        {r.hayvan?.kupeNo} · {r.hayvan?.isim}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* KPI strip */}
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)',
@@ -269,12 +433,10 @@ export default function VeterinerDashboard({ kullanici }) {
         </div>
       </div>
 
-      {/* Mobile grid */}
       <style>{`
-        @media (max-width: 900px) {
-          .vet-dashboard-grid {
-            grid-template-columns: 1fr !important;
-          }
+        @media (max-width: 768px) {
+          .kupe-form-desktop { display: none !important; }
+          .vet-dashboard-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </VetPageShell>
