@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import VetPageHeader from '../components/Layout/VetPageHeader';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
 const msgIn = keyframes`from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}`;
@@ -10,32 +11,11 @@ const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 20px 0;
+  padding: 0 20px 0;
   min-height: calc(100vh - 80px);
   display: flex; flex-direction: column;
-  background: #f1f5f9;
+  background: #f9fafb;
   animation: ${fadeUp} 0.4s ease;
-`;
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-const Hero = styled.div`
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
-  border-radius: 22px;
-  padding: 26px 36px;
-  margin-bottom: 20px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
-  position: relative; overflow: hidden;
-  flex-shrink: 0;
-
-  &::before { content: ''; position: absolute; top: -80px; right: -50px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%); }
-  &::after { content: ''; position: absolute; bottom: -40px; left: 35%; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(14,165,233,0.12), transparent 70%); }
-
-  .h-left { z-index: 1; }
-  .h-badge { font-size: 11px; font-weight: 800; color: rgba(165,180,252,0.9); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
-  .h-title { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.03em; margin: 0 0 5px; }
-  .h-sub { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 500; }
-  .h-badge-count { z-index: 1; display: flex; gap: 10px; flex-wrap: wrap; }
-  .h-pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; padding: 8px 16px; font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; }
 `;
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
@@ -275,17 +255,10 @@ export default function Danismalar() {
 
   return (
     <Page>
-      <Hero>
-        <div className="h-left">
-          <div className="h-badge">💬 Danışmalar</div>
-          <div className="h-title">Danışma & Mesajlaşma Merkezi</div>
-          <div className="h-sub">Kayıtlı çiftliklerden gelen mesajları yanıtlayın</div>
-        </div>
-        <div className="h-badge-count">
-          <div className="h-pill">👥 {threads.length} Konuşma</div>
-          {totalUnread > 0 && <div className="h-pill" style={{ background: 'rgba(239,68,68,0.85)', borderColor: 'rgba(239,68,68,0.5)' }}>🔴 {totalUnread} Okunmamış</div>}
-        </div>
-      </Hero>
+      <VetPageHeader
+        title="Danışma Mesajları"
+        subtitle="Çiftçilerden gelen sorular ve danışmalar"
+      />
 
       <Layout>
         {/* Thread List */}

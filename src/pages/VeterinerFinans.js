@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import VetPageHeader, { VetBtnSecondary } from '../components/Layout/VetPageHeader';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
 const slideIn = keyframes`from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}`;
@@ -10,47 +11,22 @@ const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 20px 64px;
+  padding: 0 24px 64px;
   min-height: calc(100vh - 80px);
-  background: #f1f5f9;
+  background: #f9fafb;
   animation: ${fadeUp} 0.4s ease;
-`;
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-const Hero = styled.div`
-  background: linear-gradient(135deg, #064e3b 0%, #065f46 45%, #047857 100%);
-  border-radius: 22px;
-  padding: 28px 36px;
-  margin-bottom: 22px;
-  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-  position: relative; overflow: hidden;
-
-  &::before { content: ''; position: absolute; top: -80px; right: -60px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%); }
-  &::after { content: ''; position: absolute; bottom: -60px; left: 25%; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(5,150,105,0.15), transparent 70%); }
-
-  .h-left { z-index: 1; }
-  .h-badge { font-size: 11px; font-weight: 800; color: rgba(110,231,183,0.9); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
-  .h-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.03em; margin: 0 0 6px; }
-  .h-sub { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 500; }
-  .h-pills { display: flex; gap: 10px; flex-wrap: wrap; z-index: 1; }
-  .h-pill { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 12px; padding: 10px 18px; font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; }
 `;
 
 // ─── Kötü Polis ───────────────────────────────────────────────────────────────
 const KotuPolisPanel = styled.div`
-  background: rgba(255,255,255,0.95);
-  border: 1.5px solid #fecaca;
-  border-left: 5px solid #ef4444;
-  border-radius: 18px;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  position: relative; overflow: hidden;
-  box-shadow: 0 4px 20px rgba(239,68,68,0.08);
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 24px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
 
-  &::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 200px; background: linear-gradient(90deg, transparent, rgba(254,226,226,0.4)); pointer-events: none; }
-
-  .kp-icon { font-size: 28px; flex-shrink: 0; z-index: 1; }
+  .kp-icon { font-size: 28px; flex-shrink: 0; }
   .kp-texts { flex: 1; min-width: 160px; z-index: 1; }
   .kp-title { font-size: 15px; font-weight: 900; color: #991b1b; margin-bottom: 2px; }
   .kp-sub { font-size: 12px; color: #b91c1c; opacity: 0.75; }
@@ -415,21 +391,15 @@ export default function VeterinerFinans() {
 
   return (
     <Page>
-      {/* Hero */}
-      <Hero>
-        <div className="h-left">
-          <div className="h-badge">💰 Finans</div>
-          <div className="h-title">Fatura & Tahsilat Yönetimi</div>
-          <div className="h-sub">Müşteri bazında fatura kesilebilir, alacak ve tahsilat takibi yapılabilir</div>
-        </div>
-        <div className="h-pills">
-          <div className="h-pill">🧾 {cari.list.length} Müşteri</div>
-          <div className="h-pill" style={{ color: borcluSayisi > 0 ? '#fca5a5' : 'rgba(255,255,255,0.9)' }}>
-            ⏳ {borcluSayisi} Borçlu
-          </div>
-          <div className="h-pill">✅ %{tahsilatOran} Tahsil</div>
-        </div>
-      </Hero>
+      <VetPageHeader
+        title="Fatura & Tahsilat"
+        subtitle="Cari hesaplar · Fatura kesme · Tahsilat takibi"
+        actions={
+          <button style={VetBtnSecondary} onClick={() => setModalAcik(true)}>
+            + Fatura Kes
+          </button>
+        }
+      />
 
       {/* Kötü Polis */}
       <KotuPolisPanel>

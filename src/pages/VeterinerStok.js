@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import styled, { keyframes, css } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import VetPageHeader, { VetBtnPrimary, VetBtnSecondary } from '../components/Layout/VetPageHeader';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}`;
 
@@ -11,62 +12,17 @@ const Page = styled.div`
   font-family: 'Inter', sans-serif;
   color: #0f172a;
   min-height: calc(100vh - 70px);
-  background: #f1f5f9;
-  padding: 24px;
+  background: #f9fafb;
+  padding: 0;
 `;
 
 const Inner = styled.div`
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
+  padding: 20px 20px 64px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-`;
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-const Hero = styled.div`
-  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0ea5e9 100%);
-  border-radius: 20px;
-  padding: 28px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute; top: -60px; right: -40px;
-    width: 200px; height: 200px; border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-  }
-  &::after {
-    content: '';
-    position: absolute; bottom: -50px; right: 120px;
-    width: 140px; height: 140px; border-radius: 50%;
-    background: rgba(14,165,233,0.12);
-  }
-
-  .hero-left { z-index: 1; }
-  .hero-title { font-size: 24px; font-weight: 900; color: #fff; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .hero-sub   { font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 500; }
-
-  .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; z-index: 1; }
-  .h-pill {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 12px; padding: 8px 16px;
-    font-size: 13px; font-weight: 700; color: #fff;
-    cursor: pointer; transition: all 0.2s; white-space: nowrap;
-    &:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
-  }
-  .h-pill.primary {
-    background: #fff; color: #2563eb;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-    &:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.18); transform: translateY(-2px); }
-  }
 `;
 
 // ─── Stat Cards ───────────────────────────────────────────────────────────────
@@ -503,24 +459,22 @@ export default function VeterinerStok() {
 
   return (
     <Page>
+      <VetPageHeader
+        title="Klinik Stok Yönetimi"
+        subtitle="İlaç · Aşı · Tohum · Ekipman"
+        actions={
+          <>
+            <button
+              style={{ ...VetBtnSecondary, background: aktifTab === 'bagaj' ? '#f0fdf4' : '#fff' }}
+              onClick={() => setAktifTab(aktifTab === 'stok' ? 'bagaj' : 'stok')}
+            >
+              {aktifTab === 'stok' ? '🎒 Dijital Bagaj' : '📦 Depo Stoku'}
+            </button>
+            <button style={VetBtnPrimary} onClick={openEkle}>+ Stok Ekle</button>
+          </>
+        }
+      />
       <Inner>
-
-        {/* ─── Hero ─── */}
-        <Hero>
-          <div className="hero-left">
-            <div className="hero-title">💊 Klinik Stok Yönetimi</div>
-            <div className="hero-sub">İlaç, aşı, tohum ve ekipman stoklarınızı takip edin</div>
-          </div>
-          <div className="hero-pills">
-            {aktifTab === 'stok' && (
-              <button className="h-pill" onClick={() => setAktifTab('bagaj')}>🎒 Dijital Bagaj →</button>
-            )}
-            {aktifTab === 'bagaj' && (
-              <button className="h-pill" onClick={() => setAktifTab('stok')}>📦 Depo Stoku →</button>
-            )}
-            <button className="h-pill primary" onClick={openEkle}>+ Ürün Ekle</button>
-          </div>
-        </Hero>
 
         {/* ─── Stats ─── */}
         <StatsRow>
@@ -572,11 +526,12 @@ export default function VeterinerStok() {
               key={t.id}
               onClick={() => setAktifTab(t.id)}
               style={{
-                flex: 1, padding: '11px 16px', borderRadius: 10, border: 'none',
+                flex: 1, padding: '11px 16px', borderRadius: 10, border: '1px solid transparent',
                 fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-                background: aktifTab === t.id ? 'linear-gradient(135deg,#2563eb,#0ea5e9)' : 'transparent',
-                color: aktifTab === t.id ? '#fff' : '#64748b',
-                boxShadow: aktifTab === t.id ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
+                background: aktifTab === t.id ? '#dbeafe' : 'transparent',
+                color: aktifTab === t.id ? '#1e40af' : '#64748b',
+                boxShadow: 'none',
+                borderColor: aktifTab === t.id ? '#bfdbfe' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >

@@ -16,17 +16,6 @@ const Page = styled.div`
   position: relative;
   overflow: hidden;
   z-index: 1;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: 
-      radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.04) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
-    z-index: -1;
-    pointer-events: none;
-  }
   @media (max-width: 900px) { flex-direction: column; height: auto; min-height: auto; }
 `;
 
@@ -47,20 +36,12 @@ const SidebarHeader = styled.div`
   background: #ffffff;
 
   .bubble {
-    background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #0ea5e9 100%);
+    background: #2563eb;
+    border-radius: 12px;
     padding: 20px 22px;
     display: flex;
     align-items: center;
     gap: 14px;
-    position: relative;
-    overflow: hidden;
-
-    &::after {
-      content: '';
-      position: absolute; right: -20px; top: -20px;
-      width: 100px; height: 100px; border-radius: 50%;
-      background: rgba(255,255,255,0.06);
-    }
   }
 
   .bubble-icon {

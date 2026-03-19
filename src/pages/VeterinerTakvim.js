@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
+import VetPageHeader, { VetBtnPrimary } from '../components/Layout/VetPageHeader';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
 
@@ -9,58 +10,10 @@ const Page = styled.div`
   font-family: 'Inter', -apple-system, sans-serif;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 20px 64px;
+  padding: 0 20px 64px;
   min-height: calc(100vh - 80px);
-  background: #f1f5f9;
+  background: #f9fafb;
   animation: ${fadeUp} 0.4s ease;
-`;
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-const Hero = styled.div`
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0c4a6e 100%);
-  border-radius: 22px;
-  padding: 30px 36px;
-  margin-bottom: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute; top: -80px; right: -60px;
-    width: 280px; height: 280px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(14,165,233,0.15), transparent 70%);
-  }
-  &::after {
-    content: '';
-    position: absolute; bottom: -50px; left: 40%;
-    width: 180px; height: 180px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(99,102,241,0.1), transparent 70%);
-  }
-
-  .h-left { z-index: 1; }
-  .h-badge { font-size: 11px; font-weight: 800; color: rgba(14,165,233,0.9); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
-  .h-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.03em; margin: 0 0 6px; }
-  .h-sub { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 500; }
-
-  .h-pills { display: flex; gap: 10px; flex-wrap: wrap; z-index: 1; }
-  .h-pill {
-    display: flex; align-items: center; gap: 7px;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 12px; padding: 10px 18px;
-    font-size: 13px; font-weight: 700; color: #fff; cursor: pointer;
-    transition: all 0.2s; white-space: nowrap;
-    &:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
-  }
-  .h-pill.cta {
-    background: #0ea5e9; border-color: #0ea5e9;
-    box-shadow: 0 4px 16px rgba(14,165,233,0.4);
-    &:hover { background: #0284c7; box-shadow: 0 6px 22px rgba(14,165,233,0.5); }
-  }
 `;
 
 // ─── Stats Row ────────────────────────────────────────────────────────────────
@@ -68,7 +21,7 @@ const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  margin-bottom: 22px;
+  margin: 24px 0 22px;
   @media(max-width: 900px) { grid-template-columns: repeat(2,1fr); }
 `;
 
@@ -313,6 +266,7 @@ export default function VeterinerTakvim() {
     } catch { toast.error('Güncellenemedi.'); }
   };
 
+  const formRef = useRef(null);
   const sorted = [...randevular].sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
   const bugunSayisi = randevular.filter(r => new Date(r.tarih).toDateString() === todayStr && r.durum === 'planlandi').length;
   const planlananSayisi = randevular.filter(r => r.durum === 'planlandi').length;
@@ -330,23 +284,15 @@ export default function VeterinerTakvim() {
 
   return (
     <Page>
-      {/* Hero */}
-      <Hero>
-        <div className="h-left">
-          <div className="h-badge">📅 Takvim</div>
-          <div className="h-title">Randevu & Ziyaret Takvimi</div>
-          <div className="h-sub">
-            {bugunSayisi > 0
-              ? `🔵 Bugün ${bugunSayisi} planlı randevunuz var`
-              : 'Çiftlik ziyaretlerinizi planlayın ve takip edin'}
-          </div>
-        </div>
-        <div className="h-pills">
-          <div className="h-pill">📋 {planlananSayisi} Planlı</div>
-          <div className="h-pill">✅ {tamamlananSayisi} Tamamlanan</div>
-          <div className="h-pill">💡 {oneriler.length} Öneri</div>
-        </div>
-      </Hero>
+      <VetPageHeader
+        title="Randevu Takvimi"
+        subtitle="Ziyaret planlaması · Randevu yönetimi"
+        actions={
+          <button style={VetBtnPrimary} onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+            + Yeni Randevu
+          </button>
+        }
+      />
 
       {/* Stats */}
       <StatsRow>
@@ -384,7 +330,7 @@ export default function VeterinerTakvim() {
         {/* Sol */}
         <SidePanel>
           {/* Randevu Ekle */}
-          <Card>
+          <Card ref={formRef}>
             <CardHead>
               <span className="ch-icon">➕</span>
               <span className="ch-title">Yeni Randevu Ekle</span>

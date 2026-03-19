@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
+import VetPageHeader from '../components/Layout/VetPageHeader';
 
 export default function VeterinerRapor() {
   const [data, setData] = useState({ aylik: null, hastalik: [], cari: null });
@@ -29,37 +30,35 @@ export default function VeterinerRapor() {
     : [];
 
   return (
-    <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#111827', margin: 0 }}>Aylık Rapor</h1>
-          <p style={{ fontSize: 13, color: '#6b7280', margin: '2px 0 0' }}>
-            {new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {['Bu Ay', '3 Ay', '6 Ay'].map(d => (
-            <button
-              key={d}
-              onClick={() => setDonem(d)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 20,
-                border: '1px solid',
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: 'pointer',
-                background: donem === d ? '#dbeafe' : '#fff',
-                color: donem === d ? '#1e40af' : '#6b7280',
-                borderColor: donem === d ? '#3b82f6' : '#e5e7eb'
-              }}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div style={{ background: '#f9fafb', minHeight: '100vh', paddingBottom: 64 }}>
+      <VetPageHeader
+        title="Aylık Rapor"
+        subtitle={new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+        actions={
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['Bu Ay', '3 Ay', '6 Ay'].map(d => (
+              <button
+                key={d}
+                onClick={() => setDonem(d)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 20,
+                  border: '1px solid',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: donem === d ? '#dbeafe' : '#fff',
+                  color: donem === d ? '#1e40af' : '#6b7280',
+                  borderColor: donem === d ? '#2563eb' : '#e5e7eb'
+                }}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        }
+      />
+      <div style={{ padding: '20px 24px' }}>
 
       {/* KPI'lar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -117,6 +116,7 @@ export default function VeterinerRapor() {
           ))}
           {(!cari?.list || cari.list.length === 0) && <div style={{ color: '#9ca3af', fontSize: 13, textAlign: 'center', padding: 24 }}>Cari kaydı yok</div>}
         </div>
+      </div>
       </div>
     </div>
   );
