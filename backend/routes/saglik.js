@@ -258,6 +258,7 @@ router.get('/', auth, checkRole(['ciftci', 'veteriner']), async (req, res) => {
 
         const [kayitlar, toplam] = await Promise.all([
             SaglikKaydi.find(filter)
+                .populate('kayitSahibi.sahipId', 'isim')
                 .sort({ tarih: -1 })
                 .skip(skip)
                 .limit(parseInt(limit))

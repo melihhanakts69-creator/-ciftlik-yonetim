@@ -465,6 +465,25 @@ export default function VeterinerStok() {
     setDusModal(null);
   };
 
+  const handleBagajKullan = async (stokId, entry) => {
+    const miktar = prompt(`Kaç ${entry.birim || 'adet'} kullandınız? (Mevcut: ${entry.miktar})`);
+    if (!miktar || isNaN(miktar) || Number(miktar) <= 0) return;
+    const mik = Number(miktar);
+    const s = stoklar.find(x => x._id === stokId);
+    if (!s) { toast.error('Stok bulunamadı.'); return; }
+    try {
+      const yeniDepoMiktar = Math.max(0, s.miktar - mik);
+      await api.updateStok(stokId, { miktar: yeniDepoMiktar });
+      const nm = Math.max(0, entry.miktar - mik);
+      const nb = nm === 0
+        ? Object.fromEntries(Object.entries(bagaj).filter(([k]) => k !== stokId))
+        : { ...bagaj, [stokId]: { ...entry, miktar: nm } };
+      bagajGuncelle(nb);
+      toast.success('Stok güncellendi');
+      fetchStok();
+    } catch { toast.error('Güncelleme hatası'); }
+  };
+
   // Filtered
   const filteredStok = useMemo(() => {
     let l = stoklar;
@@ -699,9 +718,17 @@ export default function VeterinerStok() {
                         </div>
                         <button className="bc-btn" onClick={() => bagajGuncelle({ ...bagaj, [stokId]: { ...entry, miktar: entry.miktar + 1 } })}>+</button>
                       </div>
-                      <button className="bc-dus" onClick={() => { setDusModal({ stokId, stokAdi: entry.stokAdi, birim: entry.birim }); setDusMiktar(''); }}>
-                        📋 Kullanım Kaydet (Düş)
-                      </button>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => handleBagajKullan(stokId, entry)}
+                          style={{ background: '#dbeafe', color: '#1e40af', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 500, cursor: 'pointer', flex: 1, minWidth: 100 }}
+                        >
+                          Kullandım
+                        </button>
+                        <button className="bc-dus" onClick={() => { setDusModal({ stokId, stokAdi: entry.stokAdi, birim: entry.birim }); setDusMiktar(''); }} style={{ flex: 1, minWidth: 100 }}>
+                          📋 Kullanım Kaydet (Düş)
+                        </button>
+                      </div>
                     </BagajCard>
                   );
                 })}

@@ -628,19 +628,21 @@ router.post('/randevu', async (req, res) => {
             aciklama: (aciklama || '').trim(),
             durum: 'planlandi'
         });
-        const vetAd = veteriner.klinikAdi || veteriner.isim || 'Veteriner';
-        const tarihStr = new Date(tarih).toLocaleDateString('tr-TR');
-        const saatStr = (saat || '').trim() || '—';
+        const vetAd = veteriner.isim || veteriner.klinikAdi || 'Veteriner';
         const randevuTarih = new Date(tarih);
+        const hatirlatmaTarihi = new Date(randevuTarih.getTime() - 24 * 60 * 60 * 1000); // 1 gün önce
         await Bildirim.create({
             userId: ciftciId,
             tip: 'randevu',
-            baslik: 'Veteriner randevusu',
-            mesaj: `${vetAd} sizin için ${tarihStr} ${saatStr !== '—' ? saatStr : ''} tarihli randevu oluşturdu: ${baslik.trim()}`.trim(),
-            oncelik: 'normal',
-            hatirlatmaTarihi: randevuTarih,
+            baslik: `Randevu: ${randevuTarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+            mesaj: `Dr. ${vetAd} ${randevuTarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} tarihine randevu oluşturdu${(aciklama || '').trim() ? ': ' + aciklama.trim() : '.'}`,
+            oncelik: 'yuksek',
+            hatirlatmaTarihi,
+            aktif: true,
+            tamamlandi: false,
             metadata: {
                 randevuId: doc._id,
+                veterinerId: vetId,
                 veterinerAdi: vetAd,
                 baslik: baslik.trim(),
                 tarih: randevuTarih,

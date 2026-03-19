@@ -1402,8 +1402,13 @@ function SaglikMerkezi() {
                                                     <RecordContent>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2 }}>
+                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                                                                     {k.tani}
+                                                                    {k.kayitSahibi?.tip === 'veteriner' && (
+                                                                        <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#dbeafe', color: '#1e40af', flexShrink: 0 }}>
+                                                                            🩺 Veteriner Kaydı
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                                                     {k.hayvanIsim && <span>🐄 {k.hayvanIsim} ({k.hayvanKupeNo})</span>}
@@ -1466,8 +1471,13 @@ function SaglikMerkezi() {
                                                     <RecordContent>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2 }}>
+                                                                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', marginBottom: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                                                                     {k.tani}
+                                                                    {k.kayitSahibi?.tip === 'veteriner' && (
+                                                                        <span style={{ fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: '#dbeafe', color: '#1e40af', flexShrink: 0 }}>
+                                                                            🩺 Veteriner Kaydı
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                                                     {k.hayvanIsim && <span>🐄 {k.hayvanIsim} ({k.hayvanKupeNo})</span>}
