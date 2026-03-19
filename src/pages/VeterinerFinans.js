@@ -2,19 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
-import VetPageHeader, { VetBtnSecondary } from '../components/Layout/VetPageHeader';
+import VetPageShell, { VetBtn } from '../components/Vet/VetPageShell';
 
 const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
 const slideIn = keyframes`from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}`;
 
 const Page = styled.div`
-  font-family: 'Inter', -apple-system, sans-serif;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px 64px;
-  min-height: calc(100vh - 80px);
+  font-family: 'Inter', system-ui, sans-serif;
   background: #f9fafb;
-  animation: ${fadeUp} 0.4s ease;
+  min-height: 100%;
 `;
 
 // ─── Kötü Polis ───────────────────────────────────────────────────────────────
@@ -22,23 +18,23 @@ const KotuPolisPanel = styled.div`
   background: #fff;
   border: 1px solid #fecaca;
   border-radius: 12px;
-  padding: 16px 20px;
-  margin: 16px 24px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
 
   .kp-icon { font-size: 28px; flex-shrink: 0; }
-  .kp-texts { flex: 1; min-width: 160px; z-index: 1; }
+  .kp-texts { flex: 1; min-width: 160px; }
   .kp-title { font-size: 15px; font-weight: 900; color: #991b1b; margin-bottom: 2px; }
   .kp-sub { font-size: 12px; color: #b91c1c; opacity: 0.75; }
-  .kp-stats { display: flex; gap: 22px; z-index: 1; }
+  .kp-stats { display: flex; gap: 22px; }
   .kp-stat { text-align: center; }
   .kp-stat-val { font-size: 22px; font-weight: 900; color: #dc2626; }
   .kp-stat-lbl { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
-  .kp-config { display: flex; align-items: center; gap: 8px; z-index: 1; flex-wrap: wrap; }
+  .kp-config { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .kp-config label { font-size: 12px; color: #64748b; white-space: nowrap; font-weight: 600; }
   .kp-config select { padding: 8px 10px; border-radius: 8px; border: 1.5px solid #fecaca; background: #fff7f7; color: #991b1b; font-size: 13px; font-weight: 700; cursor: pointer; &:focus { outline: none; border-color: #ef4444; } }
-  .kp-btn { padding: 10px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg,#ef4444,#dc2626); color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; white-space: nowrap; z-index: 1; box-shadow: 0 4px 14px rgba(239,68,68,0.3); &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239,68,68,0.45); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
-  .kp-ok-banner { width: 100%; padding: 10px 14px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 12px; font-weight: 700; text-align: center; z-index: 1; }
+  .kp-btn { padding: 10px 20px; border-radius: 10px; border: none; background: #ef4444; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; white-space: nowrap; &:hover:not(:disabled) { background: #dc2626; } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+  .kp-ok-banner { width: 100%; padding: 10px 14px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 12px; font-weight: 700; text-align: center; }
 `;
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
@@ -391,16 +387,18 @@ export default function VeterinerFinans() {
 
   return (
     <Page>
-      <VetPageHeader
+      <VetPageShell
         title="Fatura & Tahsilat"
-        subtitle="Cari hesaplar · Fatura kesme · Tahsilat takibi"
-        actions={
-          <button style={VetBtnSecondary} onClick={() => setModalAcik(true)}>
+        subtitle="Müşteri bazında cari takip"
+        actions={<>
+          <button style={VetBtn.secondary} onClick={handleTopluHatirlatma}>
+            📬 Toplu Hatırlatma
+          </button>
+          <button style={VetBtn.primary} onClick={() => setModalAcik(true)}>
             + Fatura Kes
           </button>
-        }
-      />
-
+        </>}
+      >
       {/* Kötü Polis */}
       <KotuPolisPanel>
         <span className="kp-icon">🚨</span>
@@ -645,6 +643,7 @@ export default function VeterinerFinans() {
           </ModalBox>
         </Overlay>
       )}
+      </VetPageShell>
     </Page>
   );
 }

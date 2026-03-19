@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import styled, { keyframes, css } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
-import VetPageHeader, { VetBtnPrimary, VetBtnSecondary } from '../components/Layout/VetPageHeader';
+import VetPageShell, { VetBtn } from '../components/Vet/VetPageShell';
 
 const fadeIn = keyframes`from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}`;
 
@@ -459,21 +459,19 @@ export default function VeterinerStok() {
 
   return (
     <Page>
-      <VetPageHeader
-        title="Klinik Stok Yönetimi"
+      <VetPageShell
+        title={aktifTab === 'stok' ? 'Depo Stoku' : 'Dijital Bagaj'}
         subtitle="İlaç · Aşı · Tohum · Ekipman"
-        actions={
-          <>
-            <button
-              style={{ ...VetBtnSecondary, background: aktifTab === 'bagaj' ? '#f0fdf4' : '#fff' }}
-              onClick={() => setAktifTab(aktifTab === 'stok' ? 'bagaj' : 'stok')}
-            >
-              {aktifTab === 'stok' ? '🎒 Dijital Bagaj' : '📦 Depo Stoku'}
-            </button>
-            <button style={VetBtnPrimary} onClick={openEkle}>+ Stok Ekle</button>
-          </>
-        }
-      />
+        actions={<>
+          <button
+            style={aktifTab === 'bagaj' ? VetBtn.primary : VetBtn.secondary}
+            onClick={() => setAktifTab(aktifTab === 'stok' ? 'bagaj' : 'stok')}
+          >
+            {aktifTab === 'stok' ? '🎒 Dijital Bagaj' : '📦 Depo Stoku'}
+          </button>
+          <button style={VetBtn.primary} onClick={openEkle}>+ Stok Ekle</button>
+        </>}
+      >
       <Inner>
 
         {/* ─── Stats ─── */}
@@ -805,6 +803,7 @@ export default function VeterinerStok() {
           </Modal>
         </Overlay>
       )}
+      </VetPageShell>
     </Page>
   );
 }

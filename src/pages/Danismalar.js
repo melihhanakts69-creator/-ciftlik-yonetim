@@ -2,21 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
-import VetPageHeader from '../components/Layout/VetPageHeader';
+import VetPageShell from '../components/Vet/VetPageShell';
 
-const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
 const msgIn = keyframes`from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}`;
-
-const Page = styled.div`
-  font-family: 'Inter', -apple-system, sans-serif;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 20px 0;
-  min-height: calc(100vh - 80px);
-  display: flex; flex-direction: column;
-  background: #f9fafb;
-  animation: ${fadeUp} 0.4s ease;
-`;
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 const Layout = styled.div`
@@ -254,12 +242,8 @@ export default function Danismalar() {
   })();
 
   return (
-    <Page>
-      <VetPageHeader
-        title="Danışma Mesajları"
-        subtitle="Çiftçilerden gelen sorular ve danışmalar"
-      />
-
+    <div style={{ background: '#f9fafb', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <VetPageShell title="Danışma Mesajları" subtitle="Çiftçilerden gelen sorular">
       <Layout>
         {/* Thread List */}
         <ThreadList>
@@ -388,6 +372,7 @@ export default function Danismalar() {
           )}
         </ChatPanel>
       </Layout>
-    </Page>
+      </VetPageShell>
+    </div>
   );
 }

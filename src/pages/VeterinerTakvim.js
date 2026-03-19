@@ -1,43 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
-import VetPageHeader, { VetBtnPrimary } from '../components/Layout/VetPageHeader';
-
-const fadeUp = keyframes`from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}`;
-
-const Page = styled.div`
-  font-family: 'Inter', -apple-system, sans-serif;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 20px 64px;
-  min-height: calc(100vh - 80px);
-  background: #f9fafb;
-  animation: ${fadeUp} 0.4s ease;
-`;
+import VetPageShell, { VetBtn } from '../components/Vet/VetPageShell';
 
 // ─── Stats Row ────────────────────────────────────────────────────────────────
 const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 24px 0 22px;
-  @media(max-width: 900px) { grid-template-columns: repeat(2,1fr); }
+  gap: 10px;
+  margin-bottom: 16px;
+  @media(max-width: 600px) { grid-template-columns: repeat(2, 1fr); }
 `;
 
 const StatCard = styled.div`
   background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 18px 20px;
-  display: flex; align-items: center; gap: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: all 0.2s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.07); }
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
 
-  .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .sc-val { font-size: 24px; font-weight: 900; color: #0f172a; line-height: 1; }
-  .sc-lbl { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+  .sc-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .sc-val { font-size: 20px; font-weight: 600; color: #111827; line-height: 1; }
+  .sc-lbl { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
 `;
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
@@ -90,12 +75,11 @@ const Field = styled.div`
 const SubmitBtn = styled.button`
   width: 100%; padding: 13px;
   border-radius: 12px; border: none;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  background: #2563eb;
   color: #fff; font-size: 14px; font-weight: 800;
   cursor: pointer; transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(14,165,233,0.3);
-  &:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(14,165,233,0.45); transform: translateY(-1px); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  &:hover:not(:disabled) { background: #1d4ed8; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 // ─── Mini Takvim ──────────────────────────────────────────────────────────────
@@ -283,17 +267,16 @@ export default function VeterinerTakvim() {
   );
 
   return (
-    <Page>
-      <VetPageHeader
+    <div style={{ background: '#f9fafb', minHeight: '100%' }}>
+      <VetPageShell
         title="Randevu Takvimi"
-        subtitle="Ziyaret planlaması · Randevu yönetimi"
+        subtitle={bugunSayisi > 0 ? `Bugün ${bugunSayisi} randevu var` : 'Ziyaret planlaması'}
         actions={
-          <button style={VetBtnPrimary} onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-            + Yeni Randevu
+          <button style={VetBtn.primary} onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+            + Randevu Ekle
           </button>
         }
-      />
-
+      >
       {/* Stats */}
       <StatsRow>
         <StatCard>
@@ -474,6 +457,7 @@ export default function VeterinerTakvim() {
           )}
         </MainPanel>
       </Grid>
-    </Page>
+      </VetPageShell>
+    </div>
   );
 }

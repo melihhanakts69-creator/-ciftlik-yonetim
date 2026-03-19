@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../services/api';
-import VetPageHeader from '../components/Layout/VetPageHeader';
+import VetPageShell from '../components/Vet/VetPageShell';
 
 export default function VeterinerRapor() {
   const [data, setData] = useState({ aylik: null, hastalik: [], cari: null });
@@ -30,8 +30,8 @@ export default function VeterinerRapor() {
     : [];
 
   return (
-    <div style={{ background: '#f9fafb', minHeight: '100vh', paddingBottom: 64 }}>
-      <VetPageHeader
+    <div style={{ background: '#f9fafb', minHeight: '100%' }}>
+      <VetPageShell
         title="Aylık Rapor"
         subtitle={new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
         actions={
@@ -57,8 +57,8 @@ export default function VeterinerRapor() {
             ))}
           </div>
         }
-      />
-      <div style={{ padding: '20px 24px' }}>
+      >
+      <div style={{ padding: '0 0 64px' }}>
 
       {/* KPI'lar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -118,6 +118,7 @@ export default function VeterinerRapor() {
         </div>
       </div>
       </div>
+      </VetPageShell>
     </div>
   );
 }
