@@ -47,17 +47,17 @@ const MetricRow = styled.div`
 `;
 
 const MetricCard = styled.div`
-  background: ${p => p.$primary ? 'linear-gradient(135deg,#047857,#065f46)' : '#fff'};
+  background: ${p => p.$primary ? '#1e3a5f' : '#fff'};
   border-radius: 16px;
   padding: 20px 22px;
   border: 1px solid ${p => p.$primary ? 'transparent' : '#e2e8f0'};
-  box-shadow: ${p => p.$primary ? '0 10px 28px -8px rgba(4,120,87,0.4)' : '0 2px 8px rgba(0,0,0,0.04)'};
+  box-shadow: ${p => p.$primary ? '0 10px 28px -8px rgba(37,99,235,0.25)' : '0 2px 8px rgba(0,0,0,0.04)'};
   transition: all 0.2s;
   &:hover { transform: translateY(-2px); }
   position: relative; overflow: hidden;
 
   .mc-icon { font-size: 20px; margin-bottom: 8px; }
-  .mc-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: ${p => p.$primary ? 'rgba(255,255,255,0.65)' : '#94a3b8'}; margin-bottom: 4px; }
+  .mc-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: ${p => p.$primary ? 'rgba(147,197,253,.8)' : '#94a3b8'}; margin-bottom: 4px; }
   .mc-val { font-size: 20px; font-weight: 900; color: ${p => p.$primary ? '#fff' : (p.$color || '#0f172a')}; letter-spacing: -0.02em; }
   .mc-sub { font-size: 11px; color: ${p => p.$primary ? 'rgba(255,255,255,0.6)' : '#64748b'}; margin-top: 4px; }
   .mc-bg { position: absolute; right: -12px; bottom: -12px; font-size: 56px; opacity: 0.06; }
@@ -102,9 +102,9 @@ const CustomerItem = styled.div`
   border-bottom: 1px solid #f8fafc;
   transition: all 0.15s;
   position: relative;
-  background: ${p => p.$active ? 'linear-gradient(90deg,rgba(4,120,87,0.07),transparent)' : 'transparent'};
-  ${p => p.$active && css`&::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg,#059669,#047857); border-radius: 0 3px 3px 0; }`}
-  &:hover { background: ${p => p.$active ? 'linear-gradient(90deg,rgba(4,120,87,0.07),transparent)' : '#fafbfd'}; }
+  background: ${p => p.$active ? 'rgba(37,99,235,.06)' : 'transparent'};
+  ${p => p.$active && css`&::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #2563eb; border-radius: 0 3px 3px 0; }`}
+  &:hover { background: ${p => p.$active ? 'rgba(37,99,235,.06)' : '#fafbfd'}; }
   &:last-child { border-bottom: none; }
 
   .c-name { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -136,11 +136,11 @@ const CardHead = styled.div`
 
 const ActBtn = styled.button`
   padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.18s; white-space: nowrap;
-  background: ${p => p.$variant === 'primary' ? 'linear-gradient(135deg,#059669,#047857)' : p.$variant === 'warn' ? '#fff7ed' : 'transparent'};
+  background: ${p => p.$variant === 'primary' ? '#2563eb' : p.$variant === 'warn' ? '#fff7ed' : 'transparent'};
   color: ${p => p.$variant === 'primary' ? '#fff' : p.$variant === 'warn' ? '#c2410c' : '#64748b'};
   border: ${p => p.$variant === 'warn' ? '1px solid #fed7aa' : 'none'};
-  box-shadow: ${p => p.$variant === 'primary' ? '0 4px 12px rgba(5,150,105,0.3)' : 'none'};
-  &:hover { transform: translateY(-1px); ${p => p.$variant === 'primary' ? 'box-shadow: 0 6px 18px rgba(5,150,105,0.4);' : ''} }
+  box-shadow: ${p => p.$variant === 'primary' ? '0 4px 12px rgba(37,99,235,0.3)' : 'none'};
+  &:hover { transform: translateY(-1px); ${p => p.$variant === 'primary' ? 'box-shadow: 0 6px 18px rgba(37,99,235,0.4);' : ''} }
 `;
 
 const SummaryRow = styled.div`
@@ -198,7 +198,7 @@ const TahsilatForm = styled.form`
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field label { font-size: 11px; color: #64748b; font-weight: 700; }
   .field input { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #fff; transition: all 0.2s; &:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); } }
-  .submit { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg,#059669,#047857); color: #fff; font-weight: 800; font-size: 13px; box-shadow: 0 3px 10px rgba(5,150,105,0.25); align-self: flex-end; white-space: nowrap; transition: all 0.2s; &:hover:not(:disabled) { box-shadow: 0 5px 14px rgba(5,150,105,0.35); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+  .submit { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: #2563eb; color: #fff; font-weight: 800; font-size: 13px; box-shadow: 0 3px 10px rgba(37,99,235,0.25); align-self: flex-end; white-space: nowrap; transition: all 0.2s; &:hover:not(:disabled) { box-shadow: 0 5px 14px rgba(37,99,235,0.35); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
 `;
 
 // ─── Modal ─────────────────────────────────────────────────────────────────────
@@ -246,7 +246,7 @@ const ModalFoot = styled.div`
   .toplam span { color: #059669; }
   .actions { display: flex; gap: 10px; }
   .cancel { padding: 11px 20px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; font-weight: 700; cursor: pointer; font-size: 13px; &:hover { background: #f8fafc; } }
-  .save { padding: 11px 24px; border-radius: 10px; border: none; background: linear-gradient(135deg,#059669,#047857); color: #fff; font-weight: 900; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(5,150,105,0.3); &:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(5,150,105,0.4); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+  .save { padding: 11px 24px; border-radius: 10px; border: none; background: #2563eb; color: #fff; font-weight: 900; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); &:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(37,99,235,0.4); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
 `;
 
 const EmptyState = styled.div`

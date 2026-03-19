@@ -6,17 +6,6 @@ import VetPageShell from '../components/Vet/VetPageShell';
 
 const msgIn = keyframes`from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}`;
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
-const Layout = styled.div`
-  display: flex;
-  gap: 18px;
-  flex: 1;
-  min-height: 0;
-  height: calc(100vh - 230px);
-  padding-bottom: 24px;
-  @media(max-width: 1024px) { flex-direction: column; height: auto; }
-`;
-
 // ─── Thread List ──────────────────────────────────────────────────────────────
 const ThreadList = styled.div`
   width: 300px; flex-shrink: 0;
@@ -49,11 +38,11 @@ const ThreadItem = styled.div`
   border-bottom: 1px solid #f8fafc;
   transition: all 0.15s;
   position: relative;
-  background: ${p => p.$active ? 'linear-gradient(90deg,rgba(67,56,202,0.07),transparent)' : 'transparent'};
+  background: ${p => p.$active ? 'rgba(37,99,235,.06)' : 'transparent'};
   ${p => p.$active ? `
-    &::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg,#6366f1,#4338ca); border-radius: 0 3px 3px 0; }
+    &::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #2563eb; border-radius: 0 3px 3px 0; }
   ` : ''}
-  &:hover { background: ${p => p.$active ? 'linear-gradient(90deg,rgba(67,56,202,0.07),transparent)' : '#fafbfd'}; }
+  &:hover { background: ${p => p.$active ? 'rgba(37,99,235,.06)' : '#fafbfd'}; }
   &:last-child { border-bottom: none; }
 
   .ti-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
@@ -242,10 +231,8 @@ export default function Danismalar() {
   })();
 
   return (
-    <div style={{ background: '#f9fafb', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <VetPageShell title="Danışma Mesajları" subtitle="Çiftçilerden gelen sorular">
-      <Layout>
-        {/* Thread List */}
+    <VetPageShell title="Danışma Mesajları" subtitle="Çiftçilerden gelen sorular">
+      <div style={{ display: 'flex', gap: 0, height: 'calc(100vh - 180px)', overflow: 'hidden', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff' }}>
         <ThreadList>
           <TLHead>
             <span className="tl-title">Konuşmalar</span>
@@ -371,8 +358,7 @@ export default function Danismalar() {
             </>
           )}
         </ChatPanel>
-      </Layout>
-      </VetPageShell>
-    </div>
+      </div>
+    </VetPageShell>
   );
 }

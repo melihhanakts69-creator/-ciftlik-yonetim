@@ -64,14 +64,7 @@ export default function VeterinerDashboard({ kullanici }) {
   ];
 
   return (
-    <VetPageShell
-      title="Ana Sayfa"
-      subtitle={`${new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}`}
-      actions={<>
-        <button style={VetBtn.secondary} onClick={() => navigate('/takvim')}>+ Randevu</button>
-        <button style={VetBtn.primary} onClick={() => navigate('/hastalar')}>+ Sağlık Kaydı</button>
-      </>}
-    >
+    <VetPageShell>
       {/* SELAMLAMA PANEL */}
       {(() => {
         const saat = new Date().getHours();

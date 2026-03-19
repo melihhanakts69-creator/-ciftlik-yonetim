@@ -100,13 +100,12 @@ const KAT_RENK = {
 const getKat = (k) => KAT_RENK[k] || { bg: '#f8fafc', border: '#e2e8f0', badge: '#64748b', icon: '📦' };
 
 const StokCard = styled.div`
-  background: #fff;
-  border-radius: 16px;
-  border: 1.5px solid ${p => p.$kritik ? '#fecaca' : p.$az ? '#fde68a' : '#e2e8f0'};
   background: ${p => p.$kritik ? '#fff5f5' : p.$az ? '#fffce8' : '#fff'};
+  border-radius: 12px;
+  border: 1px solid ${p => p.$kritik ? '#fecaca' : p.$az ? '#fde68a' : '#e5e7eb'};
   padding: 18px 20px;
   transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   display: flex;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as api from '../services/api';
 import VetPageShell, { VetBtn } from '../components/Vet/VetPageShell';
@@ -194,6 +195,7 @@ function buildCalendar(year, month) {
 }
 
 export default function VeterinerTakvim() {
+  const navigate = useNavigate();
   const [randevular, setRandevular] = useState([]);
   const [oneriler, setOneriler] = useState([]);
   const [musteriler, setMusteriler] = useState([]);
@@ -442,7 +444,11 @@ export default function VeterinerTakvim() {
                 <span className="ch-count">yaklaşan aşı & kontrol</span>
               </CardHead>
               {oneriler.map((o, i) => (
-                <OneriItem key={`${o.tip}-${o.tarih}-${i}`}>
+                <OneriItem
+                  key={`${o.tip}-${o.tarih}-${i}`}
+                  onClick={() => navigate(`/hastalar/${o.ciftciId || o._id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="oi-dot" />
                   <div className="oi-body">
                     <div className="oi-baslik">{o.baslik}</div>
