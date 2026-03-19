@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Layout from './components/Layout/Layout';
-import VetLayout from './components/Vet/VetLayout';
 import Login from './components/Auth/Login';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
@@ -133,45 +132,6 @@ function App() {
   const isVet = rol === 'veteriner';
   const isToplayici = rol === 'toplayici';
 
-  // Veteriner için ayrı layout + route'lar
-  if (isVet) {
-    return (
-      <>
-        <OfflineBanner />
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
-        <VetLayout kullanici={kullanici} okunmamis={0} danismaOkunmamis={0} onLogout={handleLogout}>
-          <Routes>
-            <Route path="/" element={<VeterinerDashboard kullanici={kullanici} />} />
-            <Route path="/hastalar" element={<Hastalar />} />
-            <Route path="/hastalar/:id" element={<Hastalar />} />
-            <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
-            <Route path="/danismalar" element={<Danismalar />} />
-            <Route path="/finans" element={<VeterinerFinans />} />
-            <Route path="/receteler" element={<VeterinerStok />} />
-            <Route path="/takvim" element={<VeterinerTakvim />} />
-            <Route path="/rapor" element={<VeterinerRapor />} />
-            <Route path="/bildirimler" element={<Bildirimler />} />
-            <Route path="/ayarlar" element={<Ayarlar />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/abonelik" element={<Abonelik />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </VetLayout>
-      </>
-    );
-  }
-
   return (
     <>
       <OfflineBanner />
@@ -216,6 +176,18 @@ function App() {
           {rol === 'ciftci' && <>
             <Route path="/finansal" element={<Finansal />} />
             <Route path="/karlilik" element={<Karlilik />} />
+          </>}
+
+          {/* Veteriner özel route'lar */}
+          {isVet && <>
+            <Route path="/hastalar" element={<Hastalar />} />
+            <Route path="/hastalar/:id" element={<Hastalar />} />
+            <Route path="/musteri-detay/:id" element={<MusteriDetay />} />
+            <Route path="/danismalar" element={<Danismalar />} />
+            <Route path="/finans" element={<VeterinerFinans />} />
+            <Route path="/receteler" element={<VeterinerStok />} />
+            <Route path="/takvim" element={<VeterinerTakvim />} />
+            <Route path="/rapor" element={<VeterinerRapor />} />
           </>}
 
           {/* Süt Toplayıcı */}
