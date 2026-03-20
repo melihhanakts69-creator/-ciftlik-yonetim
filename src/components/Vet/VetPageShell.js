@@ -8,6 +8,7 @@ export default function VetPageShell({ title, subtitle, actions, children }) {
           className="vet-page-topbar"
           style={{
             background: '#fff', borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             padding: '13px 20px', display: 'flex',
             alignItems: 'center', justifyContent: 'space-between',
             gap: 12, flexWrap: 'wrap', flexShrink: 0,

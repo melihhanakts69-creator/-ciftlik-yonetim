@@ -24,11 +24,11 @@ const Sidebar = styled.aside`
   min-width: 300px;
   background: #ffffff;
   border-right: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 10px 0 30px -10px rgba(0,0,0,0.03);
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   z-index: 2;
-  @media (max-width: 900px) { width: 100%; border-right: none; border-bottom: 1px solid rgba(226, 232, 240, 0.8); max-height: 40vh; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.03); }
+  @media (max-width: 900px) { width: 100%; border-right: none; border-bottom: 1px solid #e5e7eb; max-height: 40vh; }
 `;
 
 const SidebarHeader = styled.div`
@@ -37,6 +37,7 @@ const SidebarHeader = styled.div`
 
   .bubble {
     background: #2563eb;
+    box-shadow: none;
     border-radius: 12px;
     padding: 20px 22px;
     display: flex;
@@ -96,9 +97,8 @@ const FarmItem = styled.div`
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: 2px solid transparent;
   ${p => p.$active ? `
-    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); 
-    box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.3);
-    transform: translateY(-2px) scale(1.01);
+    background: #2563eb;
+    box-shadow: none;
     .name { color: #ffffff; }
     .sub { color: rgba(255,255,255,0.8); }
   ` : `
@@ -189,7 +189,7 @@ const EmptyStateWrapper = styled.div`
 `;
 
 const EmptyStateBar = styled.div`
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #1e40af 70%, #2563eb 100%);
+  background: #1e3a5f;
   padding: 28px 32px 24px;
   position: relative;
   overflow: hidden;
@@ -320,10 +320,10 @@ const HayvanFiltreRow = styled.div`
     cursor: pointer;
     transition: all 0.2s;
   }
-  .kategori-btn:hover { background: #f0f9ff; border-color: #0ea5e9; }
-  .kategori-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+  .kategori-btn:hover { background: #f0f9ff; border-color: #2563eb; }
+  .kategori-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
   .kupe-search { flex: 1; min-width: 180px; max-width: 260px; padding: 10px 14px; border: 1px solid #e0f2fe; border-radius: 10px; font-size: 13px; }
-  .kupe-search:focus { outline: none; border-color: #0ea5e9; }
+  .kupe-search:focus { outline: none; border-color: #2563eb; }
   .kupe-search::placeholder { color: #94a3b8; }
 `;
 
@@ -337,17 +337,14 @@ const AnimalGrid = styled.div`
 `;
 
 const AnimalCard = styled.div`
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 20px;
   background: #ffffff;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px -5px rgba(0,0,0,0.02);
 
   &:hover {
-    box-shadow: 0 8px 20px -8px rgba(14, 165, 233, 0.12);
-    border-color: #bae6fd;
-    transform: translateY(-2px) scale(1.01);
+    border-color: #bfdbfe;
   }
 
   .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
@@ -357,8 +354,8 @@ const AnimalCard = styled.div`
 
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .actions button { padding: 10px 14px; border-radius: 10px; border: none; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); flex: 1; display:flex; justify-content:center; align-items: center; gap: 6px;}
-  .btn-saglik { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(16, 185, 129, 0.3);}
-  .btn-saglik:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(16, 185, 129, 0.4);}
+  .btn-saglik { background: #2563eb; color: #fff; }
+  .btn-saglik:hover { background: #1d4ed8; }
   .btn-tohum { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 4px 10px -4px rgba(59, 130, 246, 0.3);}
   .btn-tohum:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -5px rgba(59, 130, 246, 0.4);}
   @media (max-width: 768px) {

@@ -36,11 +36,9 @@ const StatCard = styled.div`
   background: #fff;
   border-radius: 16px;
   padding: 18px 20px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
   display: flex; align-items: center; gap: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   transition: all 0.2s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.07); }
 
   .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .sc-val  { font-size: 24px; font-weight: 900; color: #0f172a; line-height: 1; }
@@ -55,7 +53,6 @@ const FilterBar = styled.div`
   border: 1px solid #e2e8f0;
   padding: 14px 18px;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 
   .search-wrap { position: relative; flex: 1; min-width: 180px; }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; }
@@ -112,7 +109,7 @@ const StokCard = styled.div`
   flex-direction: column;
   gap: 12px;
 
-  &:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); border-color: ${p => p.$kritik ? '#f87171' : p.$az ? '#fbbf24' : '#bae6fd'}; }
+  &:hover { border-color: ${p => p.$kritik ? '#f87171' : p.$az ? '#fbbf24' : '#93c5fd'}; }
 
   .sc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
   .sc-badge {
@@ -160,10 +157,8 @@ const BagajGrid = styled.div`
 
 const BagajCard = styled.div`
   background: ${p => p.$kritik ? '#fff5f5' : p.$az ? '#fffce8' : '#fff'};
-  border: 1.5px solid ${p => p.$kritik ? '#fecaca' : p.$az ? '#fde68a' : '#e2e8f0'};
-  border-radius: 16px; padding: 18px; transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  &:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.07); transform: translateY(-2px); }
+  border: 1px solid ${p => p.$kritik ? '#fecaca' : p.$az ? '#fde68a' : '#e5e7eb'};
+  border-radius: 12px; padding: 18px; transition: all 0.2s;
 
   .bc-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
   .bc-name  { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 14px; }
@@ -173,7 +168,7 @@ const BagajCard = styled.div`
   .bc-val   { text-align: center; }
   .bc-num   { font-size: 28px; font-weight: 900; color: #0f172a; line-height: 1; }
   .bc-birim { font-size: 11px; color: #94a3b8; font-weight: 600; }
-  .bc-dus   { width: 100%; padding: 8px; border-radius: 10px; border: 1.5px dashed #e2e8f0; background: transparent; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.15s; &:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; } }
+  .bc-dus   { width: 100%; padding: 8px; border-radius: 10px; border: 1.5px dashed #e2e8f0; background: transparent; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.15s; &:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; } }
 `;
 
 // ─── Modal ─────────────────────────────────────────────────────────────────────
@@ -224,7 +219,7 @@ const Modal = styled.div`
 
   .btn-submit {
     flex: 2; padding: 13px; border-radius: 10px; border: none;
-    background: linear-gradient(135deg, #2563eb, #0ea5e9); color: #fff;
+    background: #2563eb; color: #fff;
     font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s;
     &:hover { box-shadow: 0 6px 18px rgba(37,99,235,0.3); transform: translateY(-1px); }
     &:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -505,7 +500,7 @@ export default function VeterinerStok() {
             </div>
           </StatCard>
           <StatCard style={{ borderColor: bagajKritik.length > 0 ? '#fde68a' : '#e2e8f0', background: bagajKritik.length > 0 ? '#fffce8' : '#fff' }}>
-            <div className="sc-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}>🎒</div>
+            <div className="sc-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>🎒</div>
             <div>
               <div className="sc-val">{bagajItems.length}</div>
               <div className="sc-lbl">Bagajda Ürün {bagajKritik.length > 0 && `· ⚠️ ${bagajKritik.length} az`}</div>
@@ -639,7 +634,7 @@ export default function VeterinerStok() {
               />
               <button
                 onClick={handleBagajEkle}
-                style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(124,58,237,0.25)' }}
+                style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Bagaja Ekle
               </button>

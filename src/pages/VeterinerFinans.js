@@ -34,7 +34,7 @@ const KotuPolisPanel = styled.div`
   .kp-config label { font-size: 12px; color: #64748b; white-space: nowrap; font-weight: 600; }
   .kp-config select { padding: 8px 10px; border-radius: 8px; border: 1.5px solid #fecaca; background: #fff7f7; color: #991b1b; font-size: 13px; font-weight: 700; cursor: pointer; &:focus { outline: none; border-color: #ef4444; } }
   .kp-btn { padding: 10px 20px; border-radius: 10px; border: none; background: #ef4444; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; white-space: nowrap; &:hover:not(:disabled) { background: #dc2626; } &:disabled { opacity: 0.5; cursor: not-allowed; } }
-  .kp-ok-banner { width: 100%; padding: 10px 14px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 12px; font-weight: 700; text-align: center; }
+  .kp-ok-banner { width: 100%; padding: 10px 14px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 12px; font-weight: 700; text-align: center; }
 `;
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ const MetricCard = styled.div`
   border-radius: 16px;
   padding: 20px 22px;
   border: 1px solid ${p => p.$primary ? 'transparent' : '#e2e8f0'};
-  box-shadow: ${p => p.$primary ? '0 10px 28px -8px rgba(37,99,235,0.25)' : '0 2px 8px rgba(0,0,0,0.04)'};
+  box-shadow: ${p => p.$primary ? '0 10px 28px -8px rgba(37,99,235,0.25)' : 'none'};
   transition: all 0.2s;
   &:hover { transform: translateY(-2px); }
   position: relative; overflow: hidden;
@@ -75,8 +75,7 @@ const Body = styled.div`
 const CustomerList = styled.div`
   background: #fff;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   display: flex; flex-direction: column;
   max-height: 700px;
@@ -122,8 +121,7 @@ const DetailArea = styled.div`
 const DetailCard = styled.div`
   background: #fff;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
 `;
 
@@ -158,7 +156,7 @@ const FaturaItem = styled.div`
   &:last-child { border-bottom: none; }
   &:hover { background: #fafbfd; }
 
-  .fi-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; background: ${p => p.$tip === 'saglik' ? '#eff6ff' : '#f5f3ff'}; }
+  .fi-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; background: #eff6ff; }
   .fi-body { flex: 1; min-width: 0; }
   .fi-aciklama { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .fi-meta { font-size: 11px; color: #94a3b8; display: flex; gap: 10px; }
@@ -177,9 +175,9 @@ const StatusBadge = styled.span`
 
 const TipBadge = styled.span`
   padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 700;
-  background: ${p => p.$t === 'saglik' ? '#eff6ff' : '#f5f3ff'};
-  color: ${p => p.$t === 'saglik' ? '#2563eb' : '#7c3aed'};
-  border: 1px solid ${p => p.$t === 'saglik' ? '#bfdbfe' : '#ddd6fe'};
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 `;
 
 const HizmetList = styled.div`
@@ -197,7 +195,7 @@ const TahsilatForm = styled.form`
   .fields { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
   .field { display: flex; flex-direction: column; gap: 4px; }
   .field label { font-size: 11px; color: #64748b; font-weight: 700; }
-  .field input { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #fff; transition: all 0.2s; &:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); } }
+  .field input { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #fff; transition: all 0.2s; &:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); } }
   .submit { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; background: #2563eb; color: #fff; font-weight: 800; font-size: 13px; box-shadow: 0 3px 10px rgba(37,99,235,0.25); align-self: flex-end; white-space: nowrap; transition: all 0.2s; &:hover:not(:disabled) { box-shadow: 0 5px 14px rgba(37,99,235,0.35); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }
 `;
 
@@ -227,23 +225,23 @@ const ModalBody = styled.div`
   .sec-lbl { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; display: block; }
   .field { margin-bottom: 14px; }
   .field label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; }
-  .field input, .field select, .field textarea { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; font-family: inherit; background: #f8fafc; box-sizing: border-box; resize: vertical; transition: all 0.2s; &:focus { outline: none; border-color: #059669; background: #fff; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); } }
+  .field input, .field select, .field textarea { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; font-family: inherit; background: #f8fafc; box-sizing: border-box; resize: vertical; transition: all 0.2s; &:focus { outline: none; border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); } }
 `;
 
 const HizmetRow = styled.div`
   display: grid; grid-template-columns: 1fr 80px 100px 34px; gap: 8px; align-items: center; margin-bottom: 8px;
-  input { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; width: 100%; box-sizing: border-box; transition: all 0.2s; &:focus { outline: none; border-color: #059669; } }
+  input { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; width: 100%; box-sizing: border-box; transition: all 0.2s; &:focus { outline: none; border-color: #2563eb; } }
   .remove { width: 34px; height: 34px; border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; &:hover { background: #fee2e2; } }
 `;
 
 const AddLineBtn = styled.button`
-  width: 100%; padding: 9px; border-radius: 8px; border: 1.5px dashed #059669; background: #f0fdf4; color: #047857; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.18s; &:hover { background: #dcfce7; }
+  width: 100%; padding: 9px; border-radius: 8px; border: 1.5px dashed #2563eb; background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.18s; &:hover { background: #dbeafe; }
 `;
 
 const ModalFoot = styled.div`
   padding: 16px 28px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
   .toplam { font-size: 16px; font-weight: 900; color: #0f172a; }
-  .toplam span { color: #059669; }
+  .toplam span { color: #2563eb; }
   .actions { display: flex; gap: 10px; }
   .cancel { padding: 11px 20px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: #475569; font-weight: 700; cursor: pointer; font-size: 13px; &:hover { background: #f8fafc; } }
   .save { padding: 11px 24px; border-radius: 10px; border: none; background: #2563eb; color: #fff; font-weight: 900; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); &:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(37,99,235,0.4); transform: translateY(-1px); } &:disabled { opacity: 0.5; cursor: not-allowed; } }

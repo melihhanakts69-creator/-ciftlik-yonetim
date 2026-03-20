@@ -42,8 +42,7 @@ const SidePanel = styled.div`
 const Card = styled.div`
   background: #fff;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
 `;
 
@@ -69,7 +68,7 @@ const Field = styled.div`
     border: 1.5px solid #e2e8f0; border-radius: 10px;
     font-size: 13px; font-family: inherit; background: #f8fafc;
     transition: all 0.2s;
-    &:focus { outline: none; border-color: #0ea5e9; background: #fff; box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+    &:focus { outline: none; border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
   }
 `;
 
@@ -96,7 +95,7 @@ const MiniCal = styled.div`
     padding: 6px 2px; border-radius: 8px; cursor: pointer;
     color: #64748b; transition: all 0.15s;
     &:hover { background: #eff6ff; color: #2563eb; }
-    &.today { background: linear-gradient(135deg,#0ea5e9,#2563eb); color: #fff; font-weight: 900; }
+    &.today { background: #2563eb; color: #fff; font-weight: 900; }
     &.has-event { position: relative; &::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: #f59e0b; } }
     &.empty { cursor: default; }
     &.other-month { color: #d1d5db; }
@@ -112,15 +111,14 @@ const RandevuCard = styled.div`
   display: flex; align-items: stretch; gap: 0;
   background: #fff;
   border-radius: 16px;
-  border: 1px solid ${p => p.$isToday ? '#bae6fd' : p.$gecmis ? '#fecaca' : '#e2e8f0'};
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid ${p => p.$isToday ? '#93c5fd' : p.$gecmis ? '#fecaca' : '#e5e7eb'};
   overflow: hidden;
   transition: all 0.2s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+  &:hover { border-color: ${p => p.$isToday ? '#93c5fd' : p.$gecmis ? '#fca5a5' : '#cbd5e1'}; }
 
   .rc-side {
     width: 80px; flex-shrink: 0;
-    background: ${p => p.$isToday ? 'linear-gradient(180deg,#0ea5e9,#2563eb)' : p.$tamamlandi ? '#f0fdf4' : p.$gecmis ? '#fff5f5' : '#f8fafc'};
+    background: ${p => p.$isToday ? '#2563eb' : p.$tamamlandi ? '#f0fdf4' : p.$gecmis ? '#fff5f5' : '#f8fafc'};
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 16px 8px;
     border-right: 1px solid ${p => p.$isToday ? 'transparent' : '#f1f5f9'};
@@ -303,7 +301,7 @@ export default function VeterinerTakvim() {
           </div>
         </StatCard>
         <StatCard>
-          <div className="sc-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}>🏡</div>
+          <div className="sc-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>🏡</div>
           <div>
             <div className="sc-val">{musteriler.length}</div>
             <div className="sc-lbl">Müşteri</div>
