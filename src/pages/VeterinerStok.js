@@ -334,6 +334,12 @@ export default function VeterinerStok() {
   const [bagajEkleStok, setBagajEkleStok] = useState('');
   const [bagajEkleMiktar, setBagajEkleMiktar] = useState('');
 
+  // Protokoller
+  const [protokoller, setProtokoller] = useState([]);
+  const [protokolForm, setProtokolForm] = useState({ ad: '', tani: '', tedavi: '', ilaclar: '', notlar: '' });
+  const [protokolModal, setProtokolModal] = useState(false);
+  const [protokolSaving, setProtokolSaving] = useState(false);
+
   const fetchStok = useCallback(async () => {
     try {
       const res = await api.getStoklar();
@@ -343,7 +349,17 @@ export default function VeterinerStok() {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchStok(); }, [fetchStok]);
+  const fetchProtokoller = useCallback(async () => {
+    try {
+      const res = await api.getVeterinerProtokoller();
+      setProtokoller(Array.isArray(res.data) ? res.data : []);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchStok();
+    fetchProtokoller();
+  }, [fetchStok, fetchProtokoller]);
 
   const openEkle = () => {
     setEditId(null);
@@ -454,16 +470,28 @@ export default function VeterinerStok() {
   return (
     <Page>
       <VetPageShell
-        title={aktifTab === 'stok' ? 'Depo Stoku' : 'Dijital Bagaj'}
-        subtitle="İlaç · Aşı · Tohum · Ekipman"
+        title={
+          aktifTab === 'stok' ? 'Depo Stoku' :
+          aktifTab === 'recete' ? 'Reçete & Protokol' :
+          'Dijital Bagaj'
+        }
+        subtitle={
+          aktifTab === 'stok' ? 'İlaç · Aşı · Tohum · Ekipman' :
+          aktifTab === 'recete' ? 'Tedavi şablonları ve reçete yönetimi' :
+          'Saha ziyaretleri için taşınan stok'
+        }
         actions={<>
+          {aktifTab === 'recete' ? (
+            <button style={VetBtn.primary} onClick={() => setProtokolModal(true)}>+ Protokol Ekle</button>
+          ) : aktifTab === 'stok' ? (
+            <button style={VetBtn.primary} onClick={openEkle}>+ Stok Ekle</button>
+          ) : null}
           <button
-            style={aktifTab === 'bagaj' ? VetBtn.primary : VetBtn.secondary}
-            onClick={() => setAktifTab(aktifTab === 'stok' ? 'bagaj' : 'stok')}
+            style={VetBtn.secondary}
+            onClick={() => setAktifTab(aktifTab === 'bagaj' ? 'stok' : 'bagaj')}
           >
-            {aktifTab === 'stok' ? '🎒 Dijital Bagaj' : '📦 Depo Stoku'}
+            {aktifTab === 'bagaj' ? '📦 Depoya Dön' : '🎒 Dijital Bagaj'}
           </button>
-          <button style={VetBtn.primary} onClick={openEkle}>+ Stok Ekle</button>
         </>}
       >
       <Inner>
@@ -509,26 +537,29 @@ export default function VeterinerStok() {
         </StatsRow>
 
         {/* ─── Tab Buttons ─── */}
-        <div style={{ display: 'flex', gap: 10, background: '#fff', padding: 8, borderRadius: 14, border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', gap: 4, background: '#fff', padding: 6, borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 16 }}>
           {[
             { id: 'stok', label: '📦 Depo Stoku', count: stoklar.length },
+            { id: 'recete', label: '📋 Reçete & Protokol', count: protokoller.length },
             { id: 'bagaj', label: '🎒 Dijital Bagaj', count: bagajItems.length },
           ].map(t => (
             <button
               key={t.id}
               onClick={() => setAktifTab(t.id)}
               style={{
-                flex: 1, padding: '11px 16px', borderRadius: 10, border: '1px solid transparent',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+                flex: 1, padding: '9px 14px', borderRadius: 8, border: 'none',
+                fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
                 background: aktifTab === t.id ? '#dbeafe' : 'transparent',
                 color: aktifTab === t.id ? '#1e40af' : '#64748b',
-                boxShadow: 'none',
-                borderColor: aktifTab === t.id ? '#bfdbfe' : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}
             >
               {t.label}
-              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: aktifTab === t.id ? 'rgba(255,255,255,0.2)' : '#f1f5f9', color: aktifTab === t.id ? '#fff' : '#64748b', fontWeight: 800 }}>{t.count}</span>
+              {t.count > 0 && (
+                <span style={{ fontSize: 10, background: aktifTab === t.id ? '#bfdbfe' : '#f3f4f6', color: aktifTab === t.id ? '#1e40af' : '#9ca3af', padding: '1px 6px', borderRadius: 10 }}>
+                  {t.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -607,6 +638,97 @@ export default function VeterinerStok() {
               </StokGrid>
             )}
           </>
+        )}
+
+        {/* ─── REÇETE & PROTOKOL ─── */}
+        {aktifTab === 'recete' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Tedavi Protokolleri</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Sık kullandığın tedavi şablonları — hastaya uygularken tek tıkla seç</div>
+              </div>
+              <button style={VetBtn.primary} onClick={() => setProtokolModal(true)}>
+                + Yeni Protokol
+              </button>
+            </div>
+
+            {protokoller.length === 0 ? (
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '40px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 6 }}>Protokol yok</div>
+                <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 20 }}>
+                  Mastitis, pnömoni gibi sık rastlanan durumlar için şablon oluştur.<br/>
+                  Hastaya kayıt girerken bu şablonları tek tıkla uygularsın.
+                </div>
+                <button style={VetBtn.primary} onClick={() => setProtokolModal(true)}>
+                  İlk Protokolü Oluştur
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+                {protokoller.map(p => {
+                  const ilacStr = (p.ilaclar || []).map(i => i.ilacAdi || i).filter(Boolean).join(', ');
+                  return (
+                    <div key={p._id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{p.ad}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                            {p.kullanilmaSayisi > 0 ? `${p.kullanilmaSayisi}x kullanıldı` : 'Henüz kullanılmadı'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`"${p.ad}" silinsin mi?`)) return;
+                            try { await api.deleteVeterinerProtokol(p._id); fetchProtokoller(); toast.success('Silindi.'); }
+                            catch { toast.error('Silinemedi.'); }
+                          }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14, padding: '2px 4px' }}
+                          onMouseOver={e => { e.currentTarget.style.color = '#dc2626'; }}
+                          onMouseOut={e => { e.currentTarget.style.color = '#d1d5db'; }}
+                        >✕</button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {p.tani && (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', minWidth: 40, marginTop: 1 }}>Tanı</span>
+                            <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{p.tani}</span>
+                          </div>
+                        )}
+                        {p.tedaviNotu && (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', minWidth: 40, marginTop: 1 }}>Tedavi</span>
+                            <span style={{ fontSize: 12, color: '#374151' }}>{p.tedaviNotu}</span>
+                          </div>
+                        )}
+                        {ilacStr && (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                            <span style={{ fontSize: 10, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.4px', minWidth: 40, marginTop: 1 }}>İlaç</span>
+                            <span style={{ fontSize: 12, color: '#374151' }}>{ilacStr}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 7, marginTop: 4 }}>
+                        <button
+                          onClick={async () => {
+                            await api.patchVeterinerProtokolKullan(p._id);
+                            fetchProtokoller();
+                            toast.success(`"${p.ad}" protokolü uygulandı. Hastalar sayfasından sağlık kaydı oluşturmayı unutma.`);
+                          }}
+                          style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#2563eb', color: '#fff', border: 'none', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                        >
+                          Hastaya Uygula →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ─── DİJİTAL BAGAJ ─── */}
@@ -794,6 +916,69 @@ export default function VeterinerStok() {
                 <button type="submit" className="btn-submit" disabled={saving}>{saving ? 'Kaydediliyor…' : (modal === 'duzenle' ? 'Güncelle' : 'Stoka Ekle')}</button>
               </div>
             </form>
+          </Modal>
+        </Overlay>
+      )}
+
+      {/* ─── PROTOKOL OLUŞTURMA MODAL ─── */}
+      {protokolModal && (
+        <Overlay onClick={() => setProtokolModal(false)}>
+          <Modal onClick={e => e.stopPropagation()}>
+            <div className="m-head">
+              <h2>Yeni Tedavi Protokolü</h2>
+              <p>Sık kullandığın tedavi şemasını kaydet — bir dahaki seferde tek tıkla uygula</p>
+            </div>
+            <div className="m-body">
+              <div>
+                <label className="f-lbl">Protokol Adı *</label>
+                <input className="f-inp" placeholder="örn: Mastitis Standart Tedavisi" value={protokolForm.ad} onChange={e => setProtokolForm(f => ({ ...f, ad: e.target.value }))} />
+              </div>
+              <div>
+                <label className="f-lbl">Tanı *</label>
+                <input className="f-inp" placeholder="örn: Akut Mastitis" value={protokolForm.tani} onChange={e => setProtokolForm(f => ({ ...f, tani: e.target.value }))} />
+              </div>
+              <div>
+                <label className="f-lbl">Tedavi</label>
+                <input className="f-inp" placeholder="örn: Penisilin 3×2ml / 5 gün" value={protokolForm.tedavi} onChange={e => setProtokolForm(f => ({ ...f, tedavi: e.target.value }))} />
+              </div>
+              <div>
+                <label className="f-lbl">İlaçlar</label>
+                <input className="f-inp" placeholder="örn: Penstrep, Metacam" value={protokolForm.ilaclar} onChange={e => setProtokolForm(f => ({ ...f, ilaclar: e.target.value }))} />
+              </div>
+              <div>
+                <label className="f-lbl">Notlar</label>
+                <textarea className="f-inp" rows={3} placeholder="Ek bilgi, dikkat edilecek hususlar..." value={protokolForm.notlar} onChange={e => setProtokolForm(f => ({ ...f, notlar: e.target.value }))} style={{ resize: 'vertical' }} />
+              </div>
+            </div>
+            <div className="m-foot">
+              <button className="btn-cancel" onClick={() => setProtokolModal(false)}>İptal</button>
+              <button
+                className="btn-submit"
+                disabled={!protokolForm.ad.trim() || !protokolForm.tani.trim() || protokolSaving}
+                onClick={async () => {
+                  setProtokolSaving(true);
+                  try {
+                    const ilaclar = protokolForm.ilaclar
+                      ? protokolForm.ilaclar.split(',').map(x => ({ ilacAdi: x.trim() })).filter(x => x.ilacAdi)
+                      : [];
+                    const tedaviNotu = [protokolForm.tedavi, protokolForm.notlar].filter(Boolean).join('\n');
+                    await api.postVeterinerProtokol({
+                      ad: protokolForm.ad.trim(),
+                      tani: protokolForm.tani.trim(),
+                      tedaviNotu: tedaviNotu.trim(),
+                      ilaclar,
+                    });
+                    toast.success('Protokol kaydedildi.');
+                    setProtokolModal(false);
+                    setProtokolForm({ ad: '', tani: '', tedavi: '', ilaclar: '', notlar: '' });
+                    fetchProtokoller();
+                  } catch { toast.error('Kaydedilemedi.'); }
+                  finally { setProtokolSaving(false); }
+                }}
+              >
+                {protokolSaving ? 'Kaydediliyor...' : 'Protokol Kaydet'}
+              </button>
+            </div>
           </Modal>
         </Overlay>
       )}
