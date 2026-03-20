@@ -40,10 +40,11 @@ export default function ToplayiciCiftlikler() {
 
   const handleEkle = async (e) => {
     e.preventDefault();
-    if (!ciftlikKodu.trim()) return;
+    const val = ciftlikKodu.trim();
+    if (!val) return;
     setAdding(true);
     try {
-      await api.toplayiciCiftlikEkle(ciftlikKodu.trim().toUpperCase());
+      await api.toplayiciCiftlikEkle(val.length <= 12 ? val.toUpperCase() : val);
       toast.success('Çiftlik eklendi');
       setCiftlikKodu('');
       const r = await api.getToplayiciCiftlikler();
@@ -63,10 +64,13 @@ export default function ToplayiciCiftlikler() {
         <form onSubmit={handleEkle} style={{ display: 'flex', gap: 7 }}>
           <input
             value={ciftlikKodu}
-            onChange={e => setCiftlikKodu(e.target.value.toUpperCase())}
-            placeholder="Çiftlik kodu veya çiftçi ID"
-            maxLength={12}
-            style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, outline: 'none', width: 200 }}
+            onChange={e => {
+              const v = e.target.value;
+              setCiftlikKodu(v.length <= 12 ? v.toUpperCase() : v);
+            }}
+            placeholder="Çiftlik kodu (8 karakter) veya çiftçi ID (24 karakter)"
+            maxLength={30}
+            style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, outline: 'none', width: 260 }}
           />
           <button type="submit" disabled={adding || !ciftlikKodu.trim()} style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
             {adding ? '...' : '+ Çiftlik Ekle'}
