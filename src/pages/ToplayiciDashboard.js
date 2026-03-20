@@ -29,8 +29,8 @@ export default function ToplayiciDashboard({ kullanici }) {
   }, []);
 
   const handleFiyatKaydet = async () => {
-    const f = parseFloat(yeniFiyat);
-    if (!f || f <= 0) { toast.warning('Geçerli fiyat girin'); return; }
+    const f = parseFloat(String(yeniFiyat).replace(',', '.'));
+    if (!f || isNaN(f) || f <= 0) { toast.warning('Geçerli fiyat girin (örn: 12.5)'); return; }
     try {
       await api.setToplayiciFiyat(f);
       setFiyat(f);

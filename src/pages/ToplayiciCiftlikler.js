@@ -64,7 +64,7 @@ export default function ToplayiciCiftlikler() {
           <input
             value={ciftlikKodu}
             onChange={e => setCiftlikKodu(e.target.value.toUpperCase())}
-            placeholder="Çiftlik kodu (örn: ABC12XYZ)"
+            placeholder="Çiftlik kodu veya çiftçi ID"
             maxLength={12}
             style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, outline: 'none', width: 200 }}
           />

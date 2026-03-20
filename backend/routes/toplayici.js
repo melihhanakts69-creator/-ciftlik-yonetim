@@ -10,25 +10,44 @@ const checkRole = require('../middleware/roleCheck');
 router.use(auth);
 router.use(checkRole(['toplayici']));
 
-// 1. Çiftlik kodu ile çiftlik ekle
+// 1. Çiftlik kodu, çiftçi User ID veya Tenant ID ile çiftlik ekle
 router.post('/ciftlik-ekle', async (req, res) => {
   try {
     const { ciftlikKodu } = req.body;
     const toplayiciId = req.originalUserId;
 
-    if (!ciftlikKodu || typeof ciftlikKodu !== 'string') {
-      return res.status(400).json({ message: 'Çiftlik kodu girin.' });
+    if (!ciftlikKodu || (typeof ciftlikKodu !== 'string' && typeof ciftlikKodu !== 'object')) {
+      return res.status(400).json({ message: 'Çiftlik kodu veya ID girin.' });
     }
 
-    const kod = ciftlikKodu.trim().toUpperCase();
-    const tenant = await Tenant.findOne({ ciftlikKodu: kod }).populate('ownerUser');
-    if (!tenant || !tenant.ownerUser) {
-      return res.status(404).json({ message: 'Bu çiftlik kodu ile eşleşen bir çiftlik bulunamadı.' });
+    const input = String(ciftlikKodu).trim();
+    const kod = input.length <= 12 ? input.toUpperCase() : input;
+    let tenant = null;
+    let ciftci = null;
+
+    // 1) Önce çiftlik kodu ile ara (8 karakterlik kod)
+    if (kod.length <= 12) {
+      tenant = await Tenant.findOne({ ciftlikKodu: kod }).populate('ownerUser');
+      if (tenant?.ownerUser) ciftci = tenant.ownerUser;
     }
 
-    const ciftci = tenant.ownerUser;
-    if (ciftci.rol !== 'ciftci') {
-      return res.status(400).json({ message: 'Bu kod bir çiftlik hesabına ait değil.' });
+    // 2) Bulunamadıysa, ObjectId ise çiftçi User ID ile dene
+    if (!ciftci && /^[a-fA-F0-9]{24}$/.test(kod)) {
+      const user = await User.findById(kod).select('rol tenantId');
+      if (user?.rol === 'ciftci') {
+        ciftci = user;
+        tenant = user.tenantId ? await Tenant.findById(user.tenantId) : null;
+      }
+    }
+
+    // 3) Hâlâ bulunamadıysa Tenant ID ile dene
+    if (!ciftci && /^[a-fA-F0-9]{24}$/.test(kod)) {
+      tenant = await Tenant.findById(kod).populate('ownerUser');
+      if (tenant?.ownerUser?.rol === 'ciftci') ciftci = tenant.ownerUser;
+    }
+
+    if (!ciftci || ciftci.rol !== 'ciftci') {
+      return res.status(404).json({ message: 'Bu kod/ID ile eşleşen bir çiftlik bulunamadı. Çiftçinin paylaştığı 8 karakterlik kodu veya çiftçi ID\'sini girin.' });
     }
 
     const toplayici = await User.findById(toplayiciId);
