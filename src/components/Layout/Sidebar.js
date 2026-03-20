@@ -237,6 +237,10 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
   } else if (role === 'toplayici') {
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/ciftlikler', name: 'Çiftliklerim', icon: <FaWarehouse /> },
+      { path: '/sut-girisi', name: 'Süt Girişi', icon: <FaGlassWhiskey /> },
+      { path: '/raporlar', name: 'Raporlar', icon: <FaChartPie /> },
+      { path: '/gelir', name: 'Gelir Takibi', icon: <FaWallet /> },
     ];
     yonetimItems = [
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },

@@ -249,6 +249,10 @@ export const getToplayiciCiftlikler = () => api.get('/toplayici/ciftlikler');
 export const getToplayiciOzet = () => api.get('/toplayici/ozet');
 export const getToplayiciSonToplamalar = () => api.get('/toplayici/son-toplamalar');
 export const toplayiciSutToplama = (data) => api.post('/toplayici/sut-toplama', data);
+export const getToplayiciFiyat = () => api.get('/toplayici/fiyat');
+export const setToplayiciFiyat = (fiyat) => api.post('/toplayici/fiyat', { fiyat });
+export const getToplayiciCiftlikIstatistik = (ciftciId) => api.get(`/toplayici/ciftlik/${ciftciId}/istatistik`);
+export const getToplayiciGelirRaporu = () => api.get('/toplayici/gelir-raporu');
 
 // VETERINER (merkezi api ile doğru backend adresi kullanılır)
 export const getVeterinerMusteriler = () => api.get('/veteriner/musteriler');

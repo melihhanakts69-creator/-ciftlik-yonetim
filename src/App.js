@@ -29,6 +29,10 @@ import AdminPanel from './pages/AdminPanel';
 import VeterinerDashboard from './pages/VeterinerDashboard';
 import SutcuDashboard from './pages/SutcuDashboard';
 import ToplayiciDashboard from './pages/ToplayiciDashboard';
+import ToplayiciCiftlikler from './pages/ToplayiciCiftlikler';
+import ToplayiciSutGirisi from './pages/ToplayiciSutGirisi';
+import ToplayiciRaporlar from './pages/ToplayiciRaporlar';
+import ToplayiciGelir from './pages/ToplayiciGelir';
 import Hastalar from './pages/Hastalar';
 import MusteriDetay from './pages/MusteriDetay';
 import VeterinerStok from './pages/VeterinerStok';
@@ -192,7 +196,10 @@ function App() {
 
           {/* Süt Toplayıcı */}
           {isToplayici && <>
-            <Route path="/takvim" element={<Takvim />} />
+            <Route path="/ciftlikler" element={<ToplayiciCiftlikler />} />
+            <Route path="/sut-girisi" element={<ToplayiciSutGirisi />} />
+            <Route path="/raporlar" element={<ToplayiciRaporlar />} />
+            <Route path="/gelir" element={<ToplayiciGelir />} />
           </>}
 
           <Route path="/login" element={<Navigate to="/" replace />} />

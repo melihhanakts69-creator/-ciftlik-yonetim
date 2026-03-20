@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Tenant = require('../models/Tenant');
 const SutKaydi = require('../models/SutKaydi');
+const Bildirim = require('../models/Bildirim');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -47,6 +48,134 @@ router.post('/ciftlik-ekle', async (req, res) => {
   } catch (error) {
     console.error('Toplayici ciftlik ekleme hatasi:', error);
     res.status(500).json({ message: 'Sunucu hatası.' });
+  }
+});
+
+// Süt litre fiyatı kaydet/getir
+router.get('/fiyat', async (req, res) => {
+  try {
+    const toplayici = await User.findById(req.originalUserId).select('sutLitreFiyati').lean();
+    res.json({ fiyat: toplayici?.sutLitreFiyati || 0 });
+  } catch { res.status(500).json({ message: 'Hata' }); }
+});
+
+router.post('/fiyat', async (req, res) => {
+  try {
+    const { fiyat } = req.body;
+    if (!fiyat || fiyat <= 0) return res.status(400).json({ message: 'Geçerli fiyat girin.' });
+    await User.findByIdAndUpdate(req.originalUserId, { sutLitreFiyati: Number(fiyat) });
+    res.json({ message: 'Fiyat güncellendi.', fiyat: Number(fiyat) });
+  } catch { res.status(500).json({ message: 'Hata' }); }
+});
+
+// Çiftlik detay istatistikleri
+router.get('/ciftlik/:ciftciId/istatistik', async (req, res) => {
+  try {
+    const { ciftciId } = req.params;
+    const toplayiciId = req.originalUserId;
+    const now = new Date();
+    const bugun = now.toISOString().split('T')[0];
+    const ayBaslangic = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const otuzGunOnce = new Date(); otuzGunOnce.setDate(otuzGunOnce.getDate() - 30);
+    const otuzStr = otuzGunOnce.toISOString().split('T')[0];
+
+    const [bugunKayit, aylikKayitlar, otuzGunKayitlar] = await Promise.all([
+      SutKaydi.find({ userId: ciftciId, toplayiciUserId: toplayiciId, tarih: bugun }),
+      SutKaydi.find({ userId: ciftciId, toplayiciUserId: toplayiciId, tarih: { $gte: ayBaslangic, $lte: bugun } }),
+      SutKaydi.find({ userId: ciftciId, toplayiciUserId: toplayiciId, tarih: { $gte: otuzStr, $lte: bugun } })
+        .sort({ tarih: 1 }).lean(),
+    ]);
+
+    const toplayici = await User.findById(toplayiciId).select('sutLitreFiyati').lean();
+    const fiyat = toplayici?.sutLitreFiyati || 0;
+
+    const bugunLitre = bugunKayit.reduce((s, k) => s + (k.litre || 0), 0);
+    const aylikLitre = aylikKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+    const otuzGunLitre = otuzGunKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+
+    const trend = {};
+    otuzGunKayitlar.forEach(k => {
+      trend[k.tarih] = (trend[k.tarih] || 0) + (k.litre || 0);
+    });
+    const trendArr = Object.entries(trend).map(([tarih, litre]) => ({ tarih, litre }));
+
+    res.json({
+      bugunLitre: Math.round(bugunLitre * 10) / 10,
+      aylikLitre: Math.round(aylikLitre * 10) / 10,
+      otuzGunLitre: Math.round(otuzGunLitre * 10) / 10,
+      aylikGelir: +(aylikLitre * fiyat).toFixed(2),
+      otuzGunGelir: +(otuzGunLitre * fiyat).toFixed(2),
+      ortalamaSutPerGun: otuzGunKayitlar.length > 0 ? +(otuzGunLitre / 30).toFixed(1) : 0,
+      trend: trendArr,
+      kayitSayisi: otuzGunKayitlar.length,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Hata' });
+  }
+});
+
+// Gelir raporu (toplayıcının toplam kazancı)
+router.get('/gelir-raporu', async (req, res) => {
+  try {
+    const toplayiciId = req.originalUserId;
+    const toplayici = await User.findById(toplayiciId)
+      .populate('topladigiCiftlikler', 'isim isletmeAdi tenantId')
+      .select('sutLitreFiyati topladigiCiftlikler').lean();
+    const fiyat = toplayici?.sutLitreFiyati || 0;
+
+    const now = new Date();
+    const ayBaslangic = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const bugun = now.toISOString().split('T')[0];
+    const gecenAyBas = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+    const gecenAyBit = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+    const altiAyOnce = new Date(); altiAyOnce.setMonth(altiAyOnce.getMonth() - 6);
+    const altiAyStr = altiAyOnce.toISOString().split('T')[0];
+
+    const [buAyKayitlar, gecenAyKayitlar, altiAyKayitlar] = await Promise.all([
+      SutKaydi.find({ toplayiciUserId: toplayiciId, tarih: { $gte: ayBaslangic, $lte: bugun } }).lean(),
+      SutKaydi.find({ toplayiciUserId: toplayiciId, tarih: { $gte: gecenAyBas, $lte: gecenAyBit } }).lean(),
+      SutKaydi.find({ toplayiciUserId: toplayiciId, tarih: { $gte: altiAyStr, $lte: bugun } }).lean(),
+    ]);
+
+    const buAyLitre = buAyKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+    const gecenAyLitre = gecenAyKayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+
+    const ciftlikMap = {};
+    buAyKayitlar.forEach(k => {
+      const id = k.userId?.toString();
+      if (!id) return;
+      ciftlikMap[id] = (ciftlikMap[id] || 0) + (k.litre || 0);
+    });
+    const ciftlikBazli = (toplayici.topladigiCiftlikler || []).map(c => ({
+      _id: c._id,
+      isim: c.isletmeAdi || c.isim || 'İsimsiz',
+      litre: Math.round((ciftlikMap[c._id?.toString()] || 0) * 10) / 10,
+      gelir: +((ciftlikMap[c._id?.toString()] || 0) * fiyat).toFixed(2),
+    })).sort((a, b) => b.litre - a.litre);
+
+    const aylikTrend = {};
+    altiAyKayitlar.forEach(k => {
+      const ay = k.tarih?.slice(0, 7);
+      if (ay) aylikTrend[ay] = (aylikTrend[ay] || 0) + (k.litre || 0);
+    });
+    const trendArr = Object.entries(aylikTrend)
+      .map(([ay, litre]) => ({ ay, litre: Math.round(litre * 10) / 10, gelir: +(litre * fiyat).toFixed(2) }))
+      .sort((a, b) => a.ay.localeCompare(b.ay));
+
+    res.json({
+      fiyat,
+      buAyLitre: Math.round(buAyLitre * 10) / 10,
+      gecenAyLitre: Math.round(gecenAyLitre * 10) / 10,
+      buAyGelir: +(buAyLitre * fiyat).toFixed(2),
+      gecenAyGelir: +(gecenAyLitre * fiyat).toFixed(2),
+      degisimYuzde: gecenAyLitre > 0 ? +(((buAyLitre - gecenAyLitre) / gecenAyLitre) * 100).toFixed(1) : 0,
+      ciftlikBazli,
+      aylikTrend: trendArr,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Hata' });
   }
 });
 
@@ -174,6 +303,19 @@ router.post('/sut-toplama', async (req, res) => {
       topluGiristen: true
     });
     await kayit.save();
+
+    // Bildirim oluştur
+    try {
+      await Bildirim.create({
+        userId: ciftci._id,
+        tip: 'sagim',
+        baslik: `Süt toplama kaydı: ${Number(litre)} Lt`,
+        mesaj: `${tarihStr} tarihli ${sagimVal} sağımınız süt toplayıcı tarafından kaydedildi. Miktar: ${Number(litre)} Lt`,
+        oncelik: 'normal',
+        aktif: true,
+        tamamlandi: false,
+      });
+    } catch {}
 
     res.status(201).json({
       message: 'Süt toplama kaydı çiftliğe işlendi.',

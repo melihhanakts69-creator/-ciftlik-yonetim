@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema({
   // ── Süt Toplayıcı alanları ───────────────────────
   firmaAdi: { type: String, trim: true },
   bolge: { type: String, trim: true },
+  sutLitreFiyati: { type: Number, default: 0 },
   topladigiCiftlikler: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Kod ile eklediği çiftlikler (çiftçi User id)
 
   // ── Profil ───────────────────────────────────────
