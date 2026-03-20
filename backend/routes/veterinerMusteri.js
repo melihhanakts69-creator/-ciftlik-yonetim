@@ -1006,7 +1006,9 @@ router.get('/rapor/hastalik-dagilimi', async (req, res) => {
         const kayitlar = await SaglikKaydi.find({
             userId: { $in: objIds },
             tarih: { $gte: ucAyOnce },
-            tani: { $exists: true, $ne: '' }
+            tani: { $exists: true, $ne: '' },
+            tip: { $nin: ['tohumlama'] },
+            $nor: [{ tani: 'Suni Tohumlama' }]
         }).select('userId tani tip tarih').lean();
 
         const ciftciler = await User.find({ _id: { $in: objIds } }).select('isim isletmeAdi').lean();

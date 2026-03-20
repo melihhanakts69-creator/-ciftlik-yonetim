@@ -1862,7 +1862,6 @@ function SaglikMerkezi() {
                                                 <select value={form.tip} onChange={e => setForm({ ...form, tip: e.target.value })}>
                                                     <option value="hastalik">🤒 Hastalık</option>
                                                     <option value="tedavi">💊 Tedavi</option>
-                                                    <option value="tohumlama">🌡️ Tohumlama</option>
                                                     <option value="muayene">🩺 Muayene</option>
                                                     <option value="ameliyat">🔪 Ameliyat</option>
                                                     <option value="dogum_komplikasyonu">⚠️ Doğum Komplikasyonu</option>
@@ -1874,7 +1873,6 @@ function SaglikMerkezi() {
                                             </FormGroup>
                                         </FormRow>
 
-                                        {form.tip !== 'tohumlama' && (
                                         <FormGroup>
                                             <label>Tanı / Hastalık Adı *</label>
                                             <input
@@ -1885,12 +1883,6 @@ function SaglikMerkezi() {
                                                 required
                                             />
                                         </FormGroup>
-                                        )}
-                                        {form.tip === 'tohumlama' && (
-                                        <div style={{ padding: '10px 14px', background: '#fef3c7', borderRadius: 10, fontSize: 13, color: '#92400e' }}>
-                                            📅 Yukarıdaki tarih tohumlama tarihi olarak kullanılacak. Hayvan Tohumlar/Belirsiz Gebeler sayfasına eklenecek.
-                                        </div>
-                                        )}
 
                                         <FormGroup>
                                             <label>Belirtiler (virgülle ayırın)</label>

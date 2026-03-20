@@ -986,8 +986,10 @@ export default function Hastalar() {
   }, [hayvanlar, hayvanKategori, hayvanKupeArama]);
 
   const filteredKayitlar = useMemo(() => {
-    let list = saglikKayitlari;
-    if (kayitTipFiltri) list = list.filter(k => k.tip === kayitTipFiltri || (kayitTipFiltri === 'tohumlama' && k.tani === 'Suni Tohumlama'));
+    let list = saglikKayitlari.filter(k =>
+      k.tip !== 'tohumlama' && !(k.tip === 'muayene' && k.tani === 'Suni Tohumlama')
+    );
+    if (kayitTipFiltri) list = list.filter(k => k.tip === kayitTipFiltri);
     if (kayitHayvanFiltri.trim()) {
       const q = kayitHayvanFiltri.trim().toLowerCase();
       list = list.filter(k => (k.hayvanKupeNo || '').toLowerCase().includes(q) || (k.hayvanIsim || '').toLowerCase().includes(q));
@@ -1553,7 +1555,6 @@ export default function Hastalar() {
                   <option value="tedavi">🟢 Tedavi</option>
                   <option value="asi">🟣 Aşı</option>
                   <option value="muayene">🔵 Muayene</option>
-                  <option value="tohumlama">💉 Suni Tohumlama</option>
                   <option value="ameliyat">🟡 Ameliyat</option>
                   <option value="dogum_komplikasyonu">🩷 Doğum</option>
                 </select>

@@ -33,8 +33,14 @@ export default function VeterinerRapor() {
   const { aylik, hastalik, cari } = data;
 
   const hastalikList = Array.isArray(hastalik)
-    ? hastalik.map(h => ({ name: h._id || h.tani || 'Diğer', value: h.count ?? h.toplamSayi ?? 0 }))
-        .sort((a, b) => b.value - a.value).slice(0, 8)
+    ? hastalik
+        .map(h => ({ name: h._id || h.tani || 'Diğer', value: h.count ?? h.toplamSayi ?? 0 }))
+        .filter(h => {
+          const n = (h.name || '').toLowerCase().trim();
+          return !['tohumlama', 'suni tohumlama'].includes(n);
+        })
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8)
     : [];
 
   const trendData = aylik?.aylikTrend || [];
