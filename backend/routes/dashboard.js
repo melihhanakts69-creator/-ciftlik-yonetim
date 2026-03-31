@@ -200,6 +200,7 @@ router.get('/finansal', auth, async (req, res) => {
 
 const { otomatikGorevleriKontrolEt } = require('../jobs/otomatikGorevler');
 const { gunlukIlacDusumunuUygula } = require('../jobs/gunlukIlacDusum');
+const { devamEdenGercekTedaviQuery } = require('../utils/gercekTedaviFiltre');
 
 // Bugünün yapılacakları (bildirimler + devam eden tedaviler)
 router.get('/yapilacaklar', auth, async (req, res) => {
@@ -225,12 +226,8 @@ router.get('/yapilacaklar', auth, async (req, res) => {
     // Yaklaşan bildirimler (7 gün)
     const yaklaşanlar = await Bildirim.yaklaşanlar(uid, 7);
 
-    // Devam eden tedaviler (tohumlama/asi hariç — ilacı olan veya tedavi kaydı)
-    const devamEdenTedaviler = await SaglikKaydi.find({
-      userId: uid,
-      durum: 'devam_ediyor',
-      tip: { $nin: ['tohumlama', 'asi'] }
-    })
+    // Devam eden tedaviler (suni tohumlama / rutin tohumlama tipi hariç)
+    const devamEdenTedaviler = await SaglikKaydi.find(devamEdenGercekTedaviQuery({ userId: uid }))
       .select('_id tani hayvanIsim hayvanKupeNo hayvanId hayvanTipi ilaclar tarih')
       .sort({ tarih: -1 })
       .lean();
@@ -415,19 +412,16 @@ router.get('/saglik-uyarilari', auth, async (req, res) => {
     try {
       const SaglikKaydi = require('../models/SaglikKaydi');
 
-      // Aktif tedaviler (devam eden)
-      aktifTedaviler = await SaglikKaydi.find({
-        userId: uid,
-        durum: 'devam_ediyor'
-      }).sort({ tarih: -1 }).limit(5).lean();
+      // Aktif tedaviler (suni tohumlama hariç)
+      aktifTedaviler = await SaglikKaydi.find(devamEdenGercekTedaviQuery({ userId: uid }))
+        .sort({ tarih: -1 }).limit(5).lean();
 
-      // Yaklaşan kontroller (7 gün içi)
+      // Yaklaşan kontroller (7 gün içi, suni tohumlama hariç)
       const yediGunSonra = new Date();
       yediGunSonra.setDate(yediGunSonra.getDate() + 7);
       yaklasanKontroller = await SaglikKaydi.find({
-        userId: uid,
+        ...devamEdenGercekTedaviQuery({ userId: uid }),
         sonrakiKontrol: { $lte: yediGunSonra, $gte: new Date() },
-        durum: 'devam_ediyor'
       }).sort({ sonrakiKontrol: 1 }).limit(5).lean();
 
       // Aylık sağlık maliyeti
@@ -718,7 +712,7 @@ router.get('/saglik-skoru', auth, async (req, res) => {
 
     const [toplamInek, aktifTedavi, gecikmisAsi, olumler, yasak] = await Promise.all([
       Inek.countDocuments({ userId: uid, durum: 'Aktif' }),
-      SaglikKaydi.countDocuments({ userId: uid, durum: 'devam_ediyor' }),
+      SaglikKaydi.countDocuments(devamEdenGercekTedaviQuery({ userId: uid })),
       AsiTakvimi.countDocuments({
         userId: uid,
         sonrakiTarih: { $lt: bugun },

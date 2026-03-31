@@ -378,8 +378,7 @@ function YaklasanDogumlar({ compact = false }) {
         tahminiZarar: ''
       });
     } else {
-      if (h.tip === 'inek') navigate(`/inekler/${h._id}`);
-      else navigate(`/duveler/${h._id}`);
+      navigate('/saglik-merkezi', { state: { openTab: 'tohumlar' } });
     }
   };
 
@@ -442,7 +441,7 @@ function YaklasanDogumlar({ compact = false }) {
       <CompactWidget>
         <h3>
           Yaklaşan Doğumlar
-          <Link to="/inekler" style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>Tümü →</Link>
+          <Link to="/saglik-merkezi" state={{ openTab: 'tohumlar' }} style={{ fontSize: 12, color: '#16a34a', fontWeight: 500, textDecoration: 'none' }}>Tümü →</Link>
         </h3>
         {yukleniyor ? (
           [1, 2, 3].map(i => <SkeletonCard key={i} />)
@@ -450,7 +449,14 @@ function YaklasanDogumlar({ compact = false }) {
           <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af', fontSize: 13 }}>Yaklaşan doğum yok</div>
         ) : (
           yaklasanlar.slice(0, 4).map((item, i) => (
-            <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < 3 ? '1px solid #f3f4f6' : 'none' }}>
+            <div
+              key={item._id}
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate('/saglik-merkezi', { state: { openTab: 'tohumlar' } })}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('/saglik-merkezi', { state: { openTab: 'tohumlar' } }); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: i < 3 ? '1px solid #f3f4f6' : 'none', cursor: 'pointer' }}
+            >
               <div style={{ width: 28, height: 28, borderRadius: 7, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, color: '#166534', flexShrink: 0 }}>
                 {(item.isim || item.kupeNo || '?')[0]}
               </div>

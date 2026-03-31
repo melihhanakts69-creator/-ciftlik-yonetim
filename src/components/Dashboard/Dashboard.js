@@ -16,7 +16,7 @@ const DEFAULT_PANELS = ['gunlukSut', 'sagmalInek', 'yaklasanDogum', 'saglikSkoru
 const METRIK_OPTIONS = [
   { id: 'gunlukSut', label: 'Günlük Süt', icon: '🥛', unit: 'Lt', color: '#16a34a', bg: '#dcfce7', nav: '/sut-kaydi' },
   { id: 'sagmalInek', label: 'Sağmal İnek', icon: '🐄', unit: 'baş', color: '#2563eb', bg: '#dbeafe', nav: '/inekler' },
-  { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'adet', color: '#d97706', bg: '#fef3c7', nav: null },
+  { id: 'yaklasanDogum', label: 'Yaklaşan Doğum', icon: '🤰', unit: 'adet', color: '#d97706', bg: '#fef3c7', nav: '/saglik-merkezi', navState: { openTab: 'tohumlar' } },
   { id: 'saglikSkoru', label: 'Sağlık Skoru', icon: '❤️', unit: '/100', color: '#16a34a', bg: '#dcfce7', nav: '/saglik-merkezi' },
   { id: 'yemStok', label: 'Yem Stok', icon: '🌿', unit: '%', color: '#d97706', bg: '#fef3c7', nav: '/yem-merkezi' },
   { id: 'fcr', label: 'Yem Çevirme', icon: '📊', unit: 'kg/Lt', color: '#2563eb', bg: '#dbeafe', nav: '/yem-merkezi' },
@@ -703,7 +703,7 @@ const Dashboard = ({ kullanici }) => {
             <KpiCard
               key={metrikId}
               $clickable={!!opt.nav}
-              onClick={opt.nav ? () => navigate(opt.nav) : undefined}
+              onClick={opt.nav ? () => (opt.navState ? navigate(opt.nav, { state: opt.navState }) : navigate(opt.nav)) : undefined}
             >
               <div className="kpi-label">{opt.label}</div>
               <div className="kpi-value" style={metrikId === 'saglikSkoru' ? {
@@ -942,14 +942,16 @@ const Dashboard = ({ kullanici }) => {
             overflow: 'hidden'
           }}>
             <div
-              onClick={() => setDogumAcik(p => !p)}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '12px 16px', cursor: 'pointer', transition: 'background .15s',
-                background: dogumAcik ? '#fff' : '#fff'
+                padding: '12px 16px',
+                background: '#fff'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div
+                onClick={() => setDogumAcik(p => !p)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, cursor: 'pointer', minWidth: 0 }}
+              >
                 <span style={{ fontSize: 14 }}>🤰</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Yaklaşan Doğumlar</span>
                 <span style={{ fontSize: 11, color: '#9ca3af' }}>30 gün içinde</span>
@@ -964,12 +966,27 @@ const Dashboard = ({ kullanici }) => {
                     {data.stats?.yaklaşanDogum ?? data.stats?.yaklasanDogum ?? 0} hayvan
                   </span>
                 )}
-                <span style={{
-                  fontSize: 12, color: '#9ca3af',
-                  display: 'inline-block',
-                  transform: dogumAcik ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform .2s'
-                }}>▾</span>
+                <Link
+                  to="/saglik-merkezi"
+                  state={{ openTab: 'tohumlar' }}
+                  onClick={e => e.stopPropagation()}
+                  style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  Gebeler →
+                </Link>
+                <span
+                  onClick={() => setDogumAcik(p => !p)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setDogumAcik(p => !p); }}
+                  style={{
+                    fontSize: 12, color: '#9ca3af',
+                    display: 'inline-block',
+                    cursor: 'pointer',
+                    transform: dogumAcik ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform .2s'
+                  }}
+                >▾</span>
               </div>
             </div>
 

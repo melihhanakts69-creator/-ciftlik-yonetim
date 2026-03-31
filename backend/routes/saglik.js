@@ -15,6 +15,7 @@ const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
 const Tosun = require('../models/Tosun');
 const mongoose = require('mongoose');
+const { devamEdenGercekTedaviQuery } = require('../utils/gercekTedaviFiltre');
 
 const getModelByHayvanTipi = (tip) => {
   switch (tip) {
@@ -320,13 +321,13 @@ router.get('/yaklasan', auth, checkRole(['ciftci', 'veteriner']), async (req, re
         const yediGunSonra = new Date();
         yediGunSonra.setDate(yediGunSonra.getDate() + gun);
 
+        const uidYaklasan = new mongoose.Types.ObjectId(req.userId);
         const yaklasanKontroller = await SaglikKaydi.find({
-            userId: req.userId,
+            ...devamEdenGercekTedaviQuery({ userId: uidYaklasan }),
             sonrakiKontrol: {
                 $gte: new Date(),
                 $lte: yediGunSonra
             },
-            durum: 'devam_ediyor'
         }).sort({ sonrakiKontrol: 1 }).lean();
 
         // Yaklaşan aşılar

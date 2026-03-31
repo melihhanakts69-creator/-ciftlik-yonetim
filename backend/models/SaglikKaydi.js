@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { devamEdenGercekTedaviQuery } = require('../utils/gercekTedaviFiltre');
 
 const saglikKaydiSchema = new mongoose.Schema({
     tenantId: {
@@ -110,22 +111,17 @@ saglikKaydiSchema.statics.hayvanGecmisi = async function (userId, hayvanId) {
     }).sort({ tarih: -1 });
 };
 
-// Statik: Aktif tedaviler
+// Statik: Aktif tedaviler (suni tohumlama hariç)
 saglikKaydiSchema.statics.aktifTedaviler = async function (userId) {
-    return await this.find({
-        userId: new mongoose.Types.ObjectId(userId),
-        durum: 'devam_ediyor'
-    }).sort({ tarih: -1 });
+    const uid = new mongoose.Types.ObjectId(userId);
+    return await this.find(devamEdenGercekTedaviQuery({ userId: uid })).sort({ tarih: -1 });
 };
 
 // Statik: İstatistikler
 saglikKaydiSchema.statics.istatistikler = async function (userId) {
     const ObjectId = new mongoose.Types.ObjectId(userId);
 
-    const aktifTedavi = await this.countDocuments({
-        userId: ObjectId,
-        durum: 'devam_ediyor'
-    });
+    const aktifTedavi = await this.countDocuments(devamEdenGercekTedaviQuery({ userId: ObjectId }));
 
     const buAyBaslangic = new Date();
     buAyBaslangic.setDate(1);
@@ -141,12 +137,11 @@ saglikKaydiSchema.statics.istatistikler = async function (userId) {
     yediGunSonra.setDate(yediGunSonra.getDate() + 7);
 
     const yaklasanKontrol = await this.countDocuments({
-        userId: ObjectId,
+        ...devamEdenGercekTedaviQuery({ userId: ObjectId }),
         sonrakiKontrol: {
             $gte: new Date(),
             $lte: yediGunSonra
         },
-        durum: 'devam_ediyor'
     });
 
     const aylikMaliyet = await this.aggregate([
