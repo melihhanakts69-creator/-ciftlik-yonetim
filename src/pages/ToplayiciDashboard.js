@@ -9,6 +9,7 @@ export default function ToplayiciDashboard({ kullanici }) {
   const [ciftlikler, setCiftlikler] = useState([]);
   const [fiyat, setFiyat] = useState(0);
   const [sonToplamalar, setSonToplamalar] = useState([]);
+  const [buAyGelir, setBuAyGelir] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fiyatEdit, setFiyatEdit] = useState(false);
   const [yeniFiyat, setYeniFiyat] = useState('');
@@ -19,11 +20,14 @@ export default function ToplayiciDashboard({ kullanici }) {
       api.getToplayiciCiftlikler(),
       api.getToplayiciFiyat(),
       api.getToplayiciSonToplamalar(),
-    ]).then(([oR, cR, fR, sR]) => {
+      api.getToplayiciGelirRaporu(),
+    ]).then(([oR, cR, fR, sR, gR]) => {
       setOzet(oR.value?.data || null);
       setCiftlikler(cR.value?.data || []);
       setFiyat(fR.value?.data?.fiyat || 0);
       setSonToplamalar(sR.value?.data || []);
+      const gel = gR.value?.data?.buAyGelir;
+      setBuAyGelir(typeof gel === 'number' && Number.isFinite(gel) ? gel : null);
       setLoading(false);
     });
   }, []);
@@ -94,7 +98,16 @@ export default function ToplayiciDashboard({ kullanici }) {
           { lbl: 'Bugün', val: `${ozet?.bugunToplamLitre || 0} Lt`, ico: '📅', bg: '#dbeafe', color: '#1e40af' },
           { lbl: 'Bu Hafta', val: `${ozet?.buHaftaToplamLitre || 0} Lt`, ico: '📊', bg: '#dcfce7', color: '#166534' },
           { lbl: 'Çiftliklerim', val: ciftlikler.length, ico: '🏡', bg: '#f3e8ff', color: '#5b21b6' },
-          { lbl: 'Bu Ay Gelir', val: fiyat > 0 ? `${((ozet?.buHaftaToplamLitre || 0) * fiyat).toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺` : '—', ico: '💰', bg: '#fef3c7', color: '#92400e' },
+          {
+            lbl: 'Bu Ay Gelir',
+            val:
+              fiyat > 0 && buAyGelir != null && buAyGelir > 0
+                ? `${buAyGelir.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺`
+                : '—',
+            ico: '💰',
+            bg: '#fef3c7',
+            color: '#92400e',
+          },
         ].map((k, i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: '12px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

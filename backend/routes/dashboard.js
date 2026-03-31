@@ -2,9 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
-console.log('✅ DASHBOARD ROUTER YÜKLENDİ (V2) - Eğer bunu görüyorsan kod güncel!');
-
-
+if (process.env.NODE_ENV !== 'production') {
+  console.log('✅ DASHBOARD ROUTER YÜKLENDİ (V2)');
+}
 
 
 const auth = require('../middleware/auth');

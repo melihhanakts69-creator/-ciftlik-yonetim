@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import styled, { keyframes } from 'styled-components';
+import api from '../services/apiClient';
 
 const spin = keyframes`to { transform: rotate(360deg); }`;
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); }`;
@@ -143,33 +143,24 @@ const ErrBox = styled.div`
   strong { display: block; font-size: 13px; margin-bottom: 4px; }
 `;
 
-// Axios instance with auth header
-function authAxios() {
-    const token = localStorage.getItem('token');
-    return axios.create({
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        timeout: 15000,
-    });
-}
-
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DASHBOARD SECTION
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-export function DashboardSection({ API, toast_ }) {
+export function DashboardSection({ toast_ }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         setLoading(true); setError('');
-        authAxios().get(`${API}/api/admin/dashboard`)
+        api.get('/admin/dashboard')
             .then(r => { setData(r.data); setLoading(false); })
             .catch(e => {
                 const msg = e.response?.data?.message || e.message || 'Bilinmeyen hata';
                 setError(msg); setLoading(false);
                 toast_('Dashboard verisi alinamadi: ' + msg, true);
             });
-    }, [API]);
+    }, []);
 
     if (loading) return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 20, color: '#475569' }}>
@@ -187,7 +178,7 @@ export function DashboardSection({ API, toast_ }) {
                     Backend sunucusunun calisiyor olmasi gerekiyor.
                 </span>
             </ErrBox>
-            <SmBtn $primary onClick={() => { setLoading(true); setError(''); authAxios().get(`${API}/api/admin/dashboard`).then(r => { setData(r.data); setLoading(false); }).catch(e => { setError(e.response?.data?.message || e.message); setLoading(false); }); }}>
+            <SmBtn $primary onClick={() => { setLoading(true); setError(''); api.get('/admin/dashboard').then(r => { setData(r.data); setLoading(false); }).catch(e => { setError(e.response?.data?.message || e.message); setLoading(false); }); }}>
                 Tekrar Dene
             </SmBtn>
         </div>
@@ -286,7 +277,7 @@ export function DashboardSection({ API, toast_ }) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // USERS SECTION
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-export function UsersSection({ API, toast_ }) {
+export function UsersSection({ toast_ }) {
     const [users, setUsers] = useState([]);
     const [q, setQ] = useState('');
     const [loading, setLoading] = useState(true);
@@ -296,7 +287,7 @@ export function UsersSection({ API, toast_ }) {
     const fetchUsers = async (s = '') => {
         setLoading(true); setError('');
         try {
-            const r = await authAxios().get(`${API}/api/admin/users?q=${encodeURIComponent(s)}&limit=50`);
+            const r = await api.get(`/admin/users?q=${encodeURIComponent(s)}&limit=50`);
             setUsers(r.data.users || []); setToplam(r.data.toplam || 0);
         } catch (e) {
             const msg = e.response?.data?.message || e.message;
@@ -305,11 +296,11 @@ export function UsersSection({ API, toast_ }) {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { fetchUsers(); }, [API]);
+    useEffect(() => { fetchUsers(); }, []);
 
     const toggleAktif = async (id, cur) => {
         try {
-            await authAxios().patch(`${API}/api/admin/users/${id}`, { aktif: !cur });
+            await api.patch(`/admin/users/${id}`, { aktif: !cur });
             setUsers(p => p.map(u => u._id === id ? { ...u, aktif: !cur } : u));
             toast_(!cur ? 'Kullanici aktiflestirildi' : 'Pasife alindi');
         } catch (e) { toast_('Islem basarisiz: ' + (e.response?.data?.message || e.message), true); }
@@ -318,7 +309,7 @@ export function UsersSection({ API, toast_ }) {
     const deleteUser = async (id, isim) => {
         if (!window.confirm(`"${isim}" silinsin mi? Bu islem geri alinamaz.`)) return;
         try {
-            await authAxios().delete(`${API}/api/admin/users/${id}`);
+            await api.delete(`/admin/users/${id}`);
             setUsers(p => p.filter(u => u._id !== id)); setToplam(p => p - 1);
             toast_('Kullanici silindi');
         } catch (e) { toast_('Silme basarisiz: ' + (e.response?.data?.message || e.message), true); }
@@ -373,7 +364,7 @@ export function UsersSection({ API, toast_ }) {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const EMPTY_POST = { title: '', excerpt: '', content: '', imageUrl: '', published: false, author: 'Agrolina Admin', tags: '' };
 
-export function BlogSection({ API, toast_ }) {
+export function BlogSection({ toast_ }) {
     const [posts, setPosts] = useState([]);
     const [editing, setEditing] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -382,11 +373,11 @@ export function BlogSection({ API, toast_ }) {
 
     const fetchPosts = async () => {
         setLoading(true); setError('');
-        try { const r = await authAxios().get(`${API}/api/admin/blog`); setPosts(r.data || []); }
+        try { const r = await api.get('/admin/blog'); setPosts(r.data || []); }
         catch (e) { setError(e.response?.data?.message || e.message); toast_('Blog alinamadi', true); }
         finally { setLoading(false); }
     };
-    useEffect(() => { fetchPosts(); }, [API]);
+    useEffect(() => { fetchPosts(); }, []);
 
     const savePost = async () => {
         if (!editing.title) return toast_('Baslik gerekli', true);
@@ -394,10 +385,10 @@ export function BlogSection({ API, toast_ }) {
         try {
             const payload = { ...editing, tags: editing.tags ? editing.tags.split(',').map(t => t.trim()).filter(Boolean) : [] };
             if (editing._id) {
-                const r = await authAxios().put(`${API}/api/admin/blog/${editing._id}`, payload);
+                const r = await api.put(`/admin/blog/${editing._id}`, payload);
                 setPosts(p => p.map(x => x._id === editing._id ? r.data.post : x));
             } else {
-                const r = await authAxios().post(`${API}/api/admin/blog`, payload);
+                const r = await api.post('/admin/blog', payload);
                 setPosts(p => [r.data.post, ...p]);
             }
             toast_('Yazi kaydedildi!'); setEditing(null);
@@ -407,7 +398,7 @@ export function BlogSection({ API, toast_ }) {
 
     const deletePost = async (id) => {
         if (!window.confirm('Bu yazi silinsin mi?')) return;
-        try { await authAxios().delete(`${API}/api/admin/blog/${id}`); setPosts(p => p.filter(x => x._id !== id)); toast_('Yazi silindi'); }
+        try { await api.delete(`/admin/blog/${id}`); setPosts(p => p.filter(x => x._id !== id)); toast_('Yazi silindi'); }
         catch (e) { toast_('Silme basarisiz', true); }
     };
 
@@ -481,23 +472,23 @@ const DEFAULT_APP_SETTINGS = {
     maxHayvanLimiti: 500, destek_email: 'destek@agrolina.com',
 };
 
-export function SettingsSection({ API, toast_ }) {
+export function SettingsSection({ toast_ }) {
     const [settings, setSettings] = useState(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        authAxios().get(`${API}/api/admin/settings`)
+        api.get('/admin/settings')
             .then(r => setSettings({ ...DEFAULT_APP_SETTINGS, ...r.data }))
             .catch(e => { setError(e.response?.data?.message || e.message); setSettings(DEFAULT_APP_SETTINGS); });
-    }, [API]);
+    }, []);
 
     const toggle = (k) => setSettings(p => ({ ...p, [k]: !p[k] }));
     const upd = (k, v) => setSettings(p => ({ ...p, [k]: v }));
 
     const save = async () => {
         setSaving(true);
-        try { await authAxios().put(`${API}/api/admin/settings`, settings); toast_('Ayarlar kaydedildi!'); }
+        try { await api.put('/admin/settings', settings); toast_('Ayarlar kaydedildi!'); }
         catch (e) { toast_('Kayit basarisiz: ' + (e.response?.data?.message || e.message), true); }
         finally { setSaving(false); }
     };
@@ -599,7 +590,7 @@ const NewsCard = styled.div`
 
 
 const ImageUploader = ({ value, onChange, icon }) => {
-    const [dragging, React_useState] = useState(false); // using existing React imports from scope
+    const [dragging, setDragging] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleFile = (file) => {
@@ -632,9 +623,9 @@ const ImageUploader = ({ value, onChange, icon }) => {
                 background: dragging ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.02)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', transition: 'all 0.2s'
             }}
-            onDragOver={e => { e.preventDefault(); React_useState(true); }}
-            onDragLeave={() => React_useState(false)}
-            onDrop={e => { e.preventDefault(); React_useState(false); handleFile(e.dataTransfer.files[0]); }}
+            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={e => { e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]); }}
             title="Gorseli degistirmek icin tikla veya surukle"
             onClick={() => {
                 const input = document.createElement('input');
@@ -669,7 +660,7 @@ const STATIC_SLOTS = [
     { key: 'featuresImage', label: 'Ozellikler Gorseli', icon: 'âœ¨', desc: 'Ozellikler bolumu gorseli' },
 ];
 
-export function MediaSection({ API, toast_ }) {
+export function MediaSection({ toast_ }) {
     const [images, setImages] = useState({ heroImage: '', logoUrl: '', ogImage: '', featuresImage: '' });
     const [newsItems, setNewsItems] = useState([]);
     const [newNews, setNewNews] = useState({ title: '', imageUrl: '', link: '', date: '' });
@@ -679,19 +670,19 @@ export function MediaSection({ API, toast_ }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        authAxios().get(`${API}/api/admin/content`)
+        api.get('/admin/content')
             .then(r => {
                 setImages(r.data.images || {});
                 setNewsItems(r.data.newsItems || []);
             })
             .catch(() => { })
             .finally(() => setLoading(false));
-    }, [API]);
+    }, []);
 
     const saveImages = async () => {
         setSaving(true);
         try {
-            await authAxios().put(`${API}/api/admin/content/images`, { data: images });
+            await api.put('/admin/content/images', { data: images });
             toast_('Gorseller kaydedildi!');
         } catch { toast_('Kayit basarisiz', true); }
         finally { setSaving(false); }
@@ -699,7 +690,7 @@ export function MediaSection({ API, toast_ }) {
 
     const saveNews = async (items) => {
         try {
-            await authAxios().put(`${API}/api/admin/content/newsItems`, { data: items });
+            await api.put('/admin/content/newsItems', { data: items });
         } catch { toast_('Haber kaydedilemedi', true); }
     };
 

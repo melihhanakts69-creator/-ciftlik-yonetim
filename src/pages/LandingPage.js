@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import logo from '../logo.png';
+import api from '../services/apiClient';
 import '../styles/LandingPage.css';
 import { FaCheck, FaStar, FaQuoteLeft } from 'react-icons/fa';
 import InstallButton from '../components/PWAInstallPrompt/InstallButton';
-
-const API = process.env.NODE_ENV === 'production'
-    ? 'https://ciftlik-yonetim.onrender.com'
-    : 'http://localhost:5000';
 
 const DEFAULTS = {
     hero: {
@@ -46,7 +42,7 @@ const LandingPage = () => {
     const [c, setC] = useState(DEFAULTS);
 
     useEffect(() => {
-        axios.get(`${API}/api/admin/public`)
+        api.get('/admin/public')
             .then(r => setC({ ...DEFAULTS, ...r.data }))
             .catch(() => { });
 

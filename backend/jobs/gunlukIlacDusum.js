@@ -4,6 +4,7 @@
  * her gün stoktan düşüm yapar. Kullanıcı "İyileşti" butonuna basana kadar devam eder.
  */
 const mongoose = require('mongoose');
+const { devamEdenGercekTedaviQuery } = require('../utils/gercekTedaviFiltre');
 const SaglikKaydi = require('../models/SaglikKaydi');
 const Stok = require('../models/Stok');
 const Bildirim = require('../models/Bildirim');
@@ -17,9 +18,8 @@ async function gunlukIlacDusumunuUygula(userId) {
   const bugunStr = bugun.toISOString().slice(0, 10);
 
   const kayitlar = await SaglikKaydi.find({
-    userId: uid,
-    durum: 'devam_ediyor',
-    'ilaclar.0': { $exists: true }
+    ...devamEdenGercekTedaviQuery({ userId: uid }),
+    'ilaclar.0': { $exists: true },
   }).lean();
 
   let dusumSayisi = 0;

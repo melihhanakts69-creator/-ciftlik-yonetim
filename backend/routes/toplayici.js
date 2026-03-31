@@ -80,11 +80,16 @@ router.get('/fiyat', async (req, res) => {
 
 router.post('/fiyat', async (req, res) => {
   try {
-    const { fiyat } = req.body;
-    if (!fiyat || fiyat <= 0) return res.status(400).json({ message: 'Geçerli fiyat girin.' });
-    await User.findByIdAndUpdate(req.originalUserId, { sutLitreFiyati: Number(fiyat) });
-    res.json({ message: 'Fiyat güncellendi.', fiyat: Number(fiyat) });
-  } catch { res.status(500).json({ message: 'Hata' }); }
+    const raw = req.body?.fiyat;
+    const n = typeof raw === 'string' ? parseFloat(raw.replace(',', '.')) : Number(raw);
+    if (!n || n <= 0 || !Number.isFinite(n)) {
+      return res.status(400).json({ message: 'Geçerli fiyat girin.' });
+    }
+    await User.findByIdAndUpdate(req.originalUserId, { $set: { sutLitreFiyati: n } });
+    res.json({ message: 'Fiyat güncellendi.', fiyat: n });
+  } catch {
+    res.status(500).json({ message: 'Hata' });
+  }
 });
 
 // Çiftlik detay istatistikleri

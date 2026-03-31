@@ -13,13 +13,21 @@ const app = express();
 // 🔒 Güvenlik Middleware'leri
 app.use(helmet());                    // HTTP güvenlik header'ları
 
-// CORS — sadece bilinen domain'ler
+const corsExtraOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const corsFrontend = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
+
+// CORS — bilinen domain'ler + FRONTEND_URL + CORS_ORIGINS (virgülle)
 app.use(cors({
   origin: [
     'https://ciftlik-yonetim.vercel.app',
-    /^https:\/\/ciftlik-yonetim.*\.vercel\.app$/, // Tüm ciftlik-yonetim* vercel domainlerini kapsar
+    /^https:\/\/ciftlik-yonetim.*\.vercel\.app$/,
     'http://localhost:3000',
-    'http://localhost:5000'
+    'http://localhost:5000',
+    ...corsFrontend,
+    ...corsExtraOrigins,
   ],
   credentials: true
 }));

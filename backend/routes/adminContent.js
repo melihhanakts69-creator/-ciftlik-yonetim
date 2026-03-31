@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/adminAuth');
 const SiteContent = require('../models/SiteContent');
 const User = require('../models/User');
 const Inek = require('../models/Inek');
@@ -70,7 +72,7 @@ router.get('/content', async (req, res) => {
 });
 
 // PUT /api/admin/content/:key
-router.put('/content/:key', async (req, res) => {
+router.put('/content/:key', auth, requireAdmin, async (req, res) => {
     try {
         const { key } = req.params;
         const { data } = req.body;
@@ -103,7 +105,7 @@ router.get('/public', async (req, res) => {
 // ══════════════════════════════════════════════
 
 // GET /api/admin/dashboard
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', auth, requireAdmin, async (req, res) => {
     try {
         const now = new Date();
         const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
@@ -168,7 +170,7 @@ router.get('/dashboard', async (req, res) => {
 // ══════════════════════════════════════════════
 
 // GET /api/admin/users?q=arama&sayfa=1
-router.get('/users', async (req, res) => {
+router.get('/users', auth, requireAdmin, async (req, res) => {
     try {
         const { q, sayfa = 1, limit = 20 } = req.query;
         const filter = q
@@ -198,7 +200,7 @@ router.get('/users', async (req, res) => {
 });
 
 // PATCH /api/admin/users/:id — aktif/pasif toggle + alan güncelleme
-router.patch('/users/:id', async (req, res) => {
+router.patch('/users/:id', auth, requireAdmin, async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(
             req.params.id,
@@ -213,7 +215,7 @@ router.patch('/users/:id', async (req, res) => {
 });
 
 // DELETE /api/admin/users/:id
-router.delete('/users/:id', async (req, res) => {
+router.delete('/users/:id', auth, requireAdmin, async (req, res) => {
     try {
         await User.findByIdAndDelete(req.params.id);
         res.json({ success: true, message: 'Kullanıcı silindi' });
@@ -227,7 +229,7 @@ router.delete('/users/:id', async (req, res) => {
 // ══════════════════════════════════════════════
 
 // GET /api/admin/blog?yayinlandi=true
-router.get('/blog', async (req, res) => {
+router.get('/blog', auth, requireAdmin, async (req, res) => {
     try {
         const { yayinlandi } = req.query;
         const filter = yayinlandi !== undefined ? { published: yayinlandi === 'true' } : {};
@@ -239,7 +241,7 @@ router.get('/blog', async (req, res) => {
 });
 
 // GET /api/admin/blog/:id
-router.get('/blog/:id', async (req, res) => {
+router.get('/blog/:id', auth, requireAdmin, async (req, res) => {
     try {
         const post = await BlogPost.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Yazı bulunamadı' });
@@ -250,7 +252,7 @@ router.get('/blog/:id', async (req, res) => {
 });
 
 // POST /api/admin/blog
-router.post('/blog', async (req, res) => {
+router.post('/blog', auth, requireAdmin, async (req, res) => {
     try {
         const post = new BlogPost(req.body);
         await post.save();
@@ -261,7 +263,7 @@ router.post('/blog', async (req, res) => {
 });
 
 // PUT /api/admin/blog/:id
-router.put('/blog/:id', async (req, res) => {
+router.put('/blog/:id', auth, requireAdmin, async (req, res) => {
     try {
         const post = await BlogPost.findByIdAndUpdate(
             req.params.id,
@@ -276,7 +278,7 @@ router.put('/blog/:id', async (req, res) => {
 });
 
 // DELETE /api/admin/blog/:id
-router.delete('/blog/:id', async (req, res) => {
+router.delete('/blog/:id', auth, requireAdmin, async (req, res) => {
     try {
         await BlogPost.findByIdAndDelete(req.params.id);
         res.json({ success: true, message: 'Yazı silindi' });
@@ -290,7 +292,7 @@ router.delete('/blog/:id', async (req, res) => {
 // ══════════════════════════════════════════════
 
 // GET /api/admin/settings — tüm ayarlar
-router.get('/settings', async (req, res) => {
+router.get('/settings', auth, requireAdmin, async (req, res) => {
     try {
         const docs = await AdminSettings.find({});
         const settings = { ...DEFAULT_SETTINGS };
@@ -302,7 +304,7 @@ router.get('/settings', async (req, res) => {
 });
 
 // PUT /api/admin/settings — birden fazla ayarı kaydet (obje gönder)
-router.put('/settings', async (req, res) => {
+router.put('/settings', auth, requireAdmin, async (req, res) => {
     try {
         const updates = req.body; // { bakimModu: true, kayitAcik: false ... }
         const ops = Object.entries(updates).map(([key, value]) =>

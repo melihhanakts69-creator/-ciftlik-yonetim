@@ -1,9 +1,7 @@
 import { DashboardSection, UsersSection, BlogSection, SettingsSection, MediaSection } from './AdminSections';
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
-import axios from 'axios';
-
-const API = 'https://ciftlik-yonetim.onrender.com';
+import api from '../services/apiClient';
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); }`;
 const spin = keyframes`to { transform: rotate(360deg); }`;
@@ -260,7 +258,7 @@ export default function AdminPanel() {
     const stored = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     if (stored && token) setUser(JSON.parse(stored));
-    axios.get(`${API}/api/admin/content`)
+    api.get('/admin/content')
       .then(r => setContent({ ...DEFAULTS, ...r.data }))
       .catch(() => setContent(DEFAULTS));
   }, []);
@@ -270,7 +268,7 @@ export default function AdminPanel() {
   const doLogin = async () => {
     setLoginLoading(true); setLoginError('');
     try {
-      const r = await axios.post(`${API}/api/auth/login`, loginForm);
+      const r = await api.post('/auth/login', loginForm);
       const { token, refreshToken, user: u } = r.data;
       localStorage.setItem('token', token);
       if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
@@ -288,7 +286,7 @@ export default function AdminPanel() {
 
   const save = async (key) => {
     setSaving(true);
-    try { await axios.put(`${API}/api/admin/content/${key}`, { data: content[key] }); toast_('Kaydedildi!'); }
+    try { await api.put(`/admin/content/${key}`, { data: content[key] }); toast_('Kaydedildi!'); }
     catch { toast_('Kayit basarisiz', true); }
     finally { setSaving(false); }
   };
@@ -473,7 +471,7 @@ export default function AdminPanel() {
           <SaveBtn onClick={() => save('appearance')} disabled={saving}>{saving ? <Loader /> : '\uD83D\uDCBE'} Kaydet</SaveBtn>
         </>}
 
-        {active === 'media' && <MediaSection API={API} toast_={toast_} />}
+        {active === 'media' && <MediaSection toast_={toast_} />}
         {active === 'images_DISABLED' && <>
           <PageHeader><span className="emoji">\uD83D\uDDBC\uFE0F</span><div><h1>Gorseller</h1><p>Resim URL leri</p></div></PageHeader>
           <Tip>Unsplash, ImgBB veya Cloudinary linki kullanabilirsin.</Tip>
@@ -570,10 +568,10 @@ export default function AdminPanel() {
           )}
         </>}
 
-        {active === 'dashboard' && <DashboardSection API={API} toast_={toast_} />}
-        {active === 'users' && <UsersSection API={API} toast_={toast_} />}
-        {active === 'blog' && <BlogSection API={API} toast_={toast_} />}
-        {active === 'settings' && <SettingsSection API={API} toast_={toast_} />}
+        {active === 'dashboard' && <DashboardSection toast_={toast_} />}
+        {active === 'users' && <UsersSection toast_={toast_} />}
+        {active === 'blog' && <BlogSection toast_={toast_} />}
+        {active === 'settings' && <SettingsSection toast_={toast_} />}
 
       </Main>
 
