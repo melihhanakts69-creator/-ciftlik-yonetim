@@ -171,12 +171,13 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
-    if (typeof user.sifre !== 'string' || !user.sifre) {
-      console.error('Login: kullanıcı şifre alanı geçersiz', user._id);
+    const sifreHash = user.sifre != null ? String(user.sifre) : '';
+    if (!sifreHash) {
+      console.error('Login: kullanıcı şifre alanı boş', user._id);
       return res.status(500).json({ message: 'Hesap verisi hatalı. Lütfen destek ile iletişime geçin.' });
     }
 
-    const sifreDogrumu = await bcrypt.compare(sifre, user.sifre);
+    const sifreDogrumu = await bcrypt.compare(sifre, sifreHash);
     if (!sifreDogrumu) return res.status(400).json({ message: 'Şifre hatalı!' });
 
     if (!user.aktif) return res.status(403).json({ message: 'Hesabınız askıya alınmış.' });

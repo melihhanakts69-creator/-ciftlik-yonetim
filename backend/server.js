@@ -45,8 +45,12 @@ app.use(hpp());                       // HTTP Parameter Pollution koruması
 // 🔒 Trust proxy (Render / Heroku gibi reverse proxy arkasında çalışırken şart)
 app.set('trust proxy', 1);
 
-// Rate limiting
-app.use('/api/', apiLimiter);          // Tüm API: 500 istek/15dk
+// Rate limiting — /api/auth ayrı authLimiter ile; genel limiter login/register'ı çift saymasın
+app.use('/api/', (req, res, next) => {
+  if (req.method === 'OPTIONS') return next();
+  if (req.originalUrl.startsWith('/api/auth')) return next();
+  return apiLimiter(req, res, next);
+});
 
 // Test route
 app.get('/', (req, res) => {
@@ -58,18 +62,6 @@ app.get('/api/version', (req, res) => {
     version: '2.0.0-admin-panel',
     timestamp: new Date().toISOString(),
     features: ['admin-dashboard', 'user-management', 'blog', 'site-content', 'media-manager']
-  });
-});
-
-// GEÇICI DEBUG — MongoDB bağlantı durumu
-app.get('/api/db-status', (req, res) => {
-  const mongoose = require('mongoose');
-  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  res.json({
-    dbState: states[mongoose.connection.readyState] || 'unknown',
-    readyState: mongoose.connection.readyState,
-    host: mongoose.connection.host || null,
-    mongoUriSet: !!process.env.MONGODB_URI,
   });
 });
 
