@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
+// family: 4 — bazı bulut ortamlarında IPv6/DNS sorunlarında Atlas SRV çözümlemesini iyileştirir
 const CONNECT_OPTS = {
   serverSelectionTimeoutMS: 20000,
   socketTimeoutMS: 120000,
   maxPoolSize: 10,
+  family: 4,
 };
 
 function sleep(ms) {
@@ -31,7 +33,9 @@ const connectDB = async () => {
     return false;
   }
 
-  const uri = process.env.MONGODB_URI;
+  console.log('[MongoDB] connectDB: retry + IPv4 (family:4) aktif');
+
+  const uri = process.env.MONGODB_URI.trim();
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
   let lastErr;
 
@@ -76,7 +80,10 @@ const connectDB = async () => {
   }
 
   console.error(
-    'MongoDB: Baglanti kurulamadi. Atlas IP (0.0.0.0/0), MONGODB_URI ve ag.',
+    '[MongoDB] Tum denemeler basarisiz. Kontrol: (1) Atlas Network Access bu projede 0.0.0.0/0',
+    '(2) Cluster duraklatilmamis (Free: Resume)',
+    '(3) MONGODB_URI host\'u Atlas\'taki cluster ile ayni',
+    '| Son hata:',
     lastErr?.message || ''
   );
   return false;
