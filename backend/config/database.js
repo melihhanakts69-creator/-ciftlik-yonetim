@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CONNECT_OPTS = {
-  serverSelectionTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 20000,
   socketTimeoutMS: 120000,
   maxPoolSize: 10,
 };
@@ -10,9 +10,25 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+let handlersAttached = false;
+function attachConnectionHandlers() {
+  if (handlersAttached) return;
+  handlersAttached = true;
+  mongoose.connection.on('error', (err) => {
+    console.error('[MongoDB] connection error:', err.message);
+  });
+  mongoose.connection.on('disconnected', () => {
+    console.warn('[MongoDB] disconnected');
+  });
+}
+
+/**
+ * @returns {Promise<boolean>} bağlantı kuruldu mu
+ */
 const connectDB = async () => {
   if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI tanımlı değil');
+    console.error('MONGODB_URI tanımlı değil.');
+    return false;
   }
 
   const uri = process.env.MONGODB_URI;
@@ -22,12 +38,25 @@ const connectDB = async () => {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       if (mongoose.connection.readyState === 1) {
-        console.log('MongoDB zaten bağlı.');
-        break;
+        return true;
       }
       await mongoose.connect(uri, CONNECT_OPTS);
       console.log('MongoDB baglantisi basarili!');
-      break;
+      attachConnectionHandlers();
+
+      try {
+        const userCol = mongoose.connection.collection('users');
+        const indexes = await userCol.indexes();
+        const oldIdx = indexes.find((idx) => idx.name === 'email_1');
+        if (oldIdx) {
+          await userCol.dropIndex('email_1');
+          console.log('Eski email_1 unique index kaldirildi.');
+        }
+      } catch (idxErr) {
+        console.log('Index migration:', idxErr.message);
+      }
+
+      return true;
     } catch (error) {
       lastErr = error;
       console.error(
@@ -37,7 +66,7 @@ const connectDB = async () => {
       try {
         await mongoose.disconnect();
       } catch (_) {
-        /* yarım kalmış baglanti */
+        /* ignore */
       }
       if (attempt < maxAttempts) {
         const waitMs = Math.min(2000 * 2 ** (attempt - 1), 30000);
@@ -46,31 +75,11 @@ const connectDB = async () => {
     }
   }
 
-  if (mongoose.connection.readyState !== 1) {
-    console.error(
-      'MongoDB: Atlas IP whitelist, MONGODB_URI veya ag erisimini kontrol edin.'
-    );
-    throw lastErr || new Error('MongoDB baglantisi kurulamadi');
-  }
-
-  mongoose.connection.on('error', (err) => {
-    console.error('[MongoDB] connection error:', err.message);
-  });
-  mongoose.connection.on('disconnected', () => {
-    console.warn('[MongoDB] disconnected — yeniden baglanti denenecek');
-  });
-
-  try {
-    const userCol = mongoose.connection.collection('users');
-    const indexes = await userCol.indexes();
-    const oldIdx = indexes.find((idx) => idx.name === 'email_1');
-    if (oldIdx) {
-      await userCol.dropIndex('email_1');
-      console.log('Eski email_1 unique index kaldirildi.');
-    }
-  } catch (idxErr) {
-    console.log('Index migration:', idxErr.message);
-  }
+  console.error(
+    'MongoDB: Baglanti kurulamadi. Atlas IP (0.0.0.0/0), MONGODB_URI ve ag.',
+    lastErr?.message || ''
+  );
+  return false;
 };
 
 module.exports = connectDB;

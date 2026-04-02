@@ -66,6 +66,24 @@ app.get('/api/version', (req, res) => {
   });
 });
 
+// Render / platform health — DB olmadan 200 (deploy health check)
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    dbReady: mongoose.connection.readyState === 1,
+    ts: new Date().toISOString(),
+  });
+});
+
+// Mongo hazır değilse ( /api/health ve /api/version yukarıda, buraya gelmez )
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState === 1) return next();
+  return res.status(503).json({
+    message: 'Veritabanına şu an bağlanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.',
+    code: 'DB_UNAVAILABLE',
+  });
+});
+
 // Routes
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/inekler', require('./routes/inekler'));
@@ -114,12 +132,11 @@ process.on('uncaughtException', (err) => {
 });
 
 let httpServer;
+let schedulerStarted = false;
 
-// MongoDB hazır olmadan dinlemeyelim — giriş vb. istekler "Sunucu hatası" vermesin
+// Önce portu aç (Render deploy health / uyku sonrası anında cevap), Mongo arka planda
 async function start() {
-  await connectDB();
   const { startScheduler } = require('./jobs/scheduler');
-  startScheduler();
 
   httpServer = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
@@ -128,6 +145,23 @@ async function start() {
     console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
     console.log('-------------------------');
   });
+
+  const retryMs = Math.max(15000, parseInt(process.env.MONGO_RETRY_MS || '45000', 10));
+
+  async function tryMongo() {
+    const ok = await connectDB();
+    if (ok) {
+      if (!schedulerStarted) {
+        startScheduler();
+        schedulerStarted = true;
+      }
+      return;
+    }
+    console.error(`[MongoDB] ${retryMs / 1000} sn sonra tekrar denenecek...`);
+    setTimeout(tryMongo, retryMs);
+  }
+
+  void tryMongo();
 }
 
 function shutdown(signal) {
