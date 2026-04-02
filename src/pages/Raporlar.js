@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import * as api from '../services/api';
 import { FaChartBar, FaTint, FaWallet, FaHeartbeat, FaCalendarAlt, FaArrowUp, FaArrowDown, FaFileExcel, FaFilePdf, FaDownload } from 'react-icons/fa';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -429,7 +429,7 @@ const Raporlar = () => {
     setExportModal({ show: true, type, data: expData });
   };
 
-  const confirmExport = () => {
+  const confirmExport = async () => {
     const { type, data: exportData } = exportModal;
 
     if (type === 'excel') {
@@ -441,10 +441,21 @@ const Raporlar = () => {
         });
         return newRow;
       });
-      const ws = XLSX.utils.json_to_sheet(excelData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-      XLSX.writeFile(wb, `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Rapor');
+      const keys = Object.keys(excelData[0]);
+      worksheet.columns = keys.map((k) => ({ header: k, key: k }));
+      excelData.forEach((row) => worksheet.addRow(row));
+      const buf = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Agrolina_${activeTab}_Raporu_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
     } else if (type === 'pdf') {
       const replaceTurkishChars = (str) => {
         if (typeof str !== 'string') return str;
