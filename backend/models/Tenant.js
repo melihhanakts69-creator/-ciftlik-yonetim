@@ -66,7 +66,7 @@ const tenantSchema = new mongoose.Schema(
 );
 
 tenantSchema.index({ slug: 1 }, { unique: true, sparse: true });
-tenantSchema.index({ ciftlikKodu: 1 }, { unique: true, sparse: true });
+// ciftlikKodu: şema alanında unique+sparse zaten indeks oluşturur; tekrar index() ekleme (duplicate warning)
 
 // Benzersiz çiftlik kodu üret (8 karakter, büyük harf + rakam)
 tenantSchema.statics.generateCiftlikKodu = async function () {
