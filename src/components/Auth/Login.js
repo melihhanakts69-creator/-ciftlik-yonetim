@@ -143,12 +143,18 @@ export default function Login({ onLoginSuccess }) {
       setSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
       setTimeout(() => onLoginSuccess(r.data.user), 900);
     } catch (err) {
+      const status = err.response?.status;
       const data = err.response?.data;
-      // Backend doğru rolü döndürdüyse otomatik seç
       if (data?.digerRol) {
         setSeciliRol(data.digerRol);
       }
-      setError(data?.message || 'Giriş başarısız! Bilgilerinizi kontrol edin.');
+      if (status === 503 || data?.code === 'DB_UNAVAILABLE') {
+        setError('Sunucu başlatılıyor… 10–15 saniye bekleyip tekrar deneyin.');
+      } else if (status === 429) {
+        setError('Çok fazla deneme yaptınız. 15 dakika sonra tekrar deneyin.');
+      } else {
+        setError(data?.message || 'Giriş başarısız! Email ve şifrenizi kontrol edin.');
+      }
     } finally { setLoading(false); }
   };
 
@@ -163,7 +169,15 @@ export default function Login({ onLoginSuccess }) {
       setSuccess('Kayıt başarılı! Hoş geldiniz...');
       setTimeout(() => onLoginSuccess(r.data.user), 900);
     } catch (err) {
-      setError(err.response?.data?.message || 'Kayıt başarısız! Lütfen tekrar deneyin.');
+      const status = err.response?.status;
+      const data = err.response?.data;
+      if (status === 503 || data?.code === 'DB_UNAVAILABLE') {
+        setError('Sunucu başlatılıyor… 10–15 saniye bekleyip tekrar deneyin.');
+      } else if (status === 429) {
+        setError('Çok fazla deneme yaptınız. 15 dakika sonra tekrar deneyin.');
+      } else {
+        setError(data?.message || 'Kayıt başarısız! Lütfen tekrar deneyin.');
+      }
     } finally { setLoading(false); }
   };
 

@@ -77,9 +77,11 @@ app.get('/api/health', (req, res) => {
 
 // Mongo hazır değilse ( /api/health ve /api/version yukarıda, buraya gelmez )
 app.use('/api', (req, res, next) => {
+  const authPath = req.originalUrl.split('?')[0];
+  if (authPath.startsWith('/api/auth')) return next();
   if (mongoose.connection.readyState === 1) return next();
   return res.status(503).json({
-    message: 'Veritabanına şu an bağlanılamıyor. Lütfen birkaç saniye sonra tekrar deneyin.',
+    message: 'Sunucu başlatılıyor, lütfen birkaç saniye bekleyip tekrar deneyin.',
     code: 'DB_UNAVAILABLE',
   });
 });
@@ -146,7 +148,7 @@ async function start() {
     console.log('-------------------------');
   });
 
-  const retryMs = Math.max(15000, parseInt(process.env.MONGO_RETRY_MS || '45000', 10));
+  const retryMs = Math.max(5000, parseInt(process.env.MONGO_RETRY_MS || '15000', 10));
 
   async function tryMongo() {
     const ok = await connectDB();
