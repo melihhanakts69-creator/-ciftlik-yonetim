@@ -22,13 +22,19 @@ const refreshTokenSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Yeni refresh token üret
+// Yeni refresh token üret (tekillik çakışmasında yeniden dene)
 refreshTokenSchema.statics.createToken = async function (userId) {
-    const token = crypto.randomBytes(40).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 gün
-
-    await this.create({ token, userId, expiresAt });
-    return token;
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const token = crypto.randomBytes(40).toString('hex');
+        try {
+            await this.create({ token, userId, expiresAt });
+            return token;
+        } catch (err) {
+            if (err && err.code === 11000 && attempt < 4) continue;
+            throw err;
+        }
+    }
 };
 
 // Token doğrula

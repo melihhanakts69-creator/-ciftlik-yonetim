@@ -4,9 +4,10 @@ const { body, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        const arr = errors.array();
         return res.status(400).json({
-            message: errors.array()[0].msg,  // İlk hata mesajını göster
-            errors: errors.array().map(err => ({ field: err.path, message: err.msg }))
+            message: arr[0]?.msg || 'Geçersiz istek',
+            errors: arr.map(err => ({ field: err.path, message: err.msg }))
         });
     }
     next();
@@ -17,7 +18,7 @@ const registerValidation = [
     body('isim').trim().isLength({ min: 2 }).withMessage('İsim en az 2 karakter olmalı'),
     body('email').trim().isEmail().withMessage('Geçerli bir email adresi giriniz'),
     body('sifre').isLength({ min: 6 }).withMessage('Şifre en az 6 karakter olmalı'),
-    body('rol').optional({ values: 'falsy' }).isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
+    body('rol').optional({ checkFalsy: true }).isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
     // isletmeAdi, lisansNo, firmaAdi vs. role göre opsiyonel — backend kontrolünde
     validate
 ];
@@ -27,7 +28,7 @@ const loginValidation = [
     body('email').trim().isEmail().withMessage('Geçerli bir email adresi giriniz'),
     body('sifre').notEmpty().withMessage('Şifre boş olamaz'),
     // Boş string / null rol gönderiminde optional tek başına doğrulamayı geçmez; falsy = yok say
-    body('rol').optional({ values: 'falsy' }).isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
+    body('rol').optional({ checkFalsy: true }).isIn(['ciftci', 'veteriner', 'sutcu', 'toplayici']).withMessage('Geçersiz rol'),
     validate
 ];
 

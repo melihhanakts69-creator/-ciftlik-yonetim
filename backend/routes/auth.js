@@ -121,11 +121,20 @@ router.post('/register', registerValidation, async (req, res) => {
 // GİRİŞ YAP
 router.post('/login', loginValidation, async (req, res) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      console.error('Login: JWT_SECRET eksik');
+      return res.status(500).json({ message: 'Sunucu yapılandırması eksik (JWT).' });
+    }
+
     const { email, sifre, rol = 'ciftci' } = req.body;
 
     // Email + Rol kombinasyonu ile doğru hesabı bul
     // Aynı email farklı rollerde farklı hesap olabilir
-    const rolLabel = rol === 'ciftci' ? 'çiftçi' : rol === 'veteriner' ? 'veteriner' : 'sütçü';
+    const rolLabel =
+      rol === 'ciftci' ? 'çiftçi' :
+      rol === 'veteriner' ? 'veteriner' :
+      rol === 'toplayici' ? 'süt toplayıcı' :
+      rol === 'sutcu' ? 'sütçü' : 'çiftçi';
 
     // Önce email + rol kombinasyonu ile ara
     let user = await User.findOne({ email: email.toLowerCase(), rol });
@@ -138,8 +147,8 @@ router.post('/login', loginValidation, async (req, res) => {
       });
       // Eski hesabı bulduk, rolünü güncelle
       if (user && (!user.rol || user.rol !== 'ciftci')) {
+        await User.updateOne({ _id: user._id }, { $set: { rol: 'ciftci' } });
         user.rol = 'ciftci';
-        await user.save();
       }
     }
 
@@ -162,6 +171,11 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
+    if (typeof user.sifre !== 'string' || !user.sifre) {
+      console.error('Login: kullanıcı şifre alanı geçersiz', user._id);
+      return res.status(500).json({ message: 'Hesap verisi hatalı. Lütfen destek ile iletişime geçin.' });
+    }
+
     const sifreDogrumu = await bcrypt.compare(sifre, user.sifre);
     if (!sifreDogrumu) return res.status(400).json({ message: 'Şifre hatalı!' });
 
@@ -174,8 +188,7 @@ router.post('/login', loginValidation, async (req, res) => {
       });
     }
 
-    user.sonGiris = new Date();
-    await user.save();
+    await User.updateOne({ _id: user._id }, { $set: { sonGiris: new Date() } });
 
     const token = generateAccessToken(user);
     const refreshToken = await RefreshToken.createToken(user._id);
@@ -206,7 +219,7 @@ router.post('/login', loginValidation, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login Hatası:', error);
+    console.error('Login Hatası:', error?.message || error);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
