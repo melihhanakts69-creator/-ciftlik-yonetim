@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+console.log('[BOOT] config/database.js yüklendi — hata metni: [MongoDB] Baglanti denemesi ... (eski "baglanti hatasi" yok)');
+
+function logAtlasHost(uri) {
+  try {
+    const at = uri.indexOf('@');
+    if (at === -1) return;
+    const rest = uri.slice(at + 1);
+    const host = rest.split('/')[0].split('?')[0];
+    console.log('[MongoDB] URI host (sifre yok):', host || '(bos)');
+  } catch (_) {
+    console.log('[MongoDB] URI host parse edilemedi');
+  }
+}
+
 // family: 4 — bazı bulut ortamlarında IPv6/DNS sorunlarında Atlas SRV çözümlemesini iyileştirir
 const CONNECT_OPTS = {
   serverSelectionTimeoutMS: 20000,
@@ -36,6 +50,7 @@ const connectDB = async () => {
   console.log('[MongoDB] connectDB: retry + IPv4 (family:4) aktif');
 
   const uri = process.env.MONGODB_URI.trim();
+  logAtlasHost(uri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
   let lastErr;
 
