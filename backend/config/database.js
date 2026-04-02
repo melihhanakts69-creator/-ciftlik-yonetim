@@ -1,12 +1,5 @@
 const mongoose = require('mongoose');
-// Bağlantı yokken sorguları sonsuza kadar bekletme (buffering timeout yerine hızlı hata)
-mongoose.set('bufferCommands', false);
 
-/**
- * Atlas / Render: Network Access’te IP izni şart.
- * - Atlas → Network Access → Add IP → 0.0.0.0/0 (tüm IP’ler) VEYA Render çıkış IP’leri
- * Aksi halde: "not whitelisted", buffering timeout, login patlar.
- */
 const connectDB = async () => {
   try {
     if (!process.env.MONGODB_URI) {
@@ -14,15 +7,7 @@ const connectDB = async () => {
       process.exit(1);
     }
 
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 20000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-    });
-
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('MongoDB readyState beklenen değil');
-    }
+    await mongoose.connect(process.env.MONGODB_URI);
 
     console.log('MongoDB baglantisi basarili!');
 
