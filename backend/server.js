@@ -1,4 +1,5 @@
 require('dotenv').config();
+const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -103,13 +104,24 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+let httpServer;
+
 // MongoDB hazır olmadan dinlemeyelim — giriş vb. istekler "Sunucu hatası" vermesin
 async function start() {
   await connectDB();
   const { startScheduler } = require('./jobs/scheduler');
   startScheduler();
 
-  app.listen(PORT, () => {
+  httpServer = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
     console.log('--- Environment Check ---');
     console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING');
@@ -117,6 +129,23 @@ async function start() {
     console.log('-------------------------');
   });
 }
+
+function shutdown(signal) {
+  console.log(`${signal} alindi, kapatiliyor...`);
+  const force = setTimeout(() => process.exit(1), 15000);
+  if (httpServer) {
+    httpServer.close(() => {
+      clearTimeout(force);
+      mongoose.disconnect().finally(() => process.exit(0));
+    });
+  } else {
+    clearTimeout(force);
+    process.exit(0);
+  }
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 start().catch((err) => {
   console.error('Sunucu başlatılamadı:', err);

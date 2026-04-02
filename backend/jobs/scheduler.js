@@ -11,7 +11,15 @@ const { tumCiftcilerIcinGunlukIlacDusum } = require('./gunlukIlacDusum');
 function startScheduler() {
   // Her gün 06:00'da günlük ilaç stok düşümü (devam eden tedavilerde gunlukMiktar > 0 olanlar)
   cron.schedule('0 6 * * *', async () => {
-    await tumCiftcilerIcinGunlukIlacDusum();
+    try {
+      if (mongoose.connection.readyState !== 1) {
+        console.log('[Scheduler] DB bağlı değil, ilaç düşümü atlanıyor');
+        return;
+      }
+      await tumCiftcilerIcinGunlukIlacDusum();
+    } catch (e) {
+      console.error('[Scheduler] Günlük ilaç düşümü:', e?.message || e);
+    }
   }, { timezone: 'Europe/Istanbul' });
 
   // Her 6 saatte bir tüm çiftçi hesapları için otomatik görevleri çalıştır
