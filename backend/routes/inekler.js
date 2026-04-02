@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const planCheck = require('../middleware/planCheck');
+const { addTenant } = require('../utils/tenantScope');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
@@ -12,10 +13,11 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 // TÜM İNEKLERİ GETİR (Silindi hariç)
 router.get('/', auth, async (req, res) => {
   try {
-    const query = { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } };
-    if (req.tenantId) {
-      query.tenantId = req.tenantId;
-    }
+    const query = addTenant(req, {
+      userId: req.userId,
+      durum: { $ne: 'Silindi' },
+      aktif: { $ne: false },
+    });
 
     const inekler = await Inek.find(query).sort({ createdAt: -1 });
     res.json(inekler);
@@ -27,10 +29,12 @@ router.get('/', auth, async (req, res) => {
 // YAKLAŞAN DOĞUMLAR (30 GÜN İÇİNDE) - İNEK + DÜVE
 router.get('/yaklasan-dogumlar', auth, async (req, res) => {
   try {
-    const inekQuery = { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } };
-    const duveQuery = { userId: req.userId, aktif: { $ne: false } };
-    if (req.tenantId) inekQuery.tenantId = req.tenantId;
-    if (req.tenantId) duveQuery.tenantId = req.tenantId;
+    const inekQuery = addTenant(req, {
+      userId: req.userId,
+      durum: { $ne: 'Silindi' },
+      aktif: { $ne: false },
+    });
+    const duveQuery = addTenant(req, { userId: req.userId, aktif: { $ne: false } });
     const inekler = await Inek.find(inekQuery);
     const duveler = await Duve.find(duveQuery);
 
@@ -160,10 +164,7 @@ router.put('/:id', auth, async (req, res) => {
       laktasyonDonemi
     } = req.body;
 
-    const filter = { _id: req.params.id, userId: req.userId };
-    if (req.tenantId) {
-      filter.tenantId = req.tenantId;
-    }
+    const filter = addTenant(req, { _id: req.params.id, userId: req.userId });
 
     const update = {};
     if (isim !== undefined) update.isim = isim;
@@ -199,13 +200,7 @@ router.put('/:id', auth, async (req, res) => {
 // İNEK SİL (soft delete)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const filter = {
-      _id: req.params.id,
-      userId: req.userId,
-    };
-    if (req.tenantId) {
-      filter.tenantId = req.tenantId;
-    }
+    const filter = addTenant(req, { _id: req.params.id, userId: req.userId });
 
     const inek = await Inek.findOneAndUpdate(
       filter,
@@ -241,10 +236,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
 
-    const inekFilter = { _id: req.params.id, userId: req.userId };
-    if (req.tenantId) {
-      inekFilter.tenantId = req.tenantId;
-    }
+    const inekFilter = addTenant(req, { _id: req.params.id, userId: req.userId });
 
     const inek = await Inek.findOne(inekFilter);
     if (!inek) {
@@ -342,10 +334,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
 router.post('/:id/tohumlama', auth, async (req, res) => {
   try {
     const { tohumlamaTarihi } = req.body;
-    const inekFilter2 = { _id: req.params.id, userId: req.userId };
-    if (req.tenantId) {
-      inekFilter2.tenantId = req.tenantId;
-    }
+    const inekFilter2 = addTenant(req, { _id: req.params.id, userId: req.userId });
 
     const inek = await Inek.findOne(inekFilter2);
 
@@ -378,7 +367,7 @@ router.post('/:id/tohumlama', auth, async (req, res) => {
 // TOHUMLAMA SİL
 router.delete('/:id/tohumlama', auth, async (req, res) => {
   try {
-    const inek = await Inek.findOne({ _id: req.params.id, userId: req.userId });
+    const inek = await Inek.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!inek) return res.status(404).json({ message: 'İnek bulunamadı' });
 
     inek.tohumlamaTarihi = null;
@@ -386,13 +375,11 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
     await inek.save();
 
     // En son eklenen tohumlama timeline kaydını sil
-    const lastTimelineFilter = {
+    const lastTimelineFilter = addTenant(req, {
+      userId: req.userId,
       hayvanId: inek._id.toString(),
       tip: 'tohumlama',
-    };
-    if (req.tenantId) {
-      lastTimelineFilter.tenantId = req.tenantId;
-    }
+    });
 
     const lastTimeline = await Timeline.findOne(lastTimelineFilter).sort({ createdAt: -1 });
     if (lastTimeline) await lastTimeline.deleteOne();
@@ -405,10 +392,7 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
 
 router.get('/:id', auth, async (req, res) => {
   try {
-    const inekFilter3 = { _id: req.params.id, userId: req.userId };
-    if (req.tenantId) {
-      inekFilter3.tenantId = req.tenantId;
-    }
+    const inekFilter3 = addTenant(req, { _id: req.params.id, userId: req.userId });
 
     const inek = await Inek.findOne(inekFilter3);
     if (!inek) {
@@ -422,14 +406,11 @@ router.get('/:id', auth, async (req, res) => {
     const tarihStr = otuzGunOnce.toISOString().split('T')[0];
 
     // İnek detayına süt verisini de ekle
-    const sutFilter = {
+    const sutFilter = addTenant(req, {
       userId: req.userId,
       inekId: inek._id,
       tarih: { $gte: tarihStr },
-    };
-    if (req.tenantId) {
-      sutFilter.tenantId = req.tenantId;
-    }
+    });
 
     const sutGecmisi = await SutKaydi.find(sutFilter).sort({ tarih: 1 });
 
@@ -449,7 +430,7 @@ router.get('/:id/laktasyon', auth, async (req, res) => {
     const SutKaydi = require('../models/SutKaydi');
     const mongoose = require('mongoose');
 
-    const inekFilter = { _id: req.params.id, userId: req.userId };
+    const inekFilter = addTenant(req, { _id: req.params.id, userId: req.userId });
     const inek = await Inek.findOne(inekFilter);
     if (!inek) return res.status(404).json({ message: 'İnek bulunamadı' });
 
