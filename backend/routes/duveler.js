@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const planCheck = require('../middleware/planCheck');
+const { addTenant } = require('../utils/tenantScope');
 const Duve = require('../models/Duve');
 const Inek = require('../models/Inek');
 const Buzagi = require('../models/Buzagi');
@@ -13,7 +14,7 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 // TÜM DÜVELERİ GETİR (Silindi/aktif olmayan hariç)
 router.get('/', auth, async (req, res) => {
   try {
-    const duveler = await Duve.find({ userId: req.userId, aktif: { $ne: false } }).sort({ createdAt: -1 });
+    const duveler = await Duve.find(addTenant(req, { userId: req.userId, aktif: { $ne: false } })).sort({ createdAt: -1 });
     res.json(duveler);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -34,6 +35,7 @@ router.post('/', auth, planCheck, async (req, res) => {
 
     const duve = new Duve({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim,
       yas: finalYas,
       kilo,
@@ -44,7 +46,6 @@ router.post('/', auth, planCheck, async (req, res) => {
       notlar: notlar || not || '',
       eklemeTarihi
     });
-    console.log('📌 tohumlamaTarihi:', tohumlamaTarihi);
 
     await duve.save();
 
@@ -52,6 +53,7 @@ router.post('/', auth, planCheck, async (req, res) => {
     if (tohumlamaTarihi && tohumlamaTarihi.trim() !== '') {
       await Timeline.create({
         userId: req.userId,
+        tenantId: req.tenantId || null,
         hayvanId: duve._id.toString(),
         hayvanTipi: 'duve',
         tip: 'tohumlama',
@@ -71,7 +73,7 @@ router.post('/', auth, planCheck, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const duve = await Duve.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       { aktif: false, silinmeTarihi: new Date() },
       { new: true }
     );
@@ -99,7 +101,7 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { userId, _id, ...safeBody } = req.body;
     const duve = await Duve.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       safeBody,
       { new: true }
     );
@@ -120,7 +122,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     const { dogumTarihi, buzagiIsim, buzagiCinsiyet, buzagiKilo, notlar, buzagiDurum, tahminiZarar } = req.body;
     const olum = buzagiDurum === 'Öldü';
 
-    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    const duve = await Duve.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!duve) {
       return res.status(404).json({ message: 'Düve bulunamadı' });
     }
@@ -141,6 +143,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     // 1. Buzağı oluştur
     const buzagi = new Buzagi({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim,
       kupeNo: `BZ-${Date.now()}`,
       anneId: duve._id.toString(),
@@ -158,6 +161,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     // 2. Düveyi İnek'e dönüştür (ilk doğum)
     const yeniInek = new Inek({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim: duve.isim,
       kupeNo: duve.kupeNo,
       dogumTarihi: duve.dogumTarihi,
@@ -199,6 +203,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     // Düve'nin doğum timeline'ı
     await Timeline.create({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       hayvanId: duve._id.toString(),
       hayvanTipi: 'duve',
       tip: 'dogum',
@@ -209,6 +214,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
     // İnek'e geçiş timeline'ı
     await Timeline.create({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       hayvanId: yeniInek._id.toString(),
       hayvanTipi: 'inek',
       tip: 'genel',
@@ -234,7 +240,7 @@ router.post('/:id/dogurdu', auth, planCheck, async (req, res) => {
 router.post('/:id/tohumlama', auth, async (req, res) => {
   try {
     const { tohumlamaTarihi } = req.body;
-    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    const duve = await Duve.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
 
     if (!duve) {
       return res.status(404).json({ message: 'Düve bulunamadı' });
@@ -248,6 +254,7 @@ router.post('/:id/tohumlama', auth, async (req, res) => {
     // Timeline'a ekle
     await Timeline.create({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       hayvanId: duve._id.toString(),
       hayvanTipi: 'duve',
       tip: 'tohumlama',
@@ -264,7 +271,7 @@ router.post('/:id/tohumlama', auth, async (req, res) => {
 // TOHUMLAMA SİL
 router.delete('/:id/tohumlama', auth, async (req, res) => {
   try {
-    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    const duve = await Duve.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!duve) return res.status(404).json({ message: 'Düve bulunamadı' });
 
     duve.tohumlamaTarihi = null;
@@ -287,7 +294,7 @@ router.delete('/:id/tohumlama', auth, async (req, res) => {
 // TEK BİR DÜVEYİ GETİR
 router.get('/:id', auth, async (req, res) => {
   try {
-    const duve = await Duve.findOne({ _id: req.params.id, userId: req.userId });
+    const duve = await Duve.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!duve) {
       return res.status(404).json({ message: 'Düve bulunamadı' });
     }

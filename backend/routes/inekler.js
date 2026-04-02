@@ -30,6 +30,7 @@ router.get('/yaklasan-dogumlar', auth, async (req, res) => {
     const inekQuery = { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } };
     const duveQuery = { userId: req.userId, aktif: { $ne: false } };
     if (req.tenantId) inekQuery.tenantId = req.tenantId;
+    if (req.tenantId) duveQuery.tenantId = req.tenantId;
     const inekler = await Inek.find(inekQuery);
     const duveler = await Duve.find(duveQuery);
 

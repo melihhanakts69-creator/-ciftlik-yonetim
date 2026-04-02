@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const duveSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    default: null,
+    index: true,
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -60,5 +66,7 @@ const duveSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+duveSchema.index({ userId: 1, tenantId: 1 });
 
 module.exports = mongoose.model('Duve', duveSchema);

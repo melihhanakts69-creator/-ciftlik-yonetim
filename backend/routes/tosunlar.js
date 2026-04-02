@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Tosun = require('../models/Tosun');
 const auth = require('../middleware/auth');
+const { addTenant } = require('../utils/tenantScope');
 const planCheck = require('../middleware/planCheck');
 const Bildirim = require('../models/Bildirim');
 const AsiTakvimi = require('../models/AsiTakvimi');
@@ -9,7 +10,7 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 // TÜMÜNÜ GETİR
 router.get('/', auth, async (req, res) => {
   try {
-    const tosunlar = await Tosun.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const tosunlar = await Tosun.find(addTenant(req, { userId: req.userId })).sort({ createdAt: -1 });
     res.json(tosunlar);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -22,6 +23,7 @@ router.post('/', auth, planCheck, async (req, res) => {
     const { isim, kupeNo, dogumTarihi, anneKupeNo, babaKupeNo, kilo, satisTarihi, satisFiyati, not, durum } = req.body;
     const yeniTosun = new Tosun({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim, kupeNo, dogumTarihi, anneKupeNo, babaKupeNo, kilo, satisTarihi, satisFiyati, not, durum
     });
     await yeniTosun.save();
@@ -36,7 +38,7 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { userId, _id, ...safeBody } = req.body;
     const tosun = await Tosun.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       safeBody,
       { new: true, runValidators: true }
     );
@@ -55,7 +57,7 @@ router.put('/:id', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const tosun = await Tosun.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       { durum: 'Silindi', aktif: false, silinmeTarihi: new Date() },
       { new: true }
     );
@@ -82,7 +84,7 @@ router.delete('/:id', auth, async (req, res) => {
 // TEK BİR TOSUNU GETİR
 router.get('/:id', auth, async (req, res) => {
   try {
-    const tosun = await Tosun.findOne({ _id: req.params.id, userId: req.userId });
+    const tosun = await Tosun.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!tosun) {
       return res.status(404).json({ message: 'Tosun bulunamadı' });
     }

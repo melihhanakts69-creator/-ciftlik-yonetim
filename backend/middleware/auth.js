@@ -29,7 +29,9 @@ module.exports = async (req, res, next) => {
     const tenantIdFromToken = decoded.tenantId;
     const tenantIdFromUser = user.tenantId ? user.tenantId.toString() : null;
 
-    req.tenantId = tenantIdFromToken || tenantIdFromUser || null;
+    // Önce DB (kaynak gerçeği); token'daki tenantId eski kalabilir (yenileme öncesi).
+    // Sadece çok eski hesaplarda user.tenantId yoksa token'a düş.
+    req.tenantId = tenantIdFromUser || tenantIdFromToken || null;
 
     // Daha spesifik işlemler veya rol yetkilendirmesi gerekebilmesi için req e user ekleniyor
     req.user = user;

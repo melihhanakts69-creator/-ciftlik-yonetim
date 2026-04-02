@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const tosunSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    default: null,
+    index: true,
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -42,5 +48,7 @@ const tosunSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+tosunSchema.index({ userId: 1, tenantId: 1 });
 
 module.exports = mongoose.model('Tosun', tosunSchema);

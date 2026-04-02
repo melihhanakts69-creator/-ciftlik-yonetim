@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 const auth = require('../middleware/auth');
+const { addTenant } = require('../utils/tenantScope');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
 const Buzagi = require('../models/Buzagi');
@@ -27,10 +28,10 @@ router.get('/stats', auth, async (req, res) => {
     const uid = new mongoose.Types.ObjectId(req.userId);
 
     // Toplam hayvan sayıları (Silindi/Satıldı/Öldü hariç)
-    const aktifFilterInek = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
-    const aktifFilterDuve = { userId: uid, aktif: { $ne: false } };
-    const aktifFilterBuzagi = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
-    const aktifFilterTosun = { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } };
+    const aktifFilterInek = addTenant(req, { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } });
+    const aktifFilterDuve = addTenant(req, { userId: uid, aktif: { $ne: false } });
+    const aktifFilterBuzagi = addTenant(req, { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } });
+    const aktifFilterTosun = addTenant(req, { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } });
     const toplamInek = await Inek.countDocuments(aktifFilterInek);
     const toplamDuve = await Duve.countDocuments(aktifFilterDuve);
     const toplamBuzagi = await Buzagi.countDocuments(aktifFilterBuzagi);
@@ -49,15 +50,12 @@ router.get('/stats', auth, async (req, res) => {
     // Bugünün süt verimi
     const bugunStr = new Date().toLocaleDateString('en-CA');
 
-    // Debug
-    console.log('QUERY DATE:', bugunStr);
-
     const bugunSut = await SutKaydi.aggregate([
       {
-        $match: {
+        $match: addTenant(req, {
           userId: new mongoose.Types.ObjectId(req.userId),
           tarih: bugunStr
-        }
+        }),
       },
       {
         $group: {
@@ -116,7 +114,7 @@ router.get('/stats', auth, async (req, res) => {
       bugunSut: bugunSut.length > 0 ? bugunSut[0].toplam : 0,
       yaklaşanDogum: yaklaşanDogumSayisi,
       okunmayanBildirim,
-      trendler: await calculateTrends(uid)
+      trendler: await calculateTrends(uid, req)
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -136,10 +134,10 @@ router.get('/performans/sut', auth, async (req, res) => {
 
     const sutVerileri = await SutKaydi.aggregate([
       {
-        $match: {
+        $match: addTenant(req, {
           userId: new mongoose.Types.ObjectId(req.userId),
           tarih: { $gte: baslangicStr }
-        }
+        }),
       },
       {
         $group: {
@@ -268,11 +266,11 @@ router.get('/top-performers', auth, async (req, res) => {
 
     const topCows = await SutKaydi.aggregate([
       {
-        $match: {
+        $match: addTenant(req, {
           userId: uid,
           tarih: { $gte: baslangicStr },
           inekId: { $regex: /^[a-f0-9]{24}$/i }
-        }
+        }),
       },
       {
         $addFields: {
@@ -331,9 +329,9 @@ router.get('/aktiviteler', auth, async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
     // Son eklenen hayvanlar (aktif olanlar)
-    const sonInekler = await Inek.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonDuveler = await Duve.find({ userId: uid, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
-    const sonBuzagilar = await Buzagi.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } }).sort({ createdAt: -1 }).limit(5).lean();
+    const sonInekler = await Inek.find(addTenant(req, { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } })).sort({ createdAt: -1 }).limit(5).lean();
+    const sonDuveler = await Duve.find(addTenant(req, { userId: uid, aktif: { $ne: false } })).sort({ createdAt: -1 }).limit(5).lean();
+    const sonBuzagilar = await Buzagi.find(addTenant(req, { userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } })).sort({ createdAt: -1 }).limit(5).lean();
 
     // Tüm hayvanları birleştir ve tip ekle
     const sonHayvanlar = [
@@ -492,10 +490,10 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // Toplam hayvan sayısı (inek, düve, buzağı, tosun)
     const [inekSayisi, duveSayisi, buzagiSayisi, tosunSayisi] = await Promise.all([
-      Inek.countDocuments({ userId: uid, durum: 'Aktif' }),
-      Duve.countDocuments({ userId: uid }),
-      Buzagi.countDocuments({ userId: uid, durum: 'Aktif' }),
-      Tosun.countDocuments({ userId: uid, durum: 'Aktif' })
+      Inek.countDocuments(addTenant(req, { userId: uid, durum: 'Aktif' })),
+      Duve.countDocuments(addTenant(req, { userId: uid })),
+      Buzagi.countDocuments(addTenant(req, { userId: uid, durum: 'Aktif' })),
+      Tosun.countDocuments(addTenant(req, { userId: uid, durum: 'Aktif' }))
     ]);
     const toplamHayvan = inekSayisi + duveSayisi + buzagiSayisi + tosunSayisi;
 
@@ -557,7 +555,7 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // Dönem toplam süt
     const sutKayitlari = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
       { $group: { _id: null, toplam: { $sum: '$litre' } } }
     ]);
     const toplamSut = sutKayitlari[0]?.toplam || 0;
@@ -576,7 +574,7 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // En iyi performanslı inekler (süt veriminden karlılık tahmini)
     const topInekler = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
       { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
@@ -608,7 +606,7 @@ router.get('/karlilik', auth, async (req, res) => {
     const yemPayiBasina = inekSayisi > 0 ? toplamYemMaliyet / inekSayisi : 0;
 
     const tumIneklerSut = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
       { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
@@ -711,7 +709,7 @@ router.get('/saglik-skoru', auth, async (req, res) => {
     const AsiTakvimi = require('../models/AsiTakvimi');
 
     const [toplamInek, aktifTedavi, gecikmisAsi, olumler, yasak] = await Promise.all([
-      Inek.countDocuments({ userId: uid, durum: 'Aktif' }),
+      Inek.countDocuments(addTenant(req, { userId: uid, durum: 'Aktif' })),
       SaglikKaydi.countDocuments(devamEdenGercekTedaviQuery({ userId: uid })),
       AsiTakvimi.countDocuments({
         userId: uid,
@@ -791,7 +789,7 @@ router.get('/sut-yasak', auth, async (req, res) => {
 });
 
 // YARDIMCI: Trend Hesaplama
-async function calculateTrends(uid) {
+async function calculateTrends(uid, req) {
   try {
     const today = new Date();
     const last30Start = new Date(today);
@@ -805,10 +803,10 @@ async function calculateTrends(uid) {
     // Süt Trendi
     const result = await SutKaydi.aggregate([
       {
-        $match: {
+        $match: addTenant(req, {
           userId: uid,
           tarih: { $gte: format(prev30Start) }
-        }
+        }),
       },
       {
         $group: {
@@ -860,7 +858,7 @@ router.get('/fcr', auth, async (req, res) => {
     const YemHareket = require('../models/YemHareket');
 
     const sutSonuc = await SutKaydi.aggregate([
-      { $match: { userId: uid, tarih: { $gte: baslangicStr } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: baslangicStr } }) },
       { $group: { _id: null, toplamLitre: { $sum: '$litre' } } }
     ]);
     const toplamLitre = sutSonuc[0]?.toplamLitre || 0;

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
+const { addTenant } = require('../utils/tenantScope');
 
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
@@ -94,9 +95,10 @@ router.get('/', auth, async (req, res) => {
         });
 
         // ─── 3. DOĞUM TAHMİNLERİ (tohumlama + 280 gün) ──────────────
+        const dogumTahminQuery = addTenant(req, { userId, tohumlamaTarihi: { $exists: true, $ne: null } });
         const inekDuveler = await Promise.all([
-            Inek.find({ userId, tohumlamaTarihi: { $exists: true, $ne: null } }).lean(),
-            Duve.find({ userId, tohumlamaTarihi: { $exists: true, $ne: null } }).lean()
+            Inek.find(dogumTahminQuery).lean(),
+            Duve.find(dogumTahminQuery).lean()
         ]);
 
         [...inekDuveler[0], ...inekDuveler[1]].forEach(hayvan => {

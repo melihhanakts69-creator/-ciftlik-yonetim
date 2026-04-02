@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const planCheck = require('../middleware/planCheck');
+const { addTenant } = require('../utils/tenantScope');
 const Buzagi = require('../models/Buzagi');
 const Duve = require('../models/Duve');
 const Tosun = require('../models/Tosun');
@@ -12,7 +13,7 @@ const AsiTakvimi = require('../models/AsiTakvimi');
 // TÜM BUZAĞILARI GETİR
 router.get('/', auth, async (req, res) => {
   try {
-    const buzagilar = await Buzagi.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const buzagilar = await Buzagi.find(addTenant(req, { userId: req.userId })).sort({ createdAt: -1 });
     res.json(buzagilar);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -24,10 +25,9 @@ router.post('/', auth, planCheck, async (req, res) => {
   try {
     const { isim, kupeNo, anneId, anneIsim, anneKupeNo, babaKupeNo, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi } = req.body;
 
-    console.log('Gelen buzağı verisi:', { isim, kupeNo, anneId, anneIsim, anneKupeNo, babaKupeNo, dogumTarihi, cinsiyet, kilo, notlar, eklemeTarihi, userId: req.userId });
-
     const buzagi = new Buzagi({
       userId: req.userId,
+      tenantId: req.tenantId || null,
       isim,
       kupeNo,
       anneId,
@@ -42,7 +42,6 @@ router.post('/', auth, planCheck, async (req, res) => {
     });
 
     await buzagi.save();
-    console.log('Buzağı kayıt başarılı:', buzagi);
     res.status(201).json(buzagi);
   } catch (error) {
     console.error('❌ BUZAĞI KAYDI HATASI:', error);
@@ -54,7 +53,7 @@ router.post('/', auth, planCheck, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const buzagi = await Buzagi.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       { durum: 'Silindi', aktif: false, silinmeTarihi: new Date() },
       { new: true }
     );
@@ -80,7 +79,7 @@ router.delete('/:id', auth, async (req, res) => {
 // OTOMATİK DÜVE/TOSUN GEÇİŞİ KONTROL
 router.get('/kontrol-gecis', auth, async (req, res) => {
   try {
-    const buzagilar = await Buzagi.find({ userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } });
+    const buzagilar = await Buzagi.find(addTenant(req, { userId: req.userId, durum: { $ne: 'Silindi' }, aktif: { $ne: false } }));
     const gecisler = [];
     const bugun = new Date();
 
@@ -109,7 +108,7 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const { userId, _id, ...safeBody } = req.body;
     const buzagi = await Buzagi.findOneAndUpdate(
-      { _id: req.params.id, userId: req.userId },
+      addTenant(req, { _id: req.params.id, userId: req.userId }),
       safeBody,
       { new: true, runValidators: true }
     );
@@ -128,7 +127,7 @@ router.put('/:id', auth, async (req, res) => {
 // BUZAĞI → DÜVE/TOSUN GEÇİŞİ
 router.post('/gecis-yap/:id', auth, async (req, res) => {
   try {
-    const buzagi = await Buzagi.findOne({ _id: req.params.id, userId: req.userId });
+    const buzagi = await Buzagi.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
 
     if (!buzagi) {
       return res.status(404).json({ message: 'Buzağı bulunamadı' });
@@ -153,6 +152,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
 
       const yeniDuve = new Duve({
         userId: req.userId,
+        tenantId: req.tenantId || null,
         isim: buzagi.isim,
         kupeNo: buzagi.kupeNo,
         dogumTarihi: buzagi.dogumTarihi,
@@ -169,6 +169,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
       // Timeline ekle
       await Timeline.create({
         userId: req.userId,
+        tenantId: req.tenantId || null,
         hayvanId: yeniDuve._id,
         hayvanTipi: 'duve',
         tip: 'genel',
@@ -187,6 +188,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
 
       const yeniTosun = new Tosun({
         userId: req.userId,
+        tenantId: req.tenantId || null,
         isim: buzagi.isim,
         kupeNo: buzagi.kupeNo,
         dogumTarihi: buzagi.dogumTarihi,
@@ -201,6 +203,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
       // Timeline ekle
       await Timeline.create({
         userId: req.userId,
+        tenantId: req.tenantId || null,
         hayvanId: yeniTosun._id,
         hayvanTipi: 'tosun',
         tip: 'genel',
@@ -225,7 +228,7 @@ router.post('/gecis-yap/:id', auth, async (req, res) => {
 // TEK BİR BUZAĞIYI GETİR
 router.get('/:id', auth, async (req, res) => {
   try {
-    const buzagi = await Buzagi.findOne({ _id: req.params.id, userId: req.userId });
+    const buzagi = await Buzagi.findOne(addTenant(req, { _id: req.params.id, userId: req.userId }));
     if (!buzagi) {
       return res.status(404).json({ message: 'Buzağı bulunamadı' });
     }

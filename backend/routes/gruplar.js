@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { addTenant } = require('../utils/tenantScope');
 const Grup = require('../models/Grup');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
@@ -8,8 +9,8 @@ const Buzagi = require('../models/Buzagi');
 const Tosun = require('../models/Tosun');
 
 // Helper: Tüm hayvanları sorgula (4 modeli birleştirir)
-const getAllAnimals = async (userId, filter = {}) => {
-  const baseFilter = { userId, ...filter };
+const getAllAnimals = async (req, filter = {}) => {
+  const baseFilter = addTenant(req, { userId: req.userId, ...filter });
 
   const [inekler, duveler, buzagilar, tosunlar] = await Promise.all([
     Inek.find(baseFilter).lean(),
@@ -27,11 +28,11 @@ const getAllAnimals = async (userId, filter = {}) => {
 };
 
 // Helper: Tekil hayvan bul
-const findAnimalById = async (userId, hayvanId, tip) => {
+const findAnimalById = async (req, hayvanId, tip) => {
   const modelMap = { inek: Inek, duve: Duve, buzagi: Buzagi, tosun: Tosun };
   const Model = modelMap[tip];
   if (!Model) return null;
-  return Model.findOne({ _id: hayvanId, userId });
+  return Model.findOne(addTenant(req, { _id: hayvanId, userId: req.userId }));
 };
 
 // Tüm grupları listele
@@ -60,11 +61,12 @@ router.get('/:id/hayvanlar', auth, async (req, res) => {
     const grupId = req.params.id;
     const uid = req.userId;
 
+    const grupFilter = addTenant(req, { userId: uid, grupId });
     const [inekler, duveler, buzagilar, tosunlar] = await Promise.all([
-      Inek.find({ userId: uid, grupId }).lean(),
-      Duve.find({ userId: uid, grupId }).lean(),
-      Buzagi.find({ userId: uid, grupId }).lean(),
-      Tosun.find({ userId: uid, grupId }).lean()
+      Inek.find(grupFilter).lean(),
+      Duve.find(grupFilter).lean(),
+      Buzagi.find(grupFilter).lean(),
+      Tosun.find(grupFilter).lean()
     ]);
 
     const toplam = inekler.length + duveler.length + buzagilar.length + tosunlar.length;
@@ -176,7 +178,7 @@ router.get('/ozet/istatistik', auth, async (req, res) => {
       aktif: true
     });
 
-    const hayvanlar = await getAllAnimals(req.userId);
+    const hayvanlar = await getAllAnimals(req);
 
     res.json({
       toplamGrup: gruplar.length,

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { addTenant } = require('../utils/tenantScope');
 const Timeline = require('../models/Timeline');
 const Inek = require('../models/Inek');
 const Duve = require('../models/Duve');
@@ -12,7 +13,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
     const yaklaşanlar = [];
 
     // İNEKLERİ KONTROL ET
-    const inekler = await Inek.find({
+    const inekler = await Inek.find(addTenant(req, {
       userId: req.userId,
       $or: [
         { durum: 'Aktif' },
@@ -21,7 +22,7 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
       ],
       gebelikDurumu: 'Gebe',
       tohumlamaTarihi: { $ne: null, $exists: true }
-    });
+    }));
 
     inekler.forEach(inek => {
       if (inek.tohumlamaTarihi) {
@@ -44,11 +45,11 @@ router.get('/yaklasan/dogumlar', auth, async (req, res) => {
     });
 
     // DÜVELERİ KONTROL ET
-    const duveler = await Duve.find({
+    const duveler = await Duve.find(addTenant(req, {
       userId: req.userId,
       gebelikDurumu: 'Gebe',
       tohumlamaTarihi: { $ne: null, $exists: true }
-    });
+    }));
 
     duveler.forEach(duve => {
       if (duve.tohumlamaTarihi) {
@@ -96,7 +97,7 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
     const bugun = new Date();
 
     for (const tohumlama of tohumlamalar) {
-      const inek = await Inek.findOne({ _id: tohumlama.hayvanId, userId: req.userId });
+      const inek = await Inek.findOne(addTenant(req, { _id: tohumlama.hayvanId, userId: req.userId }));
 
       if (!inek) {
         // Orphan tohumlama kaydı - silinmiş ineğe ait, otomatik temizle
@@ -122,7 +123,7 @@ router.get('/kontrol-bekleyenler', auth, async (req, res) => {
     }
 
     // DÜVELERE DE BAK
-    const duveler = await Duve.find({ userId: req.userId });
+    const duveler = await Duve.find(addTenant(req, { userId: req.userId }));
 
     for (const duve of duveler) {
       if (!duve.tohumlamaTarihi) continue;

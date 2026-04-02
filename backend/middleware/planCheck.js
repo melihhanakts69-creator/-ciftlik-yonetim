@@ -74,7 +74,12 @@ const planCheck = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('planCheck middleware error:', error);
-    next(); // Hata durumunda engelleme — kullanıcıya şeffaf çalışsın
+    // Okuma devam etsin; yazma/abonelik kararı belirsizken güvenli tarafta kal (açık plan bypass riski)
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+    return res.status(503).json({
+      message: 'Plan kontrolü şu an yapılamıyor. Lütfen bir dakika sonra tekrar deneyin.',
+      code: 'PLAN_CHECK_UNAVAILABLE',
+    });
   }
 };
 

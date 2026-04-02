@@ -78,4 +78,6 @@ const inekSchema = new mongoose.Schema({
   timestamps: true
 });
 
+inekSchema.index({ userId: 1, tenantId: 1 });
+
 module.exports = mongoose.model('Inek', inekSchema);
