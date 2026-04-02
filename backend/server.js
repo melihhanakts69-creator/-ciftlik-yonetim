@@ -61,6 +61,18 @@ app.get('/api/version', (req, res) => {
   });
 });
 
+// GEÇICI DEBUG — MongoDB bağlantı durumu
+app.get('/api/db-status', (req, res) => {
+  const mongoose = require('mongoose');
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.json({
+    dbState: states[mongoose.connection.readyState] || 'unknown',
+    readyState: mongoose.connection.readyState,
+    host: mongoose.connection.host || null,
+    mongoUriSet: !!process.env.MONGODB_URI,
+  });
+});
+
 // Routes
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/inekler', require('./routes/inekler'));
