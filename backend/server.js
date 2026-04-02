@@ -48,14 +48,6 @@ app.set('trust proxy', 1);
 // Rate limiting
 app.use('/api/', apiLimiter);          // Tüm API: 500 istek/15dk
 
-// Database bağlantısı + Scheduler (otomatik bildirimler)
-connectDB().then(() => {
-  const { startScheduler } = require('./jobs/scheduler');
-  startScheduler();
-}).catch(err => {
-  console.error('DB/Scheduler:', err);
-});
-
 // Test route
 app.get('/', (req, res) => {
   res.json({ message: '🐄 Çiftlik API çalışıyor!', version: '2.0.0-admin-panel' });
@@ -107,10 +99,22 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
-  console.log('--- Environment Check ---');
-  console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING');
-  console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
-  console.log('-------------------------');
+// MongoDB hazır olmadan dinlemeyelim — giriş vb. istekler "Sunucu hatası" vermesin
+async function start() {
+  await connectDB();
+  const { startScheduler } = require('./jobs/scheduler');
+  startScheduler();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
+    console.log('--- Environment Check ---');
+    console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING');
+    console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
+    console.log('-------------------------');
+  });
+}
+
+start().catch((err) => {
+  console.error('Sunucu başlatılamadı:', err);
+  process.exit(1);
 });
