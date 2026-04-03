@@ -1,4 +1,6 @@
+// Önce env yükle (Render’da değişkenler çoğunlukla panodan gelir; .env yoksa (0) normal)
 require('dotenv').config();
+
 // Bu satır logda görünmüyorsa Render yanlış commit veya yanlış root dizin deploy ediyor
 console.log(
   '[BOOT] backend build:',
@@ -149,7 +151,12 @@ async function start() {
   httpServer = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
     console.log('--- Environment Check ---');
-    console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ SET' : '❌ MISSING');
+    const mu = process.env.MONGODB_URI;
+    const uriOk = typeof mu === 'string' && mu.trim().length > 0;
+    console.log(
+      'MONGODB_URI:',
+      uriOk ? `SET (uzunluk ${mu.trim().length}, sifre loglanmaz)` : 'MISSING veya bos'
+    );
     console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
     console.log('-------------------------');
   });

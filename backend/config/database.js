@@ -1,25 +1,12 @@
 const mongoose = require('mongoose');
 
-console.log('[BOOT] config/database.js yüklendi — hata metni: [MongoDB] Baglanti denemesi ... (eski "baglanti hatasi" yok)');
-
-function logAtlasHost(uri) {
-  try {
-    const at = uri.indexOf('@');
-    if (at === -1) return;
-    const rest = uri.slice(at + 1);
-    const host = rest.split('/')[0].split('?')[0];
-    console.log('[MongoDB] URI host (sifre yok):', host || '(bos)');
-  } catch (_) {
-    console.log('[MongoDB] URI host parse edilemedi');
-  }
-}
-
-// family: 4 — bazı bulut ortamlarında IPv6/DNS sorunlarında Atlas SRV çözümlemesini iyileştirir
+/**
+ * Atlas bağlantısı: mongodb+srv URI üzerinde TLS ve replica set zaten tanımlıdır.
+ * Ek tls/ssl/ca/rejectUnauthorized ayarı EKLEME — uyumsuzluk ve "whitelist" benzeri
+ * seçim hatalarına yol açabilir. Sadece URI + isteğe bağlı timeout.
+ */
 const CONNECT_OPTS = {
-  serverSelectionTimeoutMS: 20000,
-  socketTimeoutMS: 120000,
-  maxPoolSize: 10,
-  family: 4,
+  serverSelectionTimeoutMS: 30000,
 };
 
 function sleep(ms) {
@@ -38,19 +25,41 @@ function attachConnectionHandlers() {
   });
 }
 
+/** @returns {string|null} geçerli URI veya null */
+function readMongoUri() {
+  const raw = process.env.MONGODB_URI;
+  if (raw === undefined || raw === null) {
+    console.error('[MongoDB] MONGODB_URI undefined — Render’da Environment’a ekleyin veya .env kullanın.');
+    return null;
+  }
+  const uri = String(raw).trim();
+  if (uri.length === 0) {
+    console.error('[MongoDB] MONGODB_URI bos string.');
+    return null;
+  }
+  if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+    console.error('[MongoDB] MONGODB_URI mongodb:// veya mongodb+srv:// ile baslamali.');
+    return null;
+  }
+  try {
+    const at = uri.indexOf('@');
+    if (at !== -1) {
+      const host = uri.slice(at + 1).split('/')[0].split('?')[0];
+      console.log('[MongoDB] URI host:', host);
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  return uri;
+}
+
 /**
- * @returns {Promise<boolean>} bağlantı kuruldu mu
+ * @returns {Promise<boolean>}
  */
 const connectDB = async () => {
-  if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI tanımlı değil.');
-    return false;
-  }
+  const uri = readMongoUri();
+  if (!uri) return false;
 
-  console.log('[MongoDB] connectDB: retry + IPv4 (family:4) aktif');
-
-  const uri = process.env.MONGODB_URI.trim();
-  logAtlasHost(uri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
   let lastErr;
 
@@ -60,7 +69,7 @@ const connectDB = async () => {
         return true;
       }
       await mongoose.connect(uri, CONNECT_OPTS);
-      console.log('MongoDB baglantisi basarili!');
+      console.log('[MongoDB] Baglanti basarili.');
       attachConnectionHandlers();
 
       try {
@@ -79,7 +88,7 @@ const connectDB = async () => {
     } catch (error) {
       lastErr = error;
       console.error(
-        `[MongoDB] Baglanti denemesi ${attempt}/${maxAttempts} basarisiz:`,
+        `[MongoDB] Deneme ${attempt}/${maxAttempts} basarisiz:`,
         error.message
       );
       try {
@@ -95,10 +104,7 @@ const connectDB = async () => {
   }
 
   console.error(
-    '[MongoDB] Tum denemeler basarisiz. Kontrol: (1) Atlas Network Access bu projede 0.0.0.0/0',
-    '(2) Cluster duraklatilmamis (Free: Resume)',
-    '(3) MONGODB_URI host\'u Atlas\'taki cluster ile ayni',
-    '| Son hata:',
+    '[MongoDB] Tum denemeler basarisiz. Atlas: Network Access (0.0.0.0/0), cluster Resume, MONGODB_URI dogru mu?',
     lastErr?.message || ''
   );
   return false;
