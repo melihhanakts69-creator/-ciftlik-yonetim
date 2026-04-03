@@ -1,12 +1,7 @@
 // Önce env yükle (Render’da değişkenler çoğunlukla panodan gelir; .env yoksa (0) normal)
 require('dotenv').config();
 
-// Bu satır logda görünmüyorsa Render yanlış commit veya yanlış root dizin deploy ediyor
-console.log(
-  '[BOOT] backend build:',
-  process.env.RENDER_GIT_COMMIT || 'local',
-  '| Eski "MongoDB baglanti hatasi:" metni bu kodda YOK; onu görüyorsan deploy eski.'
-);
+console.log('[BOOT] commit:', process.env.RENDER_GIT_COMMIT || 'local', '| root backend/ olmali');
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');

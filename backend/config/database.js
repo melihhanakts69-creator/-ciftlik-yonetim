@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+// Bu modülde "MongoDB baglanti hatasi:" diye log YOK. O metni görüyorsan eski deploy veya eski log satırı.
+console.log('[database.js] atlas-connect-v3 yuklendi');
+
 /**
  * Atlas bağlantısı: mongodb+srv URI üzerinde TLS ve replica set zaten tanımlıdır.
  * Ek tls/ssl/ca/rejectUnauthorized ayarı EKLEME — uyumsuzluk ve "whitelist" benzeri
