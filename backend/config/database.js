@@ -1,10 +1,15 @@
 const mongoose = require('mongoose');
 
-const MONGO_OPTS = {
-  serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
-  family: 4,
-};
+function buildMongoOpts() {
+  const opts = {
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000,
+  };
+  if (process.env.MONGO_FAMILY === '4') {
+    opts.family = 4;
+  }
+  return opts;
+}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -37,6 +42,12 @@ async function connectDB() {
     uri.length,
     uri.startsWith('mongodb+srv') ? '(srv)' : '(direct)'
   );
+  const mo = buildMongoOpts();
+  console.log('[MongoDB] mongoose seçenekleri:', {
+    serverSelectionTimeoutMS: mo.serverSelectionTimeoutMS,
+    socketTimeoutMS: mo.socketTimeoutMS,
+    family: mo.family != null ? mo.family : 'varsayılan (önerilen)',
+  });
 
   const host = safeHostFromUri(uri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
@@ -50,7 +61,7 @@ async function connectDB() {
         return true;
       }
 
-      await mongoose.connect(uri, MONGO_OPTS);
+      await mongoose.connect(uri, buildMongoOpts());
       console.log('[MongoDB] BAŞARILI: MongoDB bağlandı');
       return true;
     } catch (err) {
