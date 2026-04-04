@@ -17,7 +17,7 @@ try {
   /* mongoose ile gelen nested path farklı olabilir */
 }
 
-console.log('[MongoDB] mongoose:', mongoose.version, '| mongodb driver:', mongodbDriverVersion);
+console.log('[MongoDB] atlas-connect-v4 | mongoose:', mongoose.version, '| mongodb driver:', mongodbDriverVersion);
 
 let connectionEventsBound = false;
 function bindConnectionEventsOnce() {
