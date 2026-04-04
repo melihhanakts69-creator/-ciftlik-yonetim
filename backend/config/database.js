@@ -8,9 +8,7 @@ function buildMongoOpts() {
     connectTimeoutMS: 60000,
     tls: true,
   };
-  if (process.env.MONGO_NO_FAMILY === '1') {
-    /* Atlas/Render: bazen IPv6 yolu kırık → ENOTFOUND / TLS timeout */
-  } else {
+  if (process.env.MONGO_FAMILY === '4') {
     opts.family = 4;
   }
   return opts;
@@ -116,14 +114,20 @@ async function connectDB() {
   }
 
   let connectUri = uri;
-  if (uri.startsWith('mongodb+srv://') && process.env.MONGO_SKIP_SRV_EXPAND !== '1') {
+  const expandSrv =
+    uri.startsWith('mongodb+srv://') &&
+    process.env.MONGO_SRV_EXPAND === '1' &&
+    process.env.MONGO_SKIP_SRV_EXPAND !== '1';
+  if (expandSrv) {
     try {
       connectUri = await expandSrvToDirectUri(uri);
       console.log('[MongoDB] SRV → direct (Node DNS), bağlantı uzunluğu=', connectUri.length);
     } catch (e) {
-      console.error('[MongoDB] SRV genişletme başarısız, mongodb+srv denenecek:', e?.message || e);
+      console.error('[MongoDB] SRV genişletme başarısız, ham mongodb+srv denenecek:', e?.message || e);
       connectUri = uri;
     }
+  } else if (uri.startsWith('mongodb+srv://')) {
+    console.log('[MongoDB] ham mongodb+srv (MONGO_SRV_EXPAND=1 ile shard listesine genişletilir)');
   } else if (uri.startsWith('mongodb://')) {
     connectUri = ensureTlsParams(uri);
   }
@@ -138,7 +142,7 @@ async function connectDB() {
     serverSelectionTimeoutMS: mo.serverSelectionTimeoutMS,
     socketTimeoutMS: mo.socketTimeoutMS,
     connectTimeoutMS: mo.connectTimeoutMS,
-    family: mo.family != null ? mo.family : 'yok (MONGO_NO_FAMILY=1)',
+    family: mo.family != null ? mo.family : 'varsayılan (çift stack, MONGO_FAMILY=4 ile IPv4)',
   });
 
   const host = safeHostFromUri(connectUri);

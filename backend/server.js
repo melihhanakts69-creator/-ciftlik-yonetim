@@ -1,10 +1,12 @@
 require('dotenv').config();
-try {
-  const dns = require('dns');
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-  console.log('[BOOT] dns.setServers: 8.8.8.8, 1.1.1.1');
-} catch (e) {
-  console.warn('[BOOT] dns.setServers atlandı:', e?.message);
+if (process.env.MONGO_USE_PUBLIC_DNS === '1') {
+  try {
+    const dns = require('dns');
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+    console.log('[BOOT] dns.setServers: 8.8.8.8, 1.1.1.1 (MONGO_USE_PUBLIC_DNS)');
+  } catch (e) {
+    console.warn('[BOOT] dns.setServers atlandı:', e?.message);
+  }
 }
 const { version: BACKEND_VERSION } = require('./package.json');
 console.log('APP_VERSION:', Date.now());
