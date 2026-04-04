@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { version: BACKEND_VERSION } = require('./package.json');
 const dns = require('dns');
 if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
@@ -12,6 +13,7 @@ console.log(
   process.env.NODE_ENV || 'undefined'
 );
 console.log('[BOOT] node:', process.version, '| cwd:', process.cwd());
+console.log('[BOOT] backend@', BACKEND_VERSION);
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');

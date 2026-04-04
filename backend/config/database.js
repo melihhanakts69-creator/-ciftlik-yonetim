@@ -1,4 +1,13 @@
 const mongoose = require('mongoose');
+const util = require('util');
+
+function maskMongoUri(uri) {
+  try {
+    return uri.replace(/:\/\/([^:/?#]+):([^@]+)@/, '://$1:***@');
+  } catch {
+    return '(mask failed)';
+  }
+}
 
 function buildMongoOpts() {
   const opts = {
@@ -40,10 +49,23 @@ async function connectDB() {
     return false;
   }
 
+  if (/<password>/i.test(uri) || /%3Cpassword%3E/i.test(uri)) {
+    console.error(
+      '[MongoDB] FAIL: MONGODB_URI still contains Atlas placeholder <password> — replace with real DB user password in Render env'
+    );
+    return false;
+  }
+
   const host = safeHostFromUri(uri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
 
+  let uriMaskedLogged = false;
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (!uriMaskedLogged) {
+      uriMaskedLogged = true;
+      console.log('[MongoDB] uriMasked:', maskMongoUri(uri));
+    }
     console.log(
       `[MongoDB] connect attempt ${attempt}/${maxAttempts} host=${host}`
     );
@@ -63,6 +85,11 @@ async function connectDB() {
       if (err?.name) bits.push(`name=${err.name}`);
       if (err?.code) bits.push(`code=${err.code}`);
       if (err?.reason?.message) bits.push(`reason=${err.reason.message}`);
+      if (err?.cause?.message) bits.push(`cause=${err.cause.message}`);
+      else if (err?.cause) bits.push(`cause=${util.inspect(err.cause, { depth: 1 })}`);
+      if (err?.reason && typeof err.reason === 'object' && err.reason.servers?.size != null) {
+        bits.push(`topologyServers=${err.reason.servers.size}`);
+      }
       console.error(`[MongoDB] FAIL attempt ${attempt}/${maxAttempts}:`, bits.join(' | '));
       try {
         await mongoose.disconnect();
