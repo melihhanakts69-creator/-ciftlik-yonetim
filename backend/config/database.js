@@ -1,84 +1,85 @@
 /**
- * MongoDB Atlas — Mongoose 8.x (^8.2.0+)
- * URI: sadece process.env.MONGODB_URI (dotenv server.js en üstte yüklenir)
- * mongodb+srv → TLS Atlas tarafında; ekstra tls/ssl objesi EKLENMEMELİ.
- *
- * Mongoose 8 Breaking Changes:
- *   - useNewUrlParser, useUnifiedTopology, useFindAndModify KALDIRILDI — geçmez.
- *   - family: 4  → Render/cloud ortamlarında IPv6 SRV çözümleme sorunlarını önler.
- *   - serverSelectionTimeoutMS: 30000 → Atlas cold-start için yeterli süre.
+ * MongoDB Atlas — Mongoose 8.x
+ * Mongoose 6+: useNewUrlParser, useUnifiedTopology, useFindAndModify KULLANILMAZ (eklenirse uyarı/hata).
  */
 const mongoose = require('mongoose');
 
 let mongodbDriverVersion = '?';
 try {
   mongodbDriverVersion = require('mongodb/package.json').version;
-} catch (_) {
-  /* mongoose ile gelen nested path farklı olabilir */
-}
+} catch (_) {}
 
-console.log('[MongoDB] atlas-connect-v4 | mongoose:', mongoose.version, '| mongodb driver:', mongodbDriverVersion);
+console.log('[MongoDB] mongoose:', mongoose.version, '| driver:', mongodbDriverVersion);
 
 let connectionEventsBound = false;
 function bindConnectionEventsOnce() {
   if (connectionEventsBound) return;
   connectionEventsBound = true;
   mongoose.connection.on('error', (err) => {
-    // Tam err objesi: kod (ETIMEDOUT, AUTH_FAILED vb.) görünür olsun
-    console.error('[MongoDB] connection error — full object:', err);
+    console.error('[MongoDB] connection error:', errToJson(err));
   });
   mongoose.connection.on('disconnected', () => {
     console.warn('[MongoDB] disconnected');
   });
 }
 
-/**
- * Şifre/log sızdırmaz: typeof, uzunluk, güvenli önek (ilk 16 karakter: şema + host başlangıcı değil, sadece scheme)
- */
+/** Error → JSON (message, stack, code, name) */
+function errToJson(err) {
+  if (err == null) return 'null';
+  const o = typeof err === 'object' ? err : { message: String(err) };
+  try {
+    return JSON.stringify(o, Object.getOwnPropertyNames(o), 2);
+  } catch (_) {
+    return JSON.stringify({ message: String(err) }, null, 2);
+  }
+}
+
 function logMongoUriEnv() {
   const raw = process.env.MONGODB_URI;
   console.log('[ENV] MONGODB_URI typeof:', typeof raw);
   console.log('[ENV] MONGODB_URI var mi:', raw != null && String(raw).trim() !== '');
-
   if (raw == null) {
-    console.log('[ENV] MONGODB_URI: null/undefined — .env veya Render Environment kontrol et');
+    console.log('[ENV] MONGODB_URI: null/undefined');
     return;
   }
-
   const s = String(raw).trim();
-  console.log('[ENV] MONGODB_URI length (trim):', s.length);
-
-  // Sadece scheme: mongodb+srv:// veya mongodb:// — kullanıcı/şifre yok
+  console.log('[ENV] MONGODB_URI length:', s.length);
   const scheme = s.startsWith('mongodb+srv://')
     ? 'mongodb+srv://'
     : s.startsWith('mongodb://')
       ? 'mongodb://'
-      : '(gecersiz scheme)';
-  console.log('[ENV] MONGODB_URI scheme:', scheme);
-
+      : '(gecersiz)';
+  console.log('[ENV] scheme:', scheme);
   const at = s.indexOf('@');
   if (at > 0) {
-    const hostPart = s.slice(at + 1).split('/')[0].split('?')[0];
-    console.log('[ENV] MONGODB_URI host (kimlik yok):', hostPart);
-  } else {
-    console.log('[ENV] MONGODB_URI: @ bulunamadı — URI formatını kontrol et');
+    console.log('[ENV] host (sifresiz):', s.slice(at + 1).split('/')[0].split('?')[0]);
   }
+}
+
+/** Tek kaynak: ortam değişkeni (Render / .env); trim, şema kontrolü */
+function readConnectionUri() {
+  const encodedUri = process.env.MONGODB_URI != null ? String(process.env.MONGODB_URI).trim() : '';
+  if (!encodedUri) return null;
+  if (!encodedUri.startsWith('mongodb://') && !encodedUri.startsWith('mongodb+srv://')) {
+    console.error('[MongoDB] URI mongodb:// veya mongodb+srv:// ile baslamali.');
+    return null;
+  }
+  return encodedUri;
 }
 
 async function connectDB() {
   logMongoUriEnv();
 
-  const raw = process.env.MONGODB_URI;
-  if (raw == null || String(raw).trim() === '') {
-    console.error('[MongoDB] MONGODB_URI bos veya tanimli degil.');
+  const encodedUri = readConnectionUri();
+  if (!encodedUri) {
+    console.error('[MongoDB] MONGODB_URI bos veya gecersiz.');
     return false;
   }
 
-  const uri = String(raw).trim();
-  if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
-    console.error('[MongoDB] URI mongodb:// veya mongodb+srv:// ile baslamali.');
-    return false;
-  }
+  const opts = {
+    serverSelectionTimeoutMS: 30000,
+    family: 4,
+  };
 
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
   let lastErr;
@@ -89,14 +90,9 @@ async function connectDB() {
         return true;
       }
 
-      await mongoose.connect(uri, {
-        // Mongoose 8: useNewUrlParser ve useUnifiedTopology KALDIRILDI, eklenirse hata verir.
-        serverSelectionTimeoutMS: 30000, // Atlas için 30 sn bekleme süresi
-        family: 4,                        // IPv4 zorlaması — Render'da SRV/IPv6 çözümleme sorunlarını önler
-      });
+      await mongoose.connect(encodedUri, opts);
 
       console.log('[MongoDB] Baglanti OK. readyState:', mongoose.connection.readyState);
-
       bindConnectionEventsOnce();
 
       try {
@@ -114,8 +110,8 @@ async function connectDB() {
       return true;
     } catch (err) {
       lastErr = err;
-      // Tam err objesi: code (ETIMEDOUT, ENOTFOUND, AUTH_FAILED vb.) teşhis için kritik
-      console.error(`[MongoDB] Deneme ${attempt}/${maxAttempts} HATA — full object:`, err);
+      console.error(`[MongoDB] Deneme ${attempt}/${maxAttempts} basarisiz`);
+      console.error('❌ HATA DETAYI:', errToJson(err));
       try {
         await mongoose.disconnect();
       } catch (_) {}
@@ -126,8 +122,8 @@ async function connectDB() {
     }
   }
 
-  // Tüm lastErr objesi: gerçek hata kodu (ETIMEDOUT, AUTH_FAILED, ENOTFOUND vb.) burada görünür
-  console.error('[MongoDB] Baglanamadi. Atlas: Resume, Network 0.0.0.0/0, URI dogru mu? — full error:', lastErr);
+  console.error('[MongoDB] Tum denemeler basarisiz.');
+  console.error('❌ SON HATA DETAYI:', lastErr ? errToJson(lastErr) : 'null');
   return false;
 }
 

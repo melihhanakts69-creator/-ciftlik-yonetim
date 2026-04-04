@@ -1,9 +1,7 @@
-// Önce env yükle (Render’da değişkenler çoğunlukla panodan gelir; .env yoksa (0) normal)
+// Önce env yükle (Render’da değişkenler panodan gelir; .env yoksa dotenv (0) normal)
 require('dotenv').config();
-
-// ✅ BU SATIRI RENDER LOGUNDA GORUYORSAN YENİ KOD CALIISIYOR: agrolina-backend-v1.0.2
-console.log('[STARTUP] agrolina-backend-v1.0.2 | node:', process.version);
-console.log('[BOOT] commit:', process.env.RENDER_GIT_COMMIT || 'local', '| root backend/ olmali');
+console.log('🚀 AGROLINA V3 CANLI - ' + new Date().toLocaleString());
+console.log('[BOOT] node:', process.version, '| commit:', process.env.RENDER_GIT_COMMIT || 'local', '| backend/ root');
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
@@ -141,7 +139,10 @@ process.on('uncaughtException', (err) => {
 let httpServer;
 let schedulerStarted = false;
 
-// Önce portu aç (Render deploy health / uyku sonrası anında cevap), Mongo arka planda
+/**
+ * Port önce açılır (Render health / anında cevap).
+ * connectDB() listen sonrası aynı tick içinde arka planda tetiklenir — Mongo hazır olana kadar /api (auth hariç) 503 dönebilir.
+ */
 async function start() {
   const { startScheduler } = require('./jobs/scheduler');
 
