@@ -1,7 +1,14 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
 
-mongoose.connect('mongodb+srv://melihhanakts69:TqC8yN7f0lIrmSgq@cluster0.p71u2.mongodb.net/ciftlik-db?retryWrites=true&w=majority')
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  console.error('MONGODB_URI is required');
+  process.exit(1);
+}
+
+mongoose.connect(uri, { serverSelectionTimeoutMS: 30000, family: 4 })
     .then(async () => {
         try {
             const sutcular = await User.find({ rol: 'sutcu' });
