@@ -1,11 +1,11 @@
+# Blueprint — Render Dashboard ile aynı olmalı
 services:
   - type: web
     name: ciftlik-backend
     runtime: node
     rootDir: backend
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
-      # GEMINI_API_KEY ve MONGODB_URI Render panosunda Environment olarak tanimlayin — repoya yazmayin

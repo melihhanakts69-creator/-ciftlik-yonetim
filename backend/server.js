@@ -1,7 +1,12 @@
-// Önce env yükle (Render’da değişkenler panodan gelir; .env yoksa dotenv (0) normal)
 require('dotenv').config();
-console.log('🚀 AGROLINA V3 CANLI - ' + new Date().toLocaleString());
-console.log('[BOOT] node:', process.version, '| commit:', process.env.RENDER_GIT_COMMIT || 'local', '| backend/ root');
+console.log('APP_VERSION:', Date.now());
+console.log(
+  '[BOOT] RENDER_GIT_COMMIT:',
+  process.env.RENDER_GIT_COMMIT || 'unknown',
+  '| NODE_ENV:',
+  process.env.NODE_ENV || 'undefined'
+);
+console.log('[BOOT] node:', process.version, '| cwd:', process.cwd());
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
@@ -149,9 +154,12 @@ async function start() {
   httpServer = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
     console.log('--- Environment Check ---');
+    const mu = process.env.MONGODB_URI;
     console.log(
-      'MONGODB_URI (env):',
-      process.env.MONGODB_URI ? 'SET (nukleer modda database.js URI kullaniliyor)' : 'bos — nukleer URI aktif'
+      'MONGODB_URI:',
+      typeof mu === 'string' && mu.trim().length > 0
+        ? `SET length=${mu.trim().length}`
+        : 'MISSING'
     );
     console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
     console.log('-------------------------');
