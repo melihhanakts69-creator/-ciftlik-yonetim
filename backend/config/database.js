@@ -1,7 +1,9 @@
 /**
- * MongoDB Atlas — Mongoose 8.x
- * Mongoose 6+: useNewUrlParser, useUnifiedTopology, useFindAndModify KULLANILMAZ (eklenirse uyarı/hata).
+ * GEÇİCİ NÜKLEER TEST: URI kodda sabit. İş bitince kaldır, MONGODB_URI + Render env kullan.
+ * Mongoose 8: useNewUrlParser / useUnifiedTopology YOK.
  */
+console.log('☢️ NÜKLEER MOD V3 AKTİF - HARDCODED URI TEST EDİLİYOR');
+
 const mongoose = require('mongoose');
 
 let mongodbDriverVersion = '?';
@@ -11,76 +13,28 @@ try {
 
 console.log('[MongoDB] mongoose:', mongoose.version, '| driver:', mongodbDriverVersion);
 
+/** Atlas bağlantısı — şifre büyük M (Melihhan / ...05465742067M) */
+const uri =
+  'mongodb+srv://Melihhan:05465742067M@melih.faq6tsp.mongodb.net/Agrolina?appName=Melih';
+
+const opts = {
+  serverSelectionTimeoutMS: 30000,
+  family: 4,
+};
+
 let connectionEventsBound = false;
 function bindConnectionEventsOnce() {
   if (connectionEventsBound) return;
   connectionEventsBound = true;
   mongoose.connection.on('error', (err) => {
-    console.error('[MongoDB] connection error:', errToJson(err));
+    console.error('[MongoDB] connection error:', err && err.message);
   });
   mongoose.connection.on('disconnected', () => {
     console.warn('[MongoDB] disconnected');
   });
 }
 
-/** Error → JSON (message, stack, code, name) */
-function errToJson(err) {
-  if (err == null) return 'null';
-  const o = typeof err === 'object' ? err : { message: String(err) };
-  try {
-    return JSON.stringify(o, Object.getOwnPropertyNames(o), 2);
-  } catch (_) {
-    return JSON.stringify({ message: String(err) }, null, 2);
-  }
-}
-
-function logMongoUriEnv() {
-  const raw = process.env.MONGODB_URI;
-  console.log('[ENV] MONGODB_URI typeof:', typeof raw);
-  console.log('[ENV] MONGODB_URI var mi:', raw != null && String(raw).trim() !== '');
-  if (raw == null) {
-    console.log('[ENV] MONGODB_URI: null/undefined');
-    return;
-  }
-  const s = String(raw).trim();
-  console.log('[ENV] MONGODB_URI length:', s.length);
-  const scheme = s.startsWith('mongodb+srv://')
-    ? 'mongodb+srv://'
-    : s.startsWith('mongodb://')
-      ? 'mongodb://'
-      : '(gecersiz)';
-  console.log('[ENV] scheme:', scheme);
-  const at = s.indexOf('@');
-  if (at > 0) {
-    console.log('[ENV] host (sifresiz):', s.slice(at + 1).split('/')[0].split('?')[0]);
-  }
-}
-
-/** Tek kaynak: ortam değişkeni (Render / .env); trim, şema kontrolü */
-function readConnectionUri() {
-  const encodedUri = process.env.MONGODB_URI != null ? String(process.env.MONGODB_URI).trim() : '';
-  if (!encodedUri) return null;
-  if (!encodedUri.startsWith('mongodb://') && !encodedUri.startsWith('mongodb+srv://')) {
-    console.error('[MongoDB] URI mongodb:// veya mongodb+srv:// ile baslamali.');
-    return null;
-  }
-  return encodedUri;
-}
-
 async function connectDB() {
-  logMongoUriEnv();
-
-  const encodedUri = readConnectionUri();
-  if (!encodedUri) {
-    console.error('[MongoDB] MONGODB_URI bos veya gecersiz.');
-    return false;
-  }
-
-  const opts = {
-    serverSelectionTimeoutMS: 30000,
-    family: 4,
-  };
-
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
   let lastErr;
 
@@ -90,7 +44,7 @@ async function connectDB() {
         return true;
       }
 
-      await mongoose.connect(encodedUri, opts);
+      await mongoose.connect(uri, opts);
 
       console.log('[MongoDB] Baglanti OK. readyState:', mongoose.connection.readyState);
       bindConnectionEventsOnce();
@@ -111,7 +65,8 @@ async function connectDB() {
     } catch (err) {
       lastErr = err;
       console.error(`[MongoDB] Deneme ${attempt}/${maxAttempts} basarisiz`);
-      console.error('❌ HATA DETAYI:', errToJson(err));
+      console.error('❌ BAĞLANTI PATLADI! Detay:', JSON.stringify(err, null, 2));
+      if (err && err.message) console.error('❌ err.message:', err.message);
       try {
         await mongoose.disconnect();
       } catch (_) {}
@@ -123,7 +78,10 @@ async function connectDB() {
   }
 
   console.error('[MongoDB] Tum denemeler basarisiz.');
-  console.error('❌ SON HATA DETAYI:', lastErr ? errToJson(lastErr) : 'null');
+  if (lastErr) {
+    console.error('❌ BAĞLANTI PATLADI! Detay:', JSON.stringify(lastErr, null, 2));
+    if (lastErr.message) console.error('❌ err.message:', lastErr.message);
+  }
   return false;
 }
 

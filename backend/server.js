@@ -149,11 +149,9 @@ async function start() {
   httpServer = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor!`);
     console.log('--- Environment Check ---');
-    const mu = process.env.MONGODB_URI;
-    const uriOk = typeof mu === 'string' && mu.trim().length > 0;
     console.log(
-      'MONGODB_URI:',
-      uriOk ? `SET (uzunluk ${mu.trim().length}, sifre loglanmaz)` : 'MISSING veya bos'
+      'MONGODB_URI (env):',
+      process.env.MONGODB_URI ? 'SET (nukleer modda database.js URI kullaniliyor)' : 'bos — nukleer URI aktif'
     );
     console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ MISSING');
     console.log('-------------------------');
