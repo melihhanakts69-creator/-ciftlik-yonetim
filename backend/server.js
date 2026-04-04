@@ -1,6 +1,8 @@
 // Önce env yükle (Render’da değişkenler çoğunlukla panodan gelir; .env yoksa (0) normal)
 require('dotenv').config();
 
+// ✅ BU SATIRI RENDER LOGUNDA GORUYORSAN YENİ KOD CALIISIYOR: agrolina-backend-v1.0.2
+console.log('[STARTUP] agrolina-backend-v1.0.2 | node:', process.version);
 console.log('[BOOT] commit:', process.env.RENDER_GIT_COMMIT || 'local', '| root backend/ olmali');
 const mongoose = require('mongoose');
 const express = require('express');
