@@ -27,18 +27,16 @@ async function connectDB() {
     console.error('[MongoDB] HATA: MONGODB_URI tanımlı değil veya boş');
     return false;
   }
-  if (uri.startsWith('mongodb+srv://')) {
-    console.error(
-      '[MongoDB] HATA: mongodb+srv kullanma. Render’da MONGODB_URI’yi mongodb:// (çoklu host, 27017) standard URI ile ayarla.'
-    );
-    return false;
-  }
-  if (!uri.startsWith('mongodb://')) {
-    console.error('[MongoDB] HATA: MONGODB_URI mongodb:// ile başlamalı');
+  if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+    console.error('[MongoDB] HATA: MONGODB_URI mongodb:// veya mongodb+srv:// ile başlamalı');
     return false;
   }
 
-  console.log('[MongoDB] MONGODB_URI uzunluk=', uri.length);
+  console.log(
+    '[MongoDB] MONGODB_URI uzunluk=',
+    uri.length,
+    uri.startsWith('mongodb+srv') ? '(srv)' : '(direct)'
+  );
 
   const host = safeHostFromUri(uri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
