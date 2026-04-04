@@ -3,13 +3,31 @@ const dnsPromises = require('dns').promises;
 
 function buildMongoOpts() {
   const opts = {
-    serverSelectionTimeoutMS: 30000,
+    serverSelectionTimeoutMS: 45000,
     socketTimeoutMS: 45000,
+    connectTimeoutMS: 20000,
+    tls: true,
   };
   if (process.env.MONGO_FAMILY === '4') {
     opts.family = 4;
   }
   return opts;
+}
+
+function logSelectionError(err) {
+  console.error('[MongoDB] HATA:', err?.message || String(err));
+  if (err?.name) console.error('[MongoDB] error.name:', err.name);
+  const reason = err?.reason;
+  if (reason?.servers && typeof reason.servers.forEach === 'function') {
+    reason.servers.forEach((desc, address) => {
+      const e = desc?.error;
+      console.error(
+        '[MongoDB] host:',
+        String(address),
+        e ? `err: ${e.message || e}` : `state: ${desc?.type || desc?.state || '?'}`
+      );
+    });
+  }
 }
 
 function sleep(ms) {
@@ -65,6 +83,7 @@ async function expandSrvToDirectUri(srvUri) {
   }
   if (!params.has('tls') && !params.has('ssl')) params.set('tls', 'true');
   if (!params.has('retryWrites')) params.set('retryWrites', 'true');
+  if (!params.has('authSource')) params.set('authSource', 'admin');
 
   const qs = params.toString();
   return `mongodb://${auth}@${hosts}${pathPart}?${qs}`;
@@ -135,7 +154,7 @@ async function connectDB() {
       console.log('[MongoDB] BAŞARILI: MongoDB bağlandı');
       return true;
     } catch (err) {
-      console.error('[MongoDB] HATA:', err?.message || String(err));
+      logSelectionError(err);
       if (err?.stack) console.error(err.stack);
       try {
         await mongoose.disconnect();
