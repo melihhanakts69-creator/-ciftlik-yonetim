@@ -1,9 +1,18 @@
 const mongoose = require('mongoose');
 
-const MONGO_OPTS = {
-  serverSelectionTimeoutMS: 30000,
-  family: 4,
-};
+function buildMongoOpts() {
+  const opts = {
+    serverSelectionTimeoutMS: Math.min(
+      60000,
+      parseInt(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || '30000', 10)
+    ),
+  };
+  if (process.env.MONGO_FAMILY === '4') {
+    opts.family = 4;
+    console.log('[MongoDB] MONGO_FAMILY=4 (forced IPv4)');
+  }
+  return opts;
+}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -45,16 +54,16 @@ async function connectDB() {
         return true;
       }
 
-      await mongoose.connect(uri, MONGO_OPTS);
+      await mongoose.connect(uri, buildMongoOpts());
 
       console.log('[MongoDB] OK: connected readyState=', mongoose.connection.readyState);
       return true;
     } catch (err) {
-      console.error(
-        `[MongoDB] FAIL attempt ${attempt}/${maxAttempts}:`,
-        err?.message || err,
-        err?.code ? `code=${err.code}` : ''
-      );
+      const bits = [err?.message || String(err)];
+      if (err?.name) bits.push(`name=${err.name}`);
+      if (err?.code) bits.push(`code=${err.code}`);
+      if (err?.reason?.message) bits.push(`reason=${err.reason.message}`);
+      console.error(`[MongoDB] FAIL attempt ${attempt}/${maxAttempts}:`, bits.join(' | '));
       try {
         await mongoose.disconnect();
       } catch (_) {}
