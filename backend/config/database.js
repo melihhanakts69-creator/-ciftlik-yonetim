@@ -1,7 +1,12 @@
 /**
- * MongoDB Atlas — Mongoose 8.x (^8.20.0)
+ * MongoDB Atlas — Mongoose 8.x (^8.2.0+)
  * URI: sadece process.env.MONGODB_URI (dotenv server.js en üstte yüklenir)
- * mongodb+srv → TLS Atlas tarafında; ekstra tls/ssl objesi ekleme.
+ * mongodb+srv → TLS Atlas tarafında; ekstra tls/ssl objesi EKLENMEMELİ.
+ *
+ * Mongoose 8 Breaking Changes:
+ *   - useNewUrlParser, useUnifiedTopology, useFindAndModify KALDIRILDI — geçmez.
+ *   - family: 4  → Render/cloud ortamlarında IPv6 SRV çözümleme sorunlarını önler.
+ *   - serverSelectionTimeoutMS: 30000 → Atlas cold-start için yeterli süre.
  */
 const mongoose = require('mongoose');
 
@@ -19,7 +24,8 @@ function bindConnectionEventsOnce() {
   if (connectionEventsBound) return;
   connectionEventsBound = true;
   mongoose.connection.on('error', (err) => {
-    console.error('[MongoDB] connection error:', err.message);
+    // Tam err objesi: kod (ETIMEDOUT, AUTH_FAILED vb.) görünür olsun
+    console.error('[MongoDB] connection error — full object:', err);
   });
   mongoose.connection.on('disconnected', () => {
     console.warn('[MongoDB] disconnected');
@@ -84,7 +90,9 @@ async function connectDB() {
       }
 
       await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 30000,
+        // Mongoose 8: useNewUrlParser ve useUnifiedTopology KALDIRILDI, eklenirse hata verir.
+        serverSelectionTimeoutMS: 30000, // Atlas için 30 sn bekleme süresi
+        family: 4,                        // IPv4 zorlaması — Render'da SRV/IPv6 çözümleme sorunlarını önler
       });
 
       console.log('[MongoDB] Baglanti OK. readyState:', mongoose.connection.readyState);
@@ -106,7 +114,8 @@ async function connectDB() {
       return true;
     } catch (err) {
       lastErr = err;
-      console.error(`[MongoDB] Deneme ${attempt}/${maxAttempts}:`, err.message);
+      // Tam err objesi: code (ETIMEDOUT, ENOTFOUND, AUTH_FAILED vb.) teşhis için kritik
+      console.error(`[MongoDB] Deneme ${attempt}/${maxAttempts} HATA — full object:`, err);
       try {
         await mongoose.disconnect();
       } catch (_) {}
@@ -117,7 +126,8 @@ async function connectDB() {
     }
   }
 
-  console.error('[MongoDB] Baglanamadi. Atlas: Resume, Network 0.0.0.0/0, URI dogru mu?', lastErr?.message);
+  // Tüm lastErr objesi: gerçek hata kodu (ETIMEDOUT, AUTH_FAILED, ENOTFOUND vb.) burada görünür
+  console.error('[MongoDB] Baglanamadi. Atlas: Resume, Network 0.0.0.0/0, URI dogru mu? — full error:', lastErr);
   return false;
 }
 
