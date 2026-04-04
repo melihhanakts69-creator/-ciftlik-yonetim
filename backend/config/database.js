@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const dnsPromises = require('dns').promises;
 
 function buildMongoOpts() {
   const opts = {
@@ -25,6 +26,62 @@ function safeHostFromUri(uri) {
   }
 }
 
+/** Atlas SRV → doğrudan mongodb:// host1:27017,host2:27017,... (Node dns.resolveSrv / TXT) */
+async function expandSrvToDirectUri(srvUri) {
+  const rest = srvUri.slice('mongodb+srv://'.length);
+  const at = rest.indexOf('@');
+  if (at === -1) throw new Error('mongodb+srv içinde @ yok');
+  const auth = rest.slice(0, at);
+  const afterAt = rest.slice(at + 1);
+  const slash = afterAt.indexOf('/');
+  const fqdn = slash === -1 ? afterAt.split('?')[0] : afterAt.slice(0, slash);
+  const pathAndQuery = slash === -1 ? '/' : afterAt.slice(slash);
+
+  const pathPart = pathAndQuery.split('?')[0] || '/';
+  const queryPart = pathAndQuery.includes('?') ? pathAndQuery.split('?').slice(1).join('?') : '';
+
+  const srvName = `_mongodb._tcp.${fqdn}`;
+  const records = await dnsPromises.resolveSrv(srvName);
+  records.sort((a, b) => a.priority - b.priority || a.weight - b.weight);
+  const hosts = records
+    .map((r) => `${String(r.name).replace(/\.$/, '')}:${r.port}`)
+    .join(',');
+
+  let txtFlat = [];
+  try {
+    const txt = await dnsPromises.resolveTxt(srvName);
+    txtFlat = txt.flat();
+  } catch (_) {}
+
+  const params = new URLSearchParams(queryPart);
+  for (const line of txtFlat) {
+    for (const seg of String(line).split('&')) {
+      if (!seg) continue;
+      const eq = seg.indexOf('=');
+      const k = eq === -1 ? seg : seg.slice(0, eq);
+      const v = eq === -1 ? '' : seg.slice(eq + 1);
+      if (k && !params.has(k)) params.set(k, v);
+    }
+  }
+  if (!params.has('tls') && !params.has('ssl')) params.set('tls', 'true');
+  if (!params.has('retryWrites')) params.set('retryWrites', 'true');
+
+  const qs = params.toString();
+  return `mongodb://${auth}@${hosts}${pathPart}?${qs}`;
+}
+
+function ensureTlsParams(mongoUri) {
+  if (!mongoUri.startsWith('mongodb://')) return mongoUri;
+  const qIdx = mongoUri.indexOf('?');
+  const base = qIdx === -1 ? mongoUri : mongoUri.slice(0, qIdx);
+  const q = qIdx === -1 ? '' : mongoUri.slice(qIdx + 1);
+  const params = new URLSearchParams(q);
+  if (!params.has('tls') && !params.has('ssl')) params.set('tls', 'true');
+  if (!params.has('retryWrites')) params.set('retryWrites', 'true');
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : `${base}?tls=true&retryWrites=true`;
+}
+
 async function connectDB() {
   const uri = process.env.MONGODB_URI ? String(process.env.MONGODB_URI).trim() : '';
 
@@ -37,8 +94,21 @@ async function connectDB() {
     return false;
   }
 
+  let connectUri = uri;
+  if (uri.startsWith('mongodb+srv://') && process.env.MONGO_SKIP_SRV_EXPAND !== '1') {
+    try {
+      connectUri = await expandSrvToDirectUri(uri);
+      console.log('[MongoDB] SRV → direct (Node DNS), bağlantı uzunluğu=', connectUri.length);
+    } catch (e) {
+      console.error('[MongoDB] SRV genişletme başarısız, mongodb+srv denenecek:', e?.message || e);
+      connectUri = uri;
+    }
+  } else if (uri.startsWith('mongodb://')) {
+    connectUri = ensureTlsParams(uri);
+  }
+
   console.log(
-    '[MongoDB] MONGODB_URI uzunluk=',
+    '[MongoDB] kaynak URI uzunluk=',
     uri.length,
     uri.startsWith('mongodb+srv') ? '(srv)' : '(direct)'
   );
@@ -49,7 +119,7 @@ async function connectDB() {
     family: mo.family != null ? mo.family : 'varsayılan (önerilen)',
   });
 
-  const host = safeHostFromUri(uri);
+  const host = safeHostFromUri(connectUri);
   const maxAttempts = Math.max(1, parseInt(process.env.MONGO_CONNECT_RETRIES || '5', 10));
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -61,7 +131,7 @@ async function connectDB() {
         return true;
       }
 
-      await mongoose.connect(uri, buildMongoOpts());
+      await mongoose.connect(connectUri, buildMongoOpts());
       console.log('[MongoDB] BAŞARILI: MongoDB bağlandı');
       return true;
     } catch (err) {

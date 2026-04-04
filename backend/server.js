@@ -1,4 +1,8 @@
 require('dotenv').config();
+const dns = require('dns');
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 const { version: BACKEND_VERSION } = require('./package.json');
 console.log('APP_VERSION:', Date.now());
 console.log(
