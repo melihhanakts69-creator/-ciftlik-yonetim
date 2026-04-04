@@ -3,12 +3,14 @@ const dnsPromises = require('dns').promises;
 
 function buildMongoOpts() {
   const opts = {
-    serverSelectionTimeoutMS: 45000,
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 20000,
+    serverSelectionTimeoutMS: 90000,
+    socketTimeoutMS: 60000,
+    connectTimeoutMS: 60000,
     tls: true,
   };
-  if (process.env.MONGO_FAMILY === '4') {
+  if (process.env.MONGO_NO_FAMILY === '1') {
+    /* Atlas/Render: bazen IPv6 yolu kırık → ENOTFOUND / TLS timeout */
+  } else {
     opts.family = 4;
   }
   return opts;
@@ -135,7 +137,8 @@ async function connectDB() {
   console.log('[MongoDB] mongoose seçenekleri:', {
     serverSelectionTimeoutMS: mo.serverSelectionTimeoutMS,
     socketTimeoutMS: mo.socketTimeoutMS,
-    family: mo.family != null ? mo.family : 'varsayılan (önerilen)',
+    connectTimeoutMS: mo.connectTimeoutMS,
+    family: mo.family != null ? mo.family : 'yok (MONGO_NO_FAMILY=1)',
   });
 
   const host = safeHostFromUri(connectUri);
