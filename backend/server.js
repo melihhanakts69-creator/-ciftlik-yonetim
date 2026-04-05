@@ -19,6 +19,7 @@ console.log(
 console.log('[BOOT] node:', process.version, '| cwd:', process.cwd());
 console.log('[BOOT] backend@', BACKEND_VERSION);
 const mongoose = require('mongoose');
+mongoose.set('bufferCommands', false);
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');

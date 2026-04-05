@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const dnsPromises = require('dns').promises;
 
-/** Atlas Standard (mongodb://) — SRV yok; Render’da MONGODB_URI’ye tam string yapıştır (şifre repoda değil). */
+/** Atlas Standard (mongodb://) — Render’da MONGODB_URI; şifre asla repoda olmamalı. */
 function buildMongoOpts() {
   return {
     family: 4,
@@ -9,6 +9,7 @@ function buildMongoOpts() {
     connectTimeoutMS: 60000,
     socketTimeoutMS: 60000,
     tls: true,
+    bufferCommands: false,
   };
 }
 
@@ -112,7 +113,7 @@ async function connectDB() {
   }
 
   if (uri.startsWith('mongodb://')) {
-    console.log('🚀 [ESKI_USUL_BAGLANTI] - SRV BYPASS AKTIF!');
+    console.log('🚀 [SRV_BYPASS_AKTIF] - ESKI USUL BAGLANTI DENENIYOR!');
   }
 
   let connectUri = uri;
@@ -145,6 +146,7 @@ async function connectDB() {
     serverSelectionTimeoutMS: mo.serverSelectionTimeoutMS,
     connectTimeoutMS: mo.connectTimeoutMS,
     socketTimeoutMS: mo.socketTimeoutMS,
+    bufferCommands: mo.bufferCommands,
   });
 
   const host = safeHostFromUri(connectUri);
