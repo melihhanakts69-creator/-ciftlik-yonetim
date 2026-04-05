@@ -1,24 +1,24 @@
 const mongoose = require('mongoose');
 
-console.log('🛸 [ANTIGRAVITY_FLYING] - SRV BYPASS EDİLDİ, SİSTEM UÇUŞTA!');
+console.log('🛸 [ANTIGRAVITY_V2] - YENİ PROJE, SIFIR KM BAĞLANTI!');
 
 // Kritik Emir: Modeller bağlantı beklemeden patlamasın diye
 mongoose.set('bufferCommands', false);
 
 const connectDB = async () => {
     try {
-        const uri = "mongodb://Melihhan:05465742067M@ac-upiwd66-shard-00-00.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-01.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-02.faq6tsp.mongodb.net:27017/Agrolina?ssl=true&replicaSet=atlas-m1v6m5-shard-0&authSource=admin&retryWrites=true&w=majority";
+        const uri = "mongodb://Melihhan:05465742067m@ciftlik-shard-00-00.hq6h6sl.mongodb.net:27017,ciftlik-shard-00-01.hq6h6sl.mongodb.net:27017,ciftlik-shard-00-02.hq6h6sl.mongodb.net:27017/Agrolina?ssl=true&authSource=admin&retryWrites=true&w=majority";
         
         await mongoose.connect(uri, {
             family: 4,
             serverSelectionTimeoutMS: 90000,
+            connectTimeoutMS: 60000,
             bufferCommands: false
         });
 
-        console.log("🚀 [ANTIGRAVITY_ON] - VERİTABANI BAĞLANDI, MERCEDES YOLA ÇIKTI!");
+        console.log('✅ [MERCEDES_CALISTI] - AGROLINA ONLINE!');
     } catch (error) {
-        console.error("❌ [ANTIGRAVITY_FAIL] - HATA:");
-        // Detaylı JSON çıktısı
+        console.error("❌ HATA:");
         console.error(JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         process.exit(1);
     }
