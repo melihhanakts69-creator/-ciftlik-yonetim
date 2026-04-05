@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
 
+console.log('🛸 [ANTIGRAVITY_FLYING] - SRV BYPASS EDİLDİ, SİSTEM UÇUŞTA!');
+
 // Kritik Emir: Modeller bağlantı beklemeden patlamasın diye
 mongoose.set('bufferCommands', false);
 
 const connectDB = async () => {
     try {
-        const uri = "mongodb://Melihhan:05465742067m@ac-upiwd66-shard-00-00.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-01.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-02.faq6tsp.mongodb.net:27017/Agrolina?ssl=true&replicaSet=atlas-m1v6m5-shard-0&authSource=admin&retryWrites=true&w=majority";
+        const uri = "mongodb://Melihhan:05465742067M@ac-upiwd66-shard-00-00.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-01.faq6tsp.mongodb.net:27017,ac-upiwd66-shard-00-02.faq6tsp.mongodb.net:27017/Agrolina?ssl=true&replicaSet=atlas-m1v6m5-shard-0&authSource=admin&retryWrites=true&w=majority";
         
         await mongoose.connect(uri, {
             family: 4,
             serverSelectionTimeoutMS: 90000,
-            connectTimeoutMS: 60000,
             bufferCommands: false
         });
 
