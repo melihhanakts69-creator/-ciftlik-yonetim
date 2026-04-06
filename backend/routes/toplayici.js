@@ -350,23 +350,7 @@ router.post('/sut-toplama', async (req, res) => {
     });
     await kayit.save();
 
-    // -- FİNANSAL GELİR OTOMATİK EKLENMESİ --
-    try {
-      const sutGeliri = Number(litre) * (toplayici.sutLitreFiyati || 0);
-      if (sutGeliri > 0) {
-        await Finansal.create({
-          userId: ciftci._id,
-          tip: 'gelir',
-          kategori: 'Süt Satışı',
-          miktar: sutGeliri,
-          tarih: tarihStr,
-          aciklama: `Süt toplayıcısına satılan ${Number(litre)} Lt süt geliri. (${sagimVal})`
-        });
-      }
-    } catch (finError) {
-      console.error('Süt satışı gelir ekleme hatası:', finError);
-    }
-    // -------------------------------------
+
 
     // Bildirim oluştur
     try {
@@ -388,6 +372,118 @@ router.post('/sut-toplama', async (req, res) => {
   } catch (error) {
     console.error('Toplayici sut toplama hatasi:', error);
     res.status(500).json({ message: 'Sunucu hatası.' });
+  }
+});
+
+// 6. BEKLEYEN ÖDEMELERİ GETİR
+router.get('/bekleyen-odemeler', async (req, res) => {
+  try {
+    const toplayiciId = req.originalUserId;
+    const toplayici = await User.findById(toplayiciId)
+      .populate('topladigiCiftlikler', 'isim isletmeAdi email').lean();
+      
+    // Ödenmemiş kayıtları çek
+    const odenmemisKayitlar = await SutKaydi.find({
+      toplayiciUserId: toplayiciId,
+      toplayiciOdendi: false
+    }).lean();
+
+    const ciftlikOdemeleri = {};
+    
+    odenmemisKayitlar.forEach(k => {
+       const uId = k.userId.toString();
+       if (!ciftlikOdemeleri[uId]) {
+         ciftlikOdemeleri[uId] = {
+            totalLitre: 0,
+            kayitIdler: [],
+            ilkTarih: k.tarih,
+            sonTarih: k.tarih
+         };
+       }
+       ciftlikOdemeleri[uId].totalLitre += (k.litre || 0);
+       ciftlikOdemeleri[uId].kayitIdler.push(k._id);
+       if (k.tarih < ciftlikOdemeleri[uId].ilkTarih) ciftlikOdemeleri[uId].ilkTarih = k.tarih;
+       if (k.tarih > ciftlikOdemeleri[uId].sonTarih) ciftlikOdemeleri[uId].sonTarih = k.tarih;
+    });
+
+    const sonuc = (toplayici.topladigiCiftlikler || []).map(c => {
+       const o = ciftlikOdemeleri[c._id.toString()] || { totalLitre: 0, kayitIdler: [] };
+       const toplamBorc = +(o.totalLitre * (toplayici.sutLitreFiyati || 0)).toFixed(2);
+       return {
+          ciftlikId: c._id,
+          isim: c.isletmeAdi || c.isim || 'İsimsiz Çiftlik',
+          toplamLitre: Math.round(o.totalLitre * 10) / 10,
+          toplamBorc,
+          fiyat: toplayici.sutLitreFiyati || 0,
+          kayitIdler: o.kayitIdler,
+          ilkTarih: o.ilkTarih,
+          sonTarih: o.sonTarih
+       };
+    }).filter(x => x.toplamLitre > 0);
+
+    res.json(sonuc);
+  } catch (error) {
+    console.error('Bekleyen ödemeler hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// 7. ÖDEME YAP
+router.post('/odeme-yap', async (req, res) => {
+  try {
+    const { ciftlikId, kayitIdler } = req.body;
+    const toplayiciId = req.originalUserId;
+
+    if (!ciftlikId || !kayitIdler || kayitIdler.length === 0) {
+      return res.status(400).json({ message: 'Çiftlik ID ve ödenecek kayıtlar eksik.' });
+    }
+
+    const toplayici = await User.findById(toplayiciId);
+    const kayitlar = await SutKaydi.find({ _id: { $in: kayitIdler }, toplayiciUserId: toplayiciId, toplayiciOdendi: false });
+    
+    if (kayitlar.length === 0) {
+      return res.status(400).json({ message: 'Ödenecek geçerli kayıt bulunamadı.' });
+    }
+
+    const totalLitre = kayitlar.reduce((s, k) => s + (k.litre || 0), 0);
+    const miktar = +(totalLitre * (toplayici.sutLitreFiyati || 0)).toFixed(2);
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Kayıtları ödendi olarak güncelle
+    await SutKaydi.updateMany(
+      { _id: { $in: kayitIdler } },
+      { $set: { toplayiciOdendi: true, toplayiciOdemeTarihi: new Date() } }
+    );
+
+    // Çiftçiye Finansal Gelir Ekle
+    if (miktar > 0) {
+      await Finansal.create({
+        userId: ciftlikId,
+        tip: 'gelir',
+        kategori: 'Süt Satışı',
+        miktar: miktar,
+        tarih: todayStr,
+        aciklama: `Süt toplayıcısı tarafından yapılan toplu ödeme (${Math.round(totalLitre * 10) / 10} Lt süt)`
+      });
+    }
+
+    // Bildirim At
+    try {
+      await Bildirim.create({
+        userId: ciftlikId,
+        tip: 'odeme',
+        baslik: `💰 Süt Ödemeniz Alındı!`,
+        mesaj: `Süt toplayıcısından ${miktar} TL tutarında toplu süt satışı ödemeniz geldi ve bilançonunuza işlendi.`,
+        oncelik: 'yuksek',
+        aktif: true,
+        tamamlandi: false,
+      });
+    } catch (e) {}
+
+    res.json({ message: 'Ödeme başarıyla gerçekleştirildi!', odenenTutar: miktar });
+  } catch (error) {
+    console.error('Ödeme yap hatası:', error);
+    res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
 

@@ -46,6 +46,14 @@ const sutKaydiSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TopluSutGirisi',
     default: null
+  },
+  toplayiciOdendi: { 
+    type: Boolean, 
+    default: false 
+  },
+  toplayiciOdemeTarihi: { 
+    type: Date, 
+    default: null 
   }
 }, {
   timestamps: true
