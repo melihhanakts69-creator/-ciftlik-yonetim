@@ -29,7 +29,7 @@ const sutKaydiSchema = new mongoose.Schema({
     required: true
   },  sagim: {
     type: String,
-    enum: ['sabah', 'aksam'],
+    enum: ['sabah', 'aksam', 'ikisi'],
     default: 'sabah'
   },
   topluGiristen: {

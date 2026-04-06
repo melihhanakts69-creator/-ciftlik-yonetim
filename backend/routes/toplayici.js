@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Tenant = require('../models/Tenant');
 const SutKaydi = require('../models/SutKaydi');
 const Bildirim = require('../models/Bildirim');
+const Finansal = require('../models/Finansal');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -322,7 +323,7 @@ router.post('/sut-toplama', async (req, res) => {
     }
 
     const tarihStr = typeof tarih === 'string' ? tarih : new Date(tarih).toISOString().split('T')[0];
-    const sagimVal = sagim === 'aksam' ? 'aksam' : 'sabah';
+    const sagimVal = sagim === 'aksam' ? 'aksam' : (sagim === 'ikisi' ? 'ikisi' : 'sabah');
 
     const mevcutKayit = await SutKaydi.findOne({
       userId: ciftci._id,
@@ -348,6 +349,24 @@ router.post('/sut-toplama', async (req, res) => {
       topluGiristen: true
     });
     await kayit.save();
+
+    // -- FİNANSAL GELİR OTOMATİK EKLENMESİ --
+    try {
+      const sutGeliri = Number(litre) * (toplayici.sutLitreFiyati || 0);
+      if (sutGeliri > 0) {
+        await Finansal.create({
+          userId: ciftci._id,
+          tip: 'gelir',
+          kategori: 'Süt Satışı',
+          miktar: sutGeliri,
+          tarih: tarihStr,
+          aciklama: `Süt toplayıcısına satılan ${Number(litre)} Lt süt geliri. (${sagimVal})`
+        });
+      }
+    } catch (finError) {
+      console.error('Süt satışı gelir ekleme hatası:', finError);
+    }
+    // -------------------------------------
 
     // Bildirim oluştur
     try {

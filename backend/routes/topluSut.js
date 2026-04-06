@@ -145,11 +145,8 @@ router.post('/', auth, async (req, res) => {
       for (const tKayit of toplayiciKayitlari) {
         const rutin = tKayit.toplayiciUserId?.toplamaRutini || 'ikisi';
         
-        if (rutin === 'ikisi' && tKayit.sagim === sagim) {
-          return res.status(403).json({ message: `Süt toplayıcısı bu sağımı (${tKayit.sagim}) teslim almış. Toplu kayıt ekleyemezsiniz.` });
-        }
-        if (rutin === 'sabah' || rutin === 'aksam') {
-           return res.status(403).json({ message: 'Süt toplayıcısı günlük sütleri teslim almış. Bu güne toplu kayıt ekleyemezsiniz.' });
+        if (tKayit.sagim === 'ikisi' || rutin === 'sabah' || rutin === 'aksam' || (rutin === 'ikisi' && tKayit.sagim === sagim)) {
+          return res.status(403).json({ message: `Süt toplayıcısı bu sağımı (${tKayit.sagim === 'ikisi' ? 'tüm gün' : tKayit.sagim}) teslim almış. Toplu kayıt ekleyemezsiniz.` });
         }
       }
     }
