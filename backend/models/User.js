@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
   bolge: { type: String, trim: true },
   sutLitreFiyati: { type: Number, default: 0 },
   topladigiCiftlikler: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Kod ile eklediği çiftlikler (çiftçi User id)
+  toplamaRutini: { type: String, enum: ['sabah', 'aksam', 'ikisi'], default: 'ikisi' }, // Kilit sistemi rutin ayarı
 
   // ── Profil ───────────────────────────────────────
   profilFoto: { type: String },  // URL

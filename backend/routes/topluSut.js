@@ -134,6 +134,27 @@ router.post('/', auth, async (req, res) => {
   try {
     const { tarih, sagim, toplamSut, dagilimTipi, detaylar, notlar } = req.body;
 
+    // -- DİNAMİK TOPLAYICI KİLİT KONTROLÜ BAŞLANGIÇ --
+    const toplayiciKayitlari = await SutKaydi.find({
+      userId: req.userId,
+      tarih: tarih,
+      toplayiciUserId: { $ne: null }
+    }).populate('toplayiciUserId', 'toplamaRutini');
+
+    if (toplayiciKayitlari.length > 0) {
+      for (const tKayit of toplayiciKayitlari) {
+        const rutin = tKayit.toplayiciUserId?.toplamaRutini || 'ikisi';
+        
+        if (rutin === 'ikisi' && tKayit.sagim === sagim) {
+          return res.status(403).json({ message: `Süt toplayıcısı bu sağımı (${tKayit.sagim}) teslim almış. Toplu kayıt ekleyemezsiniz.` });
+        }
+        if (rutin === 'sabah' || rutin === 'aksam') {
+           return res.status(403).json({ message: 'Süt toplayıcısı günlük sütleri teslim almış. Bu güne toplu kayıt ekleyemezsiniz.' });
+        }
+      }
+    }
+    // -- KİLİT KONTROLÜ BİTİŞ --
+
     // MEVCUT SÜT KAYITLARINI KONTROL ET
     const mevcutSutKayitlari = await SutKaydi.find({
       userId: req.userId,

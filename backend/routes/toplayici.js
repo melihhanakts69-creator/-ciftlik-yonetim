@@ -92,6 +92,27 @@ router.post('/fiyat', async (req, res) => {
   }
 });
 
+// Süt toplayıcısı rutin ayarı (sabah, aksam, ikisi)
+router.get('/rutin', async (req, res) => {
+  try {
+    const toplayici = await User.findById(req.originalUserId).select('toplamaRutini').lean();
+    res.json({ rutin: toplayici?.toplamaRutini || 'ikisi' });
+  } catch { res.status(500).json({ message: 'Hata' }); }
+});
+
+router.post('/rutin', async (req, res) => {
+  try {
+    const { rutin } = req.body;
+    if (!['sabah', 'aksam', 'ikisi'].includes(rutin)) {
+      return res.status(400).json({ message: 'Geçersiz rutin türü.' });
+    }
+    await User.findByIdAndUpdate(req.originalUserId, { $set: { toplamaRutini: rutin } });
+    res.json({ message: 'Toplama rutini güncellendi.', rutin });
+  } catch {
+    res.status(500).json({ message: 'Hata' });
+  }
+});
+
 // Çiftlik detay istatistikleri
 router.get('/ciftlik/:ciftciId/istatistik', async (req, res) => {
   try {

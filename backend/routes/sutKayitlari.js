@@ -14,19 +14,44 @@ router.get('/', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   }
 });
 
+const User = require('../models/User');
+
 // YENİ SÜT KAYDI EKLE
 router.post('/', auth, checkRole(['ciftci', 'sutcu']), async (req, res) => {
   try {
-    const { inekId, inekIsim, tarih, litre } = req.body;
+    const { inekId, inekIsim, tarih, litre, sagim } = req.body;
+    const gelenSagim = sagim || 'sabah';
 
-    console.log('Gelen veri:', { inekId, inekIsim, tarih, litre, userId: req.userId });
+    // -- DİNAMİK TOPLAYICI KİLİT KONTROLÜ BAŞLANGIÇ --
+    const toplayiciKayitlari = await SutKaydi.find({
+      userId: req.userId,
+      tarih: tarih,
+      toplayiciUserId: { $ne: null }
+    }).populate('toplayiciUserId', 'toplamaRutini');
+
+    if (toplayiciKayitlari.length > 0) {
+      for (const tKayit of toplayiciKayitlari) {
+        const rutin = tKayit.toplayiciUserId?.toplamaRutini || 'ikisi';
+        
+        if (rutin === 'ikisi' && tKayit.sagim === gelenSagim) {
+          return res.status(403).json({ message: `Süt toplayıcısı bu sağımı (${tKayit.sagim}) teslim almış. Daha fazla kayıt ekleyemezsiniz.` });
+        }
+        if (rutin === 'sabah' || rutin === 'aksam') {
+           return res.status(403).json({ message: 'Süt toplayıcısı günlük sütleri teslim almış. Bu güne daha fazla kayıt ekleyemezsiniz.' });
+        }
+      }
+    }
+    // -- KİLİT KONTROLÜ BİTİŞ --
+
+    console.log('Gelen veri:', { inekId, inekIsim, tarih, litre, sagim: gelenSagim, userId: req.userId });
 
     const sutKaydi = new SutKaydi({
       userId: req.userId,
       inekId,
       inekIsim,
       tarih,
-      litre
+      litre,
+      sagim: gelenSagim
     });
 
     await sutKaydi.save();
