@@ -182,14 +182,14 @@ async function otomatikGorevleriKontrolEt(userId) {
       }
     }
 
-    // 4. SÜTTEN KESME (75-95 gün arası buzağılar) — aktif buzağılar
+    // 4. SÜTTEN KESME (90-100 gün arası buzağılar) — aktif buzağılar
     const buzagilar = await Buzagi.find({ userId: uid, durum: { $nin: ['Silindi', 'Satıldı', 'Öldü'] }, aktif: { $ne: false } });
     for (const buzagi of buzagilar) {
       if (!buzagi.dogumTarihi) continue;
       const dogum = new Date(buzagi.dogumTarihi);
       const gunFarki = Math.floor((bugun - dogum) / (1000 * 60 * 60 * 24));
 
-      if (gunFarki >= 75 && gunFarki <= 95) {
+      if (gunFarki >= 90 && gunFarki <= 105) {
         const varMi = await Bildirim.findOne({
           userId: uid,
           hayvanId: buzagi._id,
@@ -200,11 +200,11 @@ async function otomatikGorevleriKontrolEt(userId) {
             userId: uid,
             tip: 'sutten_kesme',
             baslik: `Sütten Kesme: ${buzagi.kupeNo}`,
-            mesaj: `Buzağı ${Math.floor(gunFarki / 30)} aylık oldu. Sütten kesmeyi planlayın.`,
+            mesaj: `Buzağı 3 aylık oldu, artık sütten kesilmeli! Gerekli beslenme geçişini sağlayın.`,
             hayvanId: buzagi._id,
             hayvanTipi: 'buzagi',
             kupe_no: buzagi.kupeNo,
-            oncelik: 'normal',
+            oncelik: 'yuksek',
             hatirlatmaTarihi: bugun
           });
         }
