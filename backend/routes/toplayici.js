@@ -5,6 +5,7 @@ const Tenant = require('../models/Tenant');
 const SutKaydi = require('../models/SutKaydi');
 const Bildirim = require('../models/Bildirim');
 const Finansal = require('../models/Finansal');
+const TopluSutGirisi = require('../models/TopluSutGirisi');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -337,6 +338,23 @@ router.post('/sut-toplama', async (req, res) => {
       });
     }
 
+    const topluKayit = new TopluSutGirisi({
+      userId: ciftci._id,
+      tarih: tarihStr,
+      sagim: sagimVal,
+      toplamSut: Number(litre),
+      dagilimTipi: 'sut-toplayici',
+      detaylar: [{
+        inekId: 'toplayici-giris',
+        inekIsim: 'Süt toplayıcısı tarafından girildi',
+        miktar: Number(litre),
+        otomatikMi: true,
+        duzenlenmis: false
+      }],
+      notlar: `Süt toplayıcısı (${toplayici.isim || 'Toplayıcı'}) tarafından beyan edildi.`
+    });
+    await topluKayit.save();
+
     const kayit = new SutKaydi({
       userId: ciftci._id,
       tenantId: tenant._id,
@@ -346,7 +364,8 @@ router.post('/sut-toplama', async (req, res) => {
       tarih: tarihStr,
       litre: Number(litre),
       sagim: sagimVal,
-      topluGiristen: true
+      topluGiristen: true,
+      topluGirisId: topluKayit._id
     });
     await kayit.save();
 
