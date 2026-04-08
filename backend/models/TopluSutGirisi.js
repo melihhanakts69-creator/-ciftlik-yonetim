@@ -13,7 +13,7 @@ const topluSutGirisiSchema = new mongoose.Schema({
   sagim: {
     type: String,
     required: true,
-    enum: ['sabah', 'aksam']
+    enum: ['sabah', 'aksam', 'ikisi']
   },
   toplamSut: {
     type: Number,
@@ -23,7 +23,7 @@ const topluSutGirisiSchema = new mongoose.Schema({
   dagilimTipi: {
     type: String,
     required: true,
-    enum: ['akilli', 'esit', 'manuel'],
+    enum: ['akilli', 'esit', 'manuel', 'sut-toplayici'],
     default: 'akilli'
   },
   detaylar: [{
