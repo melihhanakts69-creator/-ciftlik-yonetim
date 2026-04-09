@@ -1,8 +1,7 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FiX, FiInfo } from 'react-icons/fi';
 import * as Icons from 'react-icons/fi';
-import { FaCow } from 'react-icons/fa';
+import { FiX, FiInfo } from 'react-icons/fi';
 
 const fadeIn = keyframes`
   from { opacity: 0; backdrop-filter: blur(0px); }
@@ -200,7 +199,6 @@ const OkButton = styled.button`
 `;
 
 const getIcon = (iconName) => {
-  if (iconName === 'FaCow') return <FaCow />;
   const IconCmp = Icons[iconName] || Icons.FiInfo;
   return <IconCmp />;
 };
