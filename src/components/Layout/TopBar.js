@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaSearch, FaBell, FaUserCircle, FaBars } from 'react-icons/fa';
 import * as api from '../../services/api';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import InstallButton from '../PWAInstallPrompt/InstallButton';
+import { FiHelpCircle } from 'react-icons/fi';
+import PageGuideModal from '../modals/PageGuideModal';
+import { pageGuides } from '../../data/pageGuides';
 
 // --- Styled Components ---
 
@@ -165,11 +168,33 @@ const InstallBtnWrap = styled.div`
   }
 `;
 
+const HelpButton = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 8px;
+  color: #3b82f6;
+  border-radius: 50%;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #eff6ff;
+    color: #2563eb;
+    transform: scale(1.05);
+  }
+`;
+
 const TopBar = ({ onMenuClick }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const isMobile = useIsMobile();
     const [unreadCount, setUnreadCount] = useState(0);
     const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+    const currentGuideKey = Object.keys(pageGuides).find(k => location.pathname === k || location.pathname.startsWith(k + '/'));
+    const guideData = currentGuideKey ? pageGuides[currentGuideKey] : null;
 
     useEffect(() => {
         const onUserUpdate = () => setUser(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -211,6 +236,13 @@ const TopBar = ({ onMenuClick }) => {
                         <InstallButton hideWhenCannotInstall />
                     </InstallBtnWrap>
                 )}
+                
+                {guideData && (
+                    <HelpButton onClick={() => setIsGuideOpen(true)} title="Nasıl Kullanılır?">
+                        <FiHelpCircle style={{ fontSize: '22px' }} />
+                    </HelpButton>
+                )}
+
                 <NotificationWrapper onClick={() => navigate('/bildirimler')}>
                     <FaBell style={{ fontSize: '20px', color: '#A2A3B7', transition: 'color 0.3s' }} />
                     {unreadCount > 0 && <Badge>{unreadCount > 9 ? '9+' : unreadCount}</Badge>}
@@ -228,6 +260,12 @@ const TopBar = ({ onMenuClick }) => {
                     )}
                 </UserSection>
             </RightSection>
+
+            <PageGuideModal 
+              isOpen={isGuideOpen} 
+              onClose={() => setIsGuideOpen(false)} 
+              data={guideData} 
+            />
         </TopBarContainer>
     );
 };
