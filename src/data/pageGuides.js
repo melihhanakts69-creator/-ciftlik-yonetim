@@ -1,6 +1,3 @@
-import { FiPieChart, FiActivity, FiDroplet, FiBriefcase, FiCalendar, FiUsers, FiBox, FiList, FiTrendingUp, FiCheckCircle } from 'react-icons/fi';
-import { FaCow } from 'react-icons/fa';
-
 export const pageGuides = {
   '/dashboard': {
     title: 'Çiftlik Özeti (Dashboard)',
