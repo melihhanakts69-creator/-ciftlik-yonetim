@@ -8,7 +8,7 @@ import SatisModal from '../components/modals/SatisModal';
 import SaglikGecmisi from '../components/Saglik/SaglikGecmisi';
 import { EditModal, FormGroup, FormLabel, FormInput, FormTextarea } from '../components/HayvanDetay/DetayModal';
 import { toast } from 'react-toastify';
-
+import DogumIstihbaratModal from '../components/modals/DogumIstihbaratModal';
 // --- STYLED COMPONENTS (standart pattern) ---
 const DetailContainer = styled.div`
   max-width: 1000px;
@@ -165,6 +165,7 @@ const InekDetay = () => {
     const [saving, setSaving] = useState(false);
     const [showTohumlamaModal, setShowTohumlamaModal] = useState(false);
     const [showDogumModal, setShowDogumModal] = useState(false);
+    const [showDogumIstihbaratModal, setShowDogumIstihbaratModal] = useState(false);
     const [showSatisModal, setShowSatisModal] = useState(false);
 
     // Form State
@@ -254,6 +255,28 @@ const InekDetay = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDogumIstihbaratOnay = async () => {
+        setShowDogumIstihbaratModal(false);
+        
+        try {
+            await api.createBildirim({
+                tip: 'saglik',
+                baslik: 'İlk Ağız Sütü, Kalsiyum ve Göbek Bağı',
+                mesaj: `${inek.isim} (Küpe No: ${inek.kupeNo}) doğurdu. 1-İlk ağız sütünü içirin, 2-Göbek kordonunu iyotlayın, 3-Anneye Kalsiyum takviyesi yapın.`,
+                hayvanId: inek._id,
+                hayvanTipi: 'inek',
+                kupe_no: inek.kupeNo,
+                oncelik: 'yuksek',
+                hatirlatmaTarihi: new Date()
+            });
+            toast.success("Görev Yapılacaklar listesine eklendi", { autoClose: 2000 });
+        } catch (error) {
+            console.error("Bildirim oluşturulamadı", error);
+        }
+
+        setShowDogumModal(true);
     };
 
     const handleDeleteTohumlama = async () => {
@@ -349,7 +372,7 @@ const InekDetay = () => {
                 <ActionButton onClick={() => navigate('/saglik-merkezi')} style={{ backgroundColor: '#e0f2f1', color: '#00695c', flex: 1, minWidth: 110 }}>
                     <FaNotesMedical /> Sağlık
                 </ActionButton>
-                <ActionButton onClick={() => setShowDogumModal(true)} style={{ backgroundColor: '#fce4ec', color: '#ad1457', flex: 1, minWidth: 110 }}>
+                <ActionButton onClick={() => setShowDogumIstihbaratModal(true)} style={{ backgroundColor: '#fce4ec', color: '#ad1457', flex: 1, minWidth: 110 }}>
                     <FaBaby /> Doğum
                 </ActionButton>
                 <ActionButton onClick={() => setShowSatisModal(true)} style={{ backgroundColor: '#f3e5f5', color: '#6a1b9a', flex: 1, minWidth: 110 }}>
@@ -664,6 +687,12 @@ const InekDetay = () => {
                 )
             }
 
+
+            <DogumIstihbaratModal 
+                isOpen={showDogumIstihbaratModal} 
+                onClose={() => setShowDogumIstihbaratModal(false)} 
+                onAcknowledge={handleDogumIstihbaratOnay} 
+            />
 
             <SatisModal isOpen={showSatisModal} onClose={() => setShowSatisModal(false)} hayvan={inek ? { ...inek, type: 'inek' } : null} onSuccess={fetchDetaylar} />
 

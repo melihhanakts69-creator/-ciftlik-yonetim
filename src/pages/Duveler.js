@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { FaThLarge, FaList, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import FilterBar from '../components/common/FilterBar';
-
+import DogumIstihbaratModal from '../components/modals/DogumIstihbaratModal';
 const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -123,6 +123,7 @@ function Duveler() {
 
     // Doğum Modal
     const [dogumEkrani, setDogumEkrani] = useState(false);
+    const [showDogumIstihbaratModal, setShowDogumIstihbaratModal] = useState(false);
     const [dogumYapacakDuve, setDogumYapacakDuve] = useState(null);
     const [dogumBilgileri, setDogumBilgileri] = useState({
         dogumTarihi: '', buzagiIsim: '', buzagiCinsiyet: 'disi', buzagiKilo: '', notlar: ''
@@ -304,10 +305,31 @@ function Duveler() {
             await api.duveDogurdu(dogumYapacakDuve._id, dogumBilgileri);
             setDuveler(duveler.filter(d => d._id !== dogumYapacakDuve._id));
             setDogumEkrani(false);
+            setDogumYapacakDuve(null);
             alert('✅ Doğum kaydedildi, düve ineğe dönüştü!');
         } catch (error) {
             alert('❌ Doğum kaydı başarısız');
         }
+    };
+
+    const handleDogumIstihbaratOnay = async () => {
+        setShowDogumIstihbaratModal(false);
+        try {
+            await api.createBildirim({
+                tip: 'saglik',
+                baslik: 'İlk Ağız Sütü, Kalsiyum ve Göbek Bağı',
+                mesaj: `${dogumYapacakDuve?.isim} (Küpe No: ${dogumYapacakDuve?.kupeNo}) doğurdu. 1-İlk ağız sütünü içirin, 2-Göbek kordonunu iyotlayın, 3-Anneye/Düveye Kalsiyum takviyesi yapın.`,
+                hayvanId: dogumYapacakDuve?._id,
+                hayvanTipi: 'duve',
+                kupe_no: dogumYapacakDuve?.kupeNo,
+                oncelik: 'yuksek',
+                hatirlatmaTarihi: new Date()
+            });
+            toast.success("Görev Yapılacaklar listesine eklendi", { autoClose: 2000 });
+        } catch (error) {
+            console.error("Bildirim oluşturulamadı", error);
+        }
+        setDogumEkrani(true);
     };
 
     const resetForm = () => {
@@ -457,7 +479,7 @@ function Duveler() {
                                 {d.gebelikDurumu === 'Gebe' && d.tohumlamaTarihi && (
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDogumYapacakDuve(d); setDogumEkrani(true); }}
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDogumYapacakDuve(d); setShowDogumIstihbaratModal(true); }}
                                         className="birth-btn"
                                     >
                                         🤰 Doğurdu
@@ -595,6 +617,12 @@ function Duveler() {
                     </ModalContent>
                 </ModalOverlay>
             )}
+
+            <DogumIstihbaratModal 
+                isOpen={showDogumIstihbaratModal} 
+                onClose={() => setShowDogumIstihbaratModal(false)} 
+                onAcknowledge={handleDogumIstihbaratOnay} 
+            />
 
         </PageContainer>
     );
