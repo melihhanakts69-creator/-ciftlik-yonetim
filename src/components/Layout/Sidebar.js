@@ -7,6 +7,7 @@ import {
   FaSignOutAlt, FaTimes, FaCog, FaBell, FaMoon, FaSun, FaHeartbeat, FaCalendar
 } from 'react-icons/fa';
 import { GiCow } from 'react-icons/gi';
+import { FiUploadCloud } from 'react-icons/fi';
 import logo from '../../logo.png';
 import * as api from '../../services/api';
 import InstallButton from '../PWAInstallPrompt/InstallButton';
@@ -262,6 +263,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
       { path: '/karlilik', name: 'Karlılık Analizi', icon: <FaChartPie /> },
+      { path: '/akilli-ithalat', name: 'Akıllı İthalat', icon: <FiUploadCloud /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
       { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },

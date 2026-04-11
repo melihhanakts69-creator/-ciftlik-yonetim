@@ -44,6 +44,7 @@ import Karlilik from './pages/Karlilik';
 import Abonelik from './pages/Abonelik';
 import OfflineBanner from './components/OfflineBanner/OfflineBanner';
 import AuthLoadingScreen from './components/AuthLoadingScreen/AuthLoadingScreen';
+import AkılliIthalat from './pages/AkılliIthalat';
 
 const SESSION_EXPIRED_EVENT = 'agrolina:sessionExpired';
 
@@ -174,6 +175,7 @@ function App() {
             <Route path="/stok-yonetimi" element={<Navigate to="/yem-merkezi" replace />} />
             <Route path="/aktiviteler" element={<Aktiviteler />} />
             <Route path="/raporlar" element={<Raporlar />} />
+            <Route path="/akilli-ithalat" element={<AkılliIthalat />} />
           </>}
 
           {/* Sadece çiftçi (patron) — işçinin görmemesi gereken */}

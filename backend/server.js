@@ -138,6 +138,7 @@ app.use('/api/veteriner', require('./routes/veterinerMusteri')); // Veteriner Mo
 app.use('/api/danismalar', require('./routes/danisma')); // Çiftçi–Veteriner danışma mesajları
 app.use('/api/toplayici', require('./routes/toplayici')); // Süt toplayıcı modülü
 app.use('/api/odeme', require('./routes/odeme')); // Abonelik & Ödeme modülü
+app.use('/api/ai-import', require('./routes/aiImport')); // 🧠 Hibrit Akıllı İthalat
 
 // 🔒 Global Error Handler (en sonda olmalı)
 app.use(errorHandler);

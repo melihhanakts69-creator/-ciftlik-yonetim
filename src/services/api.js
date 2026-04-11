@@ -304,4 +304,11 @@ export const getPlanlar = () => api.get('/odeme/planlar');
 export const createCheckout = (data) => api.post('/odeme/checkout', data);
 export const demoAktif = (planKey) => api.get(`/odeme/demo-aktif?planKey=${planKey}`);
 
+// 🧠 HİBRİT AKILLI İTHALAT
+export const aiImportAnaliz = (formData) => api.post('/ai-import/analiz', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+  timeout: 60000, // 60sn (AI analiz uzun sürebilir)
+});
+export const aiImportKaydet = (data) => api.post('/ai-import/kaydet', data);
+
 export default api;
