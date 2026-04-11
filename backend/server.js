@@ -217,3 +217,26 @@ start().catch((err) => {
   console.error('Sunucu başlatılamadı:', err);
   process.exit(1);
 });
+
+// ─── RENDER.COM KEEP-ALIVE ────────────────────────────────────────────────────
+// Render free tier 15 dakika inaktiflik sonrası sunucuyu uyutuyor.
+// Bu kod her 13 dakikada bir kendi health endpoint'ine ping atar.
+// Böylece telefonda ilk giriş bile hızlı olur.
+if (process.env.NODE_ENV === 'production') {
+  const selfUrl = process.env.RENDER_EXTERNAL_URL
+    ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+    : 'https://ciftlik-yonetim.onrender.com/api/health';
+
+  setInterval(() => {
+    const https = require('https');
+    const http  = require('http');
+    const lib   = selfUrl.startsWith('https') ? https : http;
+    lib.get(selfUrl, (res) => {
+      console.log(`[Keep-Alive] ping → ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.warn('[Keep-Alive] ping hatası:', err.message);
+    });
+  }, 13 * 60 * 1000); // 13 dakikada bir
+
+  console.log('[Keep-Alive] Render.com uyku önleme aktif →', selfUrl);
+}

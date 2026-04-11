@@ -574,7 +574,7 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // En iyi performanslı inekler (süt veriminden karlılık tahmini)
     const topInekler = await SutKaydi.aggregate([
-      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr }, inekId: { $regex: /^[0-9a-fA-F]{24}$/ } }) },
       { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
@@ -606,7 +606,7 @@ router.get('/karlilik', auth, async (req, res) => {
     const yemPayiBasina = inekSayisi > 0 ? toplamYemMaliyet / inekSayisi : 0;
 
     const tumIneklerSut = await SutKaydi.aggregate([
-      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr }, inekId: { $regex: /^[0-9a-fA-F]{24}$/ } }) },
       { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },

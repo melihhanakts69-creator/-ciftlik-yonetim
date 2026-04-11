@@ -9,6 +9,7 @@ export const API_URL =
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 90000, // Render cold start 60-90sn sürebilir
 });
 
 // Her istekte token ekle

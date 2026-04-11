@@ -471,6 +471,7 @@ export default function AkılliIthalat() {
   const [dragging, setDragging]     = useState(false);
   const [loading, setLoading]       = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
+  const [coldStart, setColdStart]   = useState(false); // Render uyanıyor mesajı
   const [analiz, setAnaliz]         = useState(null);
   const [items, setItems]           = useState([]);
   const [kayitSonucu, setKayitSonucu] = useState(null);
@@ -489,6 +490,8 @@ export default function AkılliIthalat() {
       ['jpg','jpeg','png','webp'].includes(ext) ? '🤖 AI görüntüyü analiz ediyor...' :
       ext === 'pdf' ? '📄 PDF okunuyor...' : '📊 Excel/CSV içe aktarılıyor...'
     );
+    // Render cold start tespiti: 8 saniye geçerse uyarı göster
+    const coldTimer = setTimeout(() => setColdStart(true), 8000);
     try {
       const formData = new FormData();
       formData.append('dosya', file);
@@ -496,8 +499,8 @@ export default function AkılliIthalat() {
       setAnaliz(data); setItems(data.items || []); setStep(2);
       toast.success(`${data.count} hayvan tespit edildi!`);
     } catch (err) {
-      toast.error('Dosya işlenemedi: ' + (err.response?.data?.message || err.message));
-    } finally { setLoading(false); }
+      toast.error('Dosya içe aktarma başarısız: ' + (err.response?.data?.message || err.message));
+    } finally { clearTimeout(coldTimer); setLoading(false); setColdStart(false); }
   }, []);
 
   const onDrop = useCallback((e) => {
@@ -576,7 +579,16 @@ export default function AkılliIthalat() {
 
             {loading ? (
               <div style={{textAlign:'center',padding:'48px 0'}}>
-                <BigSpinner/><p style={{color:'#94a3b8',margin:0}}>{loadingMsg}</p>
+                <BigSpinner/>
+                <p style={{color:'#94a3b8',margin:0}}>{loadingMsg}</p>
+                {coldStart && (
+                  <div style={{marginTop:16,padding:'12px 20px',background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',borderRadius:12,maxWidth:360,margin:'16px auto 0'}}>
+                    <p style={{margin:0,fontSize:13,color:'#fcd34d',fontWeight:600}}>🌙 Sunucu Uyanıyor...</p>
+                    <p style={{margin:'4px 0 0',fontSize:12,color:'#92400e',lineHeight:1.6}}>
+                      Render.com üzerindeki sunucu kısa süreıñinde uyumuştu. 30-60 saniye içinde hazır olacak. Lütfen bekleyin...
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <>
