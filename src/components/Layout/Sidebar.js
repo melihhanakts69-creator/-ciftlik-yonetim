@@ -251,6 +251,7 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
     // Çiftçi (Ana Patron)
     menuItems = [
       { path: '/', name: 'Ana Sayfa', icon: <FaHome /> },
+      { path: '/akilli-ithalat', name: 'Akıllı İthalat', icon: <FiUploadCloud /> },
       { path: '/takvim', name: 'Takvim', icon: <FaCalendar /> },
       { path: '/inekler', name: 'İnekler', icon: <GiCow /> },
       { path: '/sut-kaydi', name: 'Süt Kaydı', icon: <FaGlassWhiskey /> },
@@ -263,7 +264,6 @@ const Sidebar = ({ onLogout, isOpen, onClose }) => {
       { path: '/saglik-merkezi', name: 'Sağlık Merkezi', icon: <FaHeartbeat /> },
       { path: '/finansal', name: 'Finansal', icon: <FaWallet /> },
       { path: '/karlilik', name: 'Karlılık Analizi', icon: <FaChartPie /> },
-      { path: '/akilli-ithalat', name: 'Akıllı İthalat', icon: <FiUploadCloud /> },
       { path: '/bildirimler', name: 'Bildirimler', icon: <FaBell />, badge: okunmamisSayisi },
       { path: '/raporlar', name: 'Raporlar', icon: <FaFileAlt /> },
       { path: '/ayarlar', name: 'Ayarlar', icon: <FaCog /> },

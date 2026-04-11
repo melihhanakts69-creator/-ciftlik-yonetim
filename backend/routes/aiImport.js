@@ -1,5 +1,5 @@
 /**
- * aiImport.js — Hibrit Akıllı İthalat Route (v2)
+ * aiImport.js — Hibrit Akıllı İthalat Route (v3 — hata düzeltmeleri)
  * POST /api/ai-import/analiz  → Dosyayı oku, tüm alanları + autoType dön
  * POST /api/ai-import/kaydet  → Satır bazlı tür ile toplu DB kaydı
  */
@@ -12,23 +12,30 @@ const { parseFile } = require('../utils/fileParser');
 const { analyzeWithGemini } = require('../utils/geminiVision');
 const mongoose = require('mongoose');
 
-// ─── MULTER ──────────────────────────────────────────────────────────────────
+// ─── MULTER — Daha geniş kabul listesi (Windows/Mac mimetype farkları) ────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB
   fileFilter: (req, file, cb) => {
-    const allowed = [
+    const name = (file.originalname || '').toLowerCase();
+    const isAllowedExt = /\.(xlsx|xls|csv|pdf|jpg|jpeg|png|webp)$/.test(name);
+    // Mimetype kontrolünü sadece yedek olarak kullan; extension öncelikli
+    if (isAllowedExt) return cb(null, true);
+
+    const allowedMimes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
+      'application/msexcel',
+      'application/x-msexcel',
+      'application/excel',
       'text/csv',
-      'image/jpeg', 'image/png', 'image/webp',
+      'text/plain', // bazı CSV dosyaları text/plain gelir
+      'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
     ];
-    if (allowed.includes(file.mimetype) || /\.(xlsx|xls|csv|pdf|jpg|jpeg|png|webp)$/i.test(file.originalname)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Desteklenmeyen dosya türü.'));
-    }
+    if (allowedMimes.includes(file.mimetype)) return cb(null, true);
+
+    cb(new Error(`Desteklenmeyen dosya türü. Lütfen Excel, CSV, PDF veya görsel yükleyin. (${file.mimetype})`));
   }
 });
 
@@ -38,47 +45,67 @@ router.post('/analiz', auth, upload.single('dosya'), async (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'Dosya yüklenmedi' });
 
     const { buffer, mimetype, originalname, size } = req.file;
+    const ext = originalname.split('.').pop().toLowerCase();
+
+    console.log(`[aiImport] Dosya: ${originalname}, Tip: ${mimetype}, Boyut: ${Math.round(size/1024)}KB`);
 
     let result;
+    let parseError = null;
+
+    // 1. Kuralsız parser dene
     try {
       result = await parseFile(buffer, mimetype, originalname);
-    } catch (parseErr) {
-      console.warn('[aiImport] Parser hatası:', parseErr.message);
+      console.log(`[aiImport] Parser sonucu: source=${result.source}, items=${result.items?.length}, needsAi=${result.needsAi}`);
+    } catch (err) {
+      parseError = err;
+      console.warn('[aiImport] Parser hatası:', err.message);
       result = { items: [], needsAi: true, source: 'unknown' };
     }
 
-    // AI Fallback
+    // 2. AI Fallback — görsel ve taranmış PDF
     if (result.needsAi || result.items.length === 0) {
-      const isImage = mimetype.startsWith('image/') || /\.(jpg|jpeg|png|webp)$/i.test(originalname);
-      const isPdf = mimetype === 'application/pdf' || /\.pdf$/i.test(originalname);
+      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(originalname) || (mimetype || '').startsWith('image/');
+      const isPdf = ext === 'pdf' || mimetype === 'application/pdf';
 
       if (isImage || isPdf) {
+        console.log(`[aiImport] Gemini'ye gönderiliyor... (${isImage ? 'görsel' : 'pdf'})`);
         try {
-          result = await analyzeWithGemini(buffer.toString('base64'), isPdf ? 'application/pdf' : mimetype);
-          // Gemini'den gelen satırlara da autoType ekle
+          const base64 = buffer.toString('base64');
+          const aiMime = isPdf ? 'application/pdf' : (mimetype || 'image/jpeg');
+          result = await analyzeWithGemini(base64, aiMime);
+
+          // Gemini sonucuna autoType ekle
           const { detectAnimalType, calcAgeMonths } = require('../utils/fileParser');
           result.items = (result.items || []).map(item => ({
             ...item,
             ageMonths: calcAgeMonths(item.birth_date),
             autoType: item.hayvan_tipi || detectAnimalType(item),
           }));
+
+          console.log(`[aiImport] Gemini sonucu: ${result.items?.length} hayvan`);
         } catch (aiErr) {
+          console.error('[aiImport] Gemini hatası:', aiErr.message);
+          const hint = parseError ? `Dosyadan okuma başarısız: ${parseError.message}. ` : '';
           return res.status(422).json({
-            message: 'Dosya okunamadı. Lütfen metin tabanlı PDF veya Excel/CSV yükleyin.',
+            message: `${hint}Yapay zeka da dosyayı işleyemedi. Lütfen metin tabanlı PDF veya Excel/CSV yükleyin.`,
             detail: aiErr.message
           });
         }
       } else {
-        return res.status(422).json({ message: 'Bu formatta veri çıkarılamadı.' });
+        // Excel/CSV ama hiç item gelemediyse detaylı hata ver
+        const hint = parseError
+          ? `Hata: ${parseError.message}. Dosya boş veya kolonlar tanımlanamadı.`
+          : `0 hayvan bulundu. Lütfen dosyada "Küpe No" kolonu olduğundan emin olun.`;
+        return res.status(422).json({ message: hint });
       }
     }
 
-    // Temizle, _tempId ekle
+    // Temizle ve normalize et
     const items = (result.items || [])
-      .filter(i => i.ear_tag?.length >= 3)
+      .filter(i => String(i.ear_tag || '').trim().length >= 2)
       .map((item, idx) => ({
         _tempId: idx,
-        ear_tag:      String(item.ear_tag || '').trim().toUpperCase(),
+        ear_tag:      String(item.ear_tag || '').replace(/\s/g, '').trim().toUpperCase(),
         name:         String(item.name || '').trim(),
         breed:        item.breed || 'Belirsiz',
         gender:       item.gender || '',
@@ -89,10 +116,9 @@ router.post('/analiz', auth, upload.single('dosya'), async (req, res) => {
         dogum_yeri:   String(item.dogum_yeri || '').trim(),
         notlar:       String(item.notlar || '').trim(),
         ageMonths:    item.ageMonths,
-        autoType:     item.autoType || 'inek', // Frontend kullanıcıya gösterecek, değiştirebilir
+        autoType:     item.autoType || 'inek',
       }));
 
-    // Özet istatistik
     const typeStats = items.reduce((acc, i) => {
       acc[i.autoType] = (acc[i.autoType] || 0) + 1;
       return acc;
@@ -105,18 +131,19 @@ router.post('/analiz', auth, upload.single('dosya'), async (req, res) => {
       usedAi: result.source === 'gemini',
       dosyaAdi: originalname,
       dosyaBoyutu: Math.round(size / 1024) + ' KB',
-      typeStats, // { inek: 10, buzagi: 5, duve: 3 }
+      typeStats,
     });
 
   } catch (err) {
-    console.error('[aiImport/analiz]', err);
-    if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'Dosya 15 MB sınırını aşıyor' });
-    res.status(500).json({ message: 'Dosya işlenemedi: ' + err.message });
+    console.error('[aiImport/analiz] Beklenmeyen hata:', err);
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'Dosya 15 MB sınırını aşıyor' });
+    }
+    res.status(500).json({ message: 'Sunucu hatası: ' + err.message });
   }
 });
 
 // ─── KAYDET ──────────────────────────────────────────────────────────────────
-// Her satırın kendi `hayvanTipi` alanını kullanır (frontend per-row override ile gönderir)
 router.post('/kaydet', auth, async (req, res) => {
   try {
     const { items } = req.body;
@@ -131,7 +158,7 @@ router.post('/kaydet', auth, async (req, res) => {
 
     const modelMap = { inek: Inek, duve: Duve, buzagi: Buzagi, tosun: Tosun };
 
-    // Tüm mevcut küpe nolarını bir kerede çek
+    // Mevcut küpe nolarını çek (çakışma kontrolü)
     const [inekKupeler, duveKupeler, buzagiKupeler, tosunKupeler] = await Promise.all([
       Inek.find({ userId }).select('kupeNo').lean(),
       Duve.find({ userId }).select('kupeNo').lean(),
@@ -140,17 +167,17 @@ router.post('/kaydet', auth, async (req, res) => {
     ]);
     const mevcutSet = new Set([
       ...inekKupeler, ...duveKupeler, ...buzagiKupeler, ...tosunKupeler
-    ].map(h => h.kupeNo?.toUpperCase()));
+    ].map(h => h.kupeNo?.toUpperCase()).filter(Boolean));
 
     const kaydedilenler = [];
     const atlananlar = [];
 
     for (const item of items) {
-      const kupeNo = String(item.ear_tag || '').trim().toUpperCase();
+      const kupeNo = String(item.ear_tag || '').replace(/\s/g, '').trim().toUpperCase();
       if (!kupeNo) { atlananlar.push({ kupeNo: '—', sebep: 'Küpe no boş' }); continue; }
       if (mevcutSet.has(kupeNo)) { atlananlar.push({ kupeNo, sebep: 'Zaten kayıtlı' }); continue; }
 
-      const tip = (item.hayvanTipi || item.autoType || 'inek').toLowerCase();
+      const tip = String(item.hayvanTipi || item.autoType || 'inek').toLowerCase();
       const Model = modelMap[tip] || Inek;
 
       // Yaş hesapla
@@ -160,12 +187,12 @@ router.post('/kaydet', auth, async (req, res) => {
         yas = Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24 * 30.44)));
       }
 
-      // Notlar birleştir
+      // Notlar
       const notParts = [];
       if (item.breed && item.breed !== 'Belirsiz') notParts.push(`Irk: ${item.breed}`);
       if (item.dogum_yeri) notParts.push(`Doğum Yeri: ${item.dogum_yeri}`);
       if (item.notlar) notParts.push(item.notlar);
-      notParts.push('AI İthalat');
+      notParts.push('Akıllı İthalat');
 
       try {
         const basePayload = {
@@ -173,37 +200,44 @@ router.post('/kaydet', auth, async (req, res) => {
           isim:        item.name || kupeNo,
           kupeNo,
           kilo:        Number(item.weight) || 0,
-          dogumTarihi: item.birth_date ? new Date(item.birth_date) : undefined,
           notlar:      notParts.join(' | '),
           anneKupeNo:  item.anne_kupe_no || undefined,
           babaKupeNo:  item.baba_kupe_no || undefined,
         };
 
+        // Doğum tarihi varsa ekle
+        if (item.birth_date) {
+          const dDate = new Date(item.birth_date);
+          if (!isNaN(dDate)) basePayload.dogumTarihi = dDate;
+        }
+
         if (tip === 'inek') {
-          Object.assign(basePayload, { yas, durum: 'Aktif' });
+          basePayload.yas    = yas;
+          basePayload.durum  = 'Aktif';
         } else if (tip === 'duve') {
-          Object.assign(basePayload, { yas, gebelikDurumu: 'Belirsiz' });
+          basePayload.yas           = yas;
+          basePayload.gebelikDurumu = 'Belirsiz';
         } else if (tip === 'buzagi') {
-          // Buzağı için cinsiyet zorunlu
-          const cinsiyet = item.gender === 'erkek' ? 'erkek' : 'disi';
-          Object.assign(basePayload, {
-            cinsiyet,
-            dogumTarihi: item.birth_date ? new Date(item.birth_date) : new Date(),
-          });
-          if (!basePayload.kilo) basePayload.kilo = 0;
+          // Buzağı: dogumTarihi required — güvenli fallback
+          if (!basePayload.dogumTarihi) basePayload.dogumTarihi = new Date();
+          basePayload.cinsiyet = item.gender === 'erkek' ? 'erkek' : 'disi';
         } else if (tip === 'tosun') {
-          Object.assign(basePayload, { yas, durum: 'Aktif' });
+          basePayload.yas   = yas;
+          basePayload.durum = 'Aktif';
+          // Tosun: notlar → not alanına da yaz
+          basePayload.not = basePayload.notlar;
+          delete basePayload.notlar;
         }
 
         await new Model(basePayload).save();
         kaydedilenler.push({ kupeNo, tip });
         mevcutSet.add(kupeNo);
       } catch (saveErr) {
-        atlananlar.push({ kupeNo, sebep: saveErr.message });
+        console.error(`[aiImport/kaydet] ${kupeNo} kayıt hatası:`, saveErr.message);
+        atlananlar.push({ kupeNo, sebep: saveErr.message.split(': ').pop().slice(0, 80) });
       }
     }
 
-    // Özet
     const tipOzet = kaydedilenler.reduce((acc, k) => {
       acc[k.tip] = (acc[k.tip] || 0) + 1;
       return acc;
@@ -213,7 +247,7 @@ router.post('/kaydet', auth, async (req, res) => {
       message: `${kaydedilenler.length} hayvan eklendi.${atlananlar.length > 0 ? ` ${atlananlar.length} atlandı.` : ''}`,
       eklenen: kaydedilenler.length,
       atlanan: atlananlar.length,
-      tipOzet, // { inek: 10, buzagi: 5 }
+      tipOzet,
       atlanmaDetay: atlananlar,
     });
 

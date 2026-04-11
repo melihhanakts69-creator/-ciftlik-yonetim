@@ -9,6 +9,7 @@ import BugunYemlemeCard from './BugunYemlemeCard';
 import GorevListesi from './GorevListesi';
 import { Skeleton } from '../common/Skeleton';
 import { FaPlus, FaMoneyBillWave, FaHeartbeat } from 'react-icons/fa';
+import { FiUploadCloud } from 'react-icons/fi';
 
 const DASHBOARD_PANEL_KEY = 'dashboardPanelMetrikleri';
 const DEFAULT_PANELS = ['gunlukSut', 'sagmalInek', 'yaklasanDogum', 'saglikSkoru'];
@@ -653,6 +654,9 @@ const Dashboard = ({ kullanici }) => {
           )}
           <ActionButton onClick={() => navigate('/saglik-merkezi')}>
             <FaHeartbeat /> <span>Sağlık</span>
+          </ActionButton>
+          <ActionButton onClick={() => navigate('/akilli-ithalat')} style={{ borderColor: '#818cf8', color: '#6366f1' }}>
+            <FiUploadCloud /> <span>Akıllı İthalat</span>
           </ActionButton>
         </QuickActions>
       </Header>
