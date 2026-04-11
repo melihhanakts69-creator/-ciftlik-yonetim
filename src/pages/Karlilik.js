@@ -79,14 +79,18 @@ const DONEM_GUN = { 'Bu Ay': 30, '3 Ay': 90, '6 Ay': 180 };
 export default function Karlilik() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hataMesaji, setHataMesaji] = useState(null);
   const [donem, setDonem] = useState('Bu Ay');
   const [yemFiyatArtis, setYemFiyatArtis] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true); setHataMesaji(null);
     api.getKarlilik(DONEM_GUN[donem] || 30)
       .then(r => setData(r.data))
-      .catch(e => console.error('Karlılık verisi alınamadı', e))
+      .catch(e => {
+        console.error('Karlılık verisi alınamadı', e);
+        setHataMesaji(e.response?.data?.detail || e.response?.data?.message || e.message);
+      })
       .finally(() => setLoading(false));
   }, [donem]);
 
@@ -94,6 +98,7 @@ export default function Karlilik() {
   const ayAd = AYLAR[bugun.getMonth()] + ' ' + bugun.getFullYear();
 
   if (loading) return <Page><SectionCard><EmptyBox>Yükleniyor…</EmptyBox></SectionCard></Page>;
+  if (hataMesaji) return <Page><SectionCard><EmptyBox style={{color:'#dc2626'}}><b>Hata:</b> {hataMesaji}</EmptyBox></SectionCard></Page>;
   if (!data) return <Page><SectionCard><EmptyBox>Veri alınamadı.</EmptyBox></SectionCard></Page>;
 
   const { ozet, inekKarliligi = [], giderKategoriler = [], gelirKategoriler = [], aylikTrend = [] } = data;

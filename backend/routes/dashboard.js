@@ -574,8 +574,9 @@ router.get('/karlilik', auth, async (req, res) => {
 
     // En iyi performanslı inekler (süt veriminden karlılık tahmini)
     const topInekler = await SutKaydi.aggregate([
-      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr }, inekId: { $regex: /^[0-9a-fA-F]{24}$/ } }) },
-      { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
+      { $addFields: { inekObjId: { $convert: { input: '$inekId', to: 'objectId', onError: null, onNull: null } } } },
+      { $match: { inekObjId: { $ne: null } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
       { $unwind: { path: '$inek', preserveNullAndEmptyArrays: true } },
@@ -606,8 +607,9 @@ router.get('/karlilik', auth, async (req, res) => {
     const yemPayiBasina = inekSayisi > 0 ? toplamYemMaliyet / inekSayisi : 0;
 
     const tumIneklerSut = await SutKaydi.aggregate([
-      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr }, inekId: { $regex: /^[0-9a-fA-F]{24}$/ } }) },
-      { $addFields: { inekObjId: { $toObjectId: '$inekId' } } },
+      { $match: addTenant(req, { userId: uid, tarih: { $gte: ayBasStr, $lte: ayBitStr } }) },
+      { $addFields: { inekObjId: { $convert: { input: '$inekId', to: 'objectId', onError: null, onNull: null } } } },
+      { $match: { inekObjId: { $ne: null } } },
       { $group: { _id: '$inekObjId', toplamSut: { $sum: '$litre' }, gunSayisi: { $sum: 1 } } },
       { $lookup: { from: 'ineks', localField: '_id', foreignField: '_id', as: 'inek' } },
       { $unwind: { path: '$inek', preserveNullAndEmptyArrays: true } },
@@ -654,7 +656,7 @@ router.get('/karlilik', auth, async (req, res) => {
     const altıAyOnce = new Date(bugun.getFullYear(), bugun.getMonth() - 5, 1);
     const aylikTrend = await Finansal.aggregate([
       { $match: { userId: uid, tarih: { $gte: altıAyOnce.toISOString().slice(0, 10) } } },
-      { $addFields: { ay: { $substr: ['$tarih', 0, 7] } } },
+      { $addFields: { ay: { $substr: [ { $toString: '$tarih' }, 0, 7 ] } } },
       { $group: { _id: { ay: '$ay', tip: '$tip' }, toplam: { $sum: '$miktar' } } },
       { $sort: { '_id.ay': 1 } }
     ]);
