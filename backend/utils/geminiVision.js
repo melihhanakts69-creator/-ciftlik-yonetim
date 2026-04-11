@@ -13,17 +13,24 @@ const VISION_MODEL = 'gemini-2.5-flash'; // Multimodal destekler
 
 const IMPORT_PROMPT = `Sana bir çiftlik / Türkvet hayvan listesi görseli veya PDF sayfası gönderiyorum.
 İçindeki tabloda veya listede aşağıdaki bilgileri bul:
-- Küpe No (ear_tag): "TR" ile başlayan numara
-- Irk (breed): Simental, Holstein, Montofon, Esmer, Jersey, Angus vb.
-- Cinsiyet (gender): "inek", "boga" veya "buzagi" değerlerinden birini kullan
+- Küpe No (ear_tag): "TR" ile başlayan veya çiftliğe özel numara
+- Hayvan Adı (name): Hayvana verilen isim (yoksa boş bırak)
+- Irk (breed): Simental, Holstein, Montofon, Esmer, Jersey, Angus, Limouzin vb.
+- Cinsiyet (gender): "disi" veya "erkek" değerinden birini kullan
 - Doğum Tarihi (birth_date): YYYY-MM-DD formatında
+- Kilo (weight): Sayı olarak kg cinsinden
+- Anne Küpe No (anne_kupe_no): Annenin küpe numarası (varsa)
+- Baba Küpe No (baba_kupe_no): Babanın veya boğanın küpe/semen kodu (varsa)
+- Doğum Yeri (dogum_yeri): İşletme adı veya il/ilçe
+- Hayvan Tipi (hayvan_tipi): "inek", "duve", "buzagi" veya "tosun" olarak belirt (yaşa/cinsiyete göre tahmin et)
 
 KRİTİK KURALLAR:
 1. SADECE şu JSON formatında yanıt ver, başka hiçbir şey yazma:
-[{"ear_tag":"TR12345","breed":"Simental","gender":"inek","birth_date":"2022-05-01"}]
-2. TC Kimlik No, İşletme No, adres, telefon gibi kişisel verileri JSON'a ASLA ekleme ve unut.
+[{"ear_tag":"TR12345","name":"","breed":"Simental","gender":"disi","birth_date":"2022-05-01","weight":0,"anne_kupe_no":"","baba_kupe_no":"","dogum_yeri":"","hayvan_tipi":"inek"}]
+2. TC Kimlik No, sahip adı-soyadı, telefon, adres gibi kişisel verileri JSON'a ASLA ekleme.
 3. Küpe no yoksa o satırı ekleme.
-4. Okuyamadığın alan için boş string ("") kullan.`;
+4. Bilinmeyen alanlar için boş string ("") veya 0 kullan.
+5. Yaş tahmini: 6 aydan küçük=buzagi, 6-36 ay dişi=duve, 6-36 ay erkek=tosun, 36+ ay=inek`;
 
 async function analyzeWithGemini(base64Data, mimeType) {
   if (GEMINI_KEYS.length === 0) {
