@@ -199,11 +199,34 @@ function parseCsv(buffer) {
 
 // ─── PDF METIN PARSER ─────────────────────────────────────────────────────────
 async function parsePdfText(buffer) {
-  const pdfParse = require('pdf-parse');
-  const data = await pdfParse(buffer);
-  const text = data.text || '';
+  let pdfParse;
+  try {
+    // Vercel/serverless ortamında pdf-parse direkt require edilince
+    // test PDF dosyasını yüklemeye çalışıp crash olur.
+    // lib/pdf-parse.js üzerinden çağırmak bu sorunu önler.
+    pdfParse = require('pdf-parse/lib/pdf-parse.js');
+  } catch (e1) {
+    try {
+      pdfParse = require('pdf-parse');
+    } catch (e2) {
+      console.error('[fileParser] pdf-parse yüklenemedi:', e2.message);
+      return { items: [], source: 'pdf-text', needsAi: true };
+    }
+  }
 
-  if (text.trim().length < 50) {
+  let pdfData;
+  try {
+    pdfData = await pdfParse(buffer, { max: 0 }); // tüm sayfalar
+  } catch (parseErr) {
+    console.warn('[fileParser] PDF metin çıkarma hatası:', parseErr.message);
+    return { items: [], source: 'pdf-text', needsAi: true };
+  }
+
+  const text = pdfData?.text || '';
+  console.log(`[fileParser] PDF metin uzunluğu: ${text.length} karakter`);
+
+  if (text.trim().length < 30) {
+    console.log('[fileParser] PDF metin çıkarılamadı, AI gerekiyor');
     return { items: [], source: 'pdf-text', needsAi: true };
   }
 
@@ -211,7 +234,7 @@ async function parsePdfText(buffer) {
   const items = [];
 
   for (const line of lines) {
-    const kupeMatch = line.match(/TR\d{10,}/i);
+    const kupeMatch = line.match(/TR\d{8,}/i);
     if (!kupeMatch) continue;
 
     const ear_tag = kupeMatch[0].toUpperCase();
@@ -238,25 +261,32 @@ async function parsePdfText(buffer) {
 
     // Irk
     let breed = 'Belirsiz';
-    for (const irk of ['Simental', 'Holstein', 'Montofon', 'Esmer', 'Yerli', 'Jersey', 'Angus', 'Limouzin']) {
+    for (const irk of ['Simental','Holstein','Montofon','Esmer','Yerli','Jersey','Angus','Limouzin','Brown Swiss','Saanen']) {
       if (new RegExp(irk, 'i').test(line)) { breed = irk; break; }
     }
 
-    // Anne küpe  (satırda "Anne: TR..." veya ikinci TR... kodu)
-    const allTrNos = [...line.matchAll(/TR\d{10,}/gi)].map(m => m[0].toUpperCase());
+    // Anne küpe (satırda ikinci TR... kodu)
+    const allTrNos = [...line.matchAll(/TR\d{8,}/gi)].map(m => m[0].toUpperCase());
     const anne_kupe_no = allTrNos.length > 1 ? allTrNos[1] : '';
 
     // Kilo
     const kiloMatch = line.match(/(\d+[.,]?\d*)\s*(kg|kilo)/i);
     const weight = kiloMatch ? parseFloat(kiloMatch[1].replace(',', '.')) : 0;
 
-    const row = { ear_tag, breed, gender, birth_date, weight, anne_kupe_no, baba_kupe_no: '', dogum_yeri: '', notlar: '', hayvan_tipi: '', ageMonths: calcAgeMonths(birth_date) };
+    const row = {
+      ear_tag, breed, gender, birth_date, weight,
+      anne_kupe_no, baba_kupe_no: '', dogum_yeri: '', notlar: '', hayvan_tipi: '',
+      ageMonths: calcAgeMonths(birth_date)
+    };
     row.autoType = detectAnimalType(row);
-
     items.push(row);
   }
 
-  if (items.length === 0) return { items: [], source: 'pdf-text', needsAi: true };
+  console.log(`[fileParser] PDF'den ${items.length} hayvan çıkarıldı`);
+
+  if (items.length === 0) {
+    return { items: [], source: 'pdf-text', needsAi: true };
+  }
 
   return { items, source: 'pdf-text', needsAi: false };
 }
