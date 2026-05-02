@@ -15,10 +15,11 @@ const connectDB = async () => {
         });
 
         console.log('🚀 [ANTIGRAVITY_FINAL] - AGROLINA CANLANDI!');
+        return true;
     } catch (error) {
         console.error("❌ HATA:");
         console.error(JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-        process.exit(1);
+        return false;
     }
 };
 
