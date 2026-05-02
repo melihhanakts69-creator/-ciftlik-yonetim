@@ -697,6 +697,7 @@ router.get('/karlilik', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Karlılık error:', error);
+    console.error("KARLILIK ERROR:", error);
     res.status(500).json({ message: 'Karlılık verisi alınamadı', detail: error.message });
   }
 });
