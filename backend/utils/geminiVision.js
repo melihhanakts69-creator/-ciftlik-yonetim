@@ -1,7 +1,7 @@
 /**
- * geminiVision.js — AI Fallback
- * Sadece taranmış görsel veya okunaksız PDF için devreye girer.
- * Mevcut ai.js'teki API key sistemini tekrar kullanır.
+ * geminiVision.js — AI Fallback (v2)
+ * Taranmış görsel veya metin çıkarılamayan PDF için devreye girer.
+ * Hem görsel hem PDF inline_data olarak Gemini'ye gönderilir.
  */
 
 const https = require('https');
@@ -9,11 +9,12 @@ const https = require('https');
 const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
   .split(',').map(k => k.trim()).filter(Boolean);
 
-const VISION_MODEL = 'gemini-2.5-flash'; // Multimodal destekler
+// gemini-2.5-flash-preview-04-17 → PDF + görsel multimodal destekler
+const VISION_MODEL = 'gemini-2.5-flash-preview-04-17';
 
-const IMPORT_PROMPT = `Sana bir çiftlik / Türkvet hayvan listesi görseli veya PDF sayfası gönderiyorum.
+const IMPORT_PROMPT = `Sana bir çiftlik / Türkvet hayvan listesi görseli, fotoğraf veya PDF sayfası gönderiyorum.
 İçindeki tabloda veya listede aşağıdaki bilgileri bul:
-- Küpe No (ear_tag): "TR" ile başlayan veya çiftliğe özel numara
+- Küpe No (ear_tag): "TR" ile başlayan veya çiftliğe özel numara (ZORUNLU - yoksa o hayvanı ekleme)
 - Hayvan Adı (name): Hayvana verilen isim (yoksa boş bırak)
 - Irk (breed): Simental, Holstein, Montofon, Esmer, Jersey, Angus, Limouzin vb.
 - Cinsiyet (gender): "disi" veya "erkek" değerinden birini kullan
@@ -30,26 +31,51 @@ KRİTİK KURALLAR:
 2. TC Kimlik No, sahip adı-soyadı, telefon, adres gibi kişisel verileri JSON'a ASLA ekleme.
 3. Küpe no yoksa o satırı ekleme.
 4. Bilinmeyen alanlar için boş string ("") veya 0 kullan.
-5. Yaş tahmini: 6 aydan küçük=buzagi, 6-36 ay dişi=duve, 6-36 ay erkek=tosun, 36+ ay=inek`;
+5. Yaş tahmini: 6 aydan küçük=buzagi, 6-36 ay dişi=duve, 6-36 ay erkek=tosun, 36+ ay=inek
+6. Tüm sayfaları tara, tüm hayvanları listele.
+7. Yanıtın başında veya sonunda \`\`\`json veya \`\`\` bloğu kullanma, düz JSON listesi döndür.`;
 
+/**
+ * Gemini API'ye istek at
+ * @param {string} base64Data - base64 encoded dosya içeriği
+ * @param {string} mimeType   - 'image/jpeg' | 'image/png' | 'application/pdf' | 'image/webp'
+ */
 async function analyzeWithGemini(base64Data, mimeType) {
   if (GEMINI_KEYS.length === 0) {
-    throw new Error('Gemini API anahtarı tanımlanmamış');
+    throw new Error('Gemini API anahtarı tanımlanmamış (GEMINI_API_KEY)');
   }
 
   const apiKey = GEMINI_KEYS[0];
+
+  // PDF ise inline_data olarak gönder (Gemini PDF desteği)
+  // Görsel ise inline_data olarak gönder
+  const normalizedMime = normalizeMime(mimeType);
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${VISION_MODEL}:generateContent?key=${apiKey}`;
 
-  const body = JSON.stringify({
+  const requestBody = {
     contents: [{
       role: 'user',
       parts: [
         { text: IMPORT_PROMPT },
-        { inline_data: { mime_type: mimeType, data: base64Data } }
+        {
+          inline_data: {
+            mime_type: normalizedMime,
+            data: base64Data
+          }
+        }
       ]
     }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
-  });
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 8192,
+      responseMimeType: 'text/plain'
+    }
+  };
+
+  const bodyStr = JSON.stringify(requestBody);
+  // Buffer.byteLength kullanmak binary-safe (multi-byte char sorununu önler)
+  const bodyBuf = Buffer.from(bodyStr, 'utf-8');
 
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
@@ -58,40 +84,87 @@ async function analyzeWithGemini(base64Data, mimeType) {
       path: urlObj.pathname + urlObj.search,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body)
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': bodyBuf.length
       }
     };
 
     const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
         try {
+          const data = Buffer.concat(chunks).toString('utf-8');
           const parsed = JSON.parse(data);
-          if (parsed.error) {
-            return reject(new Error(parsed.error.message || 'Gemini Vision hatası'));
-          }
-          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-          // JSON parse
-          const jsonMatch = text.match(/\[[\s\S]*\]/);
-          if (!jsonMatch) {
-            return reject(new Error('Gemini geçerli JSON döndürmedi'));
+          if (parsed.error) {
+            const errMsg = parsed.error.message || 'Gemini Vision hatası';
+            console.error('[geminiVision] API hatası:', errMsg);
+            return reject(new Error(errMsg));
           }
-          const items = JSON.parse(jsonMatch[0]);
+
+          const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          console.log(`[geminiVision] Yanıt uzunluğu: ${text.length} karakter`);
+
+          // JSON çıkar — hem düz liste hem ```json``` blokları için
+          const cleaned = text
+            .replace(/```json\s*/gi, '')
+            .replace(/```\s*/g, '')
+            .trim();
+
+          // İlk [ ... ] bloğunu bul
+          const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+          if (!jsonMatch) {
+            console.warn('[geminiVision] JSON bulunamadı. Ham yanıt:', text.slice(0, 500));
+            // Boş liste yerine hata fırlat ki caller doğru mesaj verebilsin
+            return reject(new Error('Gemini geçerli JSON döndürmedi. Dosyada okunabilir hayvan verisi bulunamadı.'));
+          }
+
+          let items;
+          try {
+            items = JSON.parse(jsonMatch[0]);
+          } catch (parseErr) {
+            return reject(new Error('Gemini JSON parse hatası: ' + parseErr.message));
+          }
+
+          if (!Array.isArray(items)) {
+            return reject(new Error('Gemini yanıtı dizi formatında değil'));
+          }
+
+          console.log(`[geminiVision] ${items.length} hayvan bulundu`);
           resolve({ items, source: 'gemini' });
+
         } catch (e) {
-          reject(new Error('Gemini yanıtı parse edilemedi: ' + e.message));
+          reject(new Error('Gemini yanıtı işlenemedi: ' + e.message));
         }
       });
     });
 
-    req.on('error', reject);
-    req.setTimeout(45000, () => { req.destroy(); reject(new Error('Gemini zaman aşımı')); });
-    req.write(body);
+    req.on('error', (err) => {
+      console.error('[geminiVision] Bağlantı hatası:', err.message);
+      reject(err);
+    });
+
+    // PDF büyük olabilir, timeout'u artır
+    req.setTimeout(90000, () => {
+      req.destroy();
+      reject(new Error('Gemini zaman aşımı (90s). Dosya çok büyük veya bağlantı yavaş olabilir.'));
+    });
+
+    req.write(bodyBuf);
     req.end();
   });
+}
+
+/**
+ * MIME tipini Gemini'nin kabul ettiği formata normalize et
+ */
+function normalizeMime(mimeType) {
+  if (!mimeType) return 'image/jpeg';
+  if (mimeType === 'application/pdf') return 'application/pdf';
+  if (mimeType.startsWith('image/')) return mimeType;
+  // Fallback
+  return 'image/jpeg';
 }
 
 module.exports = { analyzeWithGemini };

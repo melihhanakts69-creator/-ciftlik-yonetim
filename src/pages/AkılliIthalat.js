@@ -482,26 +482,45 @@ export default function AkılliIthalat() {
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) { toast.error('Dosya 15 MB sınırını aşıyor'); return; }
     const ext = file.name.split('.').pop().toLowerCase();
-    if (!['xlsx','xls','csv','pdf','jpg','jpeg','png','webp'].includes(ext)) {
+    const isImage = ['jpg','jpeg','png','webp'].includes(ext) || file.type.startsWith('image/');
+    const isPdf = ext === 'pdf' || file.type === 'application/pdf';
+    if (!isImage && !isPdf && !['xlsx','xls','csv'].includes(ext)) {
       toast.error(`Desteklenmeyen format: .${ext}`); return;
     }
     setLoading(true);
     setLoadingMsg(
-      ['jpg','jpeg','png','webp'].includes(ext) ? '🤖 AI görüntüyü analiz ediyor...' :
-      ext === 'pdf' ? '📄 PDF okunuyor...' : '📊 Excel/CSV içe aktarılıyor...'
+      isImage ? '🤖 AI görüntüyü analiz ediyor...' :
+      isPdf   ? '📄 PDF okunuyor, AI devreye girebilir...' :
+                '📊 Excel/CSV içe aktarılıyor...'
     );
     // Render cold start tespiti: 8 saniye geçerse uyarı göster
     const coldTimer = setTimeout(() => setColdStart(true), 8000);
     try {
       const formData = new FormData();
-      formData.append('dosya', file);
+      // Kamera fotoğrafı ise dosya adını .jpg yap
+      const fileName = file.name || (isImage ? 'kamera-foto.jpg' : 'dosya');
+      formData.append('dosya', file, fileName);
       const { data } = await api.aiImportAnaliz(formData);
       setAnaliz(data); setItems(data.items || []); setStep(2);
-      toast.success(`${data.count} hayvan tespit edildi!`);
+      if (data.count === 0) {
+        toast.warn('Hiç hayvan verisi bulunamadı. Daha net bir fotoğraf veya farklı dosya deneyin.');
+      } else {
+        toast.success(`${data.count} hayvan tespit edildi!`);
+      }
     } catch (err) {
-      toast.error('Dosya içe aktarma başarısız: ' + (err.response?.data?.message || err.message));
+      const msg = err.response?.data?.message || err.message;
+      toast.error('Dosya içe aktarma başarısız: ' + msg);
     } finally { clearTimeout(coldTimer); setLoading(false); setColdStart(false); }
   }, []);
+
+  // ─── KAMERA ÇEKME ─────────────────────────────────────────────────────────
+  const cameraRef = useRef();
+
+  const handleCameraCapture = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+    e.target.value = '';
+  }, [handleFile]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault(); setDragging(false);
@@ -608,10 +627,49 @@ export default function AkılliIthalat() {
                     ))}
                   </FormatChips>
                 </Dropzone>
+
+                {/* Butonlar */}
+                <div style={{display:'flex',gap:12,marginTop:16,flexWrap:'wrap',justifyContent:'center'}}>
+                  <button
+                    onClick={()=>inputRef.current?.click()}
+                    style={{
+                      display:'flex',alignItems:'center',gap:8,
+                      padding:'12px 24px',borderRadius:12,border:'none',
+                      background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                      color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer',
+                      boxShadow:'0 4px 15px rgba(99,102,241,.35)'
+                    }}
+                  >
+                    <FiUploadCloud size={16}/> Dosya Seç
+                  </button>
+                  <button
+                    onClick={()=>cameraRef.current?.click()}
+                    title="Kamera ile fotoğraf çek veya ekran görüntüsü seç"
+                    style={{
+                      display:'flex',alignItems:'center',gap:8,
+                      padding:'12px 24px',borderRadius:12,
+                      border:'1px solid rgba(16,185,129,.4)',
+                      background:'rgba(16,185,129,.1)',
+                      color:'#6ee7b7',fontSize:14,fontWeight:600,cursor:'pointer'
+                    }}
+                  >
+                    <FiCamera size={16}/> Fotoğraf / Ekran Görüntüsü
+                  </button>
+                </div>
+
                 <input ref={inputRef} type="file"
                   accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png,.webp"
                   style={{display:'none'}}
                   onChange={e=>{if(e.target.files[0])handleFile(e.target.files[0]);e.target.value='';}}
+                />
+                {/* Kamera girişi — mobilde kamera açar, masaüstünde dosya seçici */}
+                <input
+                  ref={cameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  style={{display:'none'}}
+                  onChange={handleCameraCapture}
                 />
               </>
             )}

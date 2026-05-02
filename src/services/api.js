@@ -307,7 +307,7 @@ export const demoAktif = (planKey) => api.get(`/odeme/demo-aktif?planKey=${planK
 // 🧠 HİBRİT AKILLI İTHALAT
 export const aiImportAnaliz = (formData) => api.post('/ai-import/analiz', formData, {
   headers: { 'Content-Type': 'multipart/form-data' },
-  timeout: 60000, // 60sn (AI analiz uzun sürebilir)
+  timeout: 120000, // 120sn — PDF + Gemini AI uzun sürebilir
 });
 export const aiImportKaydet = (data) => api.post('/ai-import/kaydet', data);
 
