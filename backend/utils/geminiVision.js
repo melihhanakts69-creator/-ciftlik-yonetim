@@ -9,8 +9,8 @@ const https = require('https');
 const GEMINI_KEYS = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
   .split(',').map(k => k.trim()).filter(Boolean);
 
-// gemini-2.5-flash-preview-04-17 → PDF + görsel multimodal destekler
-const VISION_MODEL = 'gemini-2.5-flash-preview-04-17';
+// gemini-3.5-flash → PDF + görsel multimodal destekler
+const VISION_MODEL = 'gemini-3.5-flash';
 
 const IMPORT_PROMPT = `Sana bir çiftlik / Türkvet hayvan listesi görseli, fotoğraf veya PDF sayfası gönderiyorum.
 İçindeki tabloda veya listede aşağıdaki bilgileri bul:
